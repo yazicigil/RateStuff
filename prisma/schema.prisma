@@ -1,4 +1,7 @@
-generator client { provider = "prisma-client-js" }
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -45,6 +48,7 @@ model ItemTag {
   tagId  String
   item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@id([itemId, tagId])
   @@index([tagId])
 }
@@ -58,6 +62,7 @@ model Rating {
   itemId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
   @@unique([itemId, userId])
   @@index([itemId])
   @@index([userId])
@@ -72,6 +77,7 @@ model Comment {
   itemId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
   @@index([itemId])
   @@index([userId])
 }
@@ -83,6 +89,7 @@ model Report {
   itemId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
   @@unique([itemId, userId])
   @@index([itemId])
   @@index([userId])
@@ -96,6 +103,7 @@ model ImageContribution {
   itemId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
   @@index([itemId])
   @@index([userId])
 }
