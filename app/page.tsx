@@ -5,6 +5,9 @@ import Link from "next/link";
 import Tag from "@/components/Tag";
 import Stars from "@/components/Stars";
 import Pill from "@/components/Pill";
+import { SessionProvider } from "next-auth/react";
+import AuthButtons from "@/components/AuthButtons";
+import CommentBox from "@/components/CommentBox";
 
 type ItemVM = {
   id: string;
@@ -17,7 +20,16 @@ type ItemVM = {
   tags: string[];
 };
 
-export default function HomePage() {
+export default function Page() {
+  // SessionProvider'ı en dışa koyduk ki sayfanın her yerinde auth çalışsın
+  return (
+    <SessionProvider>
+      <HomePage />
+    </SessionProvider>
+  );
+}
+
+function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [order, setOrder] = useState<"new"|"top">("new");
@@ -75,7 +87,7 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
-  // rating update endpoint (added in this patch)
+  // rating update endpoint (server'da /api/items/[id]/rate olmalı)
   async function rate(id: string, value: number) {
     const r = await fetch(`/api/items/${id}/rate`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ value })});
     const j = await r.json();
@@ -97,6 +109,8 @@ export default function HomePage() {
               <option value="top">En çok oy</option>
             </select>
             <Link className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700" href="/items/new">Yeni Item</Link>
+            {/* Google giriş/çıkış butonları */}
+            <AuthButtons />
           </div>
         </div>
       </header>
@@ -161,6 +175,10 @@ export default function HomePage() {
                     <div className="mt-2">
                       <button className="px-3 py-1 rounded-xl border text-sm dark:border-gray-700" onClick={()=>report(i.id)}>Report</button>
                     </div>
+
+                    {/* Yorum ekleme kutusu: giriş yoksa önce Google login isteyecek */}
+                    <CommentBox itemId={i.id} onDone={load} />
+
                     {i.comments?.[0] && <div className="mt-2 text-sm opacity-80">“{i.comments[0].text}”</div>}
                   </div>
                 </div>
