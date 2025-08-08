@@ -38,7 +38,8 @@ export async function GET(req: Request) {
       comments: { take: 2, orderBy: { createdAt: "desc" } },
       tags: { include: { tag: true } },
     },
-    orderBy: order === "top" ? { ratings: { _avg: { value: "desc" } } } : { createdAt: "desc" },
+    orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
+
     take: 50,
   });
 
