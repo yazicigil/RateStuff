@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAnonUser } from "@/lib/anon";
 import { z } from "zod";
-import type { Prisma } from "@prisma/client"; // ← EKLENDİ
+import type { Prisma } from "@prisma/client"; // ← önemli
 
 const createSchema = z.object({
   name: z.string().min(1),
@@ -18,7 +18,6 @@ export async function GET(req: Request) {
   const q = (searchParams.get("q") || "").trim();
   const order = (searchParams.get("order") || "new") as "new" | "top";
 
-  // Tipleyip mode'ları literal yaptık
   const where: Prisma.ItemWhereInput = {
     hidden: false,
     ...(q
@@ -59,33 +58,4 @@ export async function GET(req: Request) {
       description: i.description,
       imageUrl: i.imageUrl,
       avg: i.ratings.length
-        ? i.ratings.reduce((a, r) => a + r.value, 0) / i.ratings.length
-        : null,
-      count: i.ratings.length,
-      comments: i.comments,
-      tags: i.tags.map((t) => t.tag.name),
-    }))
-  );
-}
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const data = createSchema.parse({
-      ...body,
-      rating: typeof body.rating === "string" ? parseInt(body.rating, 10) : body.rating,
-    });
-
-    const user = await getAnonUser();
-    const tags = data.tagsCsv
-      .split(",")
-      .map((t: string) => t.trim())
-      .filter(Boolean);
-
-    const result = await prisma.$transaction(async (tx) => {
-      const item = await tx.item.create({
-        data: {
-          name: data.name,
-          description: data.description,
-          imageUrl: data.imageUrl || null,
-          create
+        ? i.ratings.reduce((a, r) => a + r.value, 0) / i.ratings.len
