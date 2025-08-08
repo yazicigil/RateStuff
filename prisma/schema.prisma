@@ -1,0 +1,98 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  maskedName  String?
+  createdAt   DateTime @default(now())
+  items       Item[]
+  ratings     Rating[]
+  comments    Comment[]
+  images      ImageContribution[]
+  reports     Report[]
+}
+
+model Item {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  imageUrl    String?
+  hidden      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  editedAt    DateTime @updatedAt
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  tags        ItemTag[]
+  ratings     Rating[]
+  comments    Comment[]
+  images      ImageContribution[]
+  reports     Report[]
+}
+
+model Tag {
+  id    String   @id @default(cuid())
+  name  String   @unique
+  items ItemTag[]
+}
+
+model ItemTag {
+  itemId String
+  tagId  String
+  item   Item   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([itemId, tagId])
+  @@index([tagId])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  value     Int
+  createdAt DateTime @default(now())
+  editedAt  DateTime @updatedAt
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  @@unique([itemId, userId])
+  @@index([itemId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  editedAt  DateTime @updatedAt
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  @@index([itemId])
+  @@index([userId])
+}
+
+model Report {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  @@unique([itemId, userId])
+  @@index([itemId])
+  @@index([userId])
+}
+
+model ImageContribution {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  createdAt DateTime @default(now())
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  @@index([itemId])
+  @@index([userId])
+}
