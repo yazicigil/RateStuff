@@ -43,23 +43,22 @@ export const authOptions: NextAuthOptions = {
 
       const email  = user.email.toLowerCase();
       const avatar = (profile as any)?.picture || null;
-      const masked = makeMaskedName(email) || "anon-kedi-000";
-
-      // create'de maskedName yaz; update'te maskedName'e dokunma
-      await prisma.user.upsert({
-        where: { email },
-        create: {
-          id: crypto.randomUUID(),
-          email,
-          name: user.name || null,
-          maskedName: masked,
-          avatarUrl: avatar,
-        },
-        update: {
-          name: user.name || null,
-          ...(avatar ? { avatarUrl: avatar } : {}),
-        },
-      });
+      const masked = makeMaskedNameFromHuman(user.name, user.email);
+await prisma.user.upsert({
+  where: { email },
+  create: {
+    id: crypto.randomUUID(),
+    email,
+    name: user.name || null,
+    maskedName: masked,
+    avatarUrl: avatar,
+  },
+  update: {
+    name: user.name || null,
+    ...(avatar ? { avatarUrl: avatar } : {}),
+    // maskedName'e dokunmuyoruz ki kullanıcı isterse sabit kalsın
+  },
+});
 
       return true;
     },
