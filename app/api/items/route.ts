@@ -38,38 +38,45 @@ export async function GET(req: Request) {
     });
 
     const shaped = items.map((i) => {
-      const count = i.ratings.length;
-      const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
+  const count = i.ratings.length;
+  const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
 
+  // edited: yalnızca editedAt gerçekten sonradaysa
+  const itemEdited =
+    i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
+
+  return {
+    id: i.id,
+    name: i.name,
+    description: i.description,
+    imageUrl: i.imageUrl,
+    avg,
+    count,
+    edited: !!itemEdited,
+    createdBy: i.createdBy
+      ? {
+          id: i.createdBy.id,
+          name: i.createdBy.maskedName ?? "anon",
+          avatarUrl: i.createdBy.avatarUrl ?? null,
+        }
+      : null,
+    comments: i.comments.map((c) => {
+      const cEdited =
+        c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
       return {
-        id: i.id,
-        name: i.name,                 // başlık UI’da düzenlenemeyecek (kural)
-        description: i.description,
-        imageUrl: i.imageUrl,
-        avg,
-        count,
-        edited: !!i.editedAt,         // ← anasayfada “düzenlendi” rozeti
-        createdBy: i.createdBy
-          ? {
-              id: i.createdBy.id,
-              name: i.createdBy.maskedName ?? "anon",
-              avatarUrl: i.createdBy.avatarUrl ?? null,
-            }
-          : null,
-        comments: i.comments.map((c) => ({
-          id: c.id,
-          text: c.text,
-          edited: !!c.editedAt,       // ← yorum yanında “(düzenlendi)”
-          user: {
-            id: c.user?.id,
-            name: c.user?.maskedName ?? "anon",
-            avatarUrl: c.user?.avatarUrl ?? null,
-          },
-        })),
-        tags: i.tags.map((t) => t.tag.name),
+        id: c.id,
+        text: c.text,
+        edited: !!cEdited,
+        user: {
+          id: c.user?.id,
+          name: c.user?.maskedName ?? "anon",
+          avatarUrl: c.user?.avatarUrl ?? null,
+        },
       };
-    });
-
+    }),
+    tags: i.tags.map((t) => t.tag.name),
+  };
+});
     return NextResponse.json(shaped);
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
