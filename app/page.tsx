@@ -179,7 +179,11 @@ function HomePage() {
                     {/* Yorum ekleme kutusu: giriş yoksa önce Google login isteyecek */}
                     <CommentBox itemId={i.id} onDone={load} />
 
-                    {i.comments?.[0] && <div className="mt-2 text-sm opacity-80">“{i.comments[0].text}”</div>}
+                    {i.comments?.length > 0 && (
+  <div className="mt-2 space-y-1 text-sm opacity-80">
+    {i.comments.map(c => <div key={c.id}>“{c.text}”</div>)}
+  </div>
+)}
                   </div>
                 </div>
               </div>
