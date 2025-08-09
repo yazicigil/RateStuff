@@ -31,7 +31,6 @@ export async function GET(req: Request) {
           include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
         },
         tags: { include: { tag: true } },
-        // EKLEYEN KİŞİ
         createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
       },
       orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
@@ -44,11 +43,12 @@ export async function GET(req: Request) {
 
       return {
         id: i.id,
-        name: i.name,
+        name: i.name,                 // başlık UI’da düzenlenemeyecek (kural)
         description: i.description,
         imageUrl: i.imageUrl,
         avg,
         count,
+        edited: !!i.editedAt,         // ← anasayfada “düzenlendi” rozeti
         createdBy: i.createdBy
           ? {
               id: i.createdBy.id,
@@ -59,6 +59,7 @@ export async function GET(req: Request) {
         comments: i.comments.map((c) => ({
           id: c.id,
           text: c.text,
+          edited: !!c.editedAt,       // ← yorum yanında “(düzenlendi)”
           user: {
             id: c.user?.id,
             name: c.user?.maskedName ?? "anon",
@@ -75,7 +76,7 @@ export async function GET(req: Request) {
   }
 }
 
-/** EKLE (form) – değişmedi */
+/** EKLE (form) – sende çalışan sürüm korunuyor */
 export async function POST(req: Request) {
   try {
     const me = await getSessionUser();
@@ -99,7 +100,6 @@ export async function POST(req: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       const item = await tx.item.create({
-        // NOT: createdById alanın yoksa buradan çıkar
         data: { name, description, imageUrl, createdById: me.id },
       });
 
