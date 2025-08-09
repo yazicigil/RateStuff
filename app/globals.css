@@ -2,13 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --bg: #0b0b0c; --fg: #e7e7ea; }
-body { color: var(--fg); background: var(--bg); }
-.container { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
-.card { border: 1px solid rgba(255,255,255,.1); border-radius: 1rem; padding: 1rem; }
-.btn { border: 1px solid rgba(255,255,255,.1); padding: .5rem 1rem; border-radius: .75rem; }
-.input { border: 1px solid rgba(255,255,255,.1); padding: .5rem .75rem; border-radius: .75rem; background: transparent; outline: none; }
-.link { text-decoration: underline; }
-.badge { font-size: .85rem; border: 1px solid rgba(255,255,255,.1); border-radius: 999px; padding: .15rem .6rem; }
-.grid { display: grid; gap: 1rem; grid-template-columns: 260px 1fr; }
-.sidebar .section { margin-bottom: 1rem; }
+/* ---- Component-style utility classes ---- */
+.card { @apply rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-sm; }
+.btn { @apply rounded-xl border border-gray-300 dark:border-gray-700 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800; }
+.badge { @apply px-2 py-1 rounded-full text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800; }
+.input { @apply border rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400; }
+.link { @apply underline hover:opacity-80; }
+.sidebar .section { @apply card mb-4; }
+
+/* page container defaults */
+body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
