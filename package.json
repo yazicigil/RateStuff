@@ -1,10 +1,10 @@
 {
-  "name": "rateeverything",
+  "name": "ratestuff",
   "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma db push --accept-data-loss && next build",
+    "build": "next build",
     "start": "next start",
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
