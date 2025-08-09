@@ -1,5 +1,6 @@
 'use client';
 
+import { signIn, signOut } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
@@ -18,15 +19,23 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemePref>('system');
 
+  // Me
   useEffect(() => {
     let ok = true;
     fetch('/api/me')
-      .then(r => r.ok ? r.json() : null)
-      .then(j => { if (ok) setMe(j?.me ?? null); })
-      .finally(() => { if (ok) setLoading(false); });
-    return () => { ok = false; };
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => {
+        if (ok) setMe(j?.me ?? null);
+      })
+      .finally(() => {
+        if (ok) setLoading(false);
+      });
+    return () => {
+      ok = false;
+    };
   }, []);
 
+  // Theme
   useEffect(() => {
     const initial = readTheme();
     setTheme(initial);
@@ -78,10 +87,11 @@ export default function Header({ controls }: { controls?: Controls }) {
           </select>
 
           {!loading && !me && (
-            <Link
-              href="/api/auth/signin/google?callbackUrl=/"
+            <button
+              onClick={() => signIn('google', { callbackUrl: '/' })}
               className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
               title="Google ile giriş"
+              type="button"
             >
               {/* Google G logosu (inline SVG) */}
               <svg width="16" height="16" viewBox="0 0 256 262" aria-hidden="true">
@@ -91,13 +101,13 @@ export default function Header({ controls }: { controls?: Controls }) {
                 <path fill="#EA4335" d="M130 50.5c25.5 0 42.7 11 52.5 20.3l38.3-37.3C197.1 12.3 166.6 0 130 0 76.8 0 30.7 29.8 8.2 74.5l44.4 34.3C63.6 75.9 94.1 50.5 130 50.5z"/>
               </svg>
               Google ile giriş
-            </Link>
+            </button>
           )}
 
           {me && (
             <>
               <Link
-                href="/profile"
+                href="/me"
                 className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700"
                 title="Profilim"
               >
@@ -111,13 +121,14 @@ export default function Header({ controls }: { controls?: Controls }) {
                 <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
               </Link>
 
-              <Link
-                href="/api/auth/signout?callbackUrl=/"
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
                 className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
                 title="Çıkış yap"
+                type="button"
               >
                 Çıkış
-              </Link>
+              </button>
             </>
           )}
         </nav>
