@@ -180,8 +180,14 @@ function HomePage() {
                     <CommentBox itemId={i.id} onDone={load} />
 
                     {i.comments?.length > 0 && (
-  <div className="mt-2 space-y-1 text-sm opacity-80">
-    {i.comments.map(c => <div key={c.id}>“{c.text}”</div>)}
+  <div className="mt-2 space-y-2 text-sm">
+    {i.comments.map(c => (
+      <div key={c.id} className="flex items-center gap-2">
+        <UserAvatar src={(c as any).user?.avatarUrl} name={(c as any).user?.name} />
+        <span className="text-xs opacity-70">{(c as any).user?.name}</span>
+        <span>“{c.text}”</span>
+      </div>
+    ))}
   </div>
 )}
                   </div>
