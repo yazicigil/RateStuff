@@ -1,13 +1,22 @@
 'use client';
 import { signIn, signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 export default function AuthButtons() {
   const { data: session, status } = useSession();
   if (status === "loading") return <div className="text-sm opacity-70">Auth…</div>;
-  if (!session) return <button className="px-3 py-2 rounded-xl border text-sm" onClick={()=>signIn('google')}>Google ile giriş</button>;
+  if (!session) return (
+    <button className="px-3 py-2 rounded-xl border text-sm" onClick={()=>signIn('google')}>Google ile giriş</button>
+  );
+
+  const img = (session.user as any)?.image as string | undefined; // next-auth image
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <span className="text-sm opacity-80 max-w-[160px] truncate">{session.user?.name || session.user?.email}</span>
+      <Link href="/me" className="inline-block">
+        {img ? <img src={img} alt="me" className="w-8 h-8 rounded-full object-cover" /> :
+          <div className="w-8 h-8 rounded-full bg-gray-300" />}
+      </Link>
       <button className="px-3 py-2 rounded-xl border text-sm" onClick={()=>signOut()}>Çıkış</button>
     </div>
   );
