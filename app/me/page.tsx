@@ -17,7 +17,7 @@ export default async function MePage() {
     prisma.rating.findMany({ where: { userId: me.id }, include: { item: true }, orderBy: { createdAt: "desc" }, take: 50 }),
     prisma.comment.findMany({ where: { userId: me.id }, include: { item: true }, orderBy: { createdAt: "desc" }, take: 50 }),
     prisma.tag.findMany({ orderBy: { name: "asc" }, take: 200 }),
-    prisma.itemTag.groupBy({ by: ["tagId"], _count: { tagId: true }, orderBy: { _count: { tagId: "desc" } }, take: 20, }),
+    prisma.itemTag.groupBy({ by: ["tagId"], _count: { tagId: true }, orderBy: { _count: { tagId: "desc" } }, take: 20 }),
   ]);
 
   const trendingNames = await Promise.all(
