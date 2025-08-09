@@ -1,54 +1,72 @@
+// app/api/items/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const q = (searchParams.get("q") || "").trim();
-  const order = (searchParams.get("order") || "new") as "new" | "top";
+export async function POST(req: Request) {
+  try {
+    const me = await getSessionUser();
+    if (!me) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
 
-  const where = {
-    hidden: false,
-    ...(q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" as const } },
-            { description: { contains: q, mode: "insensitive" as const } },
-            { tags: { some: { tag: { name: { contains: q, mode: "insensitive" as const } } } } },
-          ],
-        }
-      : {}),
-  };
+    const body = await req.json();
+    const name = String(body.name || "").trim();
+    const description = String(body.description || "").trim();
+    const imageUrl = body.imageUrl ? String(body.imageUrl) : null;
+    const tagsCsv = String(body.tagsCsv || "");
+    const rating = Number(body.rating || 0);
+    const comment = String(body.comment || "").trim();
 
-const items = await prisma.item.findMany({
-  where,
-  include: {
-    ratings: true,
-    comments: {
-      orderBy: { createdAt: "desc" },
-      include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
-    },
-    tags: { include: { tag: true } },
-  },
-  orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
-  take: 50,
-});
+    if (!name || !description) {
+      return NextResponse.json({ ok:false, error:"name/description boş" }, { status: 400 });
+    }
 
-const shaped = items.map((i) => {
-  const count = i.ratings.length;
-  const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
-  return {
-    id: i.id,
-    name: i.name,
-    description: i.description,
-    imageUrl: i.imageUrl,
-    avg, count,
-    comments: i.comments.map((c) => ({
-      id: c.id, text: c.text,
-      user: { id: c.user.id, name: c.user.maskedName ?? "anon", avatarUrl: c.user.avatarUrl ?? null },
-    })),
-    tags: i.tags.map((t) => t.tag.name),
-  };
-});
+    const tagNames = Array.from(new Set(
+      tagsCsv.split(",").map((s:string)=>s.trim()).filter(Boolean)
+    )).slice(0, 12);
 
-return NextResponse.json(shaped);
+    const result = await prisma.$transaction(async (tx) => {
+      // 1) Item
+      const item = await tx.item.create({
+        data: { name, description, imageUrl, createdById: me.id },
+      });
+
+      // 2) Tagleri hazırla (varsa reuse)
+      if (tagNames.length) {
+        const tags = await Promise.all(tagNames.map(n =>
+          tx.tag.upsert({
+            where: { name: n.toLowerCase() },
+            create: { name: n.toLowerCase() },
+            update: {},
+          })
+        ));
+        await tx.itemTag.createMany({
+          data: tags.map(t => ({ itemId: item.id, tagId: t.id })),
+          skipDuplicates: true,
+        });
+      }
+
+      // 3) Rating (kullanıcı başına 1, upsert)
+      if (rating >= 1 && rating <= 5) {
+        await tx.rating.upsert({
+          where: { itemId_userId: { itemId: item.id, userId: me.id } },
+          create: { itemId: item.id, userId: me.id, value: rating },
+          update: { value: rating, editedAt: new Date() },
+        });
+      }
+
+      // 4) Comment (opsiyonel)
+      if (comment) {
+        await tx.comment.create({
+          data: { itemId: item.id, userId: me.id, text: comment },
+        });
+      }
+
+      return { id: item.id };
+    });
+
+    return NextResponse.json({ ok: true, itemId: result.id });
+  } catch (e:any) {
+    // Supabase constraint/nullable vs. tüm hatalar buraya düşer
+    return NextResponse.json({ ok:false, error: e?.message || "error" }, { status: 400 });
+  }
 }
