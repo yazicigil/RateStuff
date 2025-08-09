@@ -12,6 +12,7 @@ model User {
   email       String   @unique
   name        String?
   maskedName  String?
+  avatarUrl   String?
   createdAt   DateTime @default(now())
   items       Item[]
   ratings     Rating[]
