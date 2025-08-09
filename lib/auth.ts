@@ -5,23 +5,30 @@ import { getServerSession } from "next-auth";
 
 const prisma = new PrismaClient();
 
-/** Güvenli masked name üretici: her zaman string döner, 'undefined' çıkmaz */
-function makeMaskedName(seed: string) {
-  const animals = ["panda","martı","tilki","kedi","alpaka","baykuş","yunus","kaplan","koala","lemur","serçe","yılan","kaplumbağa","balina","kartal"];
-  const adjs    = ["sessiz","şen","yaramaz","parlak","soğukkanlı","kozmik","minik","yıldızlı","uslu","aceleci","meraklı","sakız","sonsuz","neşeli","ciddi"];
+/** "Mehmetcan Yazıcıgil" -> "M**** Y****" ; "Şarlatan" -> "Ş****" */
+function makeMaskedNameFromHuman(name?: string | null, fallbackEmail?: string) {
+  const src = (name || fallbackEmail?.split("@")[0] || "Anon").trim();
 
-  // basit deterministik hash
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = (h * 16777619) >>> 0;
-  }
-  const a = adjs[ Math.abs(h) % adjs.length ] ?? "kozmik";
-  const b = animals[ Math.abs(h >>> 8) % animals.length ] ?? "kedi";
-  const n = (Math.abs(h >>> 16) % 900 + 100).toString(); // 100-999
-  return `${a}-${b}-${n}`;
+  // nokta/alt tire vs ile ayrılmış kullanıcı adlarını da kelime gibi ele al
+  const parts = src
+    .replace(/[_.-]+/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 3); // en fazla 3 parçayı maskele
+
+  const maskPart = (p: string) => {
+    const first = p.trim().charAt(0);
+    if (!first) return "•****";
+    // TR karakterleri için locale upper
+    const upper = first.toLocaleUpperCase("tr-TR");
+    return `${upper}****`;
+  };
+
+  if (parts.length === 0) return "A****";
+  if (parts.length === 1) return maskPart(parts[0]);
+  // 2+ parça: ilk iki parçayı göster, kalanları yoksay (istersen yıldız ekleyebilirsin)
+  return `${maskPart(parts[0])} ${maskPart(parts[1])}`;
 }
-
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
