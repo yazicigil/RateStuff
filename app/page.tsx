@@ -16,12 +16,7 @@ type ItemVM = {
   count: number;
   edited?: boolean;
   createdBy?: { id: string; name: string; avatarUrl?: string | null } | null;
-  comments: {
-    id: string;
-    text: string;
-    edited?: boolean;
-    user?: { name?: string | null; avatarUrl?: string | null };
-  }[];
+  comments: { id: string; text: string; edited?: boolean; user?: { name?: string | null; avatarUrl?: string | null } }[];
   tags: string[];
 };
 
@@ -29,7 +24,7 @@ export default function HomePage() {
   const { data: session } = useSession();
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
-  const [order, setOrder] = useState<"new" | "top">("new");
+  const [order, setOrder] = useState<"new"|"top">("new");
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [trending, setTrending] = useState<string[]>([]);
@@ -39,26 +34,24 @@ export default function HomePage() {
   async function load() {
     setLoading(true);
     const [itemsRes, tagsRes, trendRes] = await Promise.all([
-      fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then((r) => r.json()),
-      fetch("/api/tags").then((r) => r.json()),
-      fetch("/api/tags/trending").then((r) => r.json()),
+      fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then(r=>r.json()),
+      fetch('/api/tags').then(r=>r.json()),
+      fetch('/api/tags/trending').then(r=>r.json()),
     ]);
     setItems(itemsRes);
     setAllTags(tagsRes);
     setTrending(trendRes);
     setLoading(false);
   }
-  useEffect(() => {
-    load();
-  }, []);
-  useEffect(() => {
+  useEffect(()=>{ load(); }, []);
+  useEffect(()=>{
     const t = setTimeout(load, 250);
-    return () => clearTimeout(t);
+    return ()=>clearTimeout(t);
   }, [q, order]);
 
-  const activeTag = useMemo(() => {
+  const activeTag = useMemo(()=>{
     const single = q.trim();
-    if (single && !single.includes(" ") && allTags.includes(single)) return single;
+    if (single && !single.includes(' ') && allTags.includes(single)) return single;
     return undefined;
   }, [q, allTags]);
 
@@ -66,61 +59,41 @@ export default function HomePage() {
     setAdding(true);
     try {
       const payload = {
-        name: String(form.get("name") || ""),
-        description: String(form.get("desc") || ""),
-        tagsCsv: String(form.get("tags") || ""),
-        rating: Number(form.get("rating") || "5"),
-        comment: String(form.get("comment") || ""),
-        imageUrl: String(form.get("imageUrl") || "") || null,
+        name: String(form.get('name')||''),
+        description: String(form.get('desc')||''),
+        tagsCsv: String(form.get('tags')||''),
+        rating: Number(form.get('rating')||'5'),
+        comment: String(form.get('comment')||''),
+        imageUrl: String(form.get('imageUrl')||'') || null,
       };
-      const r = await fetch("/api/items", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const r = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload)});
       const j = await r.json();
-      if (j.ok) {
-        setQ("");
-        await load();
-        alert("Eklendi");
-      } else alert("Hata: " + j.error);
+      if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
+      else alert('Hata: ' + j.error);
     } finally {
       setAdding(false);
     }
   }
 
   async function report(id: string) {
-    const r = await fetch(`/api/items/${id}/report`, { method: "POST" });
+    const r = await fetch(`/api/items/${id}/report`, { method: 'POST' });
     const j = await r.json();
     if (j.ok) alert(`Report alındı (${j.count})`);
-    else alert("Hata: " + j.error);
+    else alert('Hata: ' + j.error);
   }
 
   async function rate(id: string, value: number) {
-    const r = await fetch(`/api/items/${id}/rate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value }),
-    });
+    const r = await fetch(`/api/items/${id}/rate`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ value })});
     const j = await r.json();
-    if (j.ok) {
-      await load();
-    } else alert("Hata: " + j.error);
+    if (j.ok) { await load(); } else alert('Hata: ' + j.error);
   }
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
-          <button
-            className="text-xl font-bold"
-            onClick={() => {
-              setQ("");
-              setOrder("new");
-            }}
-          >
-            RateStuff
-          </button>
+          <button className="text-xl font-bold" onClick={()=>{ setQ(''); setOrder('new'); }}>RateStuff</button>
+          
           <div className="ml-auto flex items-center gap-2">
             <div className="relative">
               <input
@@ -128,30 +101,31 @@ export default function HomePage() {
                 className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 w-56 pr-7"
                 placeholder="ara ( / )"
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                onChange={(e)=>setQ(e.target.value)}
               />
               {q && (
                 <button
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
-                  onClick={() => setQ("")}
+                  onClick={()=>setQ('')}
                 >
                   ×
                 </button>
               )}
             </div>
+
             <select
               className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               value={order}
-              onChange={(e) => setOrder(e.target.value as any)}
+              onChange={(e)=>setOrder(e.target.value as any)}
             >
               <option value="new">En yeni</option>
               <option value="top">En çok oy</option>
             </select>
+
             <Link className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700" href="/items/new">
               Yeni Item
             </Link>
 
-            {/* AUTH: login yoksa Google ile giriş; varsa avatar + /me + çıkış */}
             {session?.user ? (
               <div className="flex items-center gap-2">
                 <Link
