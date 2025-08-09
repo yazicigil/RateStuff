@@ -3,6 +3,69 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+/** LISTE (anasayfa) */
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const q = (searchParams.get("q") || "").trim();
+    const order = (searchParams.get("order") || "new") as "new" | "top";
+
+    const where: any = {}; // Item.hidden alanın yoksa boş bırak
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
+      ];
+    }
+
+    const items = await prisma.item.findMany({
+      where,
+      include: {
+        ratings: true,
+        comments: {
+          orderBy: { createdAt: "desc" },
+          include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
+        },
+        tags: { include: { tag: true } },
+      },
+      orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
+      take: 50,
+    });
+
+    const shaped = items.map((i) => {
+      const count = i.ratings.length;
+      const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
+      return {
+        id: i.id,
+        name: i.name,
+        description: i.description,
+        imageUrl: i.imageUrl,
+        avg,
+        count,
+        comments: i.comments.map((c) => ({
+          id: c.id,
+          text: c.text,
+          user: {
+            id: c.user?.id,
+            name: c.user?.maskedName ?? "anon",
+            avatarUrl: c.user?.avatarUrl ?? null,
+          },
+        })),
+        tags: i.tags.map((t) => t.tag.name),
+      };
+    });
+
+    return NextResponse.json(shaped); // UI bir dizi bekliyor
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
+  }
+}
+
+/** EKLE (form) */
 export async function POST(req: Request) {
   try {
     const me = await getSessionUser();
@@ -17,35 +80,35 @@ export async function POST(req: Request) {
     const comment = String(body.comment || "").trim();
 
     if (!name || !description) {
-      return NextResponse.json({ ok:false, error:"name/description boş" }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "name/description boş" }, { status: 400 });
     }
 
-    const tagNames = Array.from(new Set(
-      tagsCsv.split(",").map((s:string)=>s.trim()).filter(Boolean)
-    )).slice(0, 12);
+    const tagNames = Array.from(
+      new Set(tagsCsv.split(",").map((s: string) => s.trim().toLowerCase()).filter(Boolean))
+    ).slice(0, 12);
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1) Item
+      // createdById sende yoksa şu satırdan çıkar: createdById: me.id
       const item = await tx.item.create({
         data: { name, description, imageUrl, createdById: me.id },
       });
 
-      // 2) Tagleri hazırla (varsa reuse)
       if (tagNames.length) {
-        const tags = await Promise.all(tagNames.map(n =>
-          tx.tag.upsert({
-            where: { name: n.toLowerCase() },
-            create: { name: n.toLowerCase() },
-            update: {},
-          })
-        ));
+        const tags = await Promise.all(
+          tagNames.map((n) =>
+            tx.tag.upsert({
+              where: { name: n },
+              create: { name: n },
+              update: {},
+            })
+          )
+        );
         await tx.itemTag.createMany({
-          data: tags.map(t => ({ itemId: item.id, tagId: t.id })),
+          data: tags.map((t) => ({ itemId: item.id, tagId: t.id })),
           skipDuplicates: true,
         });
       }
 
-      // 3) Rating (kullanıcı başına 1, upsert)
       if (rating >= 1 && rating <= 5) {
         await tx.rating.upsert({
           where: { itemId_userId: { itemId: item.id, userId: me.id } },
@@ -54,7 +117,6 @@ export async function POST(req: Request) {
         });
       }
 
-      // 4) Comment (opsiyonel)
       if (comment) {
         await tx.comment.create({
           data: { itemId: item.id, userId: me.id, text: comment },
@@ -65,8 +127,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ ok: true, itemId: result.id });
-  } catch (e:any) {
-    // Supabase constraint/nullable vs. tüm hatalar buraya düşer
-    return NextResponse.json({ ok:false, error: e?.message || "error" }, { status: 400 });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
