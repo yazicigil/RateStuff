@@ -5,9 +5,6 @@ import Link from "next/link";
 import Tag from "@/components/Tag";
 import Stars from "@/components/Stars";
 import Pill from "@/components/Pill";
-import { SessionProvider } from "next-auth/react";
-import AuthButtons from "@/components/AuthButtons";
-import UserAvatar from "@/components/UserAvatar";
 
 type ItemVM = {
   id: string;
@@ -16,12 +13,13 @@ type ItemVM = {
   imageUrl?: string | null;
   avg: number | null;
   count: number;
-  createdBy?: { id: string; name: string; avatarUrl?: string | null } | null;
-  comments: { id: string; text: string; user?: { name?: string | null; avatarUrl?: string | null } }[];
+  edited?: boolean; // ← eklendi
+  createdBy?: { id: string; name: string; avatarUrl?: string | null } | null; // ← eklendi
+  comments: { id: string; text: string; edited?: boolean; user?: { name?: string | null; avatarUrl?: string | null } }[];
   tags: string[];
 };
 
-function HomePage() {
+export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [order, setOrder] = useState<"new"|"top">("new");
@@ -66,16 +64,10 @@ function HomePage() {
         comment: String(form.get('comment')||''),
         imageUrl: String(form.get('imageUrl')||'') || null,
       };
-      const r = await fetch('/api/items', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify(payload)
-      });
+      const r = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload)});
       const j = await r.json();
       if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
       else alert('Hata: ' + j.error);
-    } catch (e:any) {
-      alert('Ağ/istemci hatası: ' + (e?.message || e));
     } finally {
       setAdding(false);
     }
@@ -87,6 +79,7 @@ function HomePage() {
     if (j.ok) alert(`Report alındı (${j.count})`);
     else alert('Hata: ' + j.error);
   }
+
   async function rate(id: string, value: number) {
     const r = await fetch(`/api/items/${id}/rate`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ value })});
     const j = await r.json();
@@ -98,7 +91,7 @@ function HomePage() {
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           <button className="text-xl font-bold" onClick={()=>{ setQ(''); setOrder('new'); }}>RateStuff</button>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2">
             <div className="relative">
               <input ref={searchRef} className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 w-56 pr-7" placeholder="ara ( / )" value={q} onChange={(e)=>setQ(e.target.value)} />
               {q && <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm" onClick={()=>setQ('')}>×</button>}
@@ -108,7 +101,6 @@ function HomePage() {
               <option value="top">En çok oy</option>
             </select>
             <Link className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700" href="/items/new">Yeni Item</Link>
-            <AuthButtons />
           </div>
         </div>
       </header>
@@ -160,7 +152,12 @@ function HomePage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-lg font-medium truncate">{i.name}</h3>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <h3 className="text-lg font-medium truncate">{i.name}</h3>
+                        {i.edited && (
+                          <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+                        )}
+                      </div>
                       <Stars value={i.avg ?? 0} onRate={(n)=>rate(i.id, n)} />
                     </div>
 
@@ -168,7 +165,7 @@ function HomePage() {
                     {i.createdBy && (
                       <div className="mt-1 flex items-center gap-2 text-xs opacity-70">
                         {i.createdBy.avatarUrl ? (
-                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name} className="w-5 h-5 rounded-full object-cover" />
+                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
                         ) : (
                           <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
                             {(i.createdBy.name || 'U')[0]?.toUpperCase()}
@@ -191,7 +188,7 @@ function HomePage() {
                       <button className="px-3 py-1 rounded-xl border text-sm dark:border-gray-700" onClick={()=>report(i.id)}>Report</button>
                     </div>
 
-                    {/* YORUMLAR (avatar + masked) */}
+                    {/* YORUMLAR (avatar + masked + edited) */}
                     {i.comments?.length > 0 && (
                       <div className="mt-3 space-y-2 text-sm">
                         {i.comments.map((c) => (
@@ -204,7 +201,7 @@ function HomePage() {
                               </div>
                             )}
                             <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
-                            <span>“{c.text}”</span>
+                            <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
                           </div>
                         ))}
                       </div>
@@ -217,13 +214,5 @@ function HomePage() {
         </section>
       </main>
     </div>
-  );
-}
-
-export default function Page() {
-  return (
-    <SessionProvider>
-      <HomePage />
-    </SessionProvider>
   );
 }
