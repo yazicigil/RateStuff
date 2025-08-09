@@ -57,16 +57,15 @@ model Rating {
   id        String   @id @default(uuid())
   value     Int
   createdAt DateTime @default(now())
-  editedAt  DateTime @default(now())
+  editedAt  DateTime?
+
   item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId    String
+
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
-  @@unique([itemId, userId])
-}
-
-  @@unique([itemId, userId])
+  @@unique([itemId, userId])  // her kullanıcı bir item’a 1 oy
   @@index([itemId])
   @@index([userId])
 }
