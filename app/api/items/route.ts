@@ -13,7 +13,7 @@ export async function GET(req: Request) {
     const q = (searchParams.get("q") || "").trim();
     const order = (searchParams.get("order") || "new") as "new" | "top";
 
-    const where: any = {}; // Item.hidden alanın yoksa boş bırak
+    const where: any = {};
     if (q) {
       where.OR = [
         { name: { contains: q, mode: "insensitive" } },
@@ -31,6 +31,8 @@ export async function GET(req: Request) {
           include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
         },
         tags: { include: { tag: true } },
+        // EKLEYEN KİŞİ
+        createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
       },
       orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
       take: 50,
@@ -39,6 +41,7 @@ export async function GET(req: Request) {
     const shaped = items.map((i) => {
       const count = i.ratings.length;
       const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
+
       return {
         id: i.id,
         name: i.name,
@@ -46,6 +49,13 @@ export async function GET(req: Request) {
         imageUrl: i.imageUrl,
         avg,
         count,
+        createdBy: i.createdBy
+          ? {
+              id: i.createdBy.id,
+              name: i.createdBy.maskedName ?? "anon",
+              avatarUrl: i.createdBy.avatarUrl ?? null,
+            }
+          : null,
         comments: i.comments.map((c) => ({
           id: c.id,
           text: c.text,
@@ -59,13 +69,13 @@ export async function GET(req: Request) {
       };
     });
 
-    return NextResponse.json(shaped); // UI bir dizi bekliyor
+    return NextResponse.json(shaped);
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
   }
 }
 
-/** EKLE (form) */
+/** EKLE (form) – değişmedi */
 export async function POST(req: Request) {
   try {
     const me = await getSessionUser();
@@ -88,8 +98,8 @@ export async function POST(req: Request) {
     ).slice(0, 12);
 
     const result = await prisma.$transaction(async (tx) => {
-      // createdById sende yoksa şu satırdan çıkar: createdById: me.id
       const item = await tx.item.create({
+        // NOT: createdById alanın yoksa buradan çıkar
         data: { name, description, imageUrl, createdById: me.id },
       });
 
