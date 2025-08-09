@@ -65,21 +65,30 @@ function HomePage() {
   }, [q, allTags]);
 
   async function addItem(form: FormData) {
-    setAdding(true);
+  setAdding(true);
+  try {
     const payload = {
       name: String(form.get('name')||''),
       description: String(form.get('desc')||''),
       tagsCsv: String(form.get('tags')||''),
       rating: Number(form.get('rating')||'5'),
       comment: String(form.get('comment')||''),
-      imageUrl: String(form.get('imageUrl')||''),
+      imageUrl: String(form.get('imageUrl')||'') || null,
     };
-    const r = await fetch('/api/items', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify(payload)});
+    const r = await fetch('/api/items', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
     const j = await r.json();
-    setAdding(false);
     if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
     else alert('Hata: ' + j.error);
+  } catch (e:any) {
+    alert('Ağ/istemci hatası: ' + (e?.message || e));
+  } finally {
+    setAdding(false);
   }
+}
 
   async function report(id: string) {
     const r = await fetch(`/api/items/${id}/report`, { method: 'POST' });
