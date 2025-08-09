@@ -19,34 +19,36 @@ export async function GET(req: Request) {
       : {}),
   };
 
-  const items = await prisma.item.findMany({
-    where,
-    include: {
-      ratings: true,
-      comments: { orderBy: { createdAt: "desc" } }, // ← tüm yorumlar
-      tags: { include: { tag: true } },
+const items = await prisma.item.findMany({
+  where,
+  include: {
+    ratings: true,
+    comments: {
+      orderBy: { createdAt: "desc" },
+      include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
     },
-    orderBy:
-      order === "top"
-        ? { ratings: { _count: "desc" } } // ← _avg yok; _count destekli
-        : { createdAt: "desc" },
-    take: 50,
-  });
+    tags: { include: { tag: true } },
+  },
+  orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
+  take: 50,
+});
 
-  const shaped = items.map((i) => {
-    const count = i.ratings.length;
-    const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
-    return {
-      id: i.id,
-      name: i.name,
-      description: i.description,
-      imageUrl: i.imageUrl,
-      avg,
-      count,
-      comments: i.comments.map((c) => ({ id: c.id, text: c.text, createdAt: c.createdAt.toISOString() })),
-      tags: i.tags.map((t) => t.tag.name),
-    };
-  });
+const shaped = items.map((i) => {
+  const count = i.ratings.length;
+  const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
+  return {
+    id: i.id,
+    name: i.name,
+    description: i.description,
+    imageUrl: i.imageUrl,
+    avg, count,
+    comments: i.comments.map((c) => ({
+      id: c.id, text: c.text,
+      user: { id: c.user.id, name: c.user.maskedName ?? "anon", avatarUrl: c.user.avatarUrl ?? null },
+    })),
+    tags: i.tags.map((t) => t.tag.name),
+  };
+});
 
-  return NextResponse.json(shaped);
+return NextResponse.json(shaped);
 }
