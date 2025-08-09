@@ -7,7 +7,6 @@ import Stars from "@/components/Stars";
 import Pill from "@/components/Pill";
 import { SessionProvider } from "next-auth/react";
 import AuthButtons from "@/components/AuthButtons";
-import CommentBox from "@/components/CommentBox";
 import UserAvatar from "@/components/UserAvatar";
 
 type ItemVM = {
@@ -17,18 +16,10 @@ type ItemVM = {
   imageUrl?: string | null;
   avg: number | null;
   count: number;
-  comments: { id: string; text: string; createdAt?: string; editedAt?: string }[];
+  createdBy?: { id: string; name: string; avatarUrl?: string | null } | null;
+  comments: { id: string; text: string; user?: { name?: string | null; avatarUrl?: string | null } }[];
   tags: string[];
 };
-
-export default function Page() {
-  // SessionProvider'ı en dışa koyduk ki sayfanın her yerinde auth çalışsın
-  return (
-    <SessionProvider>
-      <HomePage />
-    </SessionProvider>
-  );
-}
 
 function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -65,30 +56,30 @@ function HomePage() {
   }, [q, allTags]);
 
   async function addItem(form: FormData) {
-  setAdding(true);
-  try {
-    const payload = {
-      name: String(form.get('name')||''),
-      description: String(form.get('desc')||''),
-      tagsCsv: String(form.get('tags')||''),
-      rating: Number(form.get('rating')||'5'),
-      comment: String(form.get('comment')||''),
-      imageUrl: String(form.get('imageUrl')||'') || null,
-    };
-    const r = await fetch('/api/items', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const j = await r.json();
-    if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
-    else alert('Hata: ' + j.error);
-  } catch (e:any) {
-    alert('Ağ/istemci hatası: ' + (e?.message || e));
-  } finally {
-    setAdding(false);
+    setAdding(true);
+    try {
+      const payload = {
+        name: String(form.get('name')||''),
+        description: String(form.get('desc')||''),
+        tagsCsv: String(form.get('tags')||''),
+        rating: Number(form.get('rating')||'5'),
+        comment: String(form.get('comment')||''),
+        imageUrl: String(form.get('imageUrl')||'') || null,
+      };
+      const r = await fetch('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const j = await r.json();
+      if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
+      else alert('Hata: ' + j.error);
+    } catch (e:any) {
+      alert('Ağ/istemci hatası: ' + (e?.message || e));
+    } finally {
+      setAdding(false);
+    }
   }
-}
 
   async function report(id: string) {
     const r = await fetch(`/api/items/${id}/report`, { method: 'POST' });
@@ -96,8 +87,6 @@ function HomePage() {
     if (j.ok) alert(`Report alındı (${j.count})`);
     else alert('Hata: ' + j.error);
   }
-
-  // rating update endpoint (server'da /api/items/[id]/rate olmalı)
   async function rate(id: string, value: number) {
     const r = await fetch(`/api/items/${id}/rate`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ value })});
     const j = await r.json();
@@ -109,7 +98,7 @@ function HomePage() {
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
           <button className="text-xl font-bold" onClick={()=>{ setQ(''); setOrder('new'); }}>RateStuff</button>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             <div className="relative">
               <input ref={searchRef} className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400 w-56 pr-7" placeholder="ara ( / )" value={q} onChange={(e)=>setQ(e.target.value)} />
               {q && <button className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm" onClick={()=>setQ('')}>×</button>}
@@ -119,7 +108,6 @@ function HomePage() {
               <option value="top">En çok oy</option>
             </select>
             <Link className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700" href="/items/new">Yeni Item</Link>
-            {/* Google giriş/çıkış butonları */}
             <AuthButtons />
           </div>
         </div>
@@ -175,31 +163,52 @@ function HomePage() {
                       <h3 className="text-lg font-medium truncate">{i.name}</h3>
                       <Stars value={i.avg ?? 0} onRate={(n)=>rate(i.id, n)} />
                     </div>
-                    <p className="text-sm opacity-80 line-clamp-2">{i.description}</p>
+
+                    {/* EKLEYEN kişi (masked + avatar) */}
+                    {i.createdBy && (
+                      <div className="mt-1 flex items-center gap-2 text-xs opacity-70">
+                        {i.createdBy.avatarUrl ? (
+                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                            {(i.createdBy.name || 'U')[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <span>{i.createdBy.name}</span>
+                      </div>
+                    )}
+
+                    <p className="text-sm opacity-80 line-clamp-2 mt-1">{i.description}</p>
+
                     <div className="mt-2 flex flex-wrap gap-1">
                       {i.tags.map(t => (
                         <button key={t} className="px-2 py-1 rounded-full text-sm border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700" onClick={()=>setQ(t)}>#{t}</button>
                       ))}
                     </div>
+
                     <div className="mt-2 text-xs opacity-70">{i.count} oy</div>
                     <div className="mt-2">
                       <button className="px-3 py-1 rounded-xl border text-sm dark:border-gray-700" onClick={()=>report(i.id)}>Report</button>
                     </div>
 
-                    {/* Yorum ekleme kutusu: giriş yoksa önce Google login isteyecek */}
-                    <CommentBox itemId={i.id} onDone={load} />
-
+                    {/* YORUMLAR (avatar + masked) */}
                     {i.comments?.length > 0 && (
-  <div className="mt-2 space-y-2 text-sm">
-    {i.comments.map(c => (
-      <div key={c.id} className="flex items-center gap-2">
-        <UserAvatar src={(c as any).user?.avatarUrl} name={(c as any).user?.name} />
-        <span className="text-xs opacity-70">{(c as any).user?.name}</span>
-        <span>“{c.text}”</span>
-      </div>
-    ))}
-  </div>
-)}
+                      <div className="mt-3 space-y-2 text-sm">
+                        {i.comments.map((c) => (
+                          <div key={c.id} className="flex items-center gap-2">
+                            {c.user?.avatarUrl ? (
+                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                                {(c.user?.name || 'U')[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
+                            <span>“{c.text}”</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -208,5 +217,13 @@ function HomePage() {
         </section>
       </main>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <SessionProvider>
+      <HomePage />
+    </SessionProvider>
   );
 }
