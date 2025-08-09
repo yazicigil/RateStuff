@@ -97,7 +97,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           {me && (
             <>
               <Link
-                href="/me"
+                href="/profile"
                 className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700"
                 title="Profilim"
               >
