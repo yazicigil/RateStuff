@@ -8,6 +8,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr">
       <body className="min-h-screen">
+        {/* Layout header'ı controls'suz: sadece logo+auth */}
         <Header />
         {children}
       </body>
