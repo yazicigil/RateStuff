@@ -77,3 +77,15 @@ model ItemTag {
 
   @@id([itemId, tagId])
 }
+model Report {
+  id        String   @id @default(cuid())
+  itemId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, userId]) // bir kullanıcı bir item’i bir kez raporlar
+  @@index([itemId])
+}
