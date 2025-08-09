@@ -18,6 +18,7 @@ model User {
   items     Item[]
   ratings   Rating[]
   comments  Comment[]
+  reports   Report[]   // ← EKLENDİ
 }
 
 model Item {
@@ -34,6 +35,7 @@ model Item {
   ratings   Rating[]
   comments  Comment[]
   tags      ItemTag[]
+  reports   Report[]     // ← EKLENDİ
 }
 
 model Comment {
@@ -77,6 +79,7 @@ model ItemTag {
 
   @@id([itemId, tagId])
 }
+
 model Report {
   id        String   @id @default(cuid())
   itemId    String
