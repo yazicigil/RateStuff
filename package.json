@@ -2,11 +2,11 @@
   "name": "rateeverything",
   "version": "0.2.0",
   "private": true,
- "scripts": {
+  "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma db push --accept-data-loss && next build",
     "start": "next start",
-    "postinstall": "prisma generate && prisma db push",
+    "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
