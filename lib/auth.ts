@@ -1,3 +1,4 @@
+// lib/auth.ts
 import { PrismaClient } from "@prisma/client";
 import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
@@ -8,27 +9,20 @@ const prisma = new PrismaClient();
 /** "Mehmetcan Yazıcıgil" -> "M**** Y****" ; "Şarlatan" -> "Ş****" */
 function makeMaskedNameFromHuman(name?: string | null, fallbackEmail?: string) {
   const src = (name || fallbackEmail?.split("@")[0] || "Anon").trim();
-
-  // nokta/alt tire vs ile ayrılmış kullanıcı adlarını da kelime gibi ele al
-  const parts = src
-    .replace(/[_.-]+/g, " ")
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 3); // en fazla 3 parçayı maskele
+  const parts = src.replace(/[_.-]+/g, " ").split(/\s+/).filter(Boolean).slice(0, 3);
 
   const maskPart = (p: string) => {
     const first = p.trim().charAt(0);
     if (!first) return "•****";
-    // TR karakterleri için locale upper
     const upper = first.toLocaleUpperCase("tr-TR");
     return `${upper}****`;
   };
 
   if (parts.length === 0) return "A****";
   if (parts.length === 1) return maskPart(parts[0]);
-  // 2+ parça: ilk iki parçayı göster, kalanları yoksay (istersen yıldız ekleyebilirsin)
   return `${maskPart(parts[0])} ${maskPart(parts[1])}`;
 }
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -40,25 +34,24 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, profile }) {
       if (!user?.email) return false;
-
-      const email  = user.email.toLowerCase();
+      const email = user.email.toLowerCase();
       const avatar = (profile as any)?.picture || null;
       const masked = makeMaskedNameFromHuman(user.name, user.email);
-await prisma.user.upsert({
-  where: { email },
-  create: {
-    id: crypto.randomUUID(),
-    email,
-    name: user.name || null,
-    maskedName: masked,
-    avatarUrl: avatar,
-  },
-  update: {
-    name: user.name || null,
-    ...(avatar ? { avatarUrl: avatar } : {}),
-    // maskedName'e dokunmuyoruz ki kullanıcı isterse sabit kalsın
-  },
-});
+
+      await prisma.user.upsert({
+        where: { email },
+        create: {
+          id: crypto.randomUUID(),
+          email,
+          name: user.name || null,
+          maskedName: masked,
+          avatarUrl: avatar,
+        },
+        update: {
+          name: user.name || null,
+          ...(avatar ? { avatarUrl: avatar } : {}),
+        },
+      });
 
       return true;
     },
@@ -77,7 +70,7 @@ await prisma.user.upsert({
     },
   },
   pages: { signIn: "/auth/signin" },
-  debug: true, // Vercel function logs'ta detay
+  debug: false,
 };
 
 export async function getSessionUser() {
