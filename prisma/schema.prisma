@@ -54,14 +54,17 @@ model ItemTag {
 }
 
 model Rating {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   value     Int
   createdAt DateTime @default(now())
-  editedAt  DateTime @updatedAt
+  editedAt  DateTime @default(now())
   item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   itemId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
+
+  @@unique([itemId, userId])
+}
 
   @@unique([itemId, userId])
   @@index([itemId])
