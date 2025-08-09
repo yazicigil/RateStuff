@@ -8,6 +8,7 @@ import Pill from "@/components/Pill";
 import { SessionProvider } from "next-auth/react";
 import AuthButtons from "@/components/AuthButtons";
 import CommentBox from "@/components/CommentBox";
+import UserAvatar from "@/components/UserAvatar";
 
 type ItemVM = {
   id: string;
