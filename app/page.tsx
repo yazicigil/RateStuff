@@ -144,7 +144,7 @@ export default function HomePage() {
 
         {/* Sağ: listeler */}
         <section className="space-y-4">
-          {/* Hızlı ekleme (aynı kaldı) */}
+          {/* Hızlı ekleme */}
           <form
             className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-wrap items-center gap-2"
             onSubmit={(e) => { e.preventDefault(); addItem(new FormData(e.currentTarget)); }}
@@ -172,7 +172,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
               <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-                {/* ÜST: sol görsel + rozet, sağ başlık */}
+                {/* ÜST: sol görsel + rozet + report, sağ başlık/blok */}
                 <div className="flex items-start gap-3">
                   {/* SOL BLOK */}
                   <div className="flex flex-col items-center shrink-0 w-28">
@@ -181,25 +181,21 @@ export default function HomePage() {
                     ) : (
                       <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
                     )}
+
+                    {/* düzenlendi rozeti */}
                     {i.edited && (
-                      <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+                      <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                        düzenlendi
+                      </span>
                     )}
 
-                    {/* ETİKETLER – görselin altında */}
-                    {i.tags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1 justify-center">
-                        {i.tags.slice(0, 6).map((t) => (
-                          <button
-                            key={t}
-                            className="px-2 py-0.5 rounded-full text-xs border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
-                            onClick={() => setQ(t)}
-                            title={`#${t}`}
-                          >
-                            #{t}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {/* Report butonu (rozetin altında) */}
+                    <button
+                      className="mt-2 px-3 py-1 rounded-xl border text-xs dark:border-gray-700"
+                      onClick={() => report(i.id)}
+                    >
+                      Report
+                    </button>
                   </div>
 
                   {/* SAĞ BLOK */}
@@ -231,10 +227,23 @@ export default function HomePage() {
                       <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
                       <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
                       <span className="text-xs opacity-60">({i.count})</span>
-                      <button className="ml-auto px-3 py-1 rounded-xl border text-xs dark:border-gray-700" onClick={() => report(i.id)}>
-                        Report
-                      </button>
                     </div>
+
+                    {/* ETİKETLER – yıldızların altında */}
+                    {i.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {i.tags.slice(0, 10).map((t) => (
+                          <button
+                            key={t}
+                            className="px-2 py-0.5 rounded-full text-xs border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
+                            onClick={() => setQ(t)}
+                            title={`#${t}`}
+                          >
+                            #{t}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
