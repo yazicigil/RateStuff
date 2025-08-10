@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Tag from '@/components/Tag';
 import Stars from '@/components/Stars';
 import Header from '@/components/Header';
+import CollapsibleSection from '@/components/CollapsibleSection';
 
 type ItemVM = {
   id: string;
@@ -124,23 +125,24 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
         <aside>
-          <section className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-            <h3 className="text-lg mb-2">Trend Etiketler</h3>
-            <div className="flex flex-wrap gap-2">
-              {trending.map((t) => (
-                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-              ))}
-            </div>
-          </section>
-          <section className="rounded-2xl border p-4 shadow-sm mt-4 bg-white dark:bg-gray-900 dark:border-gray-800">
-            <h3 className="text-lg mb-2">Tüm Etiketler</h3>
-            <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
-              {allTags.map((t) => (
-                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-              ))}
-            </div>
-          </section>
-        </aside>
+  <CollapsibleSection title="Trend Etiketler" defaultOpen={true}>
+    <div className="flex flex-wrap gap-2">
+      {trending.map((t) => (
+        <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+      ))}
+    </div>
+  </CollapsibleSection>
+
+  <div className="h-4" />
+
+  <CollapsibleSection title="Tüm Etiketler" defaultOpen={false}>
+    <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
+      {allTags.map((t) => (
+        <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+      ))}
+    </div>
+  </CollapsibleSection>
+</aside>
 
         {/* Sağ: listeler */}
         <section className="space-y-4">
