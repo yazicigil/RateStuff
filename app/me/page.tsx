@@ -1,3 +1,4 @@
+// app/me/page.tsx
 'use client';
 
 import Link from "next/link";
@@ -5,8 +6,8 @@ import { useEffect, useState } from "react";
 import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
 
-type MyItem = { id:string; name:string; description:string; imageUrl?:string|null; avg:number|null; edited?:boolean };
-type MyRating = { id:string; itemId:string; itemName:string; value:number };
+type MyItem    = { id:string; name:string; description:string; imageUrl?:string|null; avg:number|null; edited?:boolean };
+type MyRating  = { id:string; itemId:string; itemName:string; value:number };
 type MyComment = { id:string; itemId:string; itemName:string; text:string; edited?:boolean };
 
 export default function MePage() {
@@ -16,6 +17,7 @@ export default function MePage() {
   const [ratings, setRatings] = useState<MyRating[]>([]);
   const [comments, setComments] = useState<MyComment[]>([]);
   const [saved, setSaved] = useState<MyItem[]>([]);
+
   const [editingItem, setEditingItem] = useState<string|null>(null);
   const [editDesc, setEditDesc] = useState("");
   const [editImg, setEditImg] = useState<string|null>("");
@@ -55,12 +57,6 @@ export default function MePage() {
     if (j.ok) await load(); else alert("Hata: " + j.error);
   }
 
-  async function toggleSave(itemId: string) {
-    const r = await fetch(`/api/items/${itemId}/save`, { method: "POST" });
-    const j = await r.json();
-    if (j.ok) await load(); else alert("Hata: " + j.error);
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -93,46 +89,7 @@ export default function MePage() {
           </div>
         </section>
 
-        {/* Kaydedilenler */}
-        <section className="space-y-3">
-          <h3 className="text-lg font-semibold">Kaydedilenler</h3>
-          {loading ? (
-            <div className="rounded-xl border p-3">Yükleniyor…</div>
-          ) : saved.length === 0 ? (
-            <div className="rounded-xl border p-3">Henüz item kaydetmemişsin.</div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {saved.map(it => (
-                <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
-                  <div className="flex items-start gap-3">
-                    {it.imageUrl ? (
-                      <img src={it.imageUrl} className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
-                    ) : (
-                      <div className="w-20 h-20 rounded-lg bg-gray-200 grid place-items-center text-xs">no img</div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <div className="text-base font-medium truncate" title={it.name}>{it.name}</div>
-                        {it.edited && (
-                          <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
-                        )}
-                      </div>
-                      <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
-                      <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
-                      <div className="mt-2">
-                        <button className="px-3 py-1 rounded-lg border text-sm" onClick={()=>toggleSave(it.id)}>
-                          Kaydı kaldır
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Benim eklediklerim */}
+        {/* Eklediklerim */}
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Eklediklerim</h3>
           {loading ? (
@@ -151,12 +108,12 @@ export default function MePage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="text-base font-medium truncate" title={it.name}>{it.name}</div>
+                        <div className="text-base font-medium truncate">{it.name}</div>
                         {it.edited && (
                           <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
                         )}
                       </div>
-                      <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
+                      <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(1)} ★` : "—"}</div>
 
                       {editingItem === it.id ? (
                         <div className="mt-2 space-y-2">
@@ -203,6 +160,35 @@ export default function MePage() {
           )}
         </section>
 
+        {/* Kaydettiklerim */}
+        <section className="space-y-3">
+          <h3 className="text-lg font-semibold">Kaydettiklerim</h3>
+          {loading ? (
+            <div className="rounded-xl border p-3">Yükleniyor…</div>
+          ) : saved.length === 0 ? (
+            <div className="rounded-xl border p-3">Henüz kaydedilmiş item yok.</div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {saved.map(it => (
+                <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
+                  <div className="flex items-start gap-3">
+                    {it.imageUrl ? (
+                      <img src={it.imageUrl} className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
+                    ) : (
+                      <div className="w-20 h-20 rounded-lg bg-gray-200 grid place-items-center text-xs">no img</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-medium truncate">{it.name}</div>
+                      <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(1)} ★` : "—"}</div>
+                      <p className="text-sm opacity-80 mt-1 line-clamp-2">{it.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Puanlarım */}
         <section className="space-y-3">
           <h3 className="text-lg font-semibold">Puanlarım</h3>
@@ -241,8 +227,6 @@ export default function MePage() {
     </div>
   );
 }
-
-type MyComment = { id:string; itemId:string; itemName:string; text:string; edited?:boolean };
 
 function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)=>Promise<void> }) {
   const [editing, setEditing] = useState(false);
