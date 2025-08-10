@@ -123,28 +123,28 @@ export default function HomePage() {
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        {/* Sol: etiketler */}
+        {/* Sol: etiketler (CollapsibleSection ile) */}
         <aside>
-  <CollapsibleSection title="Trend Etiketler" defaultOpen={true}>
-    <div className="flex flex-wrap gap-2">
-      {trending.map((t) => (
-        <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-      ))}
-    </div>
-  </CollapsibleSection>
+          <CollapsibleSection title="Trend Etiketler" defaultOpen>
+            <div className="flex flex-wrap gap-2">
+              {trending.map((t) => (
+                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+              ))}
+            </div>
+          </CollapsibleSection>
 
-  <div className="h-4" />
+          <div className="h-4" />
 
-  <CollapsibleSection title="Tüm Etiketler" defaultOpen={false}>
-    <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
-      {allTags.map((t) => (
-        <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-      ))}
-    </div>
-  </CollapsibleSection>
-</aside>
+          <CollapsibleSection title="Tüm Etiketler" defaultOpen={false}>
+            <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
+              {allTags.map((t) => (
+                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+              ))}
+            </div>
+          </CollapsibleSection>
+        </aside>
 
-        {/* Sağ: listeler */}
+        {/* Sağ: liste */}
         <section className="space-y-4">
           {/* Hızlı ekleme */}
           <form
@@ -170,13 +170,13 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* KART IZGARASI */}
+          {/* Kartlar */}
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
-              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-                {/* ÜST: sol görsel + rozet + report, sağ başlık/blok */}
+              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col">
+                {/* Üst: görsel + rozet+report (sol) | metinler (sağ) */}
                 <div className="flex items-start gap-3">
-                  {/* SOL BLOK */}
+                  {/* Sol blok */}
                   <div className="flex flex-col items-center shrink-0 w-28">
                     {i.imageUrl ? (
                       <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
@@ -184,14 +184,12 @@ export default function HomePage() {
                       <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
                     )}
 
-                    {/* düzenlendi rozeti */}
                     {i.edited && (
                       <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
                         düzenlendi
                       </span>
                     )}
 
-                    {/* Report butonu (rozetin altında) */}
                     <button
                       className="mt-2 px-3 py-1 rounded-xl border text-xs dark:border-gray-700"
                       onClick={() => report(i.id)}
@@ -200,7 +198,7 @@ export default function HomePage() {
                     </button>
                   </div>
 
-                  {/* SAĞ BLOK */}
+                  {/* Sağ blok */}
                   <div className="flex-1 min-w-0">
                     {/* Başlık */}
                     <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={i.name}>
@@ -210,7 +208,7 @@ export default function HomePage() {
                     {/* Küçük açıklama */}
                     <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>
 
-                    {/* Ekleyen kişi */}
+                    {/* Ekleyen */}
                     {i.createdBy && (
                       <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                         {i.createdBy.avatarUrl ? (
@@ -224,14 +222,14 @@ export default function HomePage() {
                       </div>
                     )}
 
-                    {/* Yıldız + skor */}
+                    {/* Yıldız + skor + oy */}
                     <div className="mt-2 flex items-center gap-3">
                       <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
                       <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
                       <span className="text-xs opacity-60">({i.count})</span>
                     </div>
 
-                    {/* ETİKETLER – yıldızların altında */}
+                    {/* Etiketler */}
                     {i.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {i.tags.slice(0, 10).map((t) => (
@@ -249,7 +247,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* ALT: yorumlar + yorum yaz — tam genişlik */}
+                {/* Yorumlar */}
                 {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
                 {i.comments?.length > 0 && (
@@ -270,7 +268,11 @@ export default function HomePage() {
                   </div>
                 )}
 
-                <div className="mt-3 flex items-center gap-2">
+                {/* Yorum yaz — HER ZAMAN en altta */}
+                <form
+                  onSubmit={(e) => { e.preventDefault(); sendComment(i.id); }}
+                  className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2"
+                >
                   <input
                     value={drafts[i.id] || ''}
                     onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
@@ -278,12 +280,12 @@ export default function HomePage() {
                     className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                   />
                   <button
-                    onClick={() => sendComment(i.id)}
+                    type="submit"
                     className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
                   >
                     Gönder
                   </button>
-                </div>
+                </form>
               </div>
             ))}
           </div>
