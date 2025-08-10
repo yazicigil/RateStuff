@@ -5,9 +5,9 @@ import { getSessionUser } from "@/lib/auth";
 export async function GET() {
   const me = await getSessionUser();
   if (!me) return NextResponse.json({ ok:true, ids: [] }); // anonim: boş
-  const rows = await prisma.itemSave.findMany({
+   const rows = await prisma.savedItem.findMany({
     where: { userId: me.id },
-    select: { itemId: true }
+    select: { itemId: true },
   });
   return NextResponse.json({ ok:true, ids: rows.map(r => r.itemId) });
 }
