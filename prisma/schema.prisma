@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,7 +19,7 @@ model User {
   items     Item[]
   ratings   Rating[]
   comments  Comment[]
-  reports   Report[]   // ← EKLENDİ
+  saved     SavedItem[]    // ← eklendi
 }
 
 model Item {
@@ -28,14 +29,13 @@ model Item {
   imageUrl     String?
   createdAt    DateTime  @default(now())
   editedAt     DateTime?
-  // Ekleyen kullanıcı (anasayfada masked + avatar için)
   createdById  String?
   createdBy    User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   ratings   Rating[]
   comments  Comment[]
   tags      ItemTag[]
-  reports   Report[]     // ← EKLENDİ
+  savedBy   SavedItem[]  // ← eklendi
 }
 
 model Comment {
@@ -89,6 +89,19 @@ model Report {
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([itemId, userId]) // bir kullanıcı bir item’i bir kez raporlar
+  @@unique([itemId, userId])
+  @@index([itemId])
+}
+
+model SavedItem {
+  userId   String
+  itemId   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([userId, itemId])
+  @@index([userId])
   @@index([itemId])
 }
