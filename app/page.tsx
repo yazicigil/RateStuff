@@ -27,6 +27,7 @@ type ItemVM = {
 
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
+  const imageUrlInputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
@@ -35,6 +36,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -108,6 +110,28 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
+  // Dosya seç → /api/upload
+  async function handleFilePick(file: File | null) {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { alert('Maksimum 5MB'); return; }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const r = await fetch('/api/upload', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (j.ok && j.url) {
+        if (imageUrlInputRef.current) imageUrlInputRef.current.value = j.url;
+      } else {
+        alert('Yükleme hatası: ' + (j.error || 'bilinmiyor'));
+      }
+    } catch (e: any) {
+      alert('Yüklenemedi: ' + (e?.message || ''));
+    } finally {
+      setUploading(false);
+    }
+  }
+
   // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
@@ -119,7 +143,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      {/* Üst bar: arama + sıralama */}
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -158,8 +181,31 @@ export default function HomePage() {
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} yıldız</option>)}
             </select>
             <input name="comment" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="yorum" required />
-            <input name="imageUrl" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="resim URL'si (opsiyonel)" />
-            <button disabled={adding} className="px-3 py-2 rounded-xl text-sm bg-black text-white">{adding ? 'Ekleniyor…' : 'Ekle'}</button>
+
+            {/* URL + Dosya yükleme birlikte */}
+            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+              <input
+                ref={imageUrlInputRef}
+                name="imageUrl"
+                className="border rounded-xl px-3 py-2 text-sm flex-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                placeholder="resim URL'si (opsiyonel)"
+              />
+              <label className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer"
+                  onChange={(e) => handleFilePick(e.target.files?.[0] || null)}
+                />
+                <span className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 inline-block">
+                  {uploading ? 'Yükleniyor…' : 'Dosya Seç'}
+                </span>
+              </label>
+            </div>
+
+            <button disabled={adding || uploading} className="px-3 py-2 rounded-xl text-sm bg-black text-white">
+              {adding ? 'Ekleniyor…' : 'Ekle'}
+            </button>
           </form>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
@@ -173,11 +219,8 @@ export default function HomePage() {
           {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
-              <div
-                key={i.id}
-                className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col"
-              >
-                {/* ÜST BÖLÜM (görsel + metinler) */}
+              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
+                {/* ÜST: sol görsel + rozet + report, sağ başlık/blok */}
                 <div className="flex items-start gap-3">
                   {/* SOL BLOK */}
                   <div className="flex flex-col items-center shrink-0 w-28">
@@ -245,31 +288,28 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* ORTA BÖLÜM: Yorumlar (kalan yüksekliği doldurur) */}
-                <div className="flex-1">
-                  {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+                {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
-                  {i.comments?.length > 0 && (
-                    <div className="pt-3 space-y-2 text-sm">
-                      {i.comments.map((c) => (
-                        <div key={c.id} className="flex items-center gap-2">
-                          {c.user?.avatarUrl ? (
-                            <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                              {(c.user?.name || 'U')[0]?.toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
-                          <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                {i.comments?.length > 0 && (
+                  <div className="pt-3 space-y-2 text-sm">
+                    {i.comments.map((c) => (
+                      <div key={c.id} className="flex items-center gap-2">
+                        {c.user?.avatarUrl ? (
+                          <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                            {(c.user?.name || 'U')[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
+                        <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                {/* ALT BÖLÜM: Yorum yaz — HER ZAMAN EN ALTA */}
-                <div className="mt-3 border-t dark:border-gray-800 pt-3 flex items-center gap-2">
+                {/* Yorum yaz – HER ZAMAN en altta */}
+                <div className="mt-3 flex items-center gap-2">
                   <input
                     value={drafts[i.id] || ''}
                     onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
