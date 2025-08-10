@@ -20,6 +20,7 @@ model User {
   ratings   Rating[]
   comments  Comment[]
   saved     SavedItem[]    // ← eklendi
+  reports   Report[]
 }
 
 model Item {
@@ -36,6 +37,7 @@ model Item {
   comments  Comment[]
   tags      ItemTag[]
   savedBy   SavedItem[]  // ← eklendi
+  reports   Report[]
 }
 
 model Comment {
