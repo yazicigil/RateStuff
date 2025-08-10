@@ -27,7 +27,6 @@ type ItemVM = {
 
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
-  const imageUrlInputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState('');
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
@@ -36,7 +35,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [uploading, setUploading] = useState(false);
+  const [openMenu, setOpenMenu] = useState<string | null>(null); // options menüsü
 
   async function load() {
     setLoading(true);
@@ -91,6 +90,14 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
+  async function toggleSave(id: string) {
+    const r = await fetch(`/api/items/${id}/save`, { method: 'POST' });
+    const j = await r.json();
+    if (!j.ok) { alert('Hata: ' + (j.error || 'kaydetme hatası')); return; }
+    setOpenMenu(null);
+    await load();
+  }
+
   async function rate(id: string, value: number) {
     const r = await fetch(`/api/items/${id}/rate`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value })
@@ -110,28 +117,6 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
-  // Dosya seç → /api/upload
-  async function handleFilePick(file: File | null) {
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { alert('Maksimum 5MB'); return; }
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const r = await fetch('/api/upload', { method: 'POST', body: fd });
-      const j = await r.json();
-      if (j.ok && j.url) {
-        if (imageUrlInputRef.current) imageUrlInputRef.current.value = j.url;
-      } else {
-        alert('Yükleme hatası: ' + (j.error || 'bilinmiyor'));
-      }
-    } catch (e: any) {
-      alert('Yüklenemedi: ' + (e?.message || ''));
-    } finally {
-      setUploading(false);
-    }
-  }
-
   // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
@@ -143,6 +128,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {/* Üst bar: arama + sıralama */}
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -181,31 +167,8 @@ export default function HomePage() {
               {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} yıldız</option>)}
             </select>
             <input name="comment" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="yorum" required />
-
-            {/* URL + Dosya yükleme birlikte */}
-            <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-              <input
-                ref={imageUrlInputRef}
-                name="imageUrl"
-                className="border rounded-xl px-3 py-2 text-sm flex-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                placeholder="resim URL'si (opsiyonel)"
-              />
-              <label className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="absolute inset-0 opacity-0 cursor-pointer"
-                  onChange={(e) => handleFilePick(e.target.files?.[0] || null)}
-                />
-                <span className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 inline-block">
-                  {uploading ? 'Yükleniyor…' : 'Dosya Seç'}
-                </span>
-              </label>
-            </div>
-
-            <button disabled={adding || uploading} className="px-3 py-2 rounded-xl text-sm bg-black text-white">
-              {adding ? 'Ekleniyor…' : 'Ekle'}
-            </button>
+            <input name="imageUrl" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="resim URL'si (opsiyonel)" />
+            <button disabled={adding} className="px-3 py-2 rounded-xl text-sm bg-black text-white">{adding ? 'Ekleniyor…' : 'Ekle'}</button>
           </form>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
@@ -219,8 +182,37 @@ export default function HomePage() {
           {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
-              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-                {/* ÜST: sol görsel + rozet + report, sağ başlık/blok */}
+              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 relative">
+                {/* OPTIONS (⋯) – sol üst */}
+                <div className="absolute top-3 left-3">
+                  <div className="relative">
+                    <button
+                      className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+                      onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
+                      aria-label="options"
+                    >
+                      ⋯
+                    </button>
+                    {openMenu === i.id && (
+                      <div className="absolute z-20 mt-2 w-40 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                        <button
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
+                          onClick={() => toggleSave(i.id)}
+                        >
+                          Kaydet / Kaldır
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
+                          onClick={() => { setOpenMenu(null); report(i.id); }}
+                        >
+                          Report
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* ÜST: sol görsel + rozet, sağ bilgiler */}
                 <div className="flex items-start gap-3">
                   {/* SOL BLOK */}
                   <div className="flex flex-col items-center shrink-0 w-28">
@@ -229,29 +221,24 @@ export default function HomePage() {
                     ) : (
                       <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
                     )}
-
                     {i.edited && (
                       <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
                         düzenlendi
                       </span>
                     )}
-
-                    <button
-                      className="mt-2 px-3 py-1 rounded-xl border text-xs dark:border-gray-700"
-                      onClick={() => report(i.id)}
-                    >
-                      Report
-                    </button>
                   </div>
 
                   {/* SAĞ BLOK */}
                   <div className="flex-1 min-w-0">
+                    {/* Başlık */}
                     <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={i.name}>
                       {i.name}
                     </h3>
 
+                    {/* Küçük açıklama */}
                     <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>
 
+                    {/* Ekleyen kişi */}
                     {i.createdBy && (
                       <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                         {i.createdBy.avatarUrl ? (
@@ -265,12 +252,14 @@ export default function HomePage() {
                       </div>
                     )}
 
+                    {/* Yıldız + skor */}
                     <div className="mt-2 flex items-center gap-3">
                       <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
                       <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
                       <span className="text-xs opacity-60">({i.count})</span>
                     </div>
 
+                    {/* ETİKETLER */}
                     {i.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {i.tags.slice(0, 10).map((t) => (
@@ -288,6 +277,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
+                {/* ALT: yorumlar + yorum yaz — tam genişlik */}
                 {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
                 {i.comments?.length > 0 && (
@@ -308,7 +298,7 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Yorum yaz – HER ZAMAN en altta */}
+                {/* Yorum yaz – her zaman KARTIN EN ALTINDA */}
                 <div className="mt-3 flex items-center gap-2">
                   <input
                     value={drafts[i.id] || ''}
