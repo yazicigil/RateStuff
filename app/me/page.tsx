@@ -19,6 +19,10 @@ export default function MePage() {
   const [editDesc, setEditDesc] = useState("");
   const [editImg, setEditImg] = useState<string|null>("");
 
+  // upload state
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   async function load() {
     setLoading(true);
     const r = await fetch("/api/me");
@@ -33,24 +37,55 @@ export default function MePage() {
   useEffect(()=>{ load(); }, []);
 
   async function saveItem(id:string) {
-    const body: any = { };
+    const body: any = {};
     body.description = editDesc;
-    body.imageUrl = editImg === "" ? null : editImg; // boşsa null yap
-    const r = await fetch(`/api/items/${id}/edit`, { method: "PATCH", headers: { "Content-Type":"application/json" }, body: JSON.stringify(body) });
+    // string "" veya null => DB'de kaldır
+    body.imageUrl = editImg ? editImg : null;
+
+    const r = await fetch(`/api/items/${id}/edit`, {
+      method: "PATCH",
+      headers: { "Content-Type":"application/json" },
+      body: JSON.stringify(body)
+    });
     const j = await r.json();
-    if (j.ok) { setEditingItem(null); await load(); } else alert("Hata: " + j.error);
+    if (j.ok) { setEditingItem(null); await load(); }
+    else alert("Hata: " + j.error);
   }
 
   async function changeRating(itemId: string, value:number) {
-    const r = await fetch(`/api/items/${itemId}/rate`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ value })});
+    const r = await fetch(`/api/items/${itemId}/rate`, {
+      method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ value })
+    });
     const j = await r.json();
     if (j.ok) await load(); else alert("Hata: " + j.error);
   }
 
   async function saveComment(commentId: string, nextText: string) {
-    const r = await fetch(`/api/comments/${commentId}`, { method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ text: nextText })});
+    const r = await fetch(`/api/comments/${commentId}`, {
+      method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ text: nextText })
+    });
     const j = await r.json();
     if (j.ok) await load(); else alert("Hata: " + j.error);
+  }
+
+  async function handleFileSelect(file: File) {
+    if (!file) return;
+    setUploadError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      // sunucudaki route bunu 'file' ismiyle bekliyor
+      fd.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Yükleme başarısız");
+      const data = await res.json(); // { url }
+      if (!data?.url) throw new Error("URL alınamadı");
+      setEditImg(data.url);
+    } catch (e:any) {
+      setUploadError(e?.message || "Yükleme hatası");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -62,12 +97,12 @@ export default function MePage() {
             <Link href="/" className="px-2 py-1 rounded-xl border dark:border-gray-700">← Anasayfa</Link>
             <span className="text-lg font-semibold">Profil</span>
           </div>
-          <button
-            onClick={()=>signOut({ callbackUrl: "/" })}
-            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
-          >
-            Çıkış
-          </button>
+            <button
+              onClick={()=>signOut({ callbackUrl: "/" })}
+              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+            >
+              Çıkış
+            </button>
         </div>
       </header>
 
@@ -112,7 +147,8 @@ export default function MePage() {
                       <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(1)} ★` : "—"}</div>
 
                       {editingItem === it.id ? (
-                        <div className="mt-2 space-y-2">
+                        <div className="mt-3 space-y-3">
+                          {/* Açıklama */}
                           <textarea
                             className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
                             rows={3}
@@ -120,15 +156,67 @@ export default function MePage() {
                             onChange={(e)=>setEditDesc(e.target.value)}
                             placeholder="açıklama"
                           />
+
+                          {/* URL ile görsel düzenleme */}
                           <input
                             className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
                             value={editImg ?? ""}
                             onChange={(e)=>setEditImg(e.target.value)}
                             placeholder="görsel URL (boş bırakırsan kaldırılır)"
                           />
+
+                          {/* VEYA: Dosya yükle */}
+                          <div className="flex items-center gap-2">
+                            <label className="px-3 py-2 rounded-lg border text-sm cursor-pointer dark:border-gray-700">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e)=>{
+                                  const f = e.target.files?.[0];
+                                  if (f) handleFileSelect(f);
+                                }}
+                              />
+                              Dosya seç
+                            </label>
+                            {uploading && <span className="text-xs opacity-70">Yükleniyor…</span>}
+                            {uploadError && <span className="text-xs text-red-600">{uploadError}</span>}
+                            {editImg && (
+                              <button
+                                type="button"
+                                className="px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
+                                onClick={()=>setEditImg(null)}
+                              >
+                                Görseli kaldır
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Önizleme */}
+                          {editImg && (
+                            <div className="mt-2">
+                              <img
+                                src={editImg}
+                                alt="preview"
+                                className="max-h-40 rounded-md border dark:border-gray-800 object-contain"
+                              />
+                            </div>
+                          )}
+
                           <div className="flex gap-2">
-                            <button onClick={()=>saveItem(it.id)} className="px-3 py-1 rounded-lg border text-sm bg-black text-white">Kaydet</button>
-                            <button onClick={()=>setEditingItem(null)} className="px-3 py-1 rounded-lg border text-sm">Vazgeç</button>
+                            <button
+                              onClick={()=>saveItem(it.id)}
+                              className="px-3 py-1 rounded-lg border text-sm bg-black text-white disabled:opacity-60"
+                              disabled={uploading}
+                            >
+                              Kaydet
+                            </button>
+                            <button
+                              onClick={()=>{ setEditingItem(null); setUploadError(null); setUploading(false); }}
+                              className="px-3 py-1 rounded-lg border text-sm"
+                            >
+                              Vazgeç
+                            </button>
                           </div>
                         </div>
                       ) : (
@@ -141,6 +229,8 @@ export default function MePage() {
                                 setEditingItem(it.id);
                                 setEditDesc(it.description || "");
                                 setEditImg(it.imageUrl ?? "");
+                                setUploadError(null);
+                                setUploading(false);
                               }}
                             >
                               Düzenle (başlık hariç)
