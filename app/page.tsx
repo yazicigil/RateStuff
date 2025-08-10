@@ -33,8 +33,6 @@ export default function HomePage() {
   const [trending, setTrending] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
-
-  // item-id -> yorum taslağı
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   async function load() {
@@ -49,9 +47,7 @@ export default function HomePage() {
     setTrending(trendRes);
     setLoading(false);
   }
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
   useEffect(() => {
     const t = setTimeout(load, 250);
     return () => clearTimeout(t);
@@ -80,14 +76,9 @@ export default function HomePage() {
         body: JSON.stringify(payload),
       });
       const j = await r.json();
-      if (j.ok) {
-        setQ('');
-        await load();
-        alert('Eklendi');
-      } else alert('Hata: ' + j.error);
-    } finally {
-      setAdding(false);
-    }
+      if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
+      else alert('Hata: ' + j.error);
+    } finally { setAdding(false); }
   }
 
   async function report(id: string) {
@@ -99,33 +90,24 @@ export default function HomePage() {
 
   async function rate(id: string, value: number) {
     const r = await fetch(`/api/items/${id}/rate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value })
     });
     const j = await r.json();
-    if (j.ok) await load();
-    else alert('Hata: ' + j.error);
+    if (j.ok) await load(); else alert('Hata: ' + j.error);
   }
 
   async function sendComment(itemId: string) {
     const text = (drafts[itemId] || '').trim();
     if (!text) return;
     const r = await fetch(`/api/items/${itemId}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text })
     });
     const j = await r.json();
-    if (j.ok) {
-      setDrafts((d) => ({ ...d, [itemId]: '' }));
-      await load();
-    } else {
-      alert('Hata: ' + j.error);
-    }
+    if (j.ok) { setDrafts((d) => ({ ...d, [itemId]: '' })); await load(); }
+    else alert('Hata: ' + j.error);
   }
 
-  // Başlıkları 2 satırda, kelime ortasından bölmeden kesmek için inline clamp stilimiz
+  // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -136,11 +118,11 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      {/* Yeni header (arama + sıralama burada) */}
+      {/* Üst bar: arama + sıralama */}
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        {/* Sol kolon: etiketler */}
+        {/* Sol: etiketler */}
         <aside>
           <section className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
             <h3 className="text-lg mb-2">Trend Etiketler</h3>
@@ -160,71 +142,29 @@ export default function HomePage() {
           </section>
         </aside>
 
-        {/* Sağ kolon: içerik */}
+        {/* Sağ: listeler */}
         <section className="space-y-4">
-          {/* Hızlı ekleme formu (değişmedim) */}
+          {/* Hızlı ekleme (aynı kaldı) */}
           <form
             className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-wrap items-center gap-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              addItem(new FormData(e.currentTarget));
-            }}
+            onSubmit={(e) => { e.preventDefault(); addItem(new FormData(e.currentTarget)); }}
           >
-            <input
-              name="name"
-              className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              placeholder="adı"
-              required
-            />
-            <input
-              name="desc"
-              className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              placeholder="kısa açıklama"
-              required
-            />
-            <input
-              name="tags"
-              className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              placeholder="etiketler (virgülle)"
-              required
-            />
-            <select
-              name="rating"
-              defaultValue="5"
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              {[1, 2, 3, 4, 5].map((n) => (
-                <option key={n} value={n}>
-                  {n} yıldız
-                </option>
-              ))}
+            <input name="name" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="adı" required />
+            <input name="desc" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="kısa açıklama" required />
+            <input name="tags" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="etiketler (virgülle)" required />
+            <select name="rating" defaultValue="5" className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} yıldız</option>)}
             </select>
-            <input
-              name="comment"
-              className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              placeholder="yorum"
-              required
-            />
-            <input
-              name="imageUrl"
-              className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              placeholder="resim URL'si (opsiyonel)"
-            />
-            <button disabled={adding} className="px-3 py-2 rounded-xl text-sm bg-black text-white">
-              {adding ? 'Ekleniyor…' : 'Ekle'}
-            </button>
+            <input name="comment" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="yorum" required />
+            <input name="imageUrl" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="resim URL'si (opsiyonel)" />
+            <button disabled={adding} className="px-3 py-2 rounded-xl text-sm bg-black text-white">{adding ? 'Ekleniyor…' : 'Ekle'}</button>
           </form>
 
-          {loading && (
-            <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>
-          )}
+          {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
           {!loading && items.length === 0 && (
             <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-              Hiç sonuç yok. İlk itemi sen ekle →{' '}
-              <Link className="underline" href="/items/new">
-                Yeni Item
-              </Link>
+              Hiç sonuç yok. İlk itemi sen ekle → <Link className="underline" href="/items/new">Yeni Item</Link>
             </div>
           )}
 
@@ -232,120 +172,106 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
               <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
+                {/* ÜST: sol görsel + rozet, sağ başlık */}
                 <div className="flex items-start gap-3">
-                  {/* SOL: görsel + düzenlendi rozeti */}
-                  <div className="flex flex-col items-center shrink-0 w-24">
+                  {/* SOL BLOK */}
+                  <div className="flex flex-col items-center shrink-0 w-28">
                     {i.imageUrl ? (
-                      <img src={i.imageUrl} alt={i.name} className="w-24 h-24 object-cover rounded-lg" />
+                      <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
                     ) : (
-                      <div className="w-24 h-24 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">
-                        no img
-                      </div>
+                      <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
                     )}
                     {i.edited && (
-                      <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                        düzenlendi
-                      </span>
+                      <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
                     )}
-                  </div>
 
-                  {/* SAĞ: içerik */}
-                  <div className="flex-1 min-w-0">
-                    {/* Başlık + yıldız + ortalama */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h3
-                          className="text-base md:text-lg font-semibold leading-snug"
-                          style={clamp2}
-                          title={i.name}
-                        >
-                          {i.name}
-                        </h3>
-
-                        {/* Ekleyen (masked + avatar) */}
-                        {i.createdBy && (
-                          <div className="mt-1 flex items-center gap-2 text-xs opacity-70">
-                            {i.createdBy.avatarUrl ? (
-                              <img
-                                src={i.createdBy.avatarUrl}
-                                alt={i.createdBy.name || 'u'}
-                                className="w-5 h-5 rounded-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                                {(i.createdBy.name || 'U')[0]?.toUpperCase()}
-                              </div>
-                            )}
-                            <span>{i.createdBy.name}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0">
-                        <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
-                        <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
-                      </div>
-                    </div>
-
-                    <p className="text-sm opacity-80 mt-2 break-words">{i.description}</p>
-
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {i.tags.map((t) => (
-                        <button
-                          key={t}
-                          className="px-2 py-1 rounded-full text-sm border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
-                          onClick={() => setQ(t)}
-                        >
-                          #{t}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="mt-2 text-xs opacity-70">{i.count} oy</div>
-
-                    <div className="mt-2">
-                      <button className="px-3 py-1 rounded-xl border text-sm dark:border-gray-700" onClick={() => report(i.id)}>
-                        Report
-                      </button>
-                    </div>
-
-                    {/* Yorumlar */}
-                    {i.comments?.length > 0 && (
-                      <div className="mt-3 space-y-2 text-sm">
-                        {i.comments.map((c) => (
-                          <div key={c.id} className="flex items-center gap-2">
-                            {c.user?.avatarUrl ? (
-                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                                {(c.user?.name || 'U')[0]?.toUpperCase()}
-                              </div>
-                            )}
-                            <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
-                            <span>
-                              “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                            </span>
-                          </div>
+                    {/* ETİKETLER – görselin altında */}
+                    {i.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1 justify-center">
+                        {i.tags.slice(0, 6).map((t) => (
+                          <button
+                            key={t}
+                            className="px-2 py-0.5 rounded-full text-xs border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
+                            onClick={() => setQ(t)}
+                            title={`#${t}`}
+                          >
+                            #{t}
+                          </button>
                         ))}
                       </div>
                     )}
+                  </div>
 
-                    {/* Yorum yaz (SAĞ sütunda, taşma yok) */}
-                    <div className="mt-3 flex items-center gap-2">
-                      <input
-                        value={drafts[i.id] || ''}
-                        onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
-                        placeholder="yorum yaz…"
-                        className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                      />
-                      <button
-                        onClick={() => sendComment(i.id)}
-                        className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
-                      >
-                        Gönder
+                  {/* SAĞ BLOK */}
+                  <div className="flex-1 min-w-0">
+                    {/* Başlık */}
+                    <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={i.name}>
+                      {i.name}
+                    </h3>
+
+                    {/* Küçük açıklama */}
+                    <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>
+
+                    {/* Ekleyen kişi */}
+                    {i.createdBy && (
+                      <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+                        {i.createdBy.avatarUrl ? (
+                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                            {(i.createdBy.name || 'U')[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <span>{i.createdBy.name}</span>
+                      </div>
+                    )}
+
+                    {/* Yıldız + skor */}
+                    <div className="mt-2 flex items-center gap-3">
+                      <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
+                      <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
+                      <span className="text-xs opacity-60">({i.count})</span>
+                      <button className="ml-auto px-3 py-1 rounded-xl border text-xs dark:border-gray-700" onClick={() => report(i.id)}>
+                        Report
                       </button>
                     </div>
                   </div>
+                </div>
+
+                {/* ALT: yorumlar + yorum yaz — tam genişlik */}
+                {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+
+                {i.comments?.length > 0 && (
+                  <div className="pt-3 space-y-2 text-sm">
+                    {i.comments.map((c) => (
+                      <div key={c.id} className="flex items-center gap-2">
+                        {c.user?.avatarUrl ? (
+                          <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                            {(c.user?.name || 'U')[0]?.toUpperCase()}
+                          </div>
+                        )}
+                        <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
+                        <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-3 flex items-center gap-2">
+                  <input
+                    value={drafts[i.id] || ''}
+                    onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
+                    placeholder="yorum yaz…"
+                    className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                  />
+                  <button
+                    onClick={() => sendComment(i.id)}
+                    className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
+                  >
+                    Gönder
+                  </button>
                 </div>
               </div>
             ))}
