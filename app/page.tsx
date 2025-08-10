@@ -123,9 +123,9 @@ export default function HomePage() {
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
-        {/* Sol: etiketler (CollapsibleSection ile) */}
+        {/* Sol: etiketler */}
         <aside>
-          <CollapsibleSection title="Trend Etiketler" defaultOpen>
+          <CollapsibleSection title="Trend Etiketler" defaultOpen={true}>
             <div className="flex flex-wrap gap-2">
               {trending.map((t) => (
                 <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
@@ -144,7 +144,7 @@ export default function HomePage() {
           </CollapsibleSection>
         </aside>
 
-        {/* Sağ: liste */}
+        {/* Sağ: listeler */}
         <section className="space-y-4">
           {/* Hızlı ekleme */}
           <form
@@ -170,13 +170,16 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Kartlar */}
+          {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
             {items.map((i) => (
-              <div key={i.id} className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col">
-                {/* Üst: görsel + rozet+report (sol) | metinler (sağ) */}
+              <div
+                key={i.id}
+                className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col"
+              >
+                {/* ÜST BÖLÜM (görsel + metinler) */}
                 <div className="flex items-start gap-3">
-                  {/* Sol blok */}
+                  {/* SOL BLOK */}
                   <div className="flex flex-col items-center shrink-0 w-28">
                     {i.imageUrl ? (
                       <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
@@ -198,17 +201,14 @@ export default function HomePage() {
                     </button>
                   </div>
 
-                  {/* Sağ blok */}
+                  {/* SAĞ BLOK */}
                   <div className="flex-1 min-w-0">
-                    {/* Başlık */}
                     <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={i.name}>
                       {i.name}
                     </h3>
 
-                    {/* Küçük açıklama */}
                     <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>
 
-                    {/* Ekleyen */}
                     {i.createdBy && (
                       <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                         {i.createdBy.avatarUrl ? (
@@ -222,14 +222,12 @@ export default function HomePage() {
                       </div>
                     )}
 
-                    {/* Yıldız + skor + oy */}
                     <div className="mt-2 flex items-center gap-3">
                       <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
                       <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
                       <span className="text-xs opacity-60">({i.count})</span>
                     </div>
 
-                    {/* Etiketler */}
                     {i.tags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1">
                         {i.tags.slice(0, 10).map((t) => (
@@ -247,32 +245,31 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                {/* Yorumlar */}
-                {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+                {/* ORTA BÖLÜM: Yorumlar (kalan yüksekliği doldurur) */}
+                <div className="flex-1">
+                  {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
-                {i.comments?.length > 0 && (
-                  <div className="pt-3 space-y-2 text-sm">
-                    {i.comments.map((c) => (
-                      <div key={c.id} className="flex items-center gap-2">
-                        {c.user?.avatarUrl ? (
-                          <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                            {(c.user?.name || 'U')[0]?.toUpperCase()}
-                          </div>
-                        )}
-                        <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
-                        <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  {i.comments?.length > 0 && (
+                    <div className="pt-3 space-y-2 text-sm">
+                      {i.comments.map((c) => (
+                        <div key={c.id} className="flex items-center gap-2">
+                          {c.user?.avatarUrl ? (
+                            <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                              {(c.user?.name || 'U')[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
+                          <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {/* Yorum yaz — HER ZAMAN en altta */}
-                <form
-                  onSubmit={(e) => { e.preventDefault(); sendComment(i.id); }}
-                  className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2"
-                >
+                {/* ALT BÖLÜM: Yorum yaz — HER ZAMAN EN ALTA */}
+                <div className="mt-3 border-t dark:border-gray-800 pt-3 flex items-center gap-2">
                   <input
                     value={drafts[i.id] || ''}
                     onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
@@ -280,12 +277,12 @@ export default function HomePage() {
                     className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                   />
                   <button
-                    type="submit"
+                    onClick={() => sendComment(i.id)}
                     className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
                   >
                     Gönder
                   </button>
-                </form>
+                </div>
               </div>
             ))}
           </div>
