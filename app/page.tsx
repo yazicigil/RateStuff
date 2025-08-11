@@ -193,6 +193,14 @@ export default function HomePage() {
     else alert('Hata: ' + (j?.error || res.status));
   }
 
+  async function report(id: string) {
+  const res = await fetchOrSignin(`/api/items/${id}/report`, { method: 'POST' });
+  if (!res) return; // signin'e yönlendirilmiş olabilir
+  const j = await res.json().catch(() => null);
+  if (j?.ok) alert(`Report alındı (${j.count})`);
+  else alert('Hata: ' + (j?.error || res.status));
+}
+
   // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
