@@ -7,12 +7,11 @@ import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
 type Me = { id: string; name: string | null; avatarUrl?: string | null };
 
-type OrderType = 'new' | 'top' | `stars:${1|2|3|4|5}`;
 type Controls = {
   q: string;
   onQ: (v: string) => void;
-  order: OrderType;
-  onOrder: (v: OrderType) => void;
+  order: 'new' | 'top';
+  onOrder: (v: 'new' | 'top') => void;
 };
 
 const USE_CURRENTCOLOR = true;
@@ -177,21 +176,11 @@ export default function Header({ controls }: { controls?: Controls }) {
             </div>
             <select
               value={controls.order}
-              onChange={(e) => controls.onOrder(e.target.value as OrderType)}
-              className="border rounded-xl px-3 py-2 text-sm md:w-44 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              title="Sırala / Yıldıza göre filtrele"
+              onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
+              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             >
-              <optgroup label="Sırala">
-                <option value="new">En yeni</option>
-                <option value="top">En çok oy</option>
-              </optgroup>
-              <optgroup label="Yıldıza göre">
-                <option value="stars:5">5 ★</option>
-                <option value="stars:4">4 ★</option>
-                <option value="stars:3">3 ★</option>
-                <option value="stars:2">2 ★</option>
-                <option value="stars:1">1 ★</option>
-              </optgroup>
+              <option value="new">En yeni</option>
+              <option value="top">En çok oy</option>
             </select>
           </div>
         )}
@@ -277,21 +266,11 @@ export default function Header({ controls }: { controls?: Controls }) {
             </div>
             <select
               value={controls.order}
-              onChange={(e) => controls.onOrder(e.target.value as OrderType)}
+              onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
               className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              title="Sırala / Yıldıza göre filtrele"
             >
-              <optgroup label="Sırala">
-                <option value="new">En yeni</option>
-                <option value="top">En çok oy</option>
-              </optgroup>
-              <optgroup label="Yıldıza göre">
-                <option value="stars:5">5 ★</option>
-                <option value="stars:4">4 ★</option>
-                <option value="stars:3">3 ★</option>
-                <option value="stars:2">2 ★</option>
-                <option value="stars:1">1 ★</option>
-              </optgroup>
+              <option value="new">En yeni</option>
+              <option value="top">En çok oy</option>
             </select>
           </div>
         )}
