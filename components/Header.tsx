@@ -54,25 +54,21 @@ export default function Header({ controls }: { controls?: Controls }) {
   // Mobil: üst satırda logo + tema + giriş; alt satırda arama + sıralama
   // Desktop: tek satır
   const logoClass = USE_CURRENTCOLOR
-    ? 'h-10 w-auto text-gray-900 dark:text-gray-100'
-    : 'h-10 w-auto dark:invert';
+  ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
+  : 'h-14 w-auto dark:invert';
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
-        {/* SOL: Logo */}
-        <div className="flex items-center justify-between md:justify-start gap-3">
-          <Link href="/" className="shrink-0" title="Anasayfa">
-            {/* Tek renk + currentColor ise <img> yerine <span> ile color veriyoruz */}
-            {USE_CURRENTCOLOR ? (
-              <span className={logoClass}>
-                {/* inline <img> de olur; currentColor için CSS color devreye girer */}
-                <img src="/logo.svg" alt="RateStuff" className="h-7 w-auto" />
-              </span>
-            ) : (
-              <img src="/logo.svg" alt="RateStuff" className={logoClass} />
-            )}
-          </Link>
+   <div className="flex items-center justify-between md:justify-start gap-2">
+  <Link href="/" className="shrink-0" title="Anasayfa">
+    {USE_CURRENTCOLOR ? (
+      <span className={logoClass}>
+        <img src="/logo.svg" alt="RateStuff" className="h-14 w-auto" />
+      </span>
+    ) : (
+      <img src="/logo.svg" alt="RateStuff" className={logoClass} />
+    )}
+  </Link>
 
           {/* Mobil: sağa temas + auth kısayolları */}
           <div className="flex items-center gap-2 md:hidden">
