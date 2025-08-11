@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
+import { useSession } from "next-auth/react";
 
 type MyItem = {
   id: string;
