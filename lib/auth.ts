@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   // (opsiyonel) hata ayıklama açık kalsın; iş bitince kapat
+  trustHost: true, 
   debug: true,
   callbacks: {
     // DB’ye dokunmadan izin ver; (DB senkronu session içinde/sonrada)
