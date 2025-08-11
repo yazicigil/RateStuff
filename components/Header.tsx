@@ -32,10 +32,7 @@ export default function Header({ controls }: { controls?: Controls }) {
     }
   }
 
-  // session -> header kullanıcı bilgisi
-  useEffect(() => {
-    refetchMe();
-  }, []);
+  useEffect(() => { refetchMe(); }, []);
   useEffect(() => {
     const onVis = () => {
       if (document.visibilityState === 'visible') refetchMe();
@@ -44,7 +41,6 @@ export default function Header({ controls }: { controls?: Controls }) {
     return () => window.removeEventListener('visibilitychange', onVis);
   }, []);
 
-  // theme
   useEffect(() => {
     const initial = readTheme();
     setTheme(initial);
@@ -58,12 +54,11 @@ export default function Header({ controls }: { controls?: Controls }) {
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-4 py-3">
-        {/* Üst satır: logo + sağdaki aksiyonlar (mobilde dikey aralıklar) */}
-        <div className="flex items-center justify-between gap-3">
+        {/* Üst satır: logo + sağdaki aksiyonlar */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Link href="/" className="text-xl font-bold">RateStuff</Link>
 
           <nav className="flex items-center gap-2">
-            {/* Tema seçici */}
             <select
               value={theme}
               onChange={(e) => changeTheme(e.target.value as ThemePref)}
@@ -75,7 +70,6 @@ export default function Header({ controls }: { controls?: Controls }) {
               <option value="system">🖥️ Auto</option>
             </select>
 
-            {/* Auth */}
             {!loading && !me && (
               <button
                 type="button"
@@ -122,9 +116,9 @@ export default function Header({ controls }: { controls?: Controls }) {
           </nav>
         </div>
 
-        {/* Arama + Sıralama (mobilde alta iner, tam genişlik) */}
+        {/* Arama + Sıralama (mobilde alt satır, pc’de aynı satırda) */}
         {controls && (
-          <div className="mt-3 flex flex-col gap-2 md:mt-3 md:flex-row md:items-center">
+          <div className="mt-3 flex flex-col gap-2 md:mt-0 md:flex-row md:items-center">
             <div className="relative flex-1">
               <input
                 value={controls.q}
@@ -139,7 +133,6 @@ export default function Header({ controls }: { controls?: Controls }) {
                   onClick={() => controls.onQ('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
                   aria-label="Temizle"
-                  title="Temizle"
                 >
                   ×
                 </button>
