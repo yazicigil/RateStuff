@@ -6,7 +6,7 @@ import { getSessionUser } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-/** LISTE (anasayfa) */
+/** LISTE (anasayfa) — public */
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -28,66 +28,76 @@ export async function GET(req: Request) {
         ratings: true,
         comments: {
           orderBy: { createdAt: "desc" },
-          include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
+          include: { user: { select: { id: true, maskedName: true, avatarUrl: true} } },
         },
         tags: { include: { tag: true } },
         createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
       },
-      orderBy: order === "top" ? { ratings: { _count: "desc" } } : { createdAt: "desc" },
+      orderBy:
+        order === "top"
+          ? { ratings: { _count: "desc" } }
+          : { createdAt: "desc" },
       take: 50,
     });
 
     const shaped = items.map((i) => {
-  const count = i.ratings.length;
-  const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
+      const count = i.ratings.length;
+      const avg =
+        count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
 
-  // edited: yalnızca editedAt gerçekten sonradaysa
-  const itemEdited =
-    i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
+      const itemEdited =
+        i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
 
-  return {
-    id: i.id,
-    name: i.name,
-    description: i.description,
-    imageUrl: i.imageUrl,
-    avg,
-    count,
-    edited: !!itemEdited,
-    createdBy: i.createdBy
-      ? {
-          id: i.createdBy.id,
-          name: i.createdBy.maskedName ?? "anon",
-          avatarUrl: i.createdBy.avatarUrl ?? null,
-        }
-      : null,
-    comments: i.comments.map((c) => {
-      const cEdited =
-        c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
       return {
-        id: c.id,
-        text: c.text,
-        edited: !!cEdited,
-        user: {
-          id: c.user?.id,
-          name: c.user?.maskedName ?? "anon",
-          avatarUrl: c.user?.avatarUrl ?? null,
-        },
+        id: i.id,
+        name: i.name,
+        description: i.description,
+        imageUrl: i.imageUrl,
+        avg,
+        count,
+        edited: !!itemEdited,
+        createdBy: i.createdBy
+          ? {
+              id: i.createdBy.id,
+              name: i.createdBy.maskedName ?? "anon",
+              avatarUrl: i.createdBy.avatarUrl ?? null,
+            }
+          : null,
+        comments: i.comments.map((c) => {
+          const cEdited =
+            c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
+          return {
+            id: c.id,
+            text: c.text,
+            edited: !!cEdited,
+            user: {
+              id: c.user?.id,
+              name: c.user?.maskedName ?? "anon",
+              avatarUrl: c.user?.avatarUrl ?? null,
+            },
+          };
+        }),
+        tags: i.tags.map((t) => t.tag.name),
       };
-    }),
-    tags: i.tags.map((t) => t.tag.name),
-  };
-});
+    });
+
     return NextResponse.json(shaped);
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
   }
 }
 
-/** EKLE (form) – sende çalışan sürüm korunuyor */
+/** EKLE (form) — auth zorunlu; yoksa signin’e yönlendir */
 export async function POST(req: Request) {
   try {
     const me = await getSessionUser();
-    if (!me) return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    if (!me) {
+      const url = new URL(req.url);
+      const referer = req.headers.get("referer");
+      const signin = new URL("/api/auth/signin", url.origin);
+      signin.searchParams.set("callbackUrl", referer ?? `${url.origin}/`);
+      return NextResponse.redirect(signin);
+    }
 
     const body = await req.json();
     const name = String(body.name || "").trim();
@@ -102,7 +112,12 @@ export async function POST(req: Request) {
     }
 
     const tagNames = Array.from(
-      new Set(tagsCsv.split(",").map((s: string) => s.trim().toLowerCase()).filter(Boolean))
+      new Set(
+        tagsCsv
+          .split(",")
+          .map((s: string) => s.trim().toLowerCase())
+          .filter(Boolean)
+      )
     ).slice(0, 12);
 
     const result = await prisma.$transaction(async (tx) => {
