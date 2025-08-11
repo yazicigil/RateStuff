@@ -7,7 +7,7 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
-// --- Signin'a otomatik yönlendiren fetch ---
+// --- 401'de otomatik signin'e yönlendiren fetch ---
 async function fetchOrSignin(url: string, init?: RequestInit) {
   const res = await fetch(url, init);
 
@@ -17,7 +17,7 @@ async function fetchOrSignin(url: string, init?: RequestInit) {
     return null;
   }
 
-  // 401 ise elde biz yönlendirelim:
+  // 401 ise elde biz yönlendirelim
   if (res.status === 401) {
     const back = encodeURIComponent(window.location.href);
     window.location.href = `/api/auth/signin?callbackUrl=${back}`;
@@ -55,9 +55,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [openMenu, setOpenMenu] = useState<string | null>(null); // options menüsü
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  // Kaydedilmiş item ID'leri
+  // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
   async function loadSavedIds() {
@@ -102,103 +102,96 @@ export default function HomePage() {
   }, [q, allTags]);
 
   async function addItem(form: FormData) {
-  setAdding(true);
-  try {
-    const payload = {
-      name: String(form.get('name') || ''),
-      description: String(form.get('desc') || ''),
-      tagsCsv: String(form.get('tags') || ''),
-      rating: Number(form.get('rating') || '5'),
-      comment: String(form.get('comment') || ''),
-      imageUrl: String(form.get('imageUrl') || '') || null,
-    };
-    const res = await fetchOrSignin('/api/items', {
+    setAdding(true);
+    try {
+      const payload = {
+        name: String(form.get('name') || ''),
+        description: String(form.get('desc') || ''),
+        tagsCsv: String(form.get('tags') || ''),
+        rating: Number(form.get('rating') || '5'),
+        comment: String(form.get('comment') || ''),
+        imageUrl: String(form.get('imageUrl') || '') || null,
+      };
+      const res = await fetchOrSignin('/api/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res) return;
+      const j = await res.json().catch(()=>null);
+      if (j?.ok) { setQ(''); await load(); alert('Eklendi'); }
+      else alert('Hata: ' + (j?.error || res.status));
+    } finally { setAdding(false); }
+  }
+
+  async function toggleSave(id: string) {
+    const wasSaved = savedIds.has(id);
+
+    // optimistic
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(id); else next.add(id);
+      return next;
+    });
+
+    const method = wasSaved ? 'DELETE' : 'POST';
+    const res = await fetch(`/api/items/${id}/save`, { method });
+
+    // 401 → signin'e yönlendir + optimistic geri al
+    if (res.status === 401) {
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(id); else next.delete(id);
+        return next;
+      });
+      const back = encodeURIComponent(window.location.href);
+      window.location.href = `/api/auth/signin?callbackUrl=${back}`;
+      return;
+    }
+
+    let json: any = null;
+    try { json = await res.json(); } catch {}
+
+    if (!res.ok || !json?.ok) {
+      // başarısız → optimistic geri al
+      setSavedIds(prev => {
+        const next = new Set(prev);
+        if (wasSaved) next.add(id); else next.delete(id);
+        return next;
+      });
+      alert('Hata: ' + (json?.error || `${res.status} ${res.statusText}`));
+      return;
+    }
+
+    setOpenMenu(null);
+    await loadSavedIds(); // sunucu ile senkron
+  }
+
+  async function rate(id: string, value: number) {
+    const res = await fetchOrSignin(`/api/items/${id}/rate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ value })
     });
     if (!res) return;
-    const j = await res.json().catch(()=>null);
-    if (j?.ok) { setQ(''); await load(); alert('Eklendi'); }
-    else alert('Hata: ' + (j?.error || res.status));
-  } finally { setAdding(false); }
-}
-
-  async function report(id: string) {
-    const r = await fetch(`/api/items/${id}/report`, { method: 'POST' });
-    const j = await r.json();
-    if (j.ok) alert(`Report alındı (${j.count})`);
-    else alert('Hata: ' + j.error);
+    const j = await res.json().catch(() => null);
+    if (j?.ok) await load(); else alert('Hata: ' + (j?.error || res.status));
   }
-
-async function toggleSave(id: string) {
-  const wasSaved = savedIds.has(id);
-
-  // optimistic
-  setSavedIds(prev => {
-    const next = new Set(prev);
-    if (wasSaved) next.delete(id); else next.add(id);
-    return next;
-  });
-
-  const method = wasSaved ? 'DELETE' : 'POST';
-  const res = await fetch(`/api/items/${id}/save`, { method });
-
-  // 401 → giriş ekranına gönder + optimistic geri al
-  if (res.status === 401) {
-    setSavedIds(prev => {
-      const next = new Set(prev);
-      if (wasSaved) next.add(id); else next.delete(id);
-      return next;
-    });
-    const back = encodeURIComponent(window.location.href);
-    window.location.href = `/api/auth/signin?callbackUrl=${back}`;
-    return;
-  }
-
-  let json: any = null;
-  try { json = await res.json(); } catch { /* body yoksa */ }
-
-  if (!res.ok || !json?.ok) {
-    // başarısız → optimistic geri al
-    setSavedIds(prev => {
-      const next = new Set(prev);
-      if (wasSaved) next.add(id); else next.delete(id);
-      return next;
-    });
-    alert('Hata: ' + (json?.error || `${res.status} ${res.statusText}`));
-    return;
-  }
-
-  setOpenMenu(null);
-  // sunucuyla senkron
-  await loadSavedIds();
-}
-  async function rate(id: string, value: number) {
-  const res = await fetchOrSignin(`/api/items/${id}/rate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ value })
-  });
-  if (!res) return;
-  const j = await res.json().catch(() => null);
-  if (j?.ok) await load(); else alert('Hata: ' + (j?.error || res.status));
-}
 
   async function sendComment(itemId: string) {
-  const text = (drafts[itemId] || '').trim();
-  if (!text) return;
+    const text = (drafts[itemId] || '').trim();
+    if (!text) return;
 
-  const res = await fetchOrSignin(`/api/items/${itemId}/comments`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ text })
-  });
-  if (!res) return;
-  const j = await res.json().catch(() => null);
-  if (j?.ok) { setDrafts(d => ({ ...d, [itemId]: '' })); await load(); }
-  else alert('Hata: ' + (j?.error || res.status));
-}
+    const res = await fetchOrSignin(`/api/items/${itemId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (!res) return;
+    const j = await res.json().catch(() => null);
+    if (j?.ok) { setDrafts(d => ({ ...d, [itemId]: '' })); await load(); }
+    else alert('Hata: ' + (j?.error || res.status));
+  }
 
   // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
@@ -275,35 +268,25 @@ async function toggleSave(id: string) {
                   <div className="absolute top-3 right-3">
                     <div className="relative">
                       <button
-  className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-  onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
-  aria-label="options"
->
-  ⋯
-</button>
+                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+                        onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
+                        aria-label="options"
+                      >
+                        ⋯
+                      </button>
 
-{openMenu === i.id && (
-  <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-    {/* Tek buton: Kaydet / Kaydedilenlerden Kaldır */}
-    <button
-      className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-        savedIds.has(i.id)
-          ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-      }`}
-      onClick={() => toggleSave(i.id)}
-    >
-      {savedIds.has(i.id) ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
-    </button>
-  </div>
-)}
-
-                          {/* Report'u bırakıyoruz */}
+                      {openMenu === i.id && (
+                        <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                          {/* Tek buton: Kaydet / Kaydedilenlerden Kaldır */}
                           <button
-                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
-                            onClick={() => { setOpenMenu(null); report(i.id); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                              isSaved
+                                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                            }`}
+                            onClick={() => toggleSave(i.id)}
                           >
-                            Report
+                            {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
                           </button>
                         </div>
                       )}
@@ -400,7 +383,7 @@ async function toggleSave(id: string) {
                   </div>
 
                   {/* Yorum yaz – HER ZAMAN EN ALTA YAPIŞIK */}
-                  <div className="mt-3 pt-3 border-top border-t dark:border-gray-800 flex items-center gap-2">
+                  <div className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2">
                     <input
                       value={drafts[i.id] || ''}
                       onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
