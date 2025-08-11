@@ -10,13 +10,13 @@ type MyRating = { id:string; itemId:string; itemName:string; value:number };
 type MyComment= { id:string; itemId:string; itemName:string; text:string; edited?:boolean };
 
 export default function MePage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
-  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null }|null>(null);
-  const [items, setItems]     = useState<MyItem[]>([]);
-  const [saved, setSaved]     = useState<MyItem[]>([]);
-  const [ratings, setRatings] = useState<MyRating[]>([]);
-  const [comments, setComments]=useState<MyComment[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState<string | null>(null);
+  const [me, setMe]             = useState<{ id:string; name?:string|null; avatarUrl?:string|null }|null>(null);
+  const [items, setItems]       = useState<MyItem[]>([]);
+  const [saved, setSaved]       = useState<MyItem[]>([]);
+  const [ratings, setRatings]   = useState<MyRating[]>([]);
+  const [comments, setComments] = useState<MyComment[]>([]);
   const [editingItem, setEditingItem] = useState<string|null>(null);
   const [editDesc, setEditDesc] = useState("");
   const [editImg,  setEditImg]  = useState<string|null>("");
@@ -28,11 +28,8 @@ export default function MePage() {
       const r = await fetch("/api/me", { cache: "no-store" });
       if (r.status === 401) { window.location.href = "/"; return; }
 
-      // Güvenli JSON parse
-      let data: any = null;
       const text = await r.text();
-      try { data = text ? JSON.parse(text) : null; }
-      catch { throw new Error(`/api/me JSON parse failed (status ${r.status})`); }
+      const data = text ? JSON.parse(text) : null;
 
       if (!r.ok || !data?.ok) {
         throw new Error(data?.error || `status ${r.status}`);
@@ -49,6 +46,7 @@ export default function MePage() {
       setLoading(false);
     }
   }
+
   useEffect(()=>{ load(); }, []);
 
   async function saveItem(id:string) {
@@ -78,6 +76,7 @@ export default function MePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -116,20 +115,19 @@ export default function MePage() {
         {/* Eklediklerim */}
         <Section title="Eklediklerim">
           {loading ? <Box>Yükleniyor…</Box> :
-           ( (items.length===0) ? <Box>Henüz yok.</Box> :
-              <div className="grid md:grid-cols-2 gap-4">
-                {items.map(it => (
-                  <ItemEditor key={it.id} it={it}
-                    editingItem={editingItem}
-                    setEditingItem={setEditingItem}
-                    editDesc={editDesc} setEditDesc={setEditDesc}
-                    editImg={editImg} setEditImg={setEditImg}
-                    onSave={()=>saveItem(it.id)}
-                  />
-                ))}
-              </div>
-           )
-          }
+           (items.length===0 ? <Box>Henüz yok.</Box> :
+            <div className="grid md:grid-cols-2 gap-4">
+              {items.map(it => (
+                <ItemEditor key={it.id} it={it}
+                  editingItem={editingItem}
+                  setEditingItem={setEditingItem}
+                  editDesc={editDesc} setEditDesc={setEditDesc}
+                  editImg={editImg} setEditImg={setEditImg}
+                  onSave={()=>saveItem(it.id)}
+                />
+              ))}
+            </div>
+           )}
         </Section>
 
         {/* Kaydedilenler */}
@@ -179,7 +177,7 @@ export default function MePage() {
   );
 }
 
-// — küçük yardımcılar —
+/* — küçük yardımcılar — */
 function Section({ title, children }:{title:string; children:any}) {
   return (
     <section className="space-y-3">
