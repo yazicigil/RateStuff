@@ -74,8 +74,6 @@ export default function MePage() {
     }
   }, [status]);
 
-  // buradan sonra load fonksiyonun geliyor
-
   async function load() {
     setLoading(true);
     setError(null);
@@ -327,6 +325,7 @@ export default function MePage() {
                   editImg={editImg}
                   setEditImg={setEditImg}
                   onSave={() => saveItem(it.id)}
+                  onDelete={deleteItem}   {/* <-- EKLENDİ */}
                 />
               ))}
             </div>
@@ -420,8 +419,11 @@ function ItemEditor(props: {
   editDesc: string; setEditDesc: (s:string)=>void;
   editImg: string|null; setEditImg: (s:string|null)=>void;
   onSave: ()=>Promise<void>|void;
+  onDelete: (id: string) => Promise<void> | void;  // <-- EKLENDİ
 }) {
-  const { it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave } = props;
+  const {
+    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete // <-- EKLENDİ
+  } = props;
   const isEditing = editingItem === it.id;
 
   return (
@@ -481,7 +483,7 @@ function ItemEditor(props: {
                 </button>
                 <button
                   className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                  onClick={()=>deleteItem(it.id)}
+                  onClick={() => onDelete(it.id)}  // <-- deleteItem yerine prop
                   title="Sil"
                   aria-label="Sil"
                 >
