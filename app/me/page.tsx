@@ -1,4 +1,6 @@
+
 'use client';
+import React from "react";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -400,7 +402,7 @@ function Section({
         className="w-full cursor-pointer select-none px-4 py-3 text-lg font-semibold flex items-center justify-between"
       >
         <span>{title}</span>
-        <span className="text-sm opacity-60">{open ? '−' : '+'}</span>
+        <span className="text-sm opacity-60">{open ? '-' : '+'}</span>
       </button>
       {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
     </section>
