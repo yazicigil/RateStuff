@@ -1,8 +1,8 @@
 'use client';
 
-import { signIn, signOut } from 'next-auth/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
 type Me = { id: string; name: string | null; avatarUrl?: string | null };
@@ -14,7 +14,7 @@ type Controls = {
   onOrder: (v: 'new' | 'top') => void;
 };
 
-const USE_CURRENTCOLOR = true; // logo.svg tek renk + currentColor ise true, çok renkliyse false
+const USE_CURRENTCOLOR = true;
 
 export default function Header({ controls }: { controls?: Controls }) {
   const [me, setMe] = useState<Me | null>(null);
@@ -24,9 +24,8 @@ export default function Header({ controls }: { controls?: Controls }) {
   async function refetchMe() {
     try {
       const r = await fetch('/api/me', { cache: 'no-store' });
-      if (!r.ok) { setMe(null); return; }
-      const j = await r.json();
-      setMe(j?.me ?? null);
+      const j = await r.json().catch(() => null);
+      setMe(r.ok ? (j?.me ?? null) : null);
     } catch {
       setMe(null);
     } finally {
@@ -46,31 +45,28 @@ export default function Header({ controls }: { controls?: Controls }) {
     setTheme(initial);
     applyTheme(initial);
   }, []);
-  function changeTheme(next: ThemePref) {
-    setTheme(next);
-    applyTheme(next);
-  }
+  function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
 
-  // Mobil: üst satırda logo + tema + giriş; alt satırda arama + sıralama
-  // Desktop: tek satır
   const logoClass = USE_CURRENTCOLOR
-  ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
-  : 'h-14 w-auto dark:invert';
+    ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
+    : 'h-14 w-auto dark:invert';
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-   <div className="flex items-center justify-between md:justify-start gap-2">
-  <Link href="/" className="shrink-0" title="Anasayfa">
-    {USE_CURRENTCOLOR ? (
-      <span className={logoClass}>
-        <img src="/logo.svg" alt="RateStuff" className="h-14 w-auto" />
-      </span>
-    ) : (
-      <img src="/logo.svg" alt="RateStuff" className={logoClass} />
-    )}
-  </Link>
+      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+        {/* Sol: Logo + (mobil) tema & auth */}
+        <div className="flex items-center justify-between md:justify-start gap-2">
+          <Link href="/" className="shrink-0" title="Anasayfa">
+            {USE_CURRENTCOLOR ? (
+              <span className={logoClass}>
+                <img src="/logo.svg" alt="RateStuff" className="h-14 w-auto" />
+              </span>
+            ) : (
+              <img src="/logo.svg" alt="RateStuff" className={logoClass} />
+            )}
+          </Link>
 
-          {/* Mobil: sağa temas + auth kısayolları */}
+          {/* Mobil sağ blok */}
           <div className="flex items-center gap-2 md:hidden">
             <select
               value={theme}
@@ -85,12 +81,11 @@ export default function Header({ controls }: { controls?: Controls }) {
 
             {!loading && !me && (
               <button
-                onClick={() => signIn('google', { callbackUrl: '/' })}
+                onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
                 className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
                 title="Google ile giriş"
                 type="button"
               >
-                {/* Google logosu */}
                 <svg width="16" height="16" viewBox="0 0 256 262" aria-hidden="true">
                   <path fill="#4285F4" d="M255.9 133.5c0-10.4-.9-18-2.9-25.9H130v46.9h71.9c-1.5 11.7-9.6 29.3-27.5 41.1l-.3 2.2 40 31 2.8.3c25.7-23.7 40.5-58.6 40.5-96.6z"/>
                   <path fill="#34A853" d="M130 261.1c36.6 0 67.3-12.1 89.8-32.9l-42.8-33.2c-11.5 8-26.9 13.6-47 13.6-35.9 0-66.4-23.7-77.3-56.6l-2 .2-41.9 32.5-.5 2c22.4 44.6 68.5 74.4 121.7 74.4z"/>
@@ -117,7 +112,6 @@ export default function Header({ controls }: { controls?: Controls }) {
                   )}
                   <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
                 </Link>
-
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
@@ -131,7 +125,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           </div>
         </div>
 
-        {/* Desktop arama + sıralama */}
+        {/* Desktop: arama + sıralama ortada */}
         {controls && (
           <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
             <div className="relative flex-1">
@@ -141,7 +135,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
-              {controls.q && (
+              {!!controls.q && (
                 <button
                   type="button"
                   onClick={() => controls.onQ('')}
@@ -178,7 +172,7 @@ export default function Header({ controls }: { controls?: Controls }) {
 
           {!loading && !me && (
             <button
-              onClick={() => signIn('google', { callbackUrl: '/' })}
+              onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
               className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
               title="Google ile giriş"
               type="button"
@@ -209,7 +203,6 @@ export default function Header({ controls }: { controls?: Controls }) {
                 )}
                 <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
               </Link>
-
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
@@ -222,7 +215,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           )}
         </nav>
 
-        {/* Mobil: alt sıra (arama + sıralama) */}
+        {/* Mobil: arama + sıralama ikinci satır */}
         {controls && (
           <div className="md:hidden flex items-center gap-2">
             <div className="relative flex-1">
@@ -232,7 +225,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
-              {controls.q && (
+              {!!controls.q && (
                 <button
                   type="button"
                   onClick={() => controls.onQ('')}
