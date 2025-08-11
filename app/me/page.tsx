@@ -1,25 +1,45 @@
+// app/me/page.tsx
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
+import ImageUploader from "@/components/ImageUploader";
 
-type MyItem   = { id:string; name:string; description:string; imageUrl?:string|null; avg:number|null; edited?:boolean };
-type MyRating = { id:string; itemId:string; itemName:string; value:number };
-type MyComment= { id:string; itemId:string; itemName:string; text:string; edited?:boolean };
+type MyItem = {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl?: string | null;
+  avg: number | null;
+  edited?: boolean;
+  // Saved filtreleri için opsiyonel — /api/me bunu gönderirse aktif olur
+  tags?: string[];
+};
+type MyRating = { id: string; itemId: string; itemName: string; value: number };
+type MyComment = { id: string; itemId: string; itemName: string; text: string; edited?: boolean };
 
 export default function MePage() {
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
-  const [me, setMe]             = useState<{ id:string; name?:string|null; avatarUrl?:string|null }|null>(null);
-  const [items, setItems]       = useState<MyItem[]>([]);
-  const [saved, setSaved]       = useState<MyItem[]>([]);
-  const [ratings, setRatings]   = useState<MyRating[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
+
+  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null }|null>(null);
+  const [items, setItems]     = useState<MyItem[]>([]);
+  const [saved, setSaved]     = useState<MyItem[]>([]);
+  const [ratings, setRatings] = useState<MyRating[]>([]);
   const [comments, setComments] = useState<MyComment[]>([]);
+
+  // Eklediklerimi düzenleme
   const [editingItem, setEditingItem] = useState<string|null>(null);
   const [editDesc, setEditDesc] = useState("");
-  const [editImg,  setEditImg]  = useState<string|null>("");
+  const [editImg,  setEditImg]  = useState<string|null>(null);
+
+  // Kaydedilenler filtre (tag)
+  const [savedTag, setSavedTag] = useState<string | null>(null);
+
+  // Yorumlar: kaç adet görünüyor
+  const [commentsLimit, setCommentsLimit] = useState(5);
 
   async function load() {
     setLoading(true);
@@ -30,10 +50,7 @@ export default function MePage() {
 
       const text = await r.text();
       const data = text ? JSON.parse(text) : null;
-
-      if (!r.ok || !data?.ok) {
-        throw new Error(data?.error || `status ${r.status}`);
-      }
+      if (!r.ok || !data?.ok) throw new Error(data?.error || `status ${r.status}`);
 
       setMe(data.me || null);
       setItems(data.items || []);
@@ -46,11 +63,22 @@ export default function MePage() {
       setLoading(false);
     }
   }
-
   useEffect(()=>{ load(); }, []);
 
+  // — Kaydedilenler için mevcut tag’lar (sadece saved içindeki etiketler)
+  const savedTags = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of saved) (it.tags || []).forEach(t => s.add(t));
+    return Array.from(s).sort();
+  }, [saved]);
+
+  const filteredSaved = useMemo(() => {
+    if (!savedTag) return saved;
+    return saved.filter(it => (it.tags || []).includes(savedTag));
+  }, [saved, savedTag]);
+
   async function saveItem(id:string) {
-    const body:any = { description: editDesc, imageUrl: editImg === "" ? null : editImg };
+    const body:any = { description: editDesc, imageUrl: editImg ?? null };
     const r = await fetch(`/api/items/${id}/edit`, {
       method: "PATCH", headers: { "Content-Type":"application/json" }, body: JSON.stringify(body)
     });
@@ -74,6 +102,16 @@ export default function MePage() {
     if (j?.ok) await load(); else alert("Hata: " + (j?.error || r.status));
   }
 
+  async function removeSaved(itemId: string) {
+    const r = await fetch(`/api/items/${itemId}/save`, { method: "DELETE" });
+    const j = await r.json().catch(()=>null);
+    if (j?.ok) {
+      setSaved(prev => prev.filter(x => x.id !== itemId));
+    } else {
+      alert("Hata: " + (j?.error || r.status));
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -92,7 +130,7 @@ export default function MePage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-8">
+      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
             {error}
@@ -112,44 +150,117 @@ export default function MePage() {
           </div>
         </section>
 
-        {/* Eklediklerim */}
+        {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
+        <Section title="Kaydedilenler" defaultOpen>
+          {loading ? (
+            <Box>Yükleniyor…</Box>
+          ) : saved.length === 0 ? (
+            <Box>Henüz yok.</Box>
+          ) : (
+            <>
+              {/* Etiket filtresi (sadece saved içinde etiket varsa görünür) */}
+              {savedTags.length > 0 && (
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <button
+                    className={`px-2 py-1 rounded-full border text-xs ${
+                      !savedTag ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                    }`}
+                    onClick={() => setSavedTag(null)}
+                  >
+                    Hepsi
+                  </button>
+                  {savedTags.map(t => (
+                    <button
+                      key={t}
+                      className={`px-2 py-1 rounded-full border text-xs ${
+                        savedTag === t
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                      }`}
+                      onClick={() => setSavedTag(t)}
+                    >
+                      #{t}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-4">
+                {filteredSaved.map(it => (
+                  <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
+                    <div className="flex items-start gap-3">
+                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+                        {it.imageUrl ? (
+                          <img src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xs opacity-60">no img</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-base font-medium truncate">{it.name}</div>
+                          <button
+                            onClick={() => removeSaved(it.id)}
+                            className="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
+                            title="Kaydedilenlerden kaldır"
+                          >
+                            Kaldır
+                          </button>
+                        </div>
+                        <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
+                        <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
+                        {it.edited && (
+                          <span className="mt-1 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                            düzenlendi
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </Section>
+
+        {/* 2) EKLEDİKLERİM — collapsible, içinde ImageUploader ile düzenleme */}
         <Section title="Eklediklerim">
-          {loading ? <Box>Yükleniyor…</Box> :
-           (items.length===0 ? <Box>Henüz yok.</Box> :
+          {loading ? (
+            <Box>Yükleniyor…</Box>
+          ) : items.length === 0 ? (
+            <Box>Henüz yok.</Box>
+          ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {items.map(it => (
-                <ItemEditor key={it.id} it={it}
+                <ItemEditor
+                  key={it.id}
+                  it={it}
                   editingItem={editingItem}
-                  setEditingItem={setEditingItem}
-                  editDesc={editDesc} setEditDesc={setEditDesc}
-                  editImg={editImg} setEditImg={setEditImg}
-                  onSave={()=>saveItem(it.id)}
+                  setEditingItem={(id) => {
+                    setEditingItem(id);
+                    if (id === it.id) {
+                      setEditDesc(it.description || "");
+                      setEditImg(it.imageUrl ?? null);
+                    }
+                  }}
+                  editDesc={editDesc}
+                  setEditDesc={setEditDesc}
+                  editImg={editImg}
+                  setEditImg={setEditImg}
+                  onSave={() => saveItem(it.id)}
                 />
               ))}
             </div>
-           )}
+          )}
         </Section>
 
-        {/* Kaydedilenler */}
-        <Section title="Kaydedilenler">
-          {loading ? <Box>Yükleniyor…</Box> :
-           (saved.length===0 ? <Box>Henüz yok.</Box> :
-            <div className="grid md:grid-cols-2 gap-4">
-              {saved.map(it => (
-                <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
-                  <div className="text-base font-medium truncate">{it.name}</div>
-                  <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
-                  <p className="text-sm opacity-80 mt-1">{it.description}</p>
-                </div>
-              ))}
-            </div>
-           )}
-        </Section>
-
-        {/* Puanlarım */}
+        {/* 3) PUANLARIM — collapsible */}
         <Section title="Puanlarım">
-          {loading ? <Box>Yükleniyor…</Box> :
-           (ratings.length===0 ? <Box>Puan vermemişsin.</Box> :
+          {loading ? (
+            <Box>Yükleniyor…</Box>
+          ) : ratings.length === 0 ? (
+            <Box>Puan vermemişsin.</Box>
+          ) : (
             <div className="space-y-2">
               {ratings.map(r => (
                 <div key={r.id} className="rounded-xl border p-3 flex items-center justify-between">
@@ -158,38 +269,64 @@ export default function MePage() {
                 </div>
               ))}
             </div>
-           )}
+          )}
         </Section>
 
-        {/* Yorumlarım */}
+        {/* 4) YORUMLARIM — collapsible, son 5 + daha fazla göster */}
         <Section title="Yorumlarım">
-          {loading ? <Box>Yükleniyor…</Box> :
-           (comments.length===0 ? <Box>Yorumun yok.</Box> :
-            <div className="space-y-2">
-              {comments.map(c => (
-                <CommentRow key={c.id} c={c} onSave={saveComment} />
-              ))}
-            </div>
-           )}
+          {loading ? (
+            <Box>Yükleniyor…</Box>
+          ) : comments.length === 0 ? (
+            <Box>Yorumun yok.</Box>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {comments.slice(0, commentsLimit).map(c => (
+                  <CommentRow key={c.id} c={c} onSave={saveComment} />
+                ))}
+              </div>
+              {comments.length > commentsLimit && (
+                <div className="pt-2">
+                  <button
+                    className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+                    onClick={() => setCommentsLimit(l => l + 5)}
+                  >
+                    Daha fazla göster
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </Section>
       </main>
     </div>
   );
 }
 
-/* — küçük yardımcılar — */
-function Section({ title, children }:{title:string; children:any}) {
+/* — Collapsible Section — */
+function Section({
+  title,
+  defaultOpen = false,
+  children,
+}: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   return (
-    <section className="space-y-3">
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {children}
-    </section>
+    <details className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm" open={defaultOpen}>
+      <summary className="cursor-pointer select-none px-4 py-3 text-lg font-semibold list-none flex items-center justify-between">
+        <span>{title}</span>
+        <span className="text-sm opacity-60">▼</span>
+      </summary>
+      <div className="px-4 pb-4 space-y-3">
+        {children}
+      </div>
+    </details>
   );
 }
+
 function Box({ children }:{children:any}) {
-  return <div className="rounded-xl border p-3">{children}</div>;
+  return <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900">{children}</div>;
 }
 
+/* — Editor kartı (ImageUploader entegre) — */
 function ItemEditor(props: {
   it: MyItem;
   editingItem: string|null; setEditingItem: (id:string|null)=>void;
@@ -198,6 +335,8 @@ function ItemEditor(props: {
   onSave: ()=>Promise<void>|void;
 }) {
   const { it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave } = props;
+  const isEditing = editingItem === it.id;
+
   return (
     <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
       <div className="flex items-start gap-3">
@@ -215,8 +354,9 @@ function ItemEditor(props: {
           </div>
           <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
 
-          {editingItem === it.id ? (
-            <div className="mt-2 space-y-2">
+          {isEditing ? (
+            <div className="mt-3 space-y-3">
+              <label className="block text-sm font-medium">Açıklama</label>
               <textarea
                 className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
                 rows={3}
@@ -224,15 +364,15 @@ function ItemEditor(props: {
                 onChange={(e)=>setEditDesc(e.target.value)}
                 placeholder="açıklama"
               />
-              <input
-                className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-                value={editImg ?? ""}
-                onChange={(e)=>setEditImg(e.target.value)}
-                placeholder="görsel URL (boş bırakırsan kaldırılır)"
-              />
+
+              <div>
+                <div className="text-sm font-medium mb-1">Görsel</div>
+                <ImageUploader value={editImg ?? null} onChange={setEditImg} />
+              </div>
+
               <div className="flex gap-2">
-                <button onClick={()=>onSave()} className="px-3 py-1 rounded-lg border text-sm bg-black text-white">Kaydet</button>
-                <button onClick={()=>setEditingItem(null)} className="px-3 py-1 rounded-lg border text-sm">Vazgeç</button>
+                <button onClick={()=>onSave()} className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white">Kaydet</button>
+                <button onClick={()=>setEditingItem(null)} className="px-3 py-1.5 rounded-lg border text-sm">Vazgeç</button>
               </div>
             </div>
           ) : (
@@ -240,11 +380,11 @@ function ItemEditor(props: {
               <p className="text-sm opacity-80 mt-1">{it.description}</p>
               <div className="mt-2">
                 <button
-                  className="px-3 py-1 rounded-lg border text-sm"
+                  className="px-3 py-1.5 rounded-lg border text-sm"
                   onClick={()=>{
                     setEditingItem(it.id);
                     setEditDesc(it.description || "");
-                    setEditImg(it.imageUrl ?? "");
+                    setEditImg(it.imageUrl ?? null);
                   }}
                 >
                   Düzenle (başlık hariç)
@@ -258,11 +398,12 @@ function ItemEditor(props: {
   );
 }
 
+/* — Yorum satırı — */
 function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)=>Promise<void> }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(c.text);
   return (
-    <div className="rounded-xl border p-3">
+    <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
       <div className="text-sm opacity-70">{c.itemName}</div>
       {editing ? (
         <div className="mt-2 space-y-2">
@@ -273,15 +414,23 @@ function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)
             className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
           />
           <div className="flex gap-2">
-            <button className="px-3 py-1 rounded-lg border text-sm bg-black text-white" onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}>Kaydet</button>
-            <button className="px-3 py-1 rounded-lg border text-sm" onClick={()=>{ setEditing(false); setVal(c.text); }}>Vazgeç</button>
+            <button className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
+              onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}
+            >
+              Kaydet
+            </button>
+            <button className="px-3 py-1.5 rounded-lg border text-sm"
+              onClick={()=>{ setEditing(false); setVal(c.text); }}
+            >
+              Vazgeç
+            </button>
           </div>
         </div>
       ) : (
         <div className="mt-1 text-sm">
           “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
           <div className="mt-2">
-            <button className="px-3 py-1 rounded-lg border text-sm" onClick={()=>setEditing(true)}>Düzenle</button>
+            <button className="px-3 py-1.5 rounded-lg border text-sm" onClick={()=>setEditing(true)}>Düzenle</button>
           </div>
         </div>
       )}
