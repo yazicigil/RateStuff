@@ -7,18 +7,17 @@ export async function GET(req: Request) {
   try {
     const me = await getSessionUser();
 
-    // Oturum yoksa: doğrudan NextAuth sign-in'e yönlendir
+    // Oturum yoksa NextAuth sign-in ekranına yönlendir (callback olarak geldiğin sayfa)
     if (!me) {
       const url = new URL(req.url);
       const referer = req.headers.get("referer");
-      // geri dönüş olarak referer varsa onu, yoksa ana sayfayı ver
       const callback = referer ?? `${url.origin}/`;
       const signin = new URL("/api/auth/signin", url.origin);
       signin.searchParams.set("callbackUrl", callback);
       return NextResponse.redirect(signin);
     }
 
-    // Her bloğu bağımsız korumaya alıyoruz ki biri patlarsa tüm yanıt 500 olmasın
+    // Her bloğu bağımsız yapalım ki biri patlarsa tüm yanıt çökmesin
     const [itemsRes, ratingsRes, commentsRes, savedRes] = await Promise.allSettled([
       prisma.item.findMany({
         where: { createdById: me.id },
@@ -35,6 +34,7 @@ export async function GET(req: Request) {
         orderBy: { createdAt: "desc" },
         include: { item: { select: { id: true, name: true } } },
       }),
+      // ↓ Kaydedilenlerde etiketleri de getiriyoruz
       prisma.savedItem.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
@@ -48,6 +48,8 @@ export async function GET(req: Request) {
               editedAt: true,
               createdAt: true,
               ratings: { select: { value: true } },
+              // etiket isimlerini çıkarabilelim
+              tags: { include: { tag: true } },
             },
           },
         },
@@ -59,11 +61,19 @@ export async function GET(req: Request) {
     const comments = commentsRes.status === "fulfilled" ? commentsRes.value : [];
     const saved    = savedRes.status === "fulfilled" ? savedRes.value : [];
 
+    // Item'ı şekillendir (etiket varsa isimlerini de döndür)
     const shapeItem = (i: any) => {
       const count = i.ratings?.length ?? 0;
       const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
       const edited =
         i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
+
+      const tags = Array.isArray(i.tags)
+        ? i.tags
+            .map((t: any) => t?.tag?.name ?? t?.name)
+            .filter((x: any) => typeof x === "string" && x.length > 0)
+        : undefined;
+
       return {
         id: i.id,
         name: i.name,
@@ -71,11 +81,12 @@ export async function GET(req: Request) {
         imageUrl: i.imageUrl,
         avg,
         edited,
+        ...(tags ? { tags } : {}), // sadece varsa ekle
       };
     };
 
     const shaped = {
-      items: items.map(shapeItem),
+      items: items.map(shapeItem), // (eklediklerinde tags getirmiyoruz, gerekirse include eklenir)
       ratings: ratings
         .filter((r: any) => !!r.item)
         .map((r: any) => ({
@@ -94,6 +105,7 @@ export async function GET(req: Request) {
           edited:
             c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000,
         })),
+      // saved'de tags artık mevcut
       saved: saved
         .filter((s: any) => !!s.item)
         .map((s: any) => shapeItem(s.item)),
