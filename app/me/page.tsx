@@ -179,12 +179,22 @@ export default function MePage() {
   async function deleteItem(itemId: string) {
     const ok = window.confirm("Bu öğeyi silmek istediğine emin misin? Bu işlem geri alınamaz.");
     if (!ok) return;
-    const r = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
-    const j = await r.json().catch(() => null);
-    if (j?.ok) {
+
+    // 1) Try native DELETE first
+    let r = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
+
+    // 2) If the route doesn't allow DELETE (405) or isn't found (404), try a common fallback POST endpoint
+    if (r.status === 405 || r.status === 404) {
+      r = await fetch(`/api/items/${itemId}/delete`, { method: "POST" });
+    }
+
+    let j: any = null;
+    try { j = await r.json(); } catch {}
+
+    if (r.ok && j?.ok !== false) {
       setItems(prev => prev.filter(x => x.id !== itemId));
     } else {
-      alert("Hata: " + (j?.error || r.status));
+      alert('Hata: ' + (j?.error || `${r.status} ${r.statusText}`));
     }
   }
 
@@ -226,7 +236,6 @@ export default function MePage() {
             <div className="text-base md:text-lg font-semibold truncate">{me?.name || "Profilim"}</div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
           </div>
-          <Link href="/" className="hidden sm:inline-flex px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Anasayfa</Link>
         </section>
 
         {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
