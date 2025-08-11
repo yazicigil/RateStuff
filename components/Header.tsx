@@ -91,7 +91,7 @@ export default function Header({ controls }: { controls?: Controls }) {
 
           {!loading && !me && (
             <button
-              onClick={() => signIn('google', { callbackUrl: '/' })}
+              onClick={() => signIn("google", { callbackUrl: "/", authorizationParams: { prompt: "select_account" } })
               className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
               title="Google ile giriş"
               type="button"
