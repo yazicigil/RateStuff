@@ -63,6 +63,15 @@ export default function HomePage() {
   const [starBucket, setStarBucket] = useState<number | null>(null);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  // Seçili etiket sayıları (başlıklarda göstermek için)
+  const selectedInTrending = useMemo(
+    () => trending.filter(t => selectedTags.has(t)).length,
+    [trending, selectedTags]
+  );
+  const selectedInAllTags = useMemo(
+    () => allTags.filter(t => selectedTags.has(t)).length,
+    [allTags, selectedTags]
+  );
 
   async function loadSavedIds() {
     try {
@@ -240,12 +249,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBucket, onStarBucket: setStarBucket }} />
+      <style jsx global>{`
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(-4px); }
+          15% { opacity: 1; transform: translateY(0); }
+          85% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-4px); }
+        }
+      `}</style>
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
         <aside>
           <CollapsibleSection
-            title="Trend Etiketler"
+            title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
             defaultOpen={true}
             className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20"
             summaryClassName="text-amber-900 dark:text-amber-200"
@@ -271,7 +288,7 @@ export default function HomePage() {
 
           <div className="h-4" />
 
-          <CollapsibleSection title="Tüm Etiketler" defaultOpen={false}>
+          <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
             <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
               {allTags.map((t) => (
                 <Tag
@@ -302,7 +319,7 @@ export default function HomePage() {
               defaultOpen={true}
             >
               <form
-                className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+                className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
                 onSubmit={(e) => {
                   e.preventDefault();
                   // mevcut addItem fonksiyonunu çağırıyoruz:
@@ -314,10 +331,11 @@ export default function HomePage() {
                 }}
               >
                 {justAdded && (
-                  <div className="flex justify-end -mt-1">
-                    <span className="ml-1 inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] px-2 py-0.5 rounded-full">
-                      ✓ Eklendi
-                    </span>
+                  <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
+                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span className="text-sm font-medium">Eklendi</span>
+                    </div>
                   </div>
                 )}
                 {/* 1. satır: Ad + Kısa açıklama */}
@@ -327,19 +345,19 @@ export default function HomePage() {
                     name="name"
                     value={quickName}
                     onChange={(e) => setQuickName(e.target.value)}
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                     placeholder="adı"
                     required
                   />
                   <input
                     name="desc"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                     placeholder="kısa açıklama"
                     required
                   />
                   <input
                     name="tags"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                     placeholder="etiketler (virgülle)"
                     required
                   />
@@ -355,7 +373,7 @@ export default function HomePage() {
                   <input type="hidden" name="rating" value={newRating} />
                   <input
                     name="comment"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                     placeholder="yorum"
                     required
                   />
@@ -373,9 +391,16 @@ export default function HomePage() {
                 <div className="flex justify-end pt-1">
                   <button
                     disabled={adding}
-                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60"
+                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
                   >
-                    {adding ? 'Ekleniyor…' : 'Ekle'}
+                    {adding ? (
+                      <span className="inline-flex items-center gap-2">
+                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
+                        Ekleniyor…
+                      </span>
+                    ) : (
+                      'Ekle'
+                    )}
                   </button>
                 </div>
               </form>
@@ -384,14 +409,19 @@ export default function HomePage() {
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
           {!loading && filteredItems.length === 0 && (
-            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-3">
-              <div>
-                <div className="font-medium">Hiç sonuç yok.</div>
-                <div className="text-sm opacity-80">Eklemek ister misin?</div>
+            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" opacity="0.5"/><path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2"/></svg>
+                </div>
+                <div>
+                  <div className="font-medium">Hiç sonuç yok.</div>
+                  <div className="text-sm opacity-80">Eklemek ister misin?</div>
+                </div>
               </div>
               <button
                 onClick={jumpToQuickAdd}
-                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors"
               >
                 Hızlı Ekle
               </button>
@@ -405,7 +435,7 @@ export default function HomePage() {
               return (
                 <div
                   key={i.id}
-                  className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col"
+                  className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   {/* OPTIONS (⋯) – SAĞ ÜST */}
                   <div className="absolute top-3 right-3">
@@ -422,7 +452,7 @@ export default function HomePage() {
                         <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           {/* Kaydet / Kaydedilenlerden Kaldır */}
                           <button
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                               isSaved
                                 ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
                                 : 'hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -434,7 +464,7 @@ export default function HomePage() {
 
                           {/* Report */}
                           <button
-                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                             onClick={() => { setOpenMenu(null); report(i.id); }}
                           >
                             Report
@@ -510,13 +540,13 @@ export default function HomePage() {
                     {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
                     {i.comments?.length > 0 && (
-                      <div className="pt-3 space-y-2 text-sm">
+                      <div className="pt-3 space-y-2 text-sm leading-relaxed">
                         {i.comments.map((c) => (
                           <div key={c.id} className="flex items-center gap-2">
                             {c.user?.avatarUrl ? (
-                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" />
+                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" title={c.user?.name || 'user'} />
                             ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={c.user?.name || 'user'}>
                                 {(c.user?.name || 'U')[0]?.toUpperCase()}
                               </div>
                             )}
@@ -534,7 +564,7 @@ export default function HomePage() {
                       value={drafts[i.id] || ''}
                       onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
                       placeholder="yorum yaz…"
-                      className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                      className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                     />
                     <button
                       onClick={() => sendComment(i.id)}
