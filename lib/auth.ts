@@ -11,29 +11,18 @@ if (!GOOGLE_ID || !GOOGLE_SECRET) {
 }
 
 export const authOptions: NextAuthOptions = {
-  // ...
-  pages: {
-    signIn: "/signin", // default yerine /signin sayfamızı kullan
-  },
-  // ...
-}
-export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: GOOGLE_ID!,
       clientSecret: GOOGLE_SECRET!,
-      // Her girişte hesap seçme ekranını aç
-      authorization: {
-        params: {
-          prompt: "select_account",
-          // istersen izin ekranını da zorla:
-          // prompt: "consent select_account",
-        },
-      },
     }),
   ],
+  // Özel giriş sayfan (app/signin/page.tsx) için:
+  pages: {
+    signIn: "/signin",
+  },
   callbacks: {
-    // Google ile girişte kullanıcıyı DB’de garanti et
+    // Google ile girişte kullanıcıyı upsert et
     async signIn({ user }) {
       const email = user.email;
       if (!email) return false;
@@ -54,7 +43,7 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    // Session’a id ve avatarUrl ekle (header ve /me için kritik)
+    // Oturum objesine DB'deki id/name/avatarUrl’i ekle
     async session({ session }) {
       const email = session.user?.email;
       if (email) {
@@ -71,7 +60,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // prod’da gerekli
   secret: process.env.NEXTAUTH_SECRET,
 };
 
@@ -80,12 +68,11 @@ export function auth() {
   return getServerSession(authOptions);
 }
 
-// Uygulamanın her yerinde kullandığımız yardımcı
+// App genelinde kısa yol
 export async function getSessionUser() {
   const session = await auth();
   const email = session?.user?.email;
   if (!email) return null;
-
   return prisma.user.findUnique({
     where: { email },
     select: { id: true, name: true, avatarUrl: true },
