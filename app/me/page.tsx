@@ -45,7 +45,7 @@ export default function MePage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       const back = encodeURIComponent(window.location.href);
-      window.location.href = `/signin`;
+      window.location.href = `/api/auth/signin?callbackUrl=${back}`;
     }
   }, [status]);
 
