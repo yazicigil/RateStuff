@@ -11,6 +11,13 @@ if (!GOOGLE_ID || !GOOGLE_SECRET) {
 }
 
 export const authOptions: NextAuthOptions = {
+  // ...
+  pages: {
+    signIn: "/signin", // default yerine /signin sayfamızı kullan
+  },
+  // ...
+}
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: GOOGLE_ID!,
