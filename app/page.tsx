@@ -223,7 +223,7 @@ export default function HomePage() {
         {/* Sağ: listeler */}
         <section className="space-y-4">
           {/* Hızlı ekleme */}
- <CollapsibleSection title="Paylaşmak istediğin bir şey mi var?" defaultOpen={true}>
+ <CollapsibleSection title="Eklemek istediğin bir şey mi var?" defaultOpen={true}>
   <form
     className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
     onSubmit={(e) => {
