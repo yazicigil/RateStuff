@@ -62,6 +62,10 @@ export default function HomePage() {
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
   const [starBucket, setStarBucket] = useState<number | null>(null);
+  // Yorum düzenleme state'i
+  const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+  const [editingCommentItem, setEditingCommentItem] = useState<string|null>(null);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   // Seçili etiket sayıları (başlıklarda göstermek için)
@@ -166,14 +170,50 @@ export default function HomePage() {
   }
 
   async function deleteComment(commentId: string) {
-    const res = await fetchOrSignin(`/api/comments/${commentId}`, { method: 'DELETE' });
-    if (!res) return; // signin'e yönlendirilmiş olabilir
-    const j = await res.json().catch(() => null);
-    if (j?.ok) {
+    // Önce /api/comments/:id (çoğul) dener
+    let res = await fetchOrSignin(`/api/comments/${commentId}`, { method: 'DELETE' });
+    // Signin'e yönlendirilmiş olabilir
+    if (!res) return;
+
+    // Sunucu bu rotada DELETE desteklemiyorsa (405/404), tekil rotayı dene
+    if (res.status === 405 || res.status === 404) {
+      res = await fetchOrSignin(`/api/comment/${commentId}`, { method: 'DELETE' });
+      if (!res) return;
+    }
+
+    let j: any = null;
+    try { j = await res.json(); } catch {}
+
+    if (res.ok && (j?.ok ?? true)) {
       await load();
     } else {
-      alert('Hata: ' + (j?.error || res.status));
+      alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
     }
+  }
+
+  async function updateComment(commentId: string, text: string, itemId?: string) {
+    // 1) /api/comments/:id (çoğul) → PATCH
+    let res = await fetchOrSignin(`/api/comments/${commentId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (res && res.ok) { await load(); return true; }
+
+    // 2) Yedek rota: /api/items/:itemId/comments → PATCH (commentId + text)
+    if (itemId) {
+      res = await fetchOrSignin(`/api/items/${itemId}/comments`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ commentId: commentId, text })
+      });
+      if (res && res.ok) { await load(); return true; }
+    }
+
+    // Hata
+    const j = res ? (await res.json().catch(()=>null)) : null;
+    alert('Hata: ' + (j?.error || (res ? `${res.status} ${res.statusText}` : 'yorum güncellenemedi')));
+    return false;
   }
 
   async function toggleSave(id: string) {
@@ -303,8 +343,8 @@ export default function HomePage() {
                   onDoubleClick={() => setSelectedTags(new Set())}
                   className={
                     selectedTags.has(t)
-                      ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700'
-                      : 'bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60'
+                      ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
+                      : 'bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60 shadow-inner'
                   }
                 />
               ))}
@@ -331,8 +371,8 @@ export default function HomePage() {
                   className={
                     trending.includes(t)
                       ? (selectedTags.has(t)
-                          ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700'
-                          : 'bg-violet-50 text-violet-900 border-violet-300 hover:bg-violet-100 dark:bg-violet-800/20 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/40')
+                          ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
+                          : 'bg-violet-50 text-violet-900 border-violet-300 hover:bg-violet-100 dark:bg-violet-800/20 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/40 shadow-inner')
                       : ''
                   }
                 />
@@ -578,35 +618,104 @@ export default function HomePage() {
 
                     {i.comments?.length > 0 && (
                       <div className="pt-3 space-y-2 text-sm leading-relaxed">
-                    {i.comments.map((c) => (
-                      <div key={c.id} className="flex items-center gap-2 justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {c.user?.avatarUrl ? (
-                            <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" title={c.user?.name || 'user'} />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={c.user?.name || 'user'}>
-                              {(c.user?.name || 'U')[0]?.toUpperCase()}
+                    {i.comments.map((c) => {
+                      const isMine = myId && c.user?.id === myId;
+                      const isEditing = editingCommentId === c.id;
+
+                      return (
+                        <div key={c.id} className="flex items-start gap-2 justify-between">
+                          <div className="flex items-start gap-2 min-w-0 flex-1">
+                            {c.user?.avatarUrl ? (
+                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={c.user?.name || 'user'} />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={c.user?.name || 'user'}>
+                                {(c.user?.name || 'U')[0]?.toUpperCase()}
+                              </div>
+                            )}
+
+                            <div className="min-w-0 flex-1">
+                              <div className="text-xs opacity-70">{c.user?.name || 'anon'}</div>
+
+                              {/* Görünüm / Düzenleme */}
+                              {!isEditing ? (
+                                <div className="truncate">
+                                  “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                </div>
+                              ) : (
+                                <div className="space-y-2">
+                                  <textarea
+                                    className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                                    rows={3}
+                                    value={editingCommentText}
+                                    onChange={(e) => setEditingCommentText(e.target.value)}
+                                    autoFocus
+                                  />
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white"
+                                      onClick={async () => {
+                                        const ok = await updateComment(c.id, editingCommentText, i.id);
+                                        if (ok) {
+                                          setEditingCommentId(null);
+                                          setEditingCommentItem(null);
+                                          setEditingCommentText('');
+                                        }
+                                      }}
+                                    >
+                                      Kaydet
+                                    </button>
+                                    <button
+                                      className="px-2.5 py-1.5 rounded-lg border text-xs"
+                                      onClick={() => {
+                                        setEditingCommentId(null);
+                                        setEditingCommentItem(null);
+                                        setEditingCommentText('');
+                                      }}
+                                    >
+                                      Vazgeç
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Sadece kendi yorumlarım: kalem + çöp */}
+                          {isMine && !isEditing && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                                title="Yorumu düzenle"
+                                onClick={() => {
+                                  setEditingCommentId(c.id);
+                                  setEditingCommentItem(i.id);
+                                  setEditingCommentText(c.text);
+                                }}
+                              >
+                                {/* Pencil icon */}
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
+                                  <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-0.75-0.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
+                                </svg>
+                              </button>
+                              <button
+                                className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                                title="Yorumu sil"
+                                onClick={() => deleteComment(c.id)}
+                              >
+                                {/* Trash icon */}
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                  <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                </svg>
+                              </button>
                             </div>
                           )}
-                          <span className="text-xs opacity-70 shrink-0">{c.user?.name || 'anon'}</span>
-                          <span className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
                         </div>
-                        {myId && c.user?.id === myId && (
-                          <button
-                            className="shrink-0 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                            title="Yorumu sil"
-                            onClick={() => deleteComment(c.id)}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                              <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                              <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                       </div>
                     )}
                   </div>
