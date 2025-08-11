@@ -1,4 +1,3 @@
-// app/me/page.tsx
 'use client';
 
 import Link from "next/link";
@@ -14,10 +13,9 @@ type MyItem = {
   imageUrl?: string | null;
   avg: number | null;
   edited?: boolean;
-  // Saved filtreleri için opsiyonel — /api/me bunu gönderirse aktif olur
-  tags?: string[];
+  tags?: string[]; // saved filtre + kartlarda gösterim
 };
-type MyRating = { id: string; itemId: string; itemName: string; value: number };
+type MyRating  = { id: string; itemId: string; itemName: string; value: number };
 type MyComment = { id: string; itemId: string; itemName: string; text: string; edited?: boolean };
 
 export default function MePage() {
@@ -47,14 +45,13 @@ export default function MePage() {
     try {
       const r = await fetch("/api/me", { cache: "no-store" });
       if (r.status === 401) { window.location.href = "/"; return; }
-
       const text = await r.text();
       const data = text ? JSON.parse(text) : null;
       if (!r.ok || !data?.ok) throw new Error(data?.error || `status ${r.status}`);
 
       setMe(data.me || null);
       setItems(data.items || []);
-      setSaved(data.saved || []);
+      setSaved(data.saved || []);       // saved[i].tags varsa filtre ve rozetler çalışır
       setRatings(data.ratings || []);
       setComments(data.comments || []);
     } catch (e:any) {
@@ -65,7 +62,7 @@ export default function MePage() {
   }
   useEffect(()=>{ load(); }, []);
 
-  // — Kaydedilenler için mevcut tag’lar (sadece saved içindeki etiketler)
+  // Kaydedilenler için mevcut tag’lar (sadece saved içinden)
   const savedTags = useMemo(() => {
     const s = new Set<string>();
     for (const it of saved) (it.tags || []).forEach(t => s.add(t));
@@ -100,6 +97,16 @@ export default function MePage() {
     });
     const j = await r.json().catch(()=>null);
     if (j?.ok) await load(); else alert("Hata: " + (j?.error || r.status));
+  }
+
+  async function deleteComment(commentId: string) {
+    const r = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
+    const j = await r.json().catch(()=>null);
+    if (j?.ok) {
+      setComments(prev => prev.filter(c => c.id !== commentId));
+    } else {
+      alert("Hata: " + (j?.error || r.status));
+    }
   }
 
   async function removeSaved(itemId: string) {
@@ -209,8 +216,23 @@ export default function MePage() {
                         </div>
                         <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
                         <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
+
+                        {/* Etiket rozetleri (varsa) */}
+                        {!!(it.tags && it.tags.length) && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {it.tags.slice(0, 10).map(t => (
+                              <span
+                                key={t}
+                                className="px-2 py-0.5 rounded-full text-xs border bg-white dark:bg-gray-800 dark:border-gray-700"
+                              >
+                                #{t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
                         {it.edited && (
-                          <span className="mt-1 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                          <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
                             düzenlendi
                           </span>
                         )}
@@ -272,7 +294,7 @@ export default function MePage() {
           )}
         </Section>
 
-        {/* 4) YORUMLARIM — collapsible, son 5 + daha fazla göster */}
+        {/* 4) YORUMLARIM — collapsible, 2 sütun, son 5 + daha fazla */}
         <Section title="Yorumlarım">
           {loading ? (
             <Box>Yükleniyor…</Box>
@@ -280,9 +302,14 @@ export default function MePage() {
             <Box>Yorumun yok.</Box>
           ) : (
             <>
-              <div className="space-y-2">
+              <div className="grid md:grid-cols-2 gap-3">
                 {comments.slice(0, commentsLimit).map(c => (
-                  <CommentRow key={c.id} c={c} onSave={saveComment} />
+                  <CommentRow
+                    key={c.id}
+                    c={c}
+                    onSave={saveComment}
+                    onDelete={deleteComment}
+                  />
                 ))}
               </div>
               {comments.length > commentsLimit && (
@@ -303,22 +330,25 @@ export default function MePage() {
   );
 }
 
-/* — Collapsible Section — */
+/* — Collapsible Section (+/- ikonlu) — */
 function Section({
   title,
   defaultOpen = false,
   children,
 }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <details className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm" open={defaultOpen}>
-      <summary className="cursor-pointer select-none px-4 py-3 text-lg font-semibold list-none flex items-center justify-between">
+    <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full cursor-pointer select-none px-4 py-3 text-lg font-semibold flex items-center justify-between"
+      >
         <span>{title}</span>
-        <span className="text-sm opacity-60">▼</span>
-      </summary>
-      <div className="px-4 pb-4 space-y-3">
-        {children}
-      </div>
-    </details>
+        <span className="text-sm opacity-60">{open ? '−' : '+'}</span>
+      </button>
+      {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
+    </section>
   );
 }
 
@@ -398,8 +428,16 @@ function ItemEditor(props: {
   );
 }
 
-/* — Yorum satırı — */
-function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)=>Promise<void> }) {
+/* — Yorum satırı, kaldırma butonlu — */
+function CommentRow({
+  c,
+  onSave,
+  onDelete,
+}: {
+  c: MyComment;
+  onSave: (id:string, t:string)=>Promise<void>;
+  onDelete: (id:string)=>Promise<void>;
+}) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(c.text);
   return (
@@ -414,12 +452,14 @@ function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)
             className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
           />
           <div className="flex gap-2">
-            <button className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
+            <button
+              className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
               onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}
             >
               Kaydet
             </button>
-            <button className="px-3 py-1.5 rounded-lg border text-sm"
+            <button
+              className="px-3 py-1.5 rounded-lg border text-sm"
               onClick={()=>{ setEditing(false); setVal(c.text); }}
             >
               Vazgeç
@@ -429,8 +469,17 @@ function CommentRow({ c, onSave }: { c: MyComment; onSave: (id:string, t:string)
       ) : (
         <div className="mt-1 text-sm">
           “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-          <div className="mt-2">
-            <button className="px-3 py-1.5 rounded-lg border text-sm" onClick={()=>setEditing(true)}>Düzenle</button>
+          <div className="mt-2 flex gap-2">
+            <button className="px-3 py-1.5 rounded-lg border text-sm" onClick={()=>setEditing(true)}>
+              Düzenle
+            </button>
+            <button
+              className="px-3 py-1.5 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={()=>onDelete(c.id)}
+              title="Yorumu kaldır"
+            >
+              Kaldır
+            </button>
           </div>
         </div>
       )}
