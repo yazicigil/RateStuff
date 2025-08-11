@@ -6,7 +6,6 @@ import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
 type Me = { id: string; name: string | null; avatarUrl?: string | null };
-
 type Controls = {
   q: string;
   onQ: (v: string) => void;
@@ -34,9 +33,7 @@ export default function Header({ controls }: { controls?: Controls }) {
 
   useEffect(() => { refetchMe(); }, []);
   useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === 'visible') refetchMe();
-    };
+    const onVis = () => { if (document.visibilityState === 'visible') refetchMe(); };
     window.addEventListener('visibilitychange', onVis);
     return () => window.removeEventListener('visibilitychange', onVis);
   }, []);
@@ -46,6 +43,7 @@ export default function Header({ controls }: { controls?: Controls }) {
     setTheme(initial);
     applyTheme(initial);
   }, []);
+
   function changeTheme(next: ThemePref) {
     setTheme(next);
     applyTheme(next);
@@ -53,81 +51,22 @@ export default function Header({ controls }: { controls?: Controls }) {
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-      <div className="max-w-5xl mx-auto px-4 py-3">
-        {/* Üst satır: logo + sağdaki aksiyonlar */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Link href="/" className="text-xl font-bold">RateStuff</Link>
+      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
+        
+        {/* Logo */}
+        <Link href="/" className="text-xl font-bold whitespace-nowrap">RateStuff</Link>
 
-          <nav className="flex items-center gap-2">
-            <select
-              value={theme}
-              onChange={(e) => changeTheme(e.target.value as ThemePref)}
-              title="Tema"
-              className="border rounded-xl px-2 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              <option value="light">🌞 Light</option>
-              <option value="dark">🌙 Dark</option>
-              <option value="system">🖥️ Auto</option>
-            </select>
-
-            {!loading && !me && (
-              <button
-                type="button"
-                onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
-                className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
-                title="Google ile giriş"
-              >
-                <svg width="16" height="16" viewBox="0 0 256 262" aria-hidden="true">
-                  <path fill="#4285F4" d="M255.9 133.5c0-10.4-.9-18-2.9-25.9H130v46.9h71.9c-1.5 11.7-9.6 29.3-27.5 41.1l-.3 2.2 40 31 2.8.3c25.7-23.7 40.5-58.6 40.5-96.6z"/>
-                  <path fill="#34A853" d="M130 261.1c36.6 0 67.3-12.1 89.8-32.9l-42.8-33.2c-11.5 8-26.9 13.6-47 13.6-35.9 0-66.4-23.7-77.3-56.6l-2 .2-41.9 32.5-.5 2c22.4 44.6 68.5 74.4 121.7 74.4z"/>
-                  <path fill="#FBBC05" d="M52.7 151.9c-2.9-8.8-4.6-18.2-4.6-27.9s1.7-19.1 4.6-27.9l-.1-2.1L10.1 60.9l-1.9.9C3 74.2 0 89.4 0 104c0 14.6 3 29.8 8.2 42.2l44.5-34.3z"/>
-                  <path fill="#EA4335" d="M130 50.5c25.5 0 42.7 11 52.5 20.3l38.3-37.3C197.1 12.3 166.6 0 130 0 76.8 0 30.7 29.8 8.2 74.5l44.4 34.3C63.6 75.9 94.1 50.5 130 50.5z"/>
-                </svg>
-                Google ile giriş
-              </button>
-            )}
-
-            {me && (
-              <>
-                <Link
-                  href="/me"
-                  className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700"
-                  title="Profilim"
-                >
-                  {me.avatarUrl ? (
-                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                      {(me.name ?? 'U')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
-                  title="Çıkış yap"
-                >
-                  Çıkış
-                </button>
-              </>
-            )}
-          </nav>
-        </div>
-
-        {/* Arama + Sıralama (mobilde alt satır, pc’de aynı satırda) */}
+        {/* Arama ve Sıralama */}
         {controls && (
-          <div className="mt-3 flex flex-col gap-2 md:mt-0 md:flex-row md:items-center">
+          <div className="flex flex-col gap-2 flex-1 md:flex-row md:items-center">
             <div className="relative flex-1">
               <input
                 value={controls.q}
                 onChange={(e) => controls.onQ(e.target.value)}
                 placeholder="ara ( / )"
-                className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
-                aria-label="Ara"
+                className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
-              {!!controls.q && (
+              {controls.q && (
                 <button
                   type="button"
                   onClick={() => controls.onQ('')}
@@ -142,14 +81,61 @@ export default function Header({ controls }: { controls?: Controls }) {
             <select
               value={controls.order}
               onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 md:w-40"
-              aria-label="Sıralama"
+              className="border rounded-xl px-3 py-2 text-sm md:w-40 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             >
               <option value="new">En yeni</option>
               <option value="top">En çok oy</option>
             </select>
           </div>
         )}
+
+        {/* Sağdaki Butonlar */}
+        <nav className="flex items-center gap-2 md:ml-auto">
+          <select
+            value={theme}
+            onChange={(e) => changeTheme(e.target.value as ThemePref)}
+            title="Tema"
+            className="border rounded-xl px-2 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          >
+            <option value="light">🌞 Light</option>
+            <option value="dark">🌙 Dark</option>
+            <option value="system">🖥️ Auto</option>
+          </select>
+
+          {!loading && !me && (
+            <button
+              onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
+              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
+            >
+              Google ile giriş
+            </button>
+          )}
+
+          {me && (
+            <>
+              <Link
+                href="/me"
+                className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700"
+              >
+                {me.avatarUrl ? (
+                  <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+                    {(me.name ?? 'U')[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
+              </Link>
+
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+              >
+                Çıkış
+              </button>
+            </>
+          )}
+        </nav>
       </div>
     </header>
   );
