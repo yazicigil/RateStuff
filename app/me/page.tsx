@@ -1,3 +1,12 @@
+'use client';
+
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import Stars from "@/components/Stars";
+import { signOut } from "next-auth/react";
+import ImageUploader from "@/components/ImageUploader";
+import { useSession } from "next-auth/react";
+
 function IconTrash({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -14,14 +23,6 @@ function IconPencil({ className = "w-4 h-4" }: { className?: string }) {
     </svg>
   );
 }
-'use client';
-
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import Stars from "@/components/Stars";
-import { signOut } from "next-auth/react";
-import ImageUploader from "@/components/ImageUploader";
-import { useSession } from "next-auth/react";
 
 type MyItem = {
   id: string;
