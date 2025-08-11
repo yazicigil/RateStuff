@@ -131,34 +131,45 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
- async function toggleSave(id: string) {
-  // Optimistic küçük dokunuş: hemen set et, sonra API'ye gönder
+async function toggleSave(id: string) {
+  const wasSaved = savedIds.has(id);
+
+  // optimistic
   setSavedIds(prev => {
     const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
+    if (wasSaved) next.delete(id); else next.add(id);
     return next;
   });
 
-  const r = await fetch(`/api/items/${id}/save`, { method: 'POST' });
+  const method = wasSaved ? 'DELETE' : 'POST';
+  const res = await fetch(`/api/items/${id}/save`, { method });
 
-  // 401 → giriş ekranına at
-  if (r.status === 401) {
+  // 401 → giriş ekranına gönder + optimistic geri al
+  if (res.status === 401) {
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.add(id); else next.delete(id);
+      return next;
+    });
     const back = encodeURIComponent(window.location.href);
     window.location.href = `/api/auth/signin?callbackUrl=${back}`;
     return;
   }
 
-  const j = await r.json().catch(() => null);
-  if (!j?.ok) {
-    // geri al
+  let json: any = null;
+  try { json = await res.json(); } catch { /* body yoksa */ }
+
+  if (!res.ok || !json?.ok) {
+    // başarısız → optimistic geri al
     setSavedIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (wasSaved) next.add(id); else next.delete(id);
       return next;
     });
-    alert('Hata: ' + (j?.error || 'kaydetme hatası'));
+    alert('Hata: ' + (json?.error || `${res.status} ${res.statusText}`));
     return;
   }
+
   setOpenMenu(null);
   // sunucuyla senkron
   await loadSavedIds();
@@ -264,26 +275,28 @@ export default function HomePage() {
                   <div className="absolute top-3 right-3">
                     <div className="relative">
                       <button
-                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-                        onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
-                        aria-label="options"
-                      >
-                        ⋯
-                      </button>
-                      {openMenu === i.id && (
-                        <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-                          {/* Tek buton: Kaydet / Kaydedilenlerden Kaldır */}
-                          <button
-                            className={
-                              'w-full text-left px-3 py-2 rounded-lg text-sm ' +
-                              (isSaved
-                                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                                : 'hover:bg-gray-50 dark:hover:bg-gray-800')
-                            }
-                            onClick={() => toggleSave(i.id)}
-                          >
-                            {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
-                          </button>
+  className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+  onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
+  aria-label="options"
+>
+  ⋯
+</button>
+
+{openMenu === i.id && (
+  <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+    {/* Tek buton: Kaydet / Kaydedilenlerden Kaldır */}
+    <button
+      className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+        savedIds.has(i.id)
+          ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+      }`}
+      onClick={() => toggleSave(i.id)}
+    >
+      {savedIds.has(i.id) ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
+    </button>
+  </div>
+)}
 
                           {/* Report'u bırakıyoruz */}
                           <button
