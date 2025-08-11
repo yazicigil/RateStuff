@@ -124,49 +124,46 @@ export default function HomePage() {
     } finally { setAdding(false); }
   }
 
-  async function toggleSave(id: string) {
-    const wasSaved = savedIds.has(id);
+ async function toggleSave(id: string) {
+  const wasSaved = savedIds.has(id);
 
-    // optimistic
+  // optimistic
+  setSavedIds(prev => {
+    const next = new Set(prev);
+    if (wasSaved) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const method = wasSaved ? 'DELETE' : 'POST';
+  const res = await fetchOrSignin(`/api/items/${id}/save`, { method });
+
+  // fetchOrSignin signin'e yönlendirdiyse (null döner) → optimistic geri al
+  if (!res) {
     setSavedIds(prev => {
       const next = new Set(prev);
-      if (wasSaved) next.delete(id); else next.add(id);
+      if (wasSaved) next.add(id); else next.delete(id);
       return next;
     });
-
-    const method = wasSaved ? 'DELETE' : 'POST';
-    const res = await fetch(`/api/items/${id}/save`, { method });
-
-    // 401 → signin'e yönlendir + optimistic geri al
-    if (res.status === 401) {
-      setSavedIds(prev => {
-        const next = new Set(prev);
-        if (wasSaved) next.add(id); else next.delete(id);
-        return next;
-      });
-      const back = encodeURIComponent(window.location.href);
-      window.location.href = `/api/auth/signin?callbackUrl=${back}`;
-      return;
-    }
-
-    let json: any = null;
-    try { json = await res.json(); } catch {}
-
-    if (!res.ok || !json?.ok) {
-      // başarısız → optimistic geri al
-      setSavedIds(prev => {
-        const next = new Set(prev);
-        if (wasSaved) next.add(id); else next.delete(id);
-        return next;
-      });
-      alert('Hata: ' + (json?.error || `${res.status} ${res.statusText}`));
-      return;
-    }
-
-    setOpenMenu(null);
-    await loadSavedIds(); // sunucu ile senkron
+    return;
   }
 
+  const j = await res.json().catch(() => null);
+
+  if (!j?.ok) {
+    // başarısız → optimistic geri al ve uyar
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.add(id); else next.delete(id);
+      return next;
+    });
+    alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
+    return;
+  }
+
+  setOpenMenu(null);
+  // İstersen burada tekrar senkron da edebilirsin:
+  await loadSavedIds();
+}
   async function rate(id: string, value: number) {
     const res = await fetchOrSignin(`/api/items/${id}/rate`, {
       method: 'POST',
