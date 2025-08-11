@@ -54,8 +54,8 @@ export default function Header({ controls }: { controls?: Controls }) {
   // Mobil: üst satırda logo + tema + giriş; alt satırda arama + sıralama
   // Desktop: tek satır
   const logoClass = USE_CURRENTCOLOR
-    ? 'h-7 w-auto text-gray-900 dark:text-gray-100'
-    : 'h-7 w-auto dark:invert';
+    ? 'h-10 w-auto text-gray-900 dark:text-gray-100'
+    : 'h-10 w-auto dark:invert';
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
