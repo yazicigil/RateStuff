@@ -7,7 +7,7 @@ export default function SignInPage() {
     <div className="min-h-screen grid place-items-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-sm rounded-2xl border p-6 bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm">
         <div className="mb-4 text-center">
-          <img src="/logo.svg" alt="RateStuff" className="mx-auto h-10 w-10" />
+          <img src="/logo.svg" alt="RateStuff" className="mx-auto h-30 w-30" />
           <h1 className="mt-2 text-lg font-semibold">Giriş yap</h1>
           <p className="text-sm opacity-70">Devam etmek için bir yöntem seç</p>
         </div>
