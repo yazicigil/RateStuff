@@ -50,7 +50,7 @@ export default function HomePage() {
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-
+  const [quickRating, setQuickRating] = useState(5);
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
 
@@ -221,27 +221,60 @@ export default function HomePage() {
         {/* Sağ: listeler */}
         <section className="space-y-4">
           {/* Hızlı ekleme */}
-          <form
-            className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-wrap items-center gap-2"
-            onSubmit={(e) => { e.preventDefault(); addItem(new FormData(e.currentTarget)); }}
-          >
-            <input name="name" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="adı" required />
-            <input name="desc" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="kısa açıklama" required />
-            <input name="tags" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="etiketler (virgülle)" required />
-            <select name="rating" defaultValue="5" className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-              {[1,2,3,4,5].map(n => <option key={n} value={n}>{n} yıldız</option>)}
-            </select>
-            <input name="comment" className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100" placeholder="yorum" required />
+        <form
+  className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col gap-3"
+  onSubmit={(e) => { e.preventDefault(); addItem(new FormData(e.currentTarget)); }}
+>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+    <input
+      name="name"
+      className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+      placeholder="adı"
+      required
+    />
+    <input
+      name="tags"
+      className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+      placeholder="etiketler (virgülle)"
+      required
+    />
+    <input
+      name="desc"
+      className="md:col-span-2 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+      placeholder="kısa açıklama"
+      required
+    />
+    <input
+      name="comment"
+      className="md:col-span-2 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+      placeholder="yorum"
+      required
+    />
+  </div>
 
-            {/* ⇩⇩ Dosya yükleme geri geldi ⇩⇩ */}
-            <div className="flex-1 min-w-[200px]">
-              <ImageUploader name="imageUrl" />
-            </div>
+  {/* Rating: yıldız bileşeni + hidden input */}
+  <div className="flex items-center gap-3">
+    <span className="text-sm font-medium">Puan:</span>
+    <Stars value={quickRating} onRate={(n) => setQuickRating(n)} />
+    <span className="text-sm opacity-70">{quickRating} / 5</span>
+    <input type="hidden" name="rating" value={quickRating} />
+  </div>
 
-            <button disabled={adding} className="px-3 py-2 rounded-xl text-sm bg-black text-white">
-              {adding ? 'Ekleniyor…' : 'Ekle'}
-            </button>
-          </form>
+  {/* Resim ekle: başlık + uploader derli toplu */}
+  <div>
+    <div className="text-sm font-medium mb-1">Resim ekle</div>
+    <ImageUploader name="imageUrl" />
+  </div>
+
+  <div>
+    <button
+      disabled={adding}
+      className="px-3 py-2 rounded-xl text-sm bg-black text-white"
+    >
+      {adding ? 'Ekleniyor…' : 'Ekle'}
+    </button>
+  </div>
+</form>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
