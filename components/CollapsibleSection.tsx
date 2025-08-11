@@ -1,30 +1,34 @@
 'use client';
+import { useState, type ReactNode } from 'react';
 
-import { useState } from 'react';
+type Props = {
+  title: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+  className?: string;        // ✅ dış <details> için
+  summaryClassName?: string; // ✅ başlık satırı için
+};
 
 export default function CollapsibleSection({
   title,
+  defaultOpen = false,
   children,
-  defaultOpen = true,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
+  className = '',
+  summaryClassName = '',
+}: Props) {
   const [open, setOpen] = useState(defaultOpen);
-  return (
-    <section className="rounded-2xl border p-0 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-      <button
-        type="button"
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-4 py-3"
-        aria-expanded={open}
-      >
-        <h3 className="text-lg">{title}</h3>
-        <span className="text-sm opacity-70">{open ? '−' : '+'}</span>
-      </button>
 
-      {open && <div className="px-4 pb-4">{children}</div>}
-    </section>
+  return (
+    <details
+      open={open}
+      onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}
+      className={`rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm ${className}`}
+    >
+      <summary className={`cursor-pointer select-none px-4 py-3 text-base font-semibold list-none flex items-center justify-between ${summaryClassName}`}>
+        <span>{title}</span>
+        <span className="text-sm opacity-60">{open ? '−' : '+'}</span>
+      </summary>
+      <div className="px-4 pb-4">{children}</div>
+    </details>
   );
 }
