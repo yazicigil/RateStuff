@@ -7,6 +7,26 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 
+// --- Signin'a otomatik yönlendiren fetch ---
+async function fetchOrSignin(url: string, init?: RequestInit) {
+  const res = await fetch(url, init);
+
+  // Sunucu redirect verdiyse (ör. signin sayfasına)
+  if (res.redirected) {
+    window.location.href = res.url;
+    return null;
+  }
+
+  // 401 ise elde biz yönlendirelim:
+  if (res.status === 401) {
+    const back = encodeURIComponent(window.location.href);
+    window.location.href = `/api/auth/signin?callbackUrl=${back}`;
+    return null;
+  }
+
+  return res;
+}
+
 type ItemVM = {
   id: string;
   name: string;
@@ -82,26 +102,27 @@ export default function HomePage() {
   }, [q, allTags]);
 
   async function addItem(form: FormData) {
-    setAdding(true);
-    try {
-      const payload = {
-        name: String(form.get('name') || ''),
-        description: String(form.get('desc') || ''),
-        tagsCsv: String(form.get('tags') || ''),
-        rating: Number(form.get('rating') || '5'),
-        comment: String(form.get('comment') || ''),
-        imageUrl: String(form.get('imageUrl') || '') || null,
-      };
-      const r = await fetch('/api/items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const j = await r.json();
-      if (j.ok) { setQ(''); await load(); alert('Eklendi'); }
-      else alert('Hata: ' + j.error);
-    } finally { setAdding(false); }
-  }
+  setAdding(true);
+  try {
+    const payload = {
+      name: String(form.get('name') || ''),
+      description: String(form.get('desc') || ''),
+      tagsCsv: String(form.get('tags') || ''),
+      rating: Number(form.get('rating') || '5'),
+      comment: String(form.get('comment') || ''),
+      imageUrl: String(form.get('imageUrl') || '') || null,
+    };
+    const res = await fetchOrSignin('/api/items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res) return;
+    const j = await res.json().catch(()=>null);
+    if (j?.ok) { setQ(''); await load(); alert('Eklendi'); }
+    else alert('Hata: ' + (j?.error || res.status));
+  } finally { setAdding(false); }
+}
 
   async function report(id: string) {
     const r = await fetch(`/api/items/${id}/report`, { method: 'POST' });
@@ -110,49 +131,63 @@ export default function HomePage() {
     else alert('Hata: ' + j.error);
   }
 
-  async function toggleSave(id: string) {
-    // Optimistic küçük dokunuş: hemen set et, sonra API'ye gönder
+ async function toggleSave(id: string) {
+  // Optimistic küçük dokunuş: hemen set et, sonra API'ye gönder
+  setSavedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+
+  const r = await fetch(`/api/items/${id}/save`, { method: 'POST' });
+
+  // 401 → giriş ekranına at
+  if (r.status === 401) {
+    const back = encodeURIComponent(window.location.href);
+    window.location.href = `/api/auth/signin?callbackUrl=${back}`;
+    return;
+  }
+
+  const j = await r.json().catch(() => null);
+  if (!j?.ok) {
+    // geri al
     setSavedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
-
-    const r = await fetch(`/api/items/${id}/save`, { method: 'POST' });
-    const j = await r.json().catch(() => null);
-    if (!j?.ok) {
-      // geri al
-      setSavedIds(prev => {
-        const next = new Set(prev);
-        if (next.has(id)) next.delete(id); else next.add(id);
-        return next;
-      });
-      alert('Hata: ' + (j?.error || 'kaydetme hatası'));
-      return;
-    }
-    setOpenMenu(null);
-    // sunucuyla senkron
-    await loadSavedIds();
+    alert('Hata: ' + (j?.error || 'kaydetme hatası'));
+    return;
   }
-
+  setOpenMenu(null);
+  // sunucuyla senkron
+  await loadSavedIds();
+}
   async function rate(id: string, value: number) {
-    const r = await fetch(`/api/items/${id}/rate`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ value })
-    });
-    const j = await r.json();
-    if (j.ok) await load(); else alert('Hata: ' + j.error);
-  }
+  const res = await fetchOrSignin(`/api/items/${id}/rate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value })
+  });
+  if (!res) return;
+  const j = await res.json().catch(() => null);
+  if (j?.ok) await load(); else alert('Hata: ' + (j?.error || res.status));
+}
 
   async function sendComment(itemId: string) {
-    const text = (drafts[itemId] || '').trim();
-    if (!text) return;
-    const r = await fetch(`/api/items/${itemId}/comments`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text })
-    });
-    const j = await r.json();
-    if (j.ok) { setDrafts((d) => ({ ...d, [itemId]: '' })); await load(); }
-    else alert('Hata: ' + j.error);
-  }
+  const text = (drafts[itemId] || '').trim();
+  if (!text) return;
+
+  const res = await fetchOrSignin(`/api/items/${itemId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  if (!res) return;
+  const j = await res.json().catch(() => null);
+  if (j?.ok) { setDrafts(d => ({ ...d, [itemId]: '' })); await load(); }
+  else alert('Hata: ' + (j?.error || res.status));
+}
 
   // Başlık 2 satır, kelime ortasından bölme yok
   const clamp2: React.CSSProperties = {
