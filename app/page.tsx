@@ -264,34 +264,42 @@ export default function HomePage() {
                   key={i.id}
                   className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col"
                 >
-                  {/* OPTIONS (⋯) – SAĞ ÜST */}
-                  <div className="absolute top-3 right-3">
-                    <div className="relative">
-                      <button
-                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-                        onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
-                        aria-label="options"
-                      >
-                        ⋯
-                      </button>
+                 {/* OPTIONS (⋯) – SAĞ ÜST */}
+<div className="absolute top-3 right-3">
+  <div className="relative">
+    <button
+      className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+      onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
+      aria-label="options"
+    >
+      ⋯
+    </button>
 
-                      {openMenu === i.id && (
-                        <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-                          {/* Tek buton: Kaydet / Kaydedilenlerden Kaldır */}
-                          <button
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-                              isSaved
-                                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                            }`}
-                            onClick={() => toggleSave(i.id)}
-                          >
-                            {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+    {openMenu === i.id && (
+      <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+        {/* Kaydet / Kaydedilenlerden Kaldır */}
+        <button
+          className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
+            isSaved
+              ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+          }`}
+          onClick={() => toggleSave(i.id)}
+        >
+          {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
+        </button>
+
+        {/* Report */}
+        <button
+          className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+          onClick={() => { setOpenMenu(null); report(i.id); }}
+        >
+          Report
+        </button>
+      </div>
+    )}
+  </div>
+</div>
 
                   {/* İÇERİK (üst + yorumlar) → esneyen blok */}
                   <div className="flex-1">
