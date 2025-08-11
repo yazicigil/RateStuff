@@ -10,21 +10,49 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-  trustHost: true,      // ← ÖNEMLİ (Vercel’de host kontrolünü geçirir)
-  debug: true,
+  debug: true, // geçici: sorun ayıklamaya yardımcı
   callbacks: {
-    async signIn() { return true; },
+    // Google ile girişte kullanıcıyı DB'de garanti et
+    async signIn({ user }) {
+      const email = user?.email;
+      if (!email) return false;
+
+      await prisma.user.upsert({
+        where: { email },
+        update: {
+          name: user.name ?? undefined,
+          avatarUrl: (user.image as string | undefined) ?? undefined,
+        },
+        create: {
+          email,
+          name: user.name ?? null,
+          avatarUrl: (user.image as string | undefined) ?? null,
+        },
+      });
+
+      return true;
+    },
+
+    // Session’a DB’deki id ve avatarUrl’i yaz
     async session({ session }) {
       try {
-        const email = session.user?.email;
+        const email = session?.user?.email;
         if (!email) return session;
-        const u = await prisma.user.upsert({
+
+        const u = await prisma.user.findUnique({
           where: { email },
-          update: { name: session.user?.name ?? undefined, avatarUrl: (session.user as any)?.image ?? undefined },
-          create: { email, name: session.user?.name ?? null, avatarUrl: (session.user as any)?.image ?? null },
           select: { id: true, name: true, avatarUrl: true },
         });
-        (session as any).user = { ...(session.user || {}), id: u.id, name: u.name ?? session.user?.name ?? null, avatarUrl: u.avatarUrl ?? null } as any;
+
+        if (u) {
+          // user undefined olabilir; koruyalım
+          (session as any).user = {
+            ...(session.user ?? {}),
+            id: u.id,
+            name: u.name ?? session.user?.name ?? null,
+            avatarUrl: u.avatarUrl ?? null,
+          };
+        }
       } catch (e) {
         console.error("[session-cb] err:", e);
       }
@@ -34,10 +62,12 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+// SSR/API tarafında session
 export function auth() {
   return getServerSession(authOptions);
 }
 
+// Uygulama genelinde kısa yol
 export async function getSessionUser() {
   const session = await auth();
   const email = session?.user?.email;
