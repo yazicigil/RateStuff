@@ -12,6 +12,8 @@ type Controls = {
   onQ: (v: string) => void;
   order: 'new' | 'top';
   onOrder: (v: 'new' | 'top') => void;
+  starBucket: number | null;
+  onStarBucket: (v: number | null) => void;
 };
 
 const USE_CURRENTCOLOR = true;
@@ -174,6 +176,25 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
             </div>
+
+            {/* ★ Yıldız filtresi */}
+            <select
+              value={controls.starBucket ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                controls.onStarBucket(v ? Number(v) : null);
+              }}
+              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              title="Yıldız"
+            >
+              <option value="">Hepsi</option>
+              <option value="1">1 ★</option>
+              <option value="2">2 ★</option>
+              <option value="3">3 ★</option>
+              <option value="4">4 ★</option>
+              <option value="5">5 ★</option>
+            </select>
+
             <select
               value={controls.order}
               onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
@@ -264,6 +285,25 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
             </div>
+
+            {/* ★ Yıldız filtresi (mobil) */}
+            <select
+              value={controls.starBucket ?? ''}
+              onChange={(e) => {
+                const v = e.target.value;
+                controls.onStarBucket(v ? Number(v) : null);
+              }}
+              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              title="Yıldız"
+            >
+              <option value="">Hepsi</option>
+              <option value="1">1 ★</option>
+              <option value="2">2 ★</option>
+              <option value="3">3 ★</option>
+              <option value="4">4 ★</option>
+              <option value="5">5 ★</option>
+            </select>
+
             <select
               value={controls.order}
               onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
