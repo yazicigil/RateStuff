@@ -39,6 +39,18 @@ export default function MePage() {
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
 
+  // giriş kontrolü
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      const back = encodeURIComponent(window.location.href);
+      window.location.href = `/signin`;
+    }
+  }, [status]);
+
+  // buradan sonra load fonksiyonun geliyor
+
   async function load() {
     setLoading(true);
     setError(null);
