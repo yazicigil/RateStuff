@@ -34,7 +34,14 @@ type MyItem = {
   tags?: string[]; // saved filtre + kartlarda gösterim
 };
 type MyRating  = { id: string; itemId: string; itemName: string; value: number };
-type MyComment = { id: string; itemId: string; itemName: string; text: string; edited?: boolean };
+type MyComment = {
+  id: string;
+  itemId: string;
+  itemName: string;
+  itemImageUrl?: string | null;
+  text: string;
+  edited?: boolean;
+};
 
 export default function MePage() {
   const [loading, setLoading] = useState(true);
@@ -130,22 +137,38 @@ export default function MePage() {
   }
 
   async function deleteComment(commentId: string) {
+    const ok = window.confirm('Yorumu kaldırmak istediğine emin misin?');
+    if (!ok) return;
     const r = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
     const j = await r.json().catch(()=>null);
     if (j?.ok) {
       setComments(prev => prev.filter(c => c.id !== commentId));
     } else {
-      alert("Hata: " + (j?.error || r.status));
+      alert('Hata: ' + (j?.error || r.status));
     }
   }
 
   async function removeSaved(itemId: string) {
+    const ok = window.confirm('Kaydedilenlerden kaldırmak istediğine emin misin?');
+    if (!ok) return;
     const r = await fetch(`/api/items/${itemId}/save`, { method: "DELETE" });
     const j = await r.json().catch(()=>null);
     if (j?.ok) {
       setSaved(prev => prev.filter(x => x.id !== itemId));
     } else {
-      alert("Hata: " + (j?.error || r.status));
+      alert('Hata: ' + (j?.error || r.status));
+    }
+  }
+
+  async function deleteItem(itemId: string) {
+    const ok = window.confirm('Bu öğeyi silmek istediğine emin misin? Bu işlem geri alınamaz.');
+    if (!ok) return;
+    const r = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
+    const j = await r.json().catch(()=>null);
+    if (j?.ok) {
+      setItems(prev => prev.filter(x => x.id !== itemId));
+    } else {
+      alert('Hata: ' + (j?.error || r.status));
     }
   }
 
@@ -175,16 +198,19 @@ export default function MePage() {
         )}
 
         {/* Profil kartı */}
-        <section className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center gap-3">
-          {me?.avatarUrl ? (
-            <img src={me.avatarUrl} alt="me" className="w-12 h-12 rounded-full object-cover" />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-gray-200" />
-          )}
-          <div>
-            <div className="text-base font-medium">{me?.name || "Profilim"}</div>
+        <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
+          <div className="relative">
+            {me?.avatarUrl ? (
+              <img src={me.avatarUrl} alt="me" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-base md:text-lg font-semibold truncate">{me?.name || 'Profilim'}</div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
           </div>
+          <Link href="/" className="hidden sm:inline-flex px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Anasayfa</Link>
         </section>
 
         {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
@@ -439,7 +465,7 @@ function ItemEditor(props: {
           ) : (
             <>
               <p className="text-sm opacity-80 mt-1">{it.description}</p>
-              <div className="mt-2">
+              <div className="mt-2 flex gap-2">
                 <button
                   className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2"
                   onClick={()=>{
@@ -452,6 +478,15 @@ function ItemEditor(props: {
                 >
                   <IconPencil className="w-4 h-4" />
                   <span className="sr-only">Düzenle</span>
+                </button>
+                <button
+                  className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                  onClick={()=>deleteItem(it.id)}
+                  title="Sil"
+                  aria-label="Sil"
+                >
+                  <IconTrash className="w-4 h-4" />
+                  <span className="sr-only">Sil</span>
                 </button>
               </div>
             </>
@@ -476,53 +511,64 @@ function CommentRow({
   const [val, setVal] = useState(c.text);
   return (
     <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 transition hover:shadow-md hover:-translate-y-0.5 h-full">
-      <div className="text-sm opacity-70">{c.itemName}</div>
-      {editing ? (
-        <div className="mt-2 space-y-2">
-          <textarea
-            value={val}
-            onChange={(e)=>setVal(e.target.value)}
-            rows={3}
-            className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-          />
-          <div className="flex gap-2">
-            <button
-              className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
-              onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}
-            >
-              Kaydet
-            </button>
-            <button
-              className="px-3 py-1.5 rounded-lg border text-sm"
-              onClick={()=>{ setEditing(false); setVal(c.text); }}
-            >
-              Vazgeç
-            </button>
-          </div>
+      <div className="flex items-start gap-3">
+        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+          {c.itemImageUrl ? (
+            <img src={c.itemImageUrl} alt={c.itemName} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-[10px] opacity-60">no img</span>
+          )}
         </div>
-      ) : (
-        <div className="mt-1 text-sm">
-          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-          <div className="mt-2 flex gap-2">
-            <button
-              className="p-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center"
-              onClick={()=>setEditing(true)}
-              title="Düzenle"
-              aria-label="Düzenle"
-            >
-              <IconPencil className="w-4 h-4" />
-            </button>
-            <button
-              className="p-2 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center"
-              onClick={()=>onDelete(c.id)}
-              title="Yorumu kaldır"
-              aria-label="Yorumu kaldır"
-            >
-              <IconTrash className="w-4 h-4" />
-            </button>
-          </div>
+        <div className="flex-1 min-w-0">
+          <div className="text-sm opacity-70 truncate">{c.itemName}</div>
+          {editing ? (
+            <div className="mt-2 space-y-2">
+              <textarea
+                value={val}
+                onChange={(e)=>setVal(e.target.value)}
+                rows={3}
+                className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+              />
+              <div className="flex gap-2">
+                <button
+                  className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
+                  onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}
+                >
+                  Kaydet
+                </button>
+                <button
+                  className="px-3 py-1.5 rounded-lg border text-sm"
+                  onClick={()=>{ setEditing(false); setVal(c.text); }}
+                >
+                  Vazgeç
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-1 text-sm">
+              “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+              <div className="mt-2 flex gap-2">
+                <button
+                  className="p-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center"
+                  onClick={()=>setEditing(true)}
+                  title="Düzenle"
+                  aria-label="Düzenle"
+                >
+                  <IconPencil className="w-4 h-4" />
+                </button>
+                <button
+                  className="p-2 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center"
+                  onClick={()=>onDelete(c.id)}
+                  title="Yorumu kaldır"
+                  aria-label="Yorumu kaldır"
+                >
+                  <IconTrash className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

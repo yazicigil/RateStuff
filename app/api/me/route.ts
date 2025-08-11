@@ -32,7 +32,7 @@ export async function GET(req: Request) {
       prisma.comment.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
-        include: { item: { select: { id: true, name: true } } },
+        include: { item: { select: { id: true, name: true, imageUrl: true } } },
       }),
       // ↓ Kaydedilenlerde etiketleri de getiriyoruz
       prisma.savedItem.findMany({
@@ -101,6 +101,7 @@ export async function GET(req: Request) {
           id: c.id,
           itemId: c.itemId,
           itemName: c.item.name,
+          itemImageUrl: c.item.imageUrl,
           text: c.text,
           edited:
             c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000,
