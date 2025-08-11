@@ -55,6 +55,7 @@ export default function HomePage() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
+  const [starBucket, setStarBucket] = useState<number | null>(null);
 
   async function loadSavedIds() {
     try {
@@ -95,6 +96,17 @@ export default function HomePage() {
     if (single && !single.includes(' ') && allTags.includes(single)) return single;
     return undefined;
   }, [q, allTags]);
+
+  // Yıldız filtresi: ortalama 3.67 → 4 yıldız kovasına girer
+  function bucketOf(avg: number | null): number | null {
+    if (!avg || avg <= 0) return null;
+    return Math.ceil(avg);
+  }
+
+  const filteredItems = useMemo(() => {
+    if (!starBucket) return items;
+    return items.filter(i => bucketOf(i.avg) === starBucket);
+  }, [items, starBucket]);
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -227,6 +239,28 @@ export default function HomePage() {
 
         {/* Sağ: listeler */}
         <section className="space-y-4">
+          {/* Filtreler: Yıldız kovası */}
+          <div className="flex justify-end">
+            <div className="flex items-center gap-2 text-sm">
+              <span className="opacity-70">Yıldız:</span>
+              <select
+                value={starBucket ?? ''}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setStarBucket(v ? Number(v) : null);
+                }}
+                className="border rounded-xl px-2 py-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                title="Yıldız filtresi"
+              >
+                <option value="">Hepsi</option>
+                <option value="1">1 ★</option>
+                <option value="2">2 ★</option>
+                <option value="3">3 ★</option>
+                <option value="4">4 ★</option>
+                <option value="5">5 ★</option>
+              </select>
+            </div>
+          </div>
           {/* Hızlı ekleme */}
  <CollapsibleSection title="Eklemek istediğin bir şey mi var?" defaultOpen={true}>
   <form
@@ -307,7 +341,7 @@ export default function HomePage() {
 
           {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
-            {items.map((i) => {
+            {filteredItems.map((i) => {
               const isSaved = savedIds.has(i.id);
               return (
                 <div
