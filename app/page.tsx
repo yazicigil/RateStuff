@@ -298,16 +298,7 @@ export default function HomePage() {
           {/* Hızlı ekleme */}
           <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
             <CollapsibleSection
-              title={
-                <span className="flex items-center gap-2">
-                  Eklemek istediğin bir şey mi var?
-                  {justAdded && (
-                    <span className="ml-1 inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] px-2 py-0.5 rounded-full">
-                      ✓ Eklendi
-                    </span>
-                  )}
-                </span>
-              }
+              title="Eklemek istediğin bir şey mi var?"
               defaultOpen={true}
             >
               <form
@@ -322,6 +313,13 @@ export default function HomePage() {
                   // setQuickName('');
                 }}
               >
+                {justAdded && (
+                  <div className="flex justify-end -mt-1">
+                    <span className="ml-1 inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] px-2 py-0.5 rounded-full">
+                      ✓ Eklendi
+                    </span>
+                  </div>
+                )}
                 {/* 1. satır: Ad + Kısa açıklama */}
                 <div className="flex flex-wrap items-center gap-2">
                   <input
