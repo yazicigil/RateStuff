@@ -208,7 +208,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <Header controls={{ q, onQ: setQ, order, onOrder: setOrder }} />
+      <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBucket, onStarBucket: setStarBucket }} />
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
@@ -239,28 +239,7 @@ export default function HomePage() {
 
         {/* Sağ: listeler */}
         <section className="space-y-4">
-          {/* Filtreler: Yıldız kovası */}
-          <div className="flex justify-end">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="opacity-70">Yıldız:</span>
-              <select
-                value={starBucket ?? ''}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setStarBucket(v ? Number(v) : null);
-                }}
-                className="border rounded-xl px-2 py-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                title="Yıldız filtresi"
-              >
-                <option value="">Hepsi</option>
-                <option value="1">1 ★</option>
-                <option value="2">2 ★</option>
-                <option value="3">3 ★</option>
-                <option value="4">4 ★</option>
-                <option value="5">5 ★</option>
-              </select>
-            </div>
-          </div>
+          
           {/* Hızlı ekleme */}
  <CollapsibleSection title="Eklemek istediğin bir şey mi var?" defaultOpen={true}>
   <form
