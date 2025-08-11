@@ -1,5 +1,5 @@
 // lib/auth.ts
-import { getServerSession, type NextAuthOptions } from "next-auth";
+import { getServerSession, NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 
@@ -10,11 +10,19 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-  debug: true, // geçici: sorun ayıklamaya yardımcı
+  // Prod’da kapatırız; şimdi açık kalsın ki hatayı görelim
+  debug: true,
+  events: {
+    async signIn(message) {
+      console.log("[auth] signIn event:", message?.user?.email);
+    },
+    async error(message) {
+      console.error("[auth] ERROR event:", message);
+    },
+  },
   callbacks: {
-    // Google ile girişte kullanıcıyı DB'de garanti et
     async signIn({ user }) {
-      const email = user?.email;
+      const email = user.email;
       if (!email) return false;
 
       await prisma.user.upsert({
@@ -29,32 +37,20 @@ export const authOptions: NextAuthOptions = {
           avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
-
       return true;
     },
-
-    // Session’a DB’deki id ve avatarUrl’i yaz
     async session({ session }) {
-      try {
-        const email = session?.user?.email;
-        if (!email) return session;
-
+      const email = session.user?.email;
+      if (email) {
         const u = await prisma.user.findUnique({
           where: { email },
           select: { id: true, name: true, avatarUrl: true },
         });
-
         if (u) {
-          // user undefined olabilir; koruyalım
-          (session as any).user = {
-            ...(session.user ?? {}),
-            id: u.id,
-            name: u.name ?? session.user?.name ?? null,
-            avatarUrl: u.avatarUrl ?? null,
-          };
+          (session as any).user.id = u.id;
+          session.user!.name = u.name ?? session.user!.name ?? null;
+          (session.user as any).avatarUrl = u.avatarUrl ?? null;
         }
-      } catch (e) {
-        console.error("[session-cb] err:", e);
       }
       return session;
     },
@@ -62,16 +58,15 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// SSR/API tarafında session
 export function auth() {
   return getServerSession(authOptions);
 }
 
-// Uygulama genelinde kısa yol
 export async function getSessionUser() {
   const session = await auth();
   const email = session?.user?.email;
   if (!email) return null;
+
   return prisma.user.findUnique({
     where: { email },
     select: { id: true, name: true, avatarUrl: true },
