@@ -3,11 +3,6 @@ import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 
-/**
- * Not: PrismaAdapter kullanmıyoruz; şemamız custom (avatarUrl vs).
- * Girişte upsert ediyoruz, session callback'te de session.user'ı
- * güvenli şekilde (varsa oluşturup) dolduruyoruz.
- */
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
@@ -15,94 +10,61 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-
+  // (opsiyonel) hata ayıklama açık kalsın; iş bitince kapat
+  debug: true,
   callbacks: {
-    // 1) Google ile girişte kullanıcıyı garanti et
-    async signIn({ user }) {
-      const email = user.email;
-      if (!email) return false;
-
-      await prisma.user.upsert({
-        where: { email },
-        update: {
-          name: user.name ?? undefined,
-          avatarUrl: (user.image as string | undefined) ?? undefined,
-        },
-        create: {
-          email,
-          name: user.name ?? null,
-          avatarUrl: (user.image as string | undefined) ?? null,
-        },
-      });
-
+    // DB’ye dokunmadan izin ver; (DB senkronu session içinde/sonrada)
+    async signIn() {
       return true;
     },
 
-    // 2) Session'a DB'deki id + avatarUrl'i yaz (header & /me için kritik)
-    //    session.user undefined olabilir -> önce güvenle oluşturuyoruz.
-    async session({ session, token }) {
-      // session.user yoksa oluştur (TS hatasını önler)
-      const su = ((session as any).user ??= {} as any);
+    // Oturum zenginleştirme: hata olursa akışı bozma
+    async session({ session }) {
+      try {
+        const email = session.user?.email;
+        if (!email) return session;
 
-      // Erişim sıramız: email -> token.sub (id)
-      const email: string | null = (su.email as string | undefined) ?? null;
-      const tokenSub: string | null = (token as any)?.sub ?? null;
+        // yoksa oluştur (upsert), varsa oku
+        const u = await prisma.user.upsert({
+          where: { email },
+          update: {
+            name: session.user?.name ?? undefined,
+            avatarUrl: (session.user as any)?.image ?? undefined,
+          },
+          create: {
+            email,
+            name: session.user?.name ?? null,
+            avatarUrl: (session.user as any)?.image ?? null,
+          },
+          select: { id: true, name: true, avatarUrl: true },
+        });
 
-      // DB’den çekilecek alanlar
-      const select = { id: true, name: true, avatarUrl: true } as const;
-
-      let u =
-        email
-          ? await prisma.user.findUnique({ where: { email }, select })
-          : null;
-
-      if (!u && tokenSub) {
-        u = await prisma.user.findUnique({ where: { id: tokenSub }, select });
+        (session as any).user = {
+          ...(session.user || {}),
+          id: u.id,
+          name: u.name ?? session.user?.name ?? null,
+          avatarUrl: u.avatarUrl ?? null,
+        } as any;
+      } catch (e) {
+        console.error("[session-cb] err:", e);
+        // hata olsa bile oturumu döndür
       }
-
-      if (u) {
-        // header'nın ve /me'nin beklediği alanlar:
-        su.id = u.id;
-        su.name = u.name ?? su.name ?? null;
-        (su as any).avatarUrl = u.avatarUrl ?? null;
-      }
-
       return session;
     },
   },
-
-  // prod’da gerekli
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// SSR/API tarafında session almak için
 export function auth() {
   return getServerSession(authOptions);
 }
 
-// Sunucu tarafında kimliği tek satırla almak için yardımcı
 export async function getSessionUser() {
   const session = await auth();
-  const su = (session as any)?.user as
-    | { id?: string; email?: string; name?: string | null; avatarUrl?: string | null }
-    | undefined;
-
-  if (!su) return null;
-
-  // Önce id’ye, yoksa email’e göre çöz
-  if (su.id) {
-    return prisma.user.findUnique({
-      where: { id: su.id },
-      select: { id: true, name: true, avatarUrl: true },
-    });
-  }
-
-  if (su.email) {
-    return prisma.user.findUnique({
-      where: { email: su.email },
-      select: { id: true, name: true, avatarUrl: true },
-    });
-  }
-
-  return null;
+  const email = session?.user?.email;
+  if (!email) return null;
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, avatarUrl: true },
+  });
 }
