@@ -34,7 +34,7 @@ type ItemVM = {
     id: string;
     text: string;
     edited?: boolean;
-    user?: { name?: string | null; avatarUrl?: string | null };
+    user?: { id?: string; name?: string | null; avatarUrl?: string | null };
   }[];
   tags: string[];
 };
@@ -145,16 +145,30 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!res) return;
+      if (!res) return false;
       const j = await res.json().catch(()=>null);
       if (j?.ok) {
         setQ('');
         await load();
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 2000);
+        return true;
+      } else {
+        alert('Hata: ' + (j?.error || res.status));
+        return false;
       }
-      else alert('Hata: ' + (j?.error || res.status));
     } finally { setAdding(false); }
+  }
+
+  async function deleteComment(commentId: string) {
+    const res = await fetchOrSignin(`/api/comments/${commentId}`, { method: 'DELETE' });
+    if (!res) return; // signin'e yönlendirilmiş olabilir
+    const j = await res.json().catch(() => null);
+    if (j?.ok) {
+      await load();
+    } else {
+      alert('Hata: ' + (j?.error || res.status));
+    }
   }
 
   async function toggleSave(id: string) {
@@ -246,6 +260,7 @@ export default function HomePage() {
     wordBreak: 'break-word',
   };
 
+  const quickFormRef = useRef<HTMLFormElement>(null);
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBucket, onStarBucket: setStarBucket }} />
@@ -319,15 +334,20 @@ export default function HomePage() {
               defaultOpen={true}
             >
               <form
+                ref={quickFormRef}
                 className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  // mevcut addItem fonksiyonunu çağırıyoruz:
-                  const fd = new FormData(e.currentTarget);
-                  // Stars ve ImageUploader controlled olduğu için hidden input’lardan geliyor
-                  addItem(fd);
-                  // adı sıfırla (isteğe bağlı)
-                  // setQuickName('');
+                  const formEl = e.currentTarget;
+                  const fd = new FormData(formEl);
+                  const ok = await addItem(fd);
+                  if (ok) {
+                    // Formu tamamen temizle
+                    quickFormRef.current?.reset();
+                    setQuickName('');
+                    setNewRating(5);
+                    setNewImage(null);
+                  }
                 }}
               >
                 {justAdded && (
@@ -541,19 +561,33 @@ export default function HomePage() {
 
                     {i.comments?.length > 0 && (
                       <div className="pt-3 space-y-2 text-sm leading-relaxed">
-                        {i.comments.map((c) => (
-                          <div key={c.id} className="flex items-center gap-2">
-                            {c.user?.avatarUrl ? (
-                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" title={c.user?.name || 'user'} />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={c.user?.name || 'user'}>
-                                {(c.user?.name || 'U')[0]?.toUpperCase()}
-                              </div>
-                            )}
-                            <span className="text-xs opacity-70">{c.user?.name || 'anon'}</span>
-                            <span>“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
-                          </div>
-                        ))}
+                    {i.comments.map((c) => (
+                      <div key={c.id} className="flex items-center gap-2 justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {c.user?.avatarUrl ? (
+                            <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover" title={c.user?.name || 'user'} />
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={c.user?.name || 'user'}>
+                              {(c.user?.name || 'U')[0]?.toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-xs opacity-70 shrink-0">{c.user?.name || 'anon'}</span>
+                          <span className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
+                        </div>
+                        <button
+                          className="shrink-0 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                          title="Yorumu sil"
+                          onClick={() => deleteComment(c.id)}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
                       </div>
                     )}
                   </div>
