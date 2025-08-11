@@ -3,6 +3,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
+function redirectToSignin(req: Request) {
+  const url = new URL(req.url);
+  const referer = req.headers.get("referer") ?? `${url.origin}/`;
+  const signin = new URL("/api/auth/signin", url.origin);
+  signin.searchParams.set("callbackUrl", referer);
+  return NextResponse.redirect(signin);
+}
+
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
@@ -10,7 +18,8 @@ export async function POST(
   try {
     const me = await getSessionUser();
     if (!me) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+      // ❗ Oturum yoksa 401 yerine signin'e yönlendir
+      return redirectToSignin(req);
     }
 
     const itemId = params.id;
@@ -30,7 +39,7 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "not-found" }, { status: 404 });
     }
 
-    // herkes (giriş yapmış) yorum atabilir: SADECE kendi yorumunu düzenleyebilir
+    // herkes (giriş yapmış) yorum atabilir
     const comment = await prisma.comment.create({
       data: { itemId, userId: me.id, text: clean },
       include: { user: { select: { maskedName: true, avatarUrl: true } } },
@@ -60,7 +69,10 @@ export async function PATCH(
 ) {
   try {
     const me = await getSessionUser();
-    if (!me) return NextResponse.json({ ok:false, error:"unauthorized" }, { status:401 });
+    if (!me) {
+      // ❗ Oturum yoksa 401 yerine signin'e yönlendir
+      return redirectToSignin(req);
+    }
 
     const { commentId, text } = await req.json();
     const clean = String(text ?? "").trim();
@@ -69,9 +81,16 @@ export async function PATCH(
     }
 
     // sahiplik kontrolü
-    const c = await prisma.comment.findUnique({ where: { id: commentId }, select: { userId: true, itemId: true }});
-    if (!c || c.itemId !== params.id) return NextResponse.json({ ok:false, error:"not-found" }, { status:404 });
-    if (c.userId !== me.id) return NextResponse.json({ ok:false, error:"forbidden" }, { status:403 });
+    const c = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { userId: true, itemId: true }
+    });
+    if (!c || c.itemId !== params.id) {
+      return NextResponse.json({ ok:false, error:"not-found" }, { status:404 });
+    }
+    if (c.userId !== me.id) {
+      return NextResponse.json({ ok:false, error:"forbidden" }, { status:403 });
+    }
 
     await prisma.comment.update({
       where: { id: commentId },
