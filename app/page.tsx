@@ -56,6 +56,8 @@ export default function HomePage() {
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
   const [starBucket, setStarBucket] = useState<number | null>(null);
+  // Çoklu etiket seçimi için state
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   async function loadSavedIds() {
     try {
@@ -91,11 +93,7 @@ export default function HomePage() {
     return () => clearTimeout(t);
   }, [q, order]);
 
-  const activeTag = useMemo(() => {
-    const single = q.trim();
-    if (single && !single.includes(' ') && allTags.includes(single)) return single;
-    return undefined;
-  }, [q, allTags]);
+  // Kaldırıldı: activeTag ve single-tag selection, çoklu seçim state'e taşındı
 
   // Yıldız filtresi: ortalama 3.67 → 4 yıldız kovasına girer
   function bucketOf(avg: number | null): number | null {
@@ -103,10 +101,19 @@ export default function HomePage() {
     return Math.ceil(avg);
   }
 
+  // Filtreleme: yıldız ve çoklu etiket seçimi
   const filteredItems = useMemo(() => {
-    if (!starBucket) return items;
-    return items.filter(i => bucketOf(i.avg) === starBucket);
-  }, [items, starBucket]);
+    let filtered = items;
+    if (starBucket) {
+      filtered = filtered.filter(i => bucketOf(i.avg) === starBucket);
+    }
+    if (selectedTags.size > 0) {
+      filtered = filtered.filter(i =>
+        Array.from(selectedTags).every(tag => i.tags.includes(tag))
+      );
+    }
+    return filtered;
+  }, [items, starBucket, selectedTags]);
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -214,24 +221,48 @@ export default function HomePage() {
         {/* Sol: etiketler */}
         <aside>
           <CollapsibleSection
-  title="Trend Etiketler"
-  defaultOpen={true}
-  className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20"
-  summaryClassName="text-amber-900 dark:text-amber-200"
->
-  <div className="flex flex-wrap gap-2">
-    {trending.map((t) => (
-      <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-    ))}
-  </div>
-</CollapsibleSection>
+            title="Trend Etiketler"
+            defaultOpen={true}
+            className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20"
+            summaryClassName="text-amber-900 dark:text-amber-200"
+          >
+            <div className="flex flex-wrap gap-2">
+              {trending.map((t) => (
+                <Tag
+                  key={t}
+                  label={t}
+                  active={selectedTags.has(t)}
+                  onClick={() => {
+                    setSelectedTags(prev => {
+                      const next = new Set(prev);
+                      if (next.has(t)) next.delete(t); else next.add(t);
+                      return next;
+                    });
+                  }}
+                  onDoubleClick={() => setSelectedTags(new Set())}
+                />
+              ))}
+            </div>
+          </CollapsibleSection>
 
           <div className="h-4" />
 
           <CollapsibleSection title="Tüm Etiketler" defaultOpen={false}>
             <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
               {allTags.map((t) => (
-                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+                <Tag
+                  key={t}
+                  label={t}
+                  active={selectedTags.has(t)}
+                  onClick={() => {
+                    setSelectedTags(prev => {
+                      const next = new Set(prev);
+                      if (next.has(t)) next.delete(t); else next.add(t);
+                      return next;
+                    });
+                  }}
+                  onDoubleClick={() => setSelectedTags(new Set())}
+                />
               ))}
             </div>
           </CollapsibleSection>
@@ -408,14 +439,19 @@ export default function HomePage() {
                         {i.tags.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {i.tags.slice(0, 10).map((t) => (
-                              <button
+                              <Tag
                                 key={t}
-                                className="px-2 py-0.5 rounded-full text-xs border bg-white hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700"
-                                onClick={() => setQ(t)}
-                                title={`#${t}`}
-                              >
-                                #{t}
-                              </button>
+                                label={t}
+                                active={selectedTags.has(t)}
+                                onClick={() => {
+                                  setSelectedTags(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(t)) next.delete(t); else next.add(t);
+                                    return next;
+                                  });
+                                }}
+                                onDoubleClick={() => setSelectedTags(new Set())}
+                              />
                             ))}
                           </div>
                         )}
