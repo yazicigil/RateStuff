@@ -37,18 +37,31 @@ export default function HomePage() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<string | null>(null); // options menüsü
 
-  async function load() {
-    setLoading(true);
-    const [itemsRes, tagsRes, trendRes] = await Promise.all([
-      fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then((r) => r.json()),
-      fetch('/api/tags').then((r) => r.json()),
-      fetch('/api/tags/trending').then((r) => r.json()),
-    ]);
-    setItems(itemsRes);
-    setAllTags(tagsRes);
-    setTrending(trendRes);
+async function load() {
+  setLoading(true);
+  try {
+    const r = await fetch("/api/me");
+    if (!r.ok) {
+      // 401 ise giriş yok; sessizce boş göster
+      setMe(null);
+      setItems([]); setRatings([]); setComments([]); setSaved([]);
+      return;
+    }
+    const j = await r.json().catch(() => null);
+    if (!j) {
+      setMe(null);
+      setItems([]); setRatings([]); setComments([]); setSaved([]);
+      return;
+    }
+    setMe(j.me || null);
+    setItems(j.items || []);
+    setRatings(j.ratings || []);
+    setComments(j.comments || []);
+    setSaved(j.saved || []);
+  } finally {
     setLoading(false);
   }
+}
   useEffect(() => { load(); }, []);
   useEffect(() => {
     const t = setTimeout(load, 250);
