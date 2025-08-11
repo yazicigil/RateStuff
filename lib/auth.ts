@@ -1,80 +1,73 @@
 // lib/auth.ts
-import { PrismaClient } from "@prisma/client";
+import { getServerSession, NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import type { NextAuthOptions } from "next-auth";
-import { getServerSession } from "next-auth";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
-
-/** "Mehmetcan Yazıcıgil" -> "M**** Y****" ; "Şarlatan" -> "Ş****" */
-function makeMaskedNameFromHuman(name?: string | null, fallbackEmail?: string) {
-  const src = (name || fallbackEmail?.split("@")[0] || "Anon").trim();
-  const parts = src.replace(/[_.-]+/g, " ").split(/\s+/).filter(Boolean).slice(0, 3);
-
-  const maskPart = (p: string) => {
-    const first = p.trim().charAt(0);
-    if (!first) return "•****";
-    const upper = first.toLocaleUpperCase("tr-TR");
-    return `${upper}****`;
-  };
-
-  if (parts.length === 0) return "A****";
-  if (parts.length === 1) return maskPart(parts[0]);
-  return `${maskPart(parts[0])} ${maskPart(parts[1])}`;
-}
-
+// Not: PrismaAdapter kullanmıyoruz; DB'de "image" yerine "avatarUrl" alanı var.
+// Bu yüzden kullanıcıyı kendimiz upsert edip oturumda ID/avatar'ı garanti ediyoruz.
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_ID!,
+      clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-  session: { strategy: "jwt" },
   callbacks: {
-    async signIn({ user, profile }) {
-      if (!user?.email) return false;
-      const email = user.email.toLowerCase();
-      const avatar = (profile as any)?.picture || null;
-      const masked = makeMaskedNameFromHuman(user.name, user.email);
+    // Google ile girişte kullanıcıyı DB'de garanti et ve adı/avatari senkronla
+    async signIn({ user }) {
+      const email = user.email;
+      if (!email) return false;
 
       await prisma.user.upsert({
         where: { email },
-        create: {
-          id: crypto.randomUUID(),
-          email,
-          name: user.name || null,
-          maskedName: masked,
-          avatarUrl: avatar,
-        },
         update: {
-          name: user.name || null,
-          ...(avatar ? { avatarUrl: avatar } : {}),
+          name: user.name ?? undefined,
+          avatarUrl: (user.image as string | undefined) ?? undefined,
+        },
+        create: {
+          email,
+          name: user.name ?? null,
+          avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
 
       return true;
     },
 
-    async jwt({ token, user }) {
-      if (user?.email) {
-        const dbUser = await prisma.user.findUnique({ where: { email: user.email.toLowerCase() } });
-        if (dbUser) (token as any).uid = dbUser.id;
+    // Oturuma DB'deki id ve avatarUrl'i ekle (header ve /me için kritik)
+    async session({ session }) {
+      const email = session.user?.email;
+      if (email) {
+        const u = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, name: true, avatarUrl: true },
+        });
+        if (u) {
+          (session as any).user.id = u.id;
+          session.user.name = u.name ?? session.user.name ?? null;
+          (session.user as any).avatarUrl = u.avatarUrl ?? null;
+        }
       }
-      return token;
-    },
-
-    async session({ session, token }) {
-      if (session?.user) (session.user as any).id = (token as any).uid;
       return session;
     },
   },
-  pages: { signIn: "/auth/signin" },
-  debug: false,
+  // prod’da gerekli
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
+// SSR/API tarafında session almak için
+export function auth() {
+  return getServerSession(authOptions);
+}
+
+// Uygulamanın her yerinde kullandığımız yardımcı
 export async function getSessionUser() {
-  const s = await getServerSession(authOptions);
-  if (!s?.user) return null;
-  return { id: (s.user as any).id as string, email: s.user.email as string, name: s.user.name || null };
+  const session = await auth();
+  const email = session?.user?.email;
+  if (!email) return null;
+
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, name: true, avatarUrl: true },
+  });
 }
