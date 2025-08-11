@@ -71,7 +71,7 @@ export default function MePage() {
 
   useEffect(() => {
     if (status === "unauthenticated") {
-      window.location.href = '/signin';
+      window.location.href = "/signin";
     }
   }, [status]);
 
@@ -80,23 +80,29 @@ export default function MePage() {
     setError(null);
     try {
       const r = await fetch("/api/me", { cache: "no-store" });
-      if (r.status === 401) { window.location.href = "/"; return; }
+      if (r.status === 401) {
+        window.location.href = "/";
+        return;
+      }
       const text = await r.text();
       const data = text ? JSON.parse(text) : null;
       if (!r.ok || !data?.ok) throw new Error(data?.error || `status ${r.status}`);
 
       setMe(data.me || null);
       setItems(data.items || []);
-      setSaved(data.saved || []);       // saved[i].tags varsa filtre ve rozetler çalışır
+      setSaved(data.saved || []);
       setRatings(data.ratings || []);
       setComments(data.comments || []);
-    } catch (e:any) {
+    } catch (e: any) {
       setError(`Hata: ${e?.message || e}`);
     } finally {
       setLoading(false);
     }
   }
-  useEffect(()=>{ load(); }, []);
+
+  useEffect(() => {
+    load();
+  }, []);
 
   // Kaydedilenler için mevcut tag’lar (sadece saved içinden)
   const savedTags = useMemo(() => {
@@ -110,64 +116,75 @@ export default function MePage() {
     return saved.filter(it => (it.tags || []).includes(savedTag));
   }, [saved, savedTag]);
 
-  async function saveItem(id:string) {
-    const body:any = { description: editDesc, imageUrl: editImg ?? null };
+  async function saveItem(id: string) {
+    const body: any = { description: editDesc, imageUrl: editImg ?? null };
     const r = await fetch(`/api/items/${id}/edit`, {
-      method: "PATCH", headers: { "Content-Type":"application/json" }, body: JSON.stringify(body)
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-    const j = await r.json().catch(()=>null);
-    if (j?.ok) { setEditingItem(null); await load(); } else alert("Hata: " + (j?.error || r.status));
+    const j = await r.json().catch(() => null);
+    if (j?.ok) {
+      setEditingItem(null);
+      await load();
+    } else alert("Hata: " + (j?.error || r.status));
   }
 
-  async function changeRating(itemId: string, value:number) {
+  async function changeRating(itemId: string, value: number) {
     const r = await fetch(`/api/items/${itemId}/rate`, {
-      method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ value })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
     });
-    const j = await r.json().catch(()=>null);
-    if (j?.ok) await load(); else alert("Hata: " + (j?.error || r.status));
+    const j = await r.json().catch(() => null);
+    if (j?.ok) await load();
+    else alert("Hata: " + (j?.error || r.status));
   }
 
   async function saveComment(commentId: string, nextText: string) {
     const r = await fetch(`/api/comments/${commentId}`, {
-      method:"PATCH", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ text: nextText })
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: nextText }),
     });
-    const j = await r.json().catch(()=>null);
-    if (j?.ok) await load(); else alert("Hata: " + (j?.error || r.status));
+    const j = await r.json().catch(() => null);
+    if (j?.ok) await load();
+    else alert("Hata: " + (j?.error || r.status));
   }
 
   async function deleteComment(commentId: string) {
-    const ok = window.confirm('Yorumu kaldırmak istediğine emin misin?');
+    const ok = window.confirm("Yorumu kaldırmak istediğine emin misin?");
     if (!ok) return;
     const r = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
-    const j = await r.json().catch(()=>null);
+    const j = await r.json().catch(() => null);
     if (j?.ok) {
       setComments(prev => prev.filter(c => c.id !== commentId));
     } else {
-      alert('Hata: ' + (j?.error || r.status));
+      alert("Hata: " + (j?.error || r.status));
     }
   }
 
   async function removeSaved(itemId: string) {
-    const ok = window.confirm('Kaydedilenlerden kaldırmak istediğine emin misin?');
+    const ok = window.confirm("Kaydedilenlerden kaldırmak istediğine emin misin?");
     if (!ok) return;
     const r = await fetch(`/api/items/${itemId}/save`, { method: "DELETE" });
-    const j = await r.json().catch(()=>null);
+    const j = await r.json().catch(() => null);
     if (j?.ok) {
       setSaved(prev => prev.filter(x => x.id !== itemId));
     } else {
-      alert('Hata: ' + (j?.error || r.status));
+      alert("Hata: " + (j?.error || r.status));
     }
   }
 
   async function deleteItem(itemId: string) {
-    const ok = window.confirm('Bu öğeyi silmek istediğine emin misin? Bu işlem geri alınamaz.');
+    const ok = window.confirm("Bu öğeyi silmek istediğine emin misin? Bu işlem geri alınamaz.");
     if (!ok) return;
-    const r = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
-    const j = await r.json().catch(()=>null);
+    const r = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
+    const j = await r.json().catch(() => null);
     if (j?.ok) {
       setItems(prev => prev.filter(x => x.id !== itemId));
     } else {
-      alert('Hata: ' + (j?.error || r.status));
+      alert("Hata: " + (j?.error || r.status));
     }
   }
 
@@ -181,7 +198,7 @@ export default function MePage() {
             <span className="text-lg font-semibold">Profil</span>
           </div>
           <button
-            onClick={()=>signOut({ callbackUrl: "/" })}
+            onClick={() => signOut({ callbackUrl: "/" })}
             className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
           >
             Çıkış
@@ -206,7 +223,7 @@ export default function MePage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-base md:text-lg font-semibold truncate">{me?.name || 'Profilim'}</div>
+            <div className="text-base md:text-lg font-semibold truncate">{me?.name || "Profilim"}</div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
           </div>
           <Link href="/" className="hidden sm:inline-flex px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">Anasayfa</Link>
@@ -225,7 +242,7 @@ export default function MePage() {
                 <div className="mb-3 flex flex-wrap gap-2">
                   <button
                     className={`px-2 py-1 rounded-full border text-xs ${
-                      !savedTag ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                      !savedTag ? "bg-black text-white border-black" : "bg-white dark:bg-gray-900 dark:border-gray-800"
                     }`}
                     onClick={() => setSavedTag(null)}
                   >
@@ -236,8 +253,8 @@ export default function MePage() {
                       key={t}
                       className={`px-2 py-1 rounded-full border text-xs ${
                         savedTag === t
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                          ? "bg-black text-white border-black"
+                          : "bg-white dark:bg-gray-900 dark:border-gray-800"
                       }`}
                       onClick={() => setSavedTag(t)}
                     >
@@ -273,7 +290,6 @@ export default function MePage() {
                         <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
                         <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
 
-                        {/* Etiket rozetleri (varsa) */}
                         {!!(it.tags && it.tags.length) && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {it.tags.slice(0, 10).map(t => (
@@ -326,7 +342,7 @@ export default function MePage() {
                   editImg={editImg}
                   setEditImg={setEditImg}
                   onSave={() => saveItem(it.id)}
-                  onDelete={deleteItem}   {/* <-- EKLENDİ */}
+                  onDelete={deleteItem}
                 />
               ))}
             </div>
@@ -344,7 +360,7 @@ export default function MePage() {
               {ratings.map(r => (
                 <div key={r.id} className="rounded-xl border p-3 flex items-center justify-between">
                   <div className="truncate">{r.itemName}</div>
-                  <Stars value={r.value} onRate={(n)=>changeRating(r.itemId, n)} />
+                  <Stars value={r.value} onRate={(n) => changeRating(r.itemId, n)} />
                 </div>
               ))}
             </div>
