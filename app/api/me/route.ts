@@ -3,11 +3,19 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const me = await getSessionUser();
+
+    // Oturum yoksa: doğrudan NextAuth sign-in'e yönlendir
     if (!me) {
-      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+      const url = new URL(req.url);
+      const referer = req.headers.get("referer");
+      // geri dönüş olarak referer varsa onu, yoksa ana sayfayı ver
+      const callback = referer ?? `${url.origin}/`;
+      const signin = new URL("/api/auth/signin", url.origin);
+      signin.searchParams.set("callbackUrl", callback);
+      return NextResponse.redirect(signin);
     }
 
     // Her bloğu bağımsız korumaya alıyoruz ki biri patlarsa tüm yanıt 500 olmasın
@@ -27,7 +35,6 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
         include: { item: { select: { id: true, name: true } } },
       }),
-      // SavedItem tablosu prod’da henüz yoksa burası patlayabilir → allSettled
       prisma.savedItem.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
@@ -47,10 +54,10 @@ export async function GET() {
       }),
     ]);
 
-    const items = itemsRes.status === "fulfilled" ? itemsRes.value : [];
-    const ratings = ratingsRes.status === "fulfilled" ? ratingsRes.value : [];
+    const items    = itemsRes.status === "fulfilled" ? itemsRes.value : [];
+    const ratings  = ratingsRes.status === "fulfilled" ? ratingsRes.value : [];
     const comments = commentsRes.status === "fulfilled" ? commentsRes.value : [];
-    const saved = savedRes.status === "fulfilled" ? savedRes.value : [];
+    const saved    = savedRes.status === "fulfilled" ? savedRes.value : [];
 
     const shapeItem = (i: any) => {
       const count = i.ratings?.length ?? 0;
@@ -70,7 +77,7 @@ export async function GET() {
     const shaped = {
       items: items.map(shapeItem),
       ratings: ratings
-        .filter((r: any) => !!r.item) // item silinmiş olabilir
+        .filter((r: any) => !!r.item)
         .map((r: any) => ({
           id: r.id,
           itemId: r.itemId,
