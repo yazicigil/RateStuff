@@ -387,7 +387,7 @@ export default function HomePage() {
           {/* Hızlı ekleme */}
           <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
             <CollapsibleSection
-              title="Eklemek istediğin bir şey mi var?"
+              title="➕ Eklemek istediğin bir şey mi var?"
               defaultOpen={true}
             >
               <form
