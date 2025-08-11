@@ -201,13 +201,18 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
         <aside>
-          <CollapsibleSection title="Trend Etiketler" defaultOpen={true}>
-            <div className="flex flex-wrap gap-2">
-              {trending.map((t) => (
-                <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
-              ))}
-            </div>
-          </CollapsibleSection>
+          <CollapsibleSection
+  title="Trend Etiketler"
+  defaultOpen={true}
+  className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20"
+  summaryClassName="text-amber-900 dark:text-amber-200"
+>
+  <div className="flex flex-wrap gap-2">
+    {trending.map((t) => (
+      <Tag key={t} label={t} onClick={(x) => setQ(x)} active={activeTag === t} />
+    ))}
+  </div>
+</CollapsibleSection>
 
           <div className="h-4" />
 
