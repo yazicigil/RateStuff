@@ -3,19 +3,24 @@ import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 
+const GOOGLE_ID = process.env.GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_SECRET = process.env.GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
+
+if (!GOOGLE_ID || !GOOGLE_SECRET) {
+  console.error("[auth] Missing Google credentials. Set GOOGLE_ID/GOOGLE_SECRET or GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET");
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_ID!,
-      clientSecret: process.env.GOOGLE_SECRET!,
+      clientId: GOOGLE_ID!,
+      clientSecret: GOOGLE_SECRET!,
     }),
   ],
   callbacks: {
-    // Google ile girişte kullanıcıyı DB'de garanti et ve adı/avatari senkronla
     async signIn({ user }) {
       const email = user.email;
       if (!email) return false;
-
       await prisma.user.upsert({
         where: { email },
         update: {
@@ -28,11 +33,8 @@ export const authOptions: NextAuthOptions = {
           avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
-
       return true;
     },
-
-    // Oturuma DB'deki id ve avatarUrl'i ekle (header ve /me için kritik)
     async session({ session }) {
       const email = session.user?.email;
       if (email) {
@@ -60,7 +62,6 @@ export async function getSessionUser() {
   const session = await auth();
   const email = session?.user?.email;
   if (!email) return null;
-
   return prisma.user.findUnique({
     where: { email },
     select: { id: true, name: true, avatarUrl: true },
