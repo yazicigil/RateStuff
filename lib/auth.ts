@@ -10,45 +10,23 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-  // (opsiyonel) hata ayıklama açık kalsın; iş bitince kapat
-  trustHost: true, 
+  trustHost: true,      // ← ÖNEMLİ (Vercel’de host kontrolünü geçirir)
   debug: true,
   callbacks: {
-    // DB’ye dokunmadan izin ver; (DB senkronu session içinde/sonrada)
-    async signIn() {
-      return true;
-    },
-
-    // Oturum zenginleştirme: hata olursa akışı bozma
+    async signIn() { return true; },
     async session({ session }) {
       try {
         const email = session.user?.email;
         if (!email) return session;
-
-        // yoksa oluştur (upsert), varsa oku
         const u = await prisma.user.upsert({
           where: { email },
-          update: {
-            name: session.user?.name ?? undefined,
-            avatarUrl: (session.user as any)?.image ?? undefined,
-          },
-          create: {
-            email,
-            name: session.user?.name ?? null,
-            avatarUrl: (session.user as any)?.image ?? null,
-          },
+          update: { name: session.user?.name ?? undefined, avatarUrl: (session.user as any)?.image ?? undefined },
+          create: { email, name: session.user?.name ?? null, avatarUrl: (session.user as any)?.image ?? null },
           select: { id: true, name: true, avatarUrl: true },
         });
-
-        (session as any).user = {
-          ...(session.user || {}),
-          id: u.id,
-          name: u.name ?? session.user?.name ?? null,
-          avatarUrl: u.avatarUrl ?? null,
-        } as any;
+        (session as any).user = { ...(session.user || {}), id: u.id, name: u.name ?? session.user?.name ?? null, avatarUrl: u.avatarUrl ?? null } as any;
       } catch (e) {
         console.error("[session-cb] err:", e);
-        // hata olsa bile oturumu döndür
       }
       return session;
     },
