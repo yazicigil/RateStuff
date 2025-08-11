@@ -18,3 +18,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   });
   return NextResponse.json({ ok:true });
 }
+
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const me = await getSessionUser();
+  if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+
+  const c = await prisma.comment.findUnique({ where: { id: params.id } });
+  if (!c) return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 });
+  if (c.userId !== me.id) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+
+  await prisma.comment.delete({ where: { id: params.id } });
+  return NextResponse.json({ ok: true });
+}

@@ -344,7 +344,7 @@ export default function HomePage() {
                   className={
                     selectedTags.has(t)
                       ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-                      : 'bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60 shadow-inner'
+                      : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20'
                   }
                 />
               ))}
@@ -372,7 +372,7 @@ export default function HomePage() {
                     trending.includes(t)
                       ? (selectedTags.has(t)
                           ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-                          : 'bg-violet-50 text-violet-900 border-violet-300 hover:bg-violet-100 dark:bg-violet-800/20 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/40 shadow-inner')
+                          : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20')
                       : ''
                   }
                 />
