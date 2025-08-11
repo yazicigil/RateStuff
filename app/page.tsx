@@ -7,6 +7,7 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import ImageUploader from '@/components/ImageUploader';
+import { useSession } from 'next-auth/react';
 
 // --- 401'de otomatik signin'e yönlendiren fetch ---
 async function fetchOrSignin(url: string, init?: RequestInit) {
@@ -72,6 +73,10 @@ export default function HomePage() {
     () => allTags.filter(t => selectedTags.has(t)).length,
     [allTags, selectedTags]
   );
+
+  // Aktif oturum (sadece kendi yorumlarım için çöp kutusunu gösterebilmek adına)
+  const { data: session } = useSession();
+  const myId = (session as any)?.user?.id ?? null;
 
   async function loadSavedIds() {
     try {
@@ -279,8 +284,8 @@ export default function HomePage() {
           <CollapsibleSection
             title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
             defaultOpen={true}
-            className="border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/20"
-            summaryClassName="text-amber-900 dark:text-amber-200"
+            className="border-violet-300 bg-violet-50 dark:border-violet-700 dark:bg-violet-900/20"
+            summaryClassName="text-violet-900 dark:text-violet-200"
           >
             <div className="flex flex-wrap gap-2">
               {trending.map((t) => (
@@ -296,6 +301,11 @@ export default function HomePage() {
                     });
                   }}
                   onDoubleClick={() => setSelectedTags(new Set())}
+                  className={
+                    selectedTags.has(t)
+                      ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700'
+                      : 'bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60'
+                  }
                 />
               ))}
             </div>
@@ -318,6 +328,13 @@ export default function HomePage() {
                     });
                   }}
                   onDoubleClick={() => setSelectedTags(new Set())}
+                  className={
+                    trending.includes(t)
+                      ? (selectedTags.has(t)
+                          ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700'
+                          : 'bg-violet-50 text-violet-900 border-violet-300 hover:bg-violet-100 dark:bg-violet-800/20 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/40')
+                      : ''
+                  }
                 />
               ))}
             </div>
@@ -574,18 +591,20 @@ export default function HomePage() {
                           <span className="text-xs opacity-70 shrink-0">{c.user?.name || 'anon'}</span>
                           <span className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</span>
                         </div>
-                        <button
-                          className="shrink-0 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                          title="Yorumu sil"
-                          onClick={() => deleteComment(c.id)}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                            <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                          </svg>
-                        </button>
+                        {myId && c.user?.id === myId && (
+                          <button
+                            className="shrink-0 p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                            title="Yorumu sil"
+                            onClick={() => deleteComment(c.id)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                              <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                            </svg>
+                          </button>
+                        )}
                       </div>
                     ))}
                       </div>
