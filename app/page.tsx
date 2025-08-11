@@ -53,6 +53,8 @@ export default function HomePage() {
   const [quickRating, setQuickRating] = useState(5);
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [newImage, setNewImage] = useState<string | null>(null);
+  const [newRating, setNewRating] = useState<number>(5);
 
   async function loadSavedIds() {
     try {
@@ -221,60 +223,74 @@ export default function HomePage() {
         {/* Sağ: listeler */}
         <section className="space-y-4">
           {/* Hızlı ekleme */}
-        <form
-  className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col gap-3"
-  onSubmit={(e) => { e.preventDefault(); addItem(new FormData(e.currentTarget)); }}
->
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-    <input
-      name="name"
-      className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-      placeholder="adı"
-      required
-    />
-    <input
-      name="tags"
-      className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-      placeholder="etiketler (virgülle)"
-      required
-    />
-    <input
-      name="desc"
-      className="md:col-span-2 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-      placeholder="kısa açıklama"
-      required
-    />
-    <input
-      name="comment"
-      className="md:col-span-2 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-      placeholder="yorum"
-      required
-    />
-  </div>
+ <CollapsibleSection title="Paylaşmak istediğin bir şey mi var?" defaultOpen={true}>
+  <form
+    className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+    onSubmit={(e) => {
+      e.preventDefault();
+      // mevcut addItem fonksiyonunu çağırıyoruz:
+      const fd = new FormData(e.currentTarget);
+      // Stars ve ImageUploader controlled olduğu için hidden input’lardan geliyor
+      addItem(fd);
+    }}
+  >
+    {/* 1. satır: Ad + Kısa açıklama */}
+    <div className="flex flex-wrap items-center gap-2">
+      <input
+        name="name"
+        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+        placeholder="adı"
+        required
+      />
+      <input
+        name="desc"
+        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+        placeholder="kısa açıklama"
+        required
+      />
+      <input
+        name="tags"
+        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+        placeholder="etiketler (virgülle)"
+        required
+      />
+    </div>
 
-  {/* Rating: yıldız bileşeni + hidden input */}
-  <div className="flex items-center gap-3">
-    <span className="text-sm font-medium">Puan:</span>
-    <Stars value={quickRating} onRate={(n) => setQuickRating(n)} />
-    <span className="text-sm opacity-70">{quickRating} / 5</span>
-    <input type="hidden" name="rating" value={quickRating} />
-  </div>
+    {/* 2. satır: Yıldız seçimi + Yorum */}
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm opacity-70">Puanın:</span>
+        <Stars value={newRating} onRate={(n) => setNewRating(n)} />
+      </div>
+      {/* hidden: addItem tarafına rating’i geçelim */}
+      <input type="hidden" name="rating" value={newRating} />
+      <input
+        name="comment"
+        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+        placeholder="yorum"
+        required
+      />
+    </div>
 
-  {/* Resim ekle: başlık + uploader derli toplu */}
-  <div>
-    <div className="text-sm font-medium mb-1">Resim ekle</div>
-    <ImageUploader name="imageUrl" />
-  </div>
+    {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
+    <div>
+      <div className="text-sm font-medium mb-2">Resim ekle</div>
+      <ImageUploader value={newImage} onChange={setNewImage} />
+      {/* hidden: addItem tarafına url’i geçelim */}
+      <input type="hidden" name="imageUrl" value={newImage ?? ''} />
+    </div>
 
-  <div>
-    <button
-      disabled={adding}
-      className="px-3 py-2 rounded-xl text-sm bg-black text-white"
-    >
-      {adding ? 'Ekleniyor…' : 'Ekle'}
-    </button>
-  </div>
-</form>
+    {/* 4. satır: Buton sağda ve biraz büyük */}
+    <div className="flex justify-end pt-1">
+      <button
+        disabled={adding}
+        className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60"
+      >
+        {adding ? 'Ekleniyor…' : 'Ekle'}
+      </button>
+    </div>
+  </form>
+</CollapsibleSection>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
