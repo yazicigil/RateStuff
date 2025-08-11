@@ -15,12 +15,22 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: GOOGLE_ID!,
       clientSecret: GOOGLE_SECRET!,
+      // Her girişte hesap seçme ekranını aç
+      authorization: {
+        params: {
+          prompt: "select_account",
+          // istersen izin ekranını da zorla:
+          // prompt: "consent select_account",
+        },
+      },
     }),
   ],
   callbacks: {
+    // Google ile girişte kullanıcıyı DB’de garanti et
     async signIn({ user }) {
       const email = user.email;
       if (!email) return false;
+
       await prisma.user.upsert({
         where: { email },
         update: {
@@ -33,8 +43,11 @@ export const authOptions: NextAuthOptions = {
           avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
+
       return true;
     },
+
+    // Session’a id ve avatarUrl ekle (header ve /me için kritik)
     async session({ session }) {
       const email = session.user?.email;
       if (email) {
@@ -51,17 +64,21 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+  // prod’da gerekli
   secret: process.env.NEXTAUTH_SECRET,
 };
 
+// SSR/API tarafında session almak için
 export function auth() {
   return getServerSession(authOptions);
 }
 
+// Uygulamanın her yerinde kullandığımız yardımcı
 export async function getSessionUser() {
   const session = await auth();
   const email = session?.user?.email;
   if (!email) return null;
+
   return prisma.user.findUnique({
     where: { email },
     select: { id: true, name: true, avatarUrl: true },
