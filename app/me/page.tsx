@@ -1,3 +1,19 @@
+function IconTrash({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M9 3.75A2.25 2.25 0 0 1 11.25 1.5h1.5A2.25 2.25 0 0 1 15 3.75V4.5h3.75a.75.75 0 0 1 0 1.5h-.32l-1.07 13.393A3.75 3.75 0 0 1 13.62 23.25H10.38a3.75 3.75 0 0 1-3.74-3.857L5.57 6H5.25a.75.75 0 0 1 0-1.5H9V3.75Zm1.5.75h3V3.75a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75V4.5Z"/>
+      <path d="M8.069 6l1.06 13.268a2.25 2.25 0 0 0 2.25 2.082h1.242a2.25 2.25 0 0 0 2.25-2.082L15.931 6H8.069Z"/>
+    </svg>
+  );
+}
+function IconPencil({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M16.862 3.487a1.875 1.875 0 0 1 2.651 2.651L8.9 16.75a4.5 4.5 0 0 1-1.897 1.128l-2.935.881a.75.75 0 0 1-.93-.93l.881-2.935A4.5 4.5 0 0 1 5.25 13.1L16.862 3.487Z"/>
+      <path d="M18.225 8.401l-2.626-2.626 1.06-1.06a.375.375 0 0 1 .53 0l2.096 2.096a.375.375 0 0 1 0 .53l-1.06 1.06Z"/>
+    </svg>
+  );
+}
 'use client';
 
 import Link from "next/link";
@@ -171,7 +187,7 @@ export default function MePage() {
         </section>
 
         {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
-        <Section title="Kaydedilenler" defaultOpen>
+        <Section title="🔖 Kaydedilenler" defaultOpen>
           {loading ? (
             <Box>Yükleniyor…</Box>
           ) : saved.length === 0 ? (
@@ -207,7 +223,7 @@ export default function MePage() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 {filteredSaved.map(it => (
-                  <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
+                  <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
                     <div className="flex items-start gap-3">
                       <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                         {it.imageUrl ? (
@@ -221,10 +237,11 @@ export default function MePage() {
                           <div className="text-base font-medium truncate">{it.name}</div>
                           <button
                             onClick={() => removeSaved(it.id)}
-                            className="text-xs px-2 py-1 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
+                            className="text-xs px-2 py-1 rounded-lg border hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-1"
                             title="Kaydedilenlerden kaldır"
+                            aria-label="Kaydedilenlerden kaldır"
                           >
-                            Kaldır
+                            <IconTrash className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
@@ -259,7 +276,7 @@ export default function MePage() {
         </Section>
 
         {/* 2) EKLEDİKLERİM — collapsible, içinde ImageUploader ile düzenleme */}
-        <Section title="Eklediklerim">
+        <Section title="➕ Eklediklerim">
           {loading ? (
             <Box>Yükleniyor…</Box>
           ) : items.length === 0 ? (
@@ -290,7 +307,7 @@ export default function MePage() {
         </Section>
 
         {/* 3) PUANLARIM — collapsible */}
-        <Section title="Puanlarım">
+        <Section title="⭐ Puanlarım">
           {loading ? (
             <Box>Yükleniyor…</Box>
           ) : ratings.length === 0 ? (
@@ -308,14 +325,14 @@ export default function MePage() {
         </Section>
 
         {/* 4) YORUMLARIM — collapsible, 2 sütun, son 5 + daha fazla */}
-        <Section title="Yorumlarım">
+        <Section title="💬 Yorumlarım">
           {loading ? (
             <Box>Yükleniyor…</Box>
           ) : comments.length === 0 ? (
             <Box>Yorumun yok.</Box>
           ) : (
             <>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid md:grid-cols-2 gap-3 items-stretch">
                 {comments.slice(0, commentsLimit).map(c => (
                   <CommentRow
                     key={c.id}
@@ -366,7 +383,7 @@ function Section({
 }
 
 function Box({ children }:{children:any}) {
-  return <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900">{children}</div>;
+  return <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 flex items-center gap-2">{children}</div>;
 }
 
 /* — Editor kartı (ImageUploader entegre) — */
@@ -381,7 +398,7 @@ function ItemEditor(props: {
   const isEditing = editingItem === it.id;
 
   return (
-    <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800">
+    <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-start gap-3">
         {it.imageUrl ? (
           <img src={it.imageUrl} className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
@@ -423,14 +440,17 @@ function ItemEditor(props: {
               <p className="text-sm opacity-80 mt-1">{it.description}</p>
               <div className="mt-2">
                 <button
-                  className="px-3 py-1.5 rounded-lg border text-sm"
+                  className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2"
                   onClick={()=>{
                     setEditingItem(it.id);
                     setEditDesc(it.description || "");
                     setEditImg(it.imageUrl ?? null);
                   }}
+                  title="Düzenle"
+                  aria-label="Düzenle"
                 >
-                  Düzenle (başlık hariç)
+                  <IconPencil className="w-4 h-4" />
+                  <span className="sr-only">Düzenle</span>
                 </button>
               </div>
             </>
@@ -454,7 +474,7 @@ function CommentRow({
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(c.text);
   return (
-    <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900">
+    <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 transition hover:shadow-md hover:-translate-y-0.5 h-full">
       <div className="text-sm opacity-70">{c.itemName}</div>
       {editing ? (
         <div className="mt-2 space-y-2">
@@ -483,15 +503,21 @@ function CommentRow({
         <div className="mt-1 text-sm">
           “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
           <div className="mt-2 flex gap-2">
-            <button className="px-3 py-1.5 rounded-lg border text-sm" onClick={()=>setEditing(true)}>
-              Düzenle
+            <button
+              className="p-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center"
+              onClick={()=>setEditing(true)}
+              title="Düzenle"
+              aria-label="Düzenle"
+            >
+              <IconPencil className="w-4 h-4" />
             </button>
             <button
-              className="px-3 py-1.5 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="p-2 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center"
               onClick={()=>onDelete(c.id)}
               title="Yorumu kaldır"
+              aria-label="Yorumu kaldır"
             >
-              Kaldır
+              <IconTrash className="w-4 h-4" />
             </button>
           </div>
         </div>
