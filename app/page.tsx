@@ -40,24 +40,15 @@ export default function HomePage() {
 async function load() {
   setLoading(true);
   try {
-    const r = await fetch("/api/me");
-    if (!r.ok) {
-      // 401 ise giriş yok; sessizce boş göster
-      setMe(null);
-      setItems([]); setRatings([]); setComments([]); setSaved([]);
-      return;
-    }
-    const j = await r.json().catch(() => null);
-    if (!j) {
-      setMe(null);
-      setItems([]); setRatings([]); setComments([]); setSaved([]);
-      return;
-    }
-    setMe(j.me || null);
-    setItems(j.items || []);
-    setRatings(j.ratings || []);
-    setComments(j.comments || []);
-    setSaved(j.saved || []);
+    const [itemsRes, tagsRes, trendRes] = await Promise.all([
+      fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then(r => r.json()).catch(() => []),
+      fetch('/api/tags').then(r => r.json()).catch(() => []),
+      fetch('/api/tags/trending').then(r => r.json()).catch(() => []),
+    ]);
+
+    setItems(Array.isArray(itemsRes) ? itemsRes : []);
+    setAllTags(Array.isArray(tagsRes) ? tagsRes : []);
+    setTrending(Array.isArray(trendRes) ? trendRes : []);
   } finally {
     setLoading(false);
   }
