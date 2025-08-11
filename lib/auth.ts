@@ -1,5 +1,5 @@
 // lib/auth.ts
-import { getServerSession, NextAuthOptions } from "next-auth";
+import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
 
@@ -10,17 +10,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_SECRET!,
     }),
   ],
-  // Prod’da kapatırız; şimdi açık kalsın ki hatayı görelim
-  debug: true,
-  events: {
-    async signIn(message) {
-      console.log("[auth] signIn event:", message?.user?.email);
-    },
-    async error(message) {
-      console.error("[auth] ERROR event:", message);
-    },
-  },
   callbacks: {
+    // Google ile girişte kullanıcıyı DB'de garanti et ve adı/avatari senkronla
     async signIn({ user }) {
       const email = user.email;
       if (!email) return false;
@@ -37,8 +28,11 @@ export const authOptions: NextAuthOptions = {
           avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
+
       return true;
     },
+
+    // Oturuma DB'deki id ve avatarUrl'i ekle (header ve /me için kritik)
     async session({ session }) {
       const email = session.user?.email;
       if (email) {
@@ -46,9 +40,9 @@ export const authOptions: NextAuthOptions = {
           where: { email },
           select: { id: true, name: true, avatarUrl: true },
         });
-        if (u) {
+        if (u && session.user) {
           (session as any).user.id = u.id;
-          session.user!.name = u.name ?? session.user!.name ?? null;
+          session.user.name = u.name ?? session.user.name ?? null;
           (session.user as any).avatarUrl = u.avatarUrl ?? null;
         }
       }
