@@ -51,6 +51,11 @@ export default function HomePage() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [quickRating, setQuickRating] = useState(5);
+  const [justAdded, setJustAdded] = useState(false);
+  const [pulseQuick, setPulseQuick] = useState(false);
+  const quickSectionRef = useRef<HTMLDivElement>(null);
+  const quickNameRef = useRef<HTMLInputElement>(null);
+  const [quickName, setQuickName] = useState('');
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
@@ -133,7 +138,12 @@ export default function HomePage() {
       });
       if (!res) return;
       const j = await res.json().catch(()=>null);
-      if (j?.ok) { setQ(''); await load(); alert('Eklendi'); }
+      if (j?.ok) {
+        setQ('');
+        await load();
+        setJustAdded(true);
+        setTimeout(() => setJustAdded(false), 2000);
+      }
       else alert('Hata: ' + (j?.error || res.status));
     } finally { setAdding(false); }
   }
@@ -195,6 +205,20 @@ export default function HomePage() {
     const j = await res.json().catch(() => null);
     if (j?.ok) { setDrafts(d => ({ ...d, [itemId]: '' })); await load(); }
     else alert('Hata: ' + (j?.error || res.status));
+  }
+
+  function jumpToQuickAdd() {
+    const name = q.trim();
+    if (name) setQuickName(name);
+    // scroll & focus
+    quickSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => {
+      quickNameRef.current?.focus();
+      quickNameRef.current?.select();
+    }, 250);
+    // visual cue
+    setPulseQuick(true);
+    setTimeout(() => setPulseQuick(false), 900);
   }
 
   async function report(id: string) {
@@ -272,80 +296,107 @@ export default function HomePage() {
         <section className="space-y-4">
           
           {/* Hızlı ekleme */}
- <CollapsibleSection title="Eklemek istediğin bir şey mi var?" defaultOpen={true}>
-  <form
-    className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
-    onSubmit={(e) => {
-      e.preventDefault();
-      // mevcut addItem fonksiyonunu çağırıyoruz:
-      const fd = new FormData(e.currentTarget);
-      // Stars ve ImageUploader controlled olduğu için hidden input’lardan geliyor
-      addItem(fd);
-    }}
-  >
-    {/* 1. satır: Ad + Kısa açıklama */}
-    <div className="flex flex-wrap items-center gap-2">
-      <input
-        name="name"
-        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-        placeholder="adı"
-        required
-      />
-      <input
-        name="desc"
-        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-        placeholder="kısa açıklama"
-        required
-      />
-      <input
-        name="tags"
-        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-        placeholder="etiketler (virgülle)"
-        required
-      />
-    </div>
+          <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
+            <CollapsibleSection
+              title={
+                <span className="flex items-center gap-2">
+                  Eklemek istediğin bir şey mi var?
+                  {justAdded && (
+                    <span className="ml-1 inline-flex items-center gap-1 text-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] px-2 py-0.5 rounded-full">
+                      ✓ Eklendi
+                    </span>
+                  )}
+                </span>
+              }
+              defaultOpen={true}
+            >
+              <form
+                className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  // mevcut addItem fonksiyonunu çağırıyoruz:
+                  const fd = new FormData(e.currentTarget);
+                  // Stars ve ImageUploader controlled olduğu için hidden input’lardan geliyor
+                  addItem(fd);
+                  // adı sıfırla (isteğe bağlı)
+                  // setQuickName('');
+                }}
+              >
+                {/* 1. satır: Ad + Kısa açıklama */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={quickNameRef}
+                    name="name"
+                    value={quickName}
+                    onChange={(e) => setQuickName(e.target.value)}
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="adı"
+                    required
+                  />
+                  <input
+                    name="desc"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="kısa açıklama"
+                    required
+                  />
+                  <input
+                    name="tags"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="etiketler (virgülle)"
+                    required
+                  />
+                </div>
 
-    {/* 2. satır: Yıldız seçimi + Yorum */}
-    <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm opacity-70">Puanın:</span>
-        <Stars value={newRating} onRate={(n) => setNewRating(n)} />
-      </div>
-      {/* hidden: addItem tarafına rating’i geçelim */}
-      <input type="hidden" name="rating" value={newRating} />
-      <input
-        name="comment"
-        className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-        placeholder="yorum"
-        required
-      />
-    </div>
+                {/* 2. satır: Yıldız seçimi + Yorum */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm opacity-70">Puanın:</span>
+                    <Stars value={newRating} onRate={(n) => setNewRating(n)} />
+                  </div>
+                  {/* hidden: addItem tarafına rating’i geçelim */}
+                  <input type="hidden" name="rating" value={newRating} />
+                  <input
+                    name="comment"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="yorum"
+                    required
+                  />
+                </div>
 
-    {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
-    <div>
-      <div className="text-sm font-medium mb-2">Resim ekle</div>
-      <ImageUploader value={newImage} onChange={setNewImage} />
-      {/* hidden: addItem tarafına url’i geçelim */}
-      <input type="hidden" name="imageUrl" value={newImage ?? ''} />
-    </div>
+                {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
+                <div>
+                  <div className="text-sm font-medium mb-2">Resim ekle</div>
+                  <ImageUploader value={newImage} onChange={setNewImage} />
+                  {/* hidden: addItem tarafına url’i geçelim */}
+                  <input type="hidden" name="imageUrl" value={newImage ?? ''} />
+                </div>
 
-    {/* 4. satır: Buton sağda ve biraz büyük */}
-    <div className="flex justify-end pt-1">
-      <button
-        disabled={adding}
-        className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60"
-      >
-        {adding ? 'Ekleniyor…' : 'Ekle'}
-      </button>
-    </div>
-  </form>
-</CollapsibleSection>
+                {/* 4. satır: Buton sağda ve biraz büyük */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    disabled={adding}
+                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60"
+                  >
+                    {adding ? 'Ekleniyor…' : 'Ekle'}
+                  </button>
+                </div>
+              </form>
+            </CollapsibleSection></div>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
-          {!loading && items.length === 0 && (
-            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-              Hiç sonuç yok. İlk itemi sen ekle → <Link className="underline" href="/items/new">Yeni Item</Link>
+          {!loading && filteredItems.length === 0 && (
+            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-3">
+              <div>
+                <div className="font-medium">Hiç sonuç yok.</div>
+                <div className="text-sm opacity-80">Eklemek ister misin?</div>
+              </div>
+              <button
+                onClick={jumpToQuickAdd}
+                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              >
+                Hızlı Ekle
+              </button>
             </div>
           )}
 
