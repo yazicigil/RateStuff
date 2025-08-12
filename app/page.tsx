@@ -144,7 +144,7 @@ export default function HomePage() {
   // Aktif oturum (sadece kendi yorumlarım için çöp kutusunu gösterebilmek adına)
   const { data: session } = useSession();
   const myId = (session as any)?.user?.id ?? null;
-
+  const amAdmin = Boolean((session as any)?.user?.isAdmin); 
   async function loadSavedIds() {
     try {
       const r = await fetch('/api/items/saved-ids', { cache: 'no-store' });
@@ -1217,7 +1217,7 @@ export default function HomePage() {
                           </div>
 
                           {/* Sadece kendi yorumlarım veya admin: kalem + çöp */}
-                          {(isMine || isAdmin) && !isEditing && (
+                          {(isMine || amAdmin) && !isEditing && (
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
