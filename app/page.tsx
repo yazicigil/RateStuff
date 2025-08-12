@@ -1123,30 +1123,32 @@ export default function HomePage() {
                           </span>
                         </div>
 
-                        {i.tags.length > 0 && (
-                          <div className="mt-2 pt-2 border-t dark:border-gray-800">
-                            <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
-                              {i.tags.slice(0, 10).map((t) => (
-                                <Tag
-                                  key={t}
-                                  label={t}
-                                  className="ml-0 inline-flex"
-                                  active={selectedTags.has(t)}
-                                  onClick={() => {
-                                    setSelectedTags(prev => {
-                                      const next = new Set(prev);
-                                      if (next.has(t)) next.delete(t); else next.add(t);
-                                      return next;
-                                    });
-                                  }}
-                                  onDoubleClick={() => setSelectedTags(new Set())}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        
                       </div>
                     </div>
+
+                    {i.tags.length > 0 && (
+                      <div className="mt-2 pt-2 border-t dark:border-gray-800">
+                        <div className="w-full flex flex-wrap items-center gap-1 justify-start">
+                          {i.tags.slice(0, 10).map((t) => (
+                            <Tag
+                              key={t}
+                              label={t}
+                              className="inline-flex"
+                              active={selectedTags.has(t)}
+                              onClick={() => {
+                                setSelectedTags(prev => {
+                                  const next = new Set(prev);
+                                  if (next.has(t)) next.delete(t); else next.add(t);
+                                  return next;
+                                });
+                              }}
+                              onDoubleClick={() => setSelectedTags(new Set())}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
