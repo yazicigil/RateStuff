@@ -1,31 +1,111 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="170" height="100" viewBox="0 0 127.5 75" preserveAspectRatio="xMidYMid meet">
-  <g fill="currentColor">
-    <g transform="translate(15.521087, 36.267131)">
-      <path d="M 23.113281 0 L 18.816406 -8.15625 L 23.113281 -8.15625 L 23.113281 -29.253906 L 1.140625 -29.253906 L 1.140625 0 L 8.464844 0 L 8.464844 -8.15625 L 11.621094 -8.15625 L 15.789062 0 Z M 15.789062 -14.824219 L 8.464844 -14.824219 L 8.464844 -22.542969 L 15.789062 -22.542969 Z"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="170" height="100" viewBox="0 0 127.5 75" preserveAspectRatio="xMidYMid meet" version="1.2">
+  <defs>
+    <clipPath id="63a2c5420a"><path d="M0 .144h127v74.708H0z"/></clipPath>
+    <clipPath id="0c26569505"><path d="M1 .144h125v74.708H1z"/></clipPath>
+    <filter id="2dc9c452ba" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+      <feColorMatrix type="matrix" in="SourceGraphic" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/>
+    </filter>
+    <clipPath id="58c2d2782e"><path d="M.914.144h123.121v74.708H.914z"/></clipPath>
+    <clipPath id="ee098d8ac6"><path d="M6.922-24.035h111.16c3.289 0 5.953 2.668 5.953 5.953v111.164c0 3.285-2.664 5.953-5.953 5.953H6.922A5.953 5.953 0 0 1 .969 93.082V-18.082c0-3.285 2.664-5.953 5.953-5.953z"/></clipPath>
+    <clipPath id="d8612c7f83"><path d="M.914.144h123.121v74.708H.914z"/></clipPath>
+    <clipPath id="717a7d2d79"><path d="M6.922-24.035h111.16c3.289 0 5.953 2.668 5.953 5.953v111.164c0 3.285-2.664 5.953-5.953 5.953H6.922A5.953 5.953 0 0 1 .969 93.082V-18.082c0-3.285 2.664-5.953 5.953-5.953z"/></clipPath>
+    <clipPath id="2b503f62cd"><rect x="0" y="0" width="125" height="75"/></clipPath>
+    <clipPath id="661aa2e8f3"><rect x="0" y="0" width="125" height="75"/></clipPath>
+    <clipPath id="ab38827315"><path d="M12 .144h103v74.708H12z"/></clipPath>
+    <clipPath id="6b77f43fab"><rect x="0" y="0" width="103" height="75"/></clipPath>
+    <clipPath id="dba5e87343"><path d="M45.629 11.125h11.629V23.23H45.629z"/></clipPath>
+    <clipPath id="2e17c57030"><path d="M.629.125h11.629V12.23H.629z"/></clipPath>
+    <clipPath id="be92d472d0"><rect x="0" y="0" width="13" height="13"/></clipPath>
+    <clipPath id="a175fffb5f"><path d="M41.395 7.602h20.125v19.152H41.395z"/></clipPath>
+    <clipPath id="5ee291b177"><path d="M51.441 7.602l2.371 7.316h7.676l-6.207 4.52 2.371 7.316-6.211-4.523-6.207 4.523 2.371-7.316-6.211-4.52h7.676z"/></clipPath>
+    <clipPath id="13177419a8"><path d="M.395.602h20.125v19.152H.395z"/></clipPath>
+    <clipPath id="4370aa6164"><path d="M10.441.602l2.371 7.316h7.676l-6.207 4.52 2.371 7.316-6.211-4.523-6.207 4.523 2.371-7.316L.395 7.918h7.676z"/></clipPath>
+    <clipPath id="7e5e8c14e2"><rect x="0" y="0" width="21" height="20"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#63a2c5420a)">
+    <!-- formerly white background -> transparent -->
+    <path d="M0 .144h127v74.708H0z" fill="none"/>
+    <path d="M0 .144h127v74.708H0z" fill="none"/>
+  </g>
+
+  <g clip-path="url(#0c26569505)">
+    <g mask="url(#e2a2320baf)" transform="matrix(1,0,0,1,1,0)">
+      <g clip-path="url(#661aa2e8f3)">
+        <g clip-path="url(#58c2d2782e)">
+          <g clip-path="url(#ee098d8ac6)">
+            <g id="48a412824c" clip-path="url(#2b503f62cd)">
+              <g clip-path="url(#d8612c7f83)">
+                <g clip-path="url(#717a7d2d79)">
+                  <!-- formerly white panel -> transparent -->
+                  <path d="M.969-24.035h123.066V99.035H.969z" fill="none"/>
+                </g>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+      <mask id="e2a2320baf">
+        <g filter="url(#2dc9c452ba)">
+          <rect x="0" y="0" width="127.5" height="75" style="fill:#000;fill-opacity:.5;stroke:none;"/>
+        </g>
+      </mask>
     </g>
-    <g transform="translate(39.771943, 36.267131)">
-      <path d="M 23.113281 0 L 23.113281 -29.253906 L 1.140625 -29.253906 L 1.140625 0 L 8.464844 0 L 8.464844 -8.15625 L 15.789062 -8.15625 L 15.789062 0 Z M 15.789062 -14.824219 L 8.464844 -14.824219 L 8.464844 -22.542969 L 15.789062 -22.542969 Z"/>
+  </g>
+
+  <!-- main glyphs: use currentColor -->
+  <g clip-path="url(#ab38827315)" transform="matrix(1,0,0,1,12,0)">
+    <g clip-path="url(#6b77f43fab)" fill="currentColor">
+      <g transform="translate(1.129704,36.995728)">
+        <path d="M24.266 0l-4.516-8.563h4.516V-30.711H1.195V0h7.692v-8.563h3.312L16.574 0zm-7.692-15.562H8.887v-8.102h7.687z"/>
+      </g>
+      <g transform="translate(26.590568,36.995728)">
+        <path d="M24.266 0v-30.711H1.195V0h7.692v-8.563h7.687V0zm-7.692-15.562H8.887v-8.102h7.687z"/>
+      </g>
+      <g transform="translate(52.051431,36.995728)">
+        <path d="M23.758-23.664v-7.047H.691v7.047h7.735V0h7.687v-23.664z"/>
+      </g>
+      <g transform="translate(76.499387,36.995728)">
+        <path d="M24.172 0v-7H8.887v-5.062h15.285v-6.77H8.887v-4.832h15.285v-7.047H1.195V0z"/>
+      </g>
+
+      <g transform="translate(1.581823,68.326029)">
+        <path d="M19.219 0v-14.914H7.039v-3.828h12.18v-5.578H.949v14.766h12.18v4.012H.949V0z"/>
+      </g>
+      <g transform="translate(21.709197,68.326029)">
+        <path d="M18.816-18.742v-5.578H.547v5.578h6.125V0h6.09v-18.742z"/>
+      </g>
+      <g transform="translate(41.070854,68.326029)">
+        <path d="M19.219 0v-24.32h-6.09v18.777H7.039V-24.32H.949V0z"/>
+      </g>
+      <g transform="translate(61.234688,68.326029)">
+        <path d="M19.145-9.555v-5.359H7.039v-3.828h12.106v-5.578H.949V0h6.09v-9.555z"/>
+      </g>
+      <g transform="translate(81.325601,68.326029)">
+        <path d="M19.145-9.555v-5.359H7.039v-3.828h12.106v-5.578H.949V0h6.09v-9.555z"/>
+      </g>
     </g>
-    <g transform="translate(64.022798, 36.267131)">
-      <path d="M 22.632812 -22.542969 L 22.632812 -29.253906 L 0.65625 -29.253906 L 0.65625 -22.542969 L 8.027344 -22.542969 L 8.027344 0 L 15.351562 0 L 15.351562 -22.542969 Z"/>
+  </g>
+
+  <!-- small square (keep as currentColor) -->
+  <g clip-path="url(#dba5e87343)" transform="matrix(1,0,0,1,45,11)">
+    <g clip-path="url(#be92d472d0)">
+      <g clip-path="url(#2e17c57030)">
+        <path d="M.629.125h11.629V12.254H.629z" fill="currentColor"/>
+      </g>
     </g>
-    <g transform="translate(87.30888, 36.267131)">
-      <path d="M 23.027344 0 L 23.027344 -6.667969 L 8.464844 -6.667969 L 8.464844 -11.492188 L 23.027344 -11.492188 L 23.027344 -17.9375 L 8.464844 -17.9375 L 8.464844 -22.542969 L 23.027344 -22.542969 L 23.027344 -29.253906 L 1.140625 -29.253906 L 1.140625 0 Z"/>
-    </g>
-    <g transform="translate(15.594421, 66.382661)">
-      <path d="M 18.441406 0 L 18.441406 -14.3125 L 6.753906 -14.3125 L 6.753906 -17.984375 L 18.441406 -17.984375 L 18.441406 -23.339844 L 0.910156 -23.339844 L 0.910156 -9.167969 L 12.597656 -9.167969 L 12.597656 -5.320312 L 0.910156 -5.320312 L 0.910156 0 Z"/>
-    </g>
-    <g transform="translate(34.910104, 66.382661)">
-      <path d="M 18.054688 -17.984375 L 18.054688 -23.339844 L 0.523438 -23.339844 L 0.523438 -17.984375 L 6.402344 -17.984375 L 6.402344 0 L 12.246094 0 L 12.246094 -17.984375 Z"/>
-    </g>
-    <g transform="translate(53.490952, 66.382661)">
-      <path d="M 18.441406 0 L 18.441406 -23.339844 L 12.597656 -23.339844 L 12.597656 -5.320312 L 6.753906 -5.320312 L 6.753906 -23.339844 L 0.910156 -23.339844 L 0.910156 0 Z"/>
-    </g>
-    <g transform="translate(72.841625, 66.382661)">
-      <path d="M 18.371094 -9.167969 L 18.371094 -14.3125 L 6.753906 -14.3125 L 6.753906 -17.984375 L 18.371094 -17.984375 L 18.371094 -23.339844 L 0.910156 -23.339844 L 0.910156 0 L 6.753906 0 L 6.753906 -9.167969 Z"/>
-    </g>
-    <g transform="translate(92.122313, 66.382661)">
-      <path d="M 18.371094 -9.167969 L 18.371094 -14.3125 L 6.753906 -14.3125 L 6.753906 -17.984375 L 18.371094 -17.984375 L 18.371094 -23.339844 L 0.910156 -23.339844 L 0.910156 0 L 6.753906 0 L 6.753906 -9.167969 Z"/>
+  </g>
+
+  <!-- inner star panel outline becomes transparent (no white) -->
+  <g clip-path="url(#a175fffb5f)">
+    <g clip-path="url(#5ee291b177)" transform="matrix(1,0,0,1,41,7)">
+      <g clip-path="url(#7e5e8c14e2)">
+        <g clip-path="url(#13177419a8)">
+          <g clip-path="url(#4370aa6164)">
+            <path d="M.395.602h20.125v19.152H.395z" fill="none"/>
+          </g>
+        </g>
+      </g>
     </g>
   </g>
 </svg>
