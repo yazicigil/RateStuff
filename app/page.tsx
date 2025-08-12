@@ -63,6 +63,7 @@ export default function HomePage() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [starBucket, setStarBucket] = useState<number | null>(null);
   // Yorum düzenleme state'i
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
@@ -107,6 +108,7 @@ export default function HomePage() {
       setItems(Array.isArray(itemsRes) ? itemsRes : []);
       setAllTags(Array.isArray(tagsRes) ? tagsRes : []);
       setTrending(Array.isArray(trendRes) ? trendRes : []);
+      setLoadedOnce(true);
     } finally {
       setLoading(false);
     }
@@ -588,7 +590,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {!loading && filteredItems.length === 0 && (
+          {!loading && loadedOnce && filteredItems.length === 0 && (
             <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
