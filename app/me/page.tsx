@@ -236,7 +236,7 @@ export default function MePage() {
             Çıkış
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <img src="/logo.svg" alt="RateStuff" className="h-6 w-auto dark:invert" />
+            <img src="/logo.svg" alt="RateStuff" className="h-14 w-auto dark:invert" />
           </div>
         </div>
       </header>
@@ -283,27 +283,35 @@ export default function MePage() {
                   >
                     Hepsi
                   </button>
-                  {savedTags.map(t => (
-                    <button
-                      key={t}
-                      className={`px-2 py-1 rounded-full border text-xs ${
-                        savedSelected.has(t)
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                      }`}
-                      onClick={() =>
-                        setSavedSelected(prev => {
-                          const next = new Set(prev);
-                          if (next.has(t)) next.delete(t); else next.add(t);
-                          return next;
-                        })
-                      }
-                      onDoubleClick={() => setSavedSelected(new Set())}
-                      title={savedSelected.has(t) ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                    >
-                      #{t}
-                    </button>
-                  ))}
+                  {savedTags.map(t => {
+                    const isSel = savedSelected.has(t);
+                    const isTrend = trending.includes(t);
+                    const base = 'px-2 py-1 rounded-full border text-xs';
+                    const className = isSel
+                      ? (isTrend
+                          ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
+                          : `${base} bg-black text-white border-black`)
+                      : (isTrend
+                          ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                          : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
+                    return (
+                      <button
+                        key={t}
+                        className={className}
+                        onClick={() =>
+                          setSavedSelected(prev => {
+                            const next = new Set(prev);
+                            if (next.has(t)) next.delete(t); else next.add(t);
+                            return next;
+                          })
+                        }
+                        onDoubleClick={() => setSavedSelected(new Set())}
+                        title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                      >
+                        #{t}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
