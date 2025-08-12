@@ -32,7 +32,11 @@ function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[
   }, []);
 
   const selected = [...value].sort((a,b)=>a-b);
-  const label = selected.length === 0 ? 'Tümü' : selected.join(', ') + ' ⭐️';
+  // Label: show selected numbers joined by comma, followed by star emoji, no "ve üzeri"
+  // Each number should be shown as a star emoji, e.g. "3, 4, 5 ⭐️"
+  const label = selected.length === 0
+    ? 'Tümü'
+    : selected.join(', ') + ' ⭐️';
 
   function toggle(n:number) {
     const set = new Set(value);
@@ -51,7 +55,12 @@ function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[
         title="Yıldız filtresi"
       >
         <span>⭐️</span>
-        <span className="hidden sm:inline">{label}</span>
+        <span className="hidden sm:inline">
+          {selected.length === 0
+            ? 'Tümü'
+            : selected.map(n => n).join(', ') + ' ⭐️'
+          }
+        </span>
       </button>
 
       {open && (
@@ -67,7 +76,11 @@ function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${active ? 'bg-amber-100 border border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
                 aria-pressed={active}
               >
-                <span>{n} ⭐️</span>
+                <span>
+                  {n}
+                  {' '}
+                  <span role="img" aria-label={`${n} yıldız`}>⭐️</span>
+                </span>
                 {active && <span className="text-xs">✓</span>}
               </button>
             );
@@ -130,8 +143,8 @@ export default function Header({ controls }: { controls?: Controls }) {
     : 'h-14 w-auto dark:invert';
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-      <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+    <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
         <div className="flex items-center justify-between md:justify-start gap-2">
           <Link href="/" className="shrink-0" title="Anasayfa">

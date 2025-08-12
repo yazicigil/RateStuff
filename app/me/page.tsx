@@ -4,6 +4,7 @@ import React from "react";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useCallback, useRef } from "react";
 import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
@@ -67,6 +68,14 @@ export default function MePage() {
 
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
+
+  // toast
+  const [toast, setToast] = useState<string | null>(null);
+  const notify = useCallback((msg: string) => {
+    setToast(msg);
+    window.clearTimeout((notify as any)._t);
+    (notify as any)._t = window.setTimeout(() => setToast(null), 2200);
+  }, []);
 
   // giriş kontrolü
   const { status } = useSession();
@@ -140,6 +149,7 @@ export default function MePage() {
     if (j?.ok) {
       setEditingItem(null);
       await load();
+      notify('Güncellendi');
     } else alert("Hata: " + (j?.error || r.status));
   }
 
@@ -161,7 +171,10 @@ export default function MePage() {
       body: JSON.stringify({ text: nextText }),
     });
     const j = await r.json().catch(() => null);
-    if (j?.ok) await load();
+    if (j?.ok) {
+      notify('Yorum güncellendi');
+      await load();
+    }
     else alert("Hata: " + (j?.error || r.status));
   }
 
@@ -172,6 +185,7 @@ export default function MePage() {
     const j = await r.json().catch(() => null);
     if (j?.ok) {
       setComments(prev => prev.filter(c => c.id !== commentId));
+      notify('Yorum silindi');
     } else {
       alert("Hata: " + (j?.error || r.status));
     }
@@ -184,6 +198,7 @@ export default function MePage() {
     const j = await r.json().catch(() => null);
     if (j?.ok) {
       setSaved(prev => prev.filter(x => x.id !== itemId));
+      notify('Kaydedilenden kaldırıldı');
     } else {
       alert("Hata: " + (j?.error || r.status));
     }
@@ -206,6 +221,7 @@ export default function MePage() {
 
     if (r.ok && j?.ok !== false) {
       setItems(prev => prev.filter(x => x.id !== itemId));
+      notify('Silindi');
     } else {
       alert('Hata: ' + (j?.error || `${r.status} ${r.statusText}`));
     }
@@ -236,7 +252,7 @@ export default function MePage() {
             Çıkış
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <img src="/logo.svg" alt="RateStuff" className="h-14 w-auto dark:invert" />
+            <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert" />
           </div>
         </div>
       </header>
@@ -252,7 +268,7 @@ export default function MePage() {
         <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
           <div className="relative">
             {me?.avatarUrl ? (
-              <img src={me.avatarUrl} alt="me" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
+              <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
             ) : (
               <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
             )}
@@ -263,10 +279,29 @@ export default function MePage() {
           </div>
         </section>
 
+        {/* Quick stats / anchors */}
+        <nav className="grid grid-cols-2 sm:grid-cols-4 gap-3 -mt-2">
+          {[
+            { id: 'saved',    label: 'Kaydedilenler', count: saved.length },
+            { id: 'items',    label: 'Eklediklerim',  count: items.length },
+            { id: 'ratings',  label: 'Puanlarım',     count: ratings.length },
+            { id: 'comments', label: 'Yorumlarım',    count: comments.length },
+          ].map(s => (
+            <button
+              key={s.id}
+              onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="group rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition"
+            >
+              <div className="text-xs opacity-60">{s.label}</div>
+              <div className="text-xl font-semibold">{s.count}</div>
+            </button>
+          ))}
+        </nav>
+
         {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
-        <Section title="🔖 Kaydedilenler" defaultOpen>
+        <Section id="saved" title="🔖 Kaydedilenler" defaultOpen>
           {loading ? (
-            <Box>Yükleniyor…</Box>
+            <Skeleton rows={4} />
           ) : saved.length === 0 ? (
             <Box>Henüz yok.</Box>
           ) : (
@@ -321,7 +356,7 @@ export default function MePage() {
                     <div className="flex items-start gap-3">
                       <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                         {it.imageUrl ? (
-                          <img src={it.imageUrl} alt={it.name} className="w-full h-full object-cover" />
+                          <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-xs opacity-60">no img</span>
                         )}
@@ -378,9 +413,9 @@ export default function MePage() {
         </Section>
 
         {/* 2) EKLEDİKLERİM — collapsible, içinde ImageUploader ile düzenleme */}
-        <Section title="➕ Eklediklerim">
+        <Section id="items" title="➕ Eklediklerim">
           {loading ? (
-            <Box>Yükleniyor…</Box>
+            <Skeleton rows={4} />
           ) : items.length === 0 ? (
             <Box>Henüz yok.</Box>
           ) : (
@@ -410,9 +445,9 @@ export default function MePage() {
         </Section>
 
         {/* 3) PUANLARIM — collapsible */}
-        <Section title="⭐ Puanlarım">
+        <Section id="ratings" title="⭐ Puanlarım">
           {loading ? (
-            <Box>Yükleniyor…</Box>
+            <Skeleton rows={4} />
           ) : ratings.length === 0 ? (
             <Box>Puan vermemişsin.</Box>
           ) : (
@@ -428,9 +463,9 @@ export default function MePage() {
         </Section>
 
         {/* 4) YORUMLARIM — collapsible, 2 sütun, son 5 + daha fazla */}
-        <Section title="💬 Yorumlarım">
+        <Section id="comments" title="💬 Yorumlarım">
           {loading ? (
-            <Box>Yükleniyor…</Box>
+            <Skeleton rows={4} />
           ) : comments.length === 0 ? (
             <Box>Yorumun yok.</Box>
           ) : (
@@ -459,19 +494,27 @@ export default function MePage() {
           )}
         </Section>
       </main>
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-[60]">
+          <div className="rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg px-4 py-2 text-sm">
+            {toast}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* — Collapsible Section (+/- ikonlu) — */
 function Section({
+  id,
   title,
   defaultOpen = false,
   children,
-}: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
+}: { id?: string; title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+    <section id={id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
@@ -482,6 +525,16 @@ function Section({
       </button>
       {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
     </section>
+  );
+}
+
+function Skeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="h-16 rounded-xl border dark:border-gray-800 bg-gray-100 dark:bg-gray-800/50 animate-pulse" />
+      ))}
+    </div>
   );
 }
 
@@ -507,7 +560,7 @@ function ItemEditor(props: {
     <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-start gap-3">
         {it.imageUrl ? (
-          <img src={it.imageUrl} className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
+          <img src={it.imageUrl} loading="lazy" decoding="async" className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
         ) : (
           <div className="w-20 h-20 rounded-lg bg-gray-200 grid place-items-center text-xs">no img</div>
         )}
@@ -593,7 +646,7 @@ function CommentRow({
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
           {c.itemImageUrl ? (
-            <img src={c.itemImageUrl} alt={c.itemName} className="w-full h-full object-cover" />
+            <img src={c.itemImageUrl} alt={c.itemName} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             <span className="text-[10px] opacity-60">no img</span>
           )}
