@@ -1123,7 +1123,27 @@ export default function HomePage() {
                           </span>
                         </div>
 
-                        
+                        {i.tags.length > 0 && (
+                          <div className="mt-2 pt-2 border-t dark:border-gray-800">
+                            <div className="flex flex-wrap gap-1">
+                              {i.tags.slice(0, 10).map((t) => (
+                                <Tag
+                                  key={t}
+                                  label={t}
+                                  active={selectedTags.has(t)}
+                                  onClick={() => {
+                                    setSelectedTags(prev => {
+                                      const next = new Set(prev);
+                                      if (next.has(t)) next.delete(t); else next.add(t);
+                                      return next;
+                                    });
+                                  }}
+                                  onDoubleClick={() => setSelectedTags(new Set())}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -1257,28 +1277,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-
-                  </div>
-
-                  {i.tags.length > 0 && (
-                    <div className="mt-2 pt-2 border-t dark:border-gray-800">
-                      <div className="flex flex-wrap gap-1">
-                        {i.tags.slice(0, 10).map((t) => (
-                          <Tag
-                            key={t}
-                            label={t}
-                            active={selectedTags.has(t)}
-                            onClick={() => {
-                              setSelectedTags(prev => {
-                                const next = new Set(prev);
-                                if (next.has(t)) next.delete(t); else next.add(t);
-                                return next;
-                              });
-                            }}
-                            onDoubleClick={() => setSelectedTags(new Set())}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  )}
