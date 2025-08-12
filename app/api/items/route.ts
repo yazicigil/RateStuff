@@ -57,9 +57,7 @@ export async function GET(req: Request) {
 
     const shaped = items.map((i) => {
       const count = i.ratings.length;
-      const avg =
-        count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
-
+      const avg = count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
       const itemEdited =
         i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
 
@@ -93,8 +91,7 @@ export async function GET(req: Request) {
           };
         }),
         tags: i.tags.map((t) => t.tag.name),
-      };
-    });
+    }});
 
     return NextResponse.json(shaped);
   } catch (e: any) {
@@ -126,25 +123,44 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "name/description boş" }, { status: 400 });
     }
 
-    const tagNames = Array.from(
+    // max 3 etiket – önce ham listeyi çıkar, sonra KONTROL ET
+    const rawTags = Array.from(
       new Set(
         tagsCsv
           .split(",")
           .map((s: string) => s.trim().toLowerCase())
           .filter(Boolean)
       )
-    ).slice(0, 3); // max 3 tag
-    if (tagNames.length > 3) {
+    );
+    if (rawTags.length > 3) {
       return NextResponse.json({ ok:false, error:"En fazla 3 etiket girebilirsin." }, { status: 400 });
     }
+    const tagNames = rawTags;
 
-    // dedupe: same title + same tag set cannot be created twice
+    // dedupe: aynı başlık + aynı etiket seti
     const dedupeKey = buildDedupeKey(name, tagNames);
 
     const result = await prisma.$transaction(async (tx) => {
-      const item = await tx.item.create({
-        data: { name, description, imageUrl, createdById: me.id, dedupeKey },
-      });
+      // --- dedupeKey kolonunun DB'de henüz olmaması halinde fallback ---
+      let item;
+      try {
+        item = await tx.item.create({
+          data: { name, description, imageUrl, createdById: me.id, dedupeKey },
+        });
+      } catch (err: any) {
+        const msg = String(err?.message || '').toLowerCase();
+        const columnMissing =
+          msg.includes('dedupekey') &&
+          (msg.includes('does not exist') || msg.includes('unknown') || msg.includes('invalid column'));
+        if (columnMissing) {
+          // Kolon yoksa dedupeKey’siz tekrar dene (geçici fallback)
+          item = await tx.item.create({
+            data: { name, description, imageUrl, createdById: me.id },
+          });
+        } else {
+          throw err;
+        }
+      }
 
       if (tagNames.length) {
         const tags = await Promise.all(
@@ -181,8 +197,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, itemId: result.id });
   } catch (e: any) {
-    // Prisma unique violation on dedupeKey
-    if (e?.code === 'P2002' && Array.isArray(e?.meta?.target) ? e.meta.target.includes('dedupeKey') : String(e?.meta?.target || '').includes('dedupeKey')) {
+    // Prisma unique violation on dedupeKey (kolon mevcutsa)
+    if (e?.code === 'P2002' && (
+      (Array.isArray(e?.meta?.target) && e.meta.target.includes('dedupeKey')) ||
+      String(e?.meta?.target || '').includes('dedupeKey')
+    )) {
       return NextResponse.json({ ok:false, error:"Aynı başlık ve etiketlerle bir kayıt zaten var." }, { status: 409 });
     }
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
