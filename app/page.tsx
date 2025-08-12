@@ -97,17 +97,31 @@ export default function HomePage() {
     }
   }
 
+  // JSON'u güvenle diziye çevir (API bazen {items:[...]} veya {data:[...]} döndürebilir)
+  function toArray(v: any, ...keys: string[]) {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') {
+      for (const k of keys) {
+        const arr = (v as any)[k];
+        if (Array.isArray(arr)) return arr;
+      }
+      if (Array.isArray((v as any).items)) return (v as any).items;
+      if (Array.isArray((v as any).data)) return (v as any).data;
+    }
+    return [];
+  }
+
   async function load() {
     setLoading(true);
     try {
       const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then(r => r.json()).catch(() => []),
-        fetch('/api/tags').then(r => r.json()).catch(() => []),
-        fetch('/api/tags/trending').then(r => r.json()).catch(() => []),
+        fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`, { cache: 'no-store' }).then(r => r.json()).catch(() => []),
+        fetch('/api/tags', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
+        fetch('/api/tags/trending', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
       ]);
-      setItems(Array.isArray(itemsRes) ? itemsRes : []);
-      setAllTags(Array.isArray(tagsRes) ? tagsRes : []);
-      setTrending(Array.isArray(trendRes) ? trendRes : []);
+      setItems(toArray(itemsRes, 'items', 'data'));
+      setAllTags(toArray(tagsRes, 'tags', 'data'));
+      setTrending(toArray(trendRes, 'tags', 'trending', 'data'));
       setLoadedOnce(true);
     } finally {
       setLoading(false);
