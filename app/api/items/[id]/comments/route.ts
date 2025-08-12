@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { maskName } from "@/lib/mask";
 
 function redirectToSignin(req: Request) {
   const url = new URL(req.url);
@@ -42,7 +43,7 @@ export async function POST(
     // herkes (giriş yapmış) yorum atabilir
     const comment = await prisma.comment.create({
       data: { itemId, userId: me.id, text: clean },
-      include: { user: { select: { maskedName: true, avatarUrl: true } } },
+      include: { user: { select: { name: true, maskedName: true, avatarUrl: true } } },
     });
 
     return NextResponse.json({
@@ -52,7 +53,7 @@ export async function POST(
         text: comment.text,
         edited: !!comment.editedAt,
         user: {
-          name: comment.user?.maskedName ?? "anon",
+          name: comment.user?.maskedName ?? (comment.user?.name ? maskName(comment.user.name) : "Anonim"),
           avatarUrl: comment.user?.avatarUrl ?? null,
         },
       },

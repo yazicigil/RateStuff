@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { maskName } from "@/lib/mask";
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -40,7 +41,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
     createdBy: i.createdBy
       ? {
           id: i.createdBy.id,
-          name: i.createdBy.maskedName ?? "anon",
+          name: i.createdBy.maskedName ?? (i.createdBy.name ? maskName(i.createdBy.name) : "Anonim"),
           avatarUrl: i.createdBy.avatarUrl ?? null,
           verified: (i.createdBy as any)?.email === ADMIN_EMAIL,
         }
@@ -53,7 +54,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
         edited: !!cEdited,
         user: {
           id: c.user?.id,
-          name: c.user?.maskedName ?? "anon",
+          name: c.user?.maskedName ?? (c.user?.name ? maskName(c.user.name) : "Anonim"),
           avatarUrl: c.user?.avatarUrl ?? null,
         },
       };
@@ -77,9 +78,9 @@ export async function GET(req: Request) {
         where: { id },
         include: {
           ratings: true,
-          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } } },
+          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true } } } },
           tags: { include: { tag: true } },
-          createdBy: { select: { id: true, maskedName: true, avatarUrl: true, email: true } },
+          createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
           _count: { select: { reports: true } },
         },
       });
@@ -105,10 +106,10 @@ export async function GET(req: Request) {
         ratings: true,
         comments: {
           orderBy: { createdAt: "desc" },
-          include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
+          include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true } } },
         },
         tags: { include: { tag: true } },
-        createdBy: { select: { id: true, maskedName: true, avatarUrl: true, email: true } },
+        createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
         _count: { select: { reports: true } },
       },
       orderBy:
