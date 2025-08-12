@@ -54,6 +54,8 @@ export default function MePage() {
   const [saved, setSaved]     = useState<MyItem[]>([]);
   const [ratings, setRatings] = useState<MyRating[]>([]);
   const [comments, setComments] = useState<MyComment[]>([]);
+  // Trend etiketler
+  const [trending, setTrending] = useState<string[]>([]);
 
   // Eklediklerimi düzenleme
   const [editingItem, setEditingItem] = useState<string|null>(null);
@@ -93,6 +95,13 @@ export default function MePage() {
       setSaved(data.saved || []);
       setRatings(data.ratings || []);
       setComments(data.comments || []);
+      // Trend etiketleri yükle
+      try {
+        const t = await fetch('/api/tags/trending', { cache: 'no-store' })
+          .then(r => r.json())
+          .catch(() => []);
+        if (Array.isArray(t)) setTrending(t as string[]);
+      } catch {}
     } catch (e: any) {
       setError(`Hata: ${e?.message || e}`);
     } finally {
@@ -206,7 +215,7 @@ export default function MePage() {
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="relative max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Link
               href="/"
@@ -226,6 +235,9 @@ export default function MePage() {
           >
             Çıkış
           </button>
+          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
+            <img src="/logo.svg" alt="RateStuff" className="h-6 w-auto dark:invert" />
+          </div>
         </div>
       </header>
 
@@ -323,14 +335,23 @@ export default function MePage() {
 
                         {!!(it.tags && it.tags.length) && (
                           <div className="mt-2 flex flex-wrap gap-1">
-                            {it.tags.slice(0, 10).map(t => (
-                              <span
-                                key={t}
-                                className="px-2 py-0.5 rounded-full text-xs border bg-white dark:bg-gray-800 dark:border-gray-700"
-                              >
-                                #{t}
-                              </span>
-                            ))}
+                            {it.tags.slice(0, 10).map(t => {
+                              const isTrend = trending.includes(t);
+                              return (
+                                <span
+                                  key={t}
+                                  className={
+                                    "px-2 py-0.5 rounded-full text-xs border " +
+                                    (isTrend
+                                      ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
+                                      : "bg-white dark:bg-gray-800 dark:border-gray-700")
+                                  }
+                                  title={isTrend ? "Trend" : undefined}
+                                >
+                                  #{t}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
 

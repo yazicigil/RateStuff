@@ -3,6 +3,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
+// --- helpers for normalization & dedupe ---
+function normalizeText(s: string) {
+  return s
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function buildDedupeKey(name: string, tags: string[]) {
+  const nName = normalizeText(name);
+  const nTags = Array.from(new Set(tags.map(t => normalizeText(t)))).sort();
+  return `${nName}#${nTags.join(',')}`;
+}
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -118,11 +133,17 @@ export async function POST(req: Request) {
           .map((s: string) => s.trim().toLowerCase())
           .filter(Boolean)
       )
-    ).slice(0, 12);
+    ).slice(0, 3); // max 3 tag
+    if (tagNames.length > 3) {
+      return NextResponse.json({ ok:false, error:"En fazla 3 etiket girebilirsin." }, { status: 400 });
+    }
+
+    // dedupe: same title + same tag set cannot be created twice
+    const dedupeKey = buildDedupeKey(name, tagNames);
 
     const result = await prisma.$transaction(async (tx) => {
       const item = await tx.item.create({
-        data: { name, description, imageUrl, createdById: me.id },
+        data: { name, description, imageUrl, createdById: me.id, dedupeKey },
       });
 
       if (tagNames.length) {
@@ -160,6 +181,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, itemId: result.id });
   } catch (e: any) {
+    // Prisma unique violation on dedupeKey
+    if (e?.code === 'P2002' && Array.isArray(e?.meta?.target) ? e.meta.target.includes('dedupeKey') : String(e?.meta?.target || '').includes('dedupeKey')) {
+      return NextResponse.json({ ok:false, error:"Aynı başlık ve etiketlerle bir kayıt zaten var." }, { status: 409 });
+    }
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
