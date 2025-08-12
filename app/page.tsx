@@ -40,13 +40,17 @@ import ImageUploader from '@/components/ImageUploader';
 
 import { useSession } from 'next-auth/react';
 
-// İsimleri maskelemek için (Jane Doe -> J*** D**)
+// İsimleri maskelemek için (Ad Soyad -> A* S****)
+// Not: Hiçbir özel anahtar kelime (anon, guest vs.) yok; dolu gelen her isim maskelenir.
 function maskName(s?: string | null) {
-  if (!s) return 'Anonim';
-  const parts = String(s).trim().split(/\s+/).filter(Boolean);
+  if (!s) return 'Anonim'; // yalnızca boş/gelmeyen için
+  const raw = String(s).trim();
+  if (!raw) return 'Anonim';
+
+  const parts = raw.split(/\s+/).filter(Boolean);
   return parts
-    .map(p => {
-      const first = p.charAt(0);
+    .map((p) => {
+      const first = p.charAt(0).toLocaleUpperCase('tr-TR');
       const restLen = Math.max(1, p.length - 1);
       return first + '*'.repeat(restLen);
     })
@@ -735,7 +739,7 @@ export default function HomePage() {
               <img src={sharedItem.createdBy.avatarUrl} alt={maskName(sharedItem.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(sharedItem.createdBy.name) || 'u'} />
             ) : (
               <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(sharedItem.createdBy.name) || 'u'}>
-                {(sharedItem.createdBy.name || 'U')[0]?.toUpperCase()}
+                {maskName(sharedItem.createdBy.name).charAt(0).toUpperCase()}
               </div>
             )}
             <span>{maskName(sharedItem.createdBy.name)}</span>
@@ -791,7 +795,7 @@ export default function HomePage() {
               <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
             ) : (
               <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
-                {(c.user?.name || 'U')[0]?.toUpperCase()}
+                {maskName(c.user?.name).charAt(0).toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
@@ -1160,7 +1164,7 @@ export default function HomePage() {
                               <img src={i.createdBy.avatarUrl} alt={maskName(i.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(i.createdBy.name) || 'u'} />
                             ) : (
                               <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(i.createdBy.name) || 'u'}>
-                                {(i.createdBy.name || 'U')[0]?.toUpperCase()}
+                                {maskName(i.createdBy.name).charAt(0).toUpperCase()}
                               </div>
                             )}
                             <span>{maskName(i.createdBy.name)}</span>
@@ -1234,7 +1238,7 @@ export default function HomePage() {
                               <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
                             ) : (
                               <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
-                                {(c.user?.name || 'U')[0]?.toUpperCase()}
+                                {maskName(c.user?.name).charAt(0).toUpperCase()}
                               </div>
                             )}
 
