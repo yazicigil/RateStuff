@@ -569,7 +569,7 @@ export default function HomePage() {
     `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150`
   }>
     {/* LEFT TOP: Share + Options */}
-    <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+    <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
       <div className="relative">
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
@@ -583,7 +583,7 @@ export default function HomePage() {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute left-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -608,7 +608,7 @@ export default function HomePage() {
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute left-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
@@ -948,7 +948,7 @@ export default function HomePage() {
                   }
                 >
                   {/* LEFT TOP: Share + Options */}
-                  <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+                  <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
                     {/* Share button + popover */}
                     <div className="relative">
                       <button
@@ -962,7 +962,7 @@ export default function HomePage() {
                         </svg>
                       </button>
                       {openShare === i.id && (
-                        <div className="rs-pop absolute left-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                        <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
@@ -989,7 +989,7 @@ export default function HomePage() {
                         ⋯
                       </button>
                       {openMenu === i.id && (
-                        <div className="rs-pop absolute left-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                        <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           <button
                             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                               isSaved
