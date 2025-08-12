@@ -139,22 +139,36 @@ export default function HomePage() {
     setLoading(true);
     try {
       const qs = new URLSearchParams();
-if (q.trim()) qs.set('q', q.trim());   // <<< BOŞSA EKLEME
-qs.set('order', order);
+      if (q.trim()) qs.set('q', q.trim());
+      qs.set('order', order);
 
-const [itemsRes, tagsRes, trendRes] = await Promise.all([
-  fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
-    .then(async r => {
-      const t = await r.text();
-      try { return JSON.parse(t); } catch { return []; }
-    })
-    .catch(() => []),
-  fetch('/api/tags', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
-  fetch('/api/tags/trending', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
-]);
-      setItems(toArray(itemsRes, 'items', 'data'));
-      setAllTags(toArray(tagsRes, 'tags', 'data'));
-      setTrending(toArray(trendRes, 'tags', 'trending', 'data'));
+      const [itemsRes, tagsRes, trendRes] = await Promise.all([
+        fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
+          .then(async (r) => {
+            try {
+              // /api/items genelde { ok, items: [...] } döner; ama sadece [] de gelebilir
+              const j = await r.json();
+              return j ?? {};
+            } catch {
+              return {};
+            }
+          })
+          .catch(() => ({})),
+        fetch('/api/tags', { cache: 'no-store' })
+          .then((r) => r.json())
+          .catch(() => ({})),
+        fetch('/api/tags/trending', { cache: 'no-store' })
+          .then((r) => r.json())
+          .catch(() => ({})),
+      ]);
+
+      const _items = toArray(itemsRes, 'items', 'data');
+      const _allTags = toArray(tagsRes, 'tags', 'data');
+      const _trending = toArray(trendRes, 'tags', 'trending', 'data');
+
+      setItems(Array.isArray(_items) ? _items : []);
+      setAllTags(Array.isArray(_allTags) ? _allTags : []);
+      setTrending(Array.isArray(_trending) ? _trending : []);
       setLoadedOnce(true);
     } finally {
       setLoading(false);
