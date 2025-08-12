@@ -724,9 +724,9 @@ export default function HomePage() {
 
     {sharedItem.tags?.length > 0 && (
       <div className="mt-2 pt-2 border-t dark:border-gray-800">
-        <div className="flex flex-wrap gap-1">
+        <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
           {sharedItem.tags.slice(0, 10).map((t) => (
-            <Tag key={t} label={t} />
+            <Tag key={t} label={t} className="ml-0 inline-flex" />
           ))}
         </div>
       </div>
@@ -1125,11 +1125,12 @@ export default function HomePage() {
 
                         {i.tags.length > 0 && (
                           <div className="mt-2 pt-2 border-t dark:border-gray-800">
-                            <div className="flex flex-wrap gap-1">
+                            <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
                               {i.tags.slice(0, 10).map((t) => (
                                 <Tag
                                   key={t}
                                   label={t}
+                                  className="ml-0 inline-flex"
                                   active={selectedTags.has(t)}
                                   onClick={() => {
                                     setSelectedTags(prev => {
