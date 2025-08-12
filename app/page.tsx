@@ -698,21 +698,27 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Rating rows: Senin puanın + Ortalama */}
-        <div className="mt-2 flex flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs opacity-70">Senin puanın:</span>
-            <Stars value={sharedItem.myRating ?? 0} onRate={(n) => rate(sharedItem.id, n)} variant="mine" />
-            {sharedItem.myRating ? (
-              <span className="text-xs opacity-60 tabular-nums">{sharedItem.myRating} / 5</span>
-            ) : null}
-          </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs opacity-70">Ortalama:</span>
-            <Stars value={sharedItem.avg ?? 0} readOnly variant="muted" />
-            <span className="text-xs opacity-60 tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
-            <span className="text-xs opacity-60 whitespace-nowrap">({sharedItem.count})</span>
-          </div>
+        {/* Tek satır: Senin puanın + Ortalama pill */}
+        <div className="mt-2 flex items-center gap-2 flex-wrap">
+          {/* Senin puanın — tek kontrol */}
+          <Stars value={sharedItem.myRating ?? 0} onRate={(n)=>rate(sharedItem.id, n)} variant="mine" />
+
+          {/* Senin puanın sayısal (netlik için) */}
+          <span className="text-xs opacity-60 tabular-nums">
+            {sharedItem.myRating ? `(${sharedItem.myRating})` : 'Puanla'}
+          </span>
+
+          {/* Ayırıcı */}
+          <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
+
+          {/* Ortalama + adet (ufak pill) */}
+          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 .6l3.3 6.6 7.3 1.1-5.3 5.1 1.2 7.1L12 17.9 5.2 20.5l1.2-7.1L1 8.3l7.3-1.1z" fill="currentColor"/>
+            </svg>
+            <span className="tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
+            <span className="opacity-60 tabular-nums">({sharedItem.count})</span>
+          </span>
         </div>
 
         {sharedItem.tags?.length > 0 && (
@@ -1085,31 +1091,38 @@ export default function HomePage() {
 
                         {i.createdBy && (
                           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-                            {i.createdBy.avatarUrl ? (
-                              <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                                {(i.createdBy.name || 'U')[0]?.toUpperCase()}
-                              </div>
-                            )}
+                        {i.createdBy.avatarUrl ? (
+                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                            {(i.createdBy.name || 'U')[0]?.toUpperCase()}
+                          </div>
+                        )}
                             <span>{i.createdBy.name}</span>
                           </div>
                         )}
 
-                        <div className="mt-2 flex flex-col gap-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs opacity-70">Senin puanın:</span>
-                            <Stars value={i.myRating ?? 0} onRate={(n) => rate(i.id, n)} variant="mine" />
-                            {i.myRating ? (
-                              <span className="text-xs opacity-60 tabular-nums">{i.myRating} / 5</span>
-                            ) : null}
-                          </div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-xs opacity-70">Ortalama:</span>
-                            <Stars value={i.avg ?? 0} readOnly variant="muted" />
-                            <span className="text-xs opacity-60 tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
-                            <span className="text-xs opacity-60 whitespace-nowrap">({i.count})</span>
-                          </div>
+                        {/* Tek satır: Senin puanın + Ortalama pill */}
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                          {/* Senin puanın — tek kontrol */}
+                          <Stars value={i.myRating ?? 0} onRate={(n)=>rate(i.id, n)} variant="mine" />
+
+                          {/* Senin puanın sayısal (netlik için) */}
+                          <span className="text-xs opacity-60 tabular-nums">
+                            {i.myRating ? `(${i.myRating})` : 'Puanla'}
+                          </span>
+
+                          {/* Ayırıcı */}
+                          <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
+
+                          {/* Ortalama + adet (ufak pill) */}
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+                            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M12 .6l3.3 6.6 7.3 1.1-5.3 5.1 1.2 7.1L12 17.9 5.2 20.5l1.2-7.1L1 8.3l7.3-1.1z" fill="currentColor"/>
+                            </svg>
+                            <span className="tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
+                            <span className="opacity-60 tabular-nums">({i.count})</span>
+                          </span>
                         </div>
 
                         {i.tags.length > 0 && (
