@@ -71,14 +71,7 @@ type ItemVM = {
   tags: string[];
   reportCount?: number;
 };
-  async function deleteItem(id: string) {
-    if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
-    const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
-    if (!res) return;
-    const j = await res.json().catch(() => null);
-    if (res.ok && (j?.ok ?? true)) { await load(); }
-    else alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
-  }
+
 
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -230,6 +223,18 @@ export default function HomePage() {
           .then((r) => r.json())
           .catch(() => ({})),
       ]);
+
+      async function deleteItem(id: string) {
+  if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
+  const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
+  if (!res) return;
+  const j = await res.json().catch(() => null);
+  if (res.ok && (j?.ok ?? true)) {
+    await load();
+  } else {
+    alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
+  }
+}
 
       const _items = toArray(itemsRes, 'items', 'data');
       const _allTags = toArray(tagsRes, 'tags', 'data');
