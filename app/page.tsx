@@ -138,11 +138,20 @@ export default function HomePage() {
   async function load() {
     setLoading(true);
     try {
-      const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`, { cache: 'no-store' }).then(r => r.json()).catch(() => []),
-        fetch('/api/tags', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
-        fetch('/api/tags/trending', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
-      ]);
+      const qs = new URLSearchParams();
+if (q.trim()) qs.set('q', q.trim());   // <<< BOŞSA EKLEME
+qs.set('order', order);
+
+const [itemsRes, tagsRes, trendRes] = await Promise.all([
+  fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
+    .then(async r => {
+      const t = await r.text();
+      try { return JSON.parse(t); } catch { return []; }
+    })
+    .catch(() => []),
+  fetch('/api/tags', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
+  fetch('/api/tags/trending', { cache: 'no-store' }).then(r => r.json()).catch(() => []),
+]);
       setItems(toArray(itemsRes, 'items', 'data'));
       setAllTags(toArray(tagsRes, 'tags', 'data'));
       setTrending(toArray(trendRes, 'tags', 'trending', 'data'));
