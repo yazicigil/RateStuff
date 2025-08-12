@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
@@ -17,6 +17,82 @@ type Controls = {
 };
 
 const USE_CURRENTCOLOR = true;
+
+function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[])=>void }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement|null>(null);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  const selected = [...value].sort((a,b)=>a-b);
+  const label = selected.length === 0 ? 'Tümü' : selected.join(', ') + ' ⭐️';
+
+  function toggle(n:number) {
+    const set = new Set(value);
+    if (set.has(n)) set.delete(n); else set.add(n);
+    onChange(Array.from(set).sort());
+  }
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o=>!o)}
+        className="px-3 py-2 rounded-xl border text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title="Yıldız filtresi"
+      >
+        <span>⭐️</span>
+        <span className="hidden sm:inline">{label}</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-30 mt-2 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-2">
+          <div className="text-xs px-2 py-1 opacity-70">Yıldızlar</div>
+          {[1,2,3,4,5].map(n => {
+            const active = value.includes(n);
+            return (
+              <button
+                key={n}
+                type="button"
+                onClick={() => toggle(n)}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${active ? 'bg-amber-100 border border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                aria-pressed={active}
+              >
+                <span>{n} ⭐️</span>
+                {active && <span className="text-xs">✓</span>}
+              </button>
+            );
+          })}
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              className="flex-1 px-3 py-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => onChange([])}
+            >
+              Temizle
+            </button>
+            <button
+              type="button"
+              className="px-3 py-2 rounded-lg border text-sm bg-black text-white"
+              onClick={() => setOpen(false)}
+            >
+              Kapat
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Header({ controls }: { controls?: Controls }) {
   const [me, setMe] = useState<Me | null>(null);
@@ -55,7 +131,7 @@ export default function Header({ controls }: { controls?: Controls }) {
 
   return (
     <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-      <div className="max-w-5xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+      <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
         <div className="flex items-center justify-between md:justify-start gap-2">
           <Link href="/" className="shrink-0" title="Anasayfa">
@@ -177,33 +253,8 @@ export default function Header({ controls }: { controls?: Controls }) {
               )}
             </div>
 
-            {/* ★ Yıldız filtresi */}
-            <div className="flex items-center gap-1" title="Yıldız filtresi">
-              {[1,2,3,4,5].map((n) => {
-                const active = controls.starBuckets.includes(n);
-                return (
-                  <button
-                    key={`star-${n}`}
-                    type="button"
-                    onClick={() => {
-                      const set = new Set(controls.starBuckets);
-                      if (set.has(n)) set.delete(n); else set.add(n);
-                      controls.onStarBuckets(Array.from(set).sort());
-                    }}
-                    className={
-                      `px-2.5 py-1.5 rounded-lg border text-sm ` +
-                      (active
-                        ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800')
-                    }
-                    aria-pressed={active}
-                    aria-label={`${n} yıldız filtrele`}
-                  >
-                    {n} ★
-                  </button>
-                );
-              })}
-            </div>
+            {/* ⭐️ Yıldız filtresi (dropdown, çoklu seçim) */}
+            <StarFilter value={controls.starBuckets} onChange={controls.onStarBuckets} />
 
             <select
               value={controls.order}
@@ -242,7 +293,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                 <path fill="#FBBC05" d="M52.7 151.9c-2.9-8.8-4.6-18.2-4.6-27.9s1.7-19.1 4.6-27.9l-.1-2.1L10.1 60.9l-1.9.9C3 74.2 0 89.4 0 104c0 14.6 3 29.8 8.2 42.2l44.5-34.3z"/>
                 <path fill="#EA4335" d="M130 50.5c25.5 0 42.7 11 52.5 20.3l38.3-37.3C197.1 12.3 166.6 0 130 0 76.8 0 30.7 29.8 8.2 74.5l44.4 34.3C63.6 75.9 94.1 50.5 130 50.5z"/>
               </svg>
-              Google ile giriş
+              Giriş
             </button>
           )}
 
@@ -296,33 +347,8 @@ export default function Header({ controls }: { controls?: Controls }) {
               )}
             </div>
 
-            {/* ★ Yıldız filtresi (mobil) */}
-            <div className="flex items-center gap-1" title="Yıldız filtresi">
-              {[1,2,3,4,5].map((n) => {
-                const active = controls.starBuckets.includes(n);
-                return (
-                  <button
-                    key={`star-${n}`}
-                    type="button"
-                    onClick={() => {
-                      const set = new Set(controls.starBuckets);
-                      if (set.has(n)) set.delete(n); else set.add(n);
-                      controls.onStarBuckets(Array.from(set).sort());
-                    }}
-                    className={
-                      `px-2.5 py-1.5 rounded-lg border text-sm ` +
-                      (active
-                        ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800')
-                    }
-                    aria-pressed={active}
-                    aria-label={`${n} yıldız filtrele`}
-                  >
-                    {n} ★
-                  </button>
-                );
-              })}
-            </div>
+            {/* ⭐️ Yıldız filtresi (dropdown, çoklu seçim) */}
+            <StarFilter value={controls.starBuckets} onChange={controls.onStarBuckets} />
 
             <select
               value={controls.order}
