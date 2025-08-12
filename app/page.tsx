@@ -57,10 +57,13 @@ export default function HomePage() {
   const quickSectionRef = useRef<HTMLDivElement>(null);
   const quickNameRef = useRef<HTMLInputElement>(null);
   const [quickName, setQuickName] = useState('');
+  const [quickTags, setQuickTags] = useState<string[]>([]);
+  const [quickTagInput, setQuickTagInput] = useState('');
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [starBucket, setStarBucket] = useState<number | null>(null);
   // Yorum düzenleme state'i
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
@@ -94,17 +97,79 @@ export default function HomePage() {
     }
   }
 
+  // JSON'u güvenle diziye çevir (API bazen {items:[...]} veya {data:[...]} döndürebilir)
+  function toArray(v: any, ...keys: string[]) {
+  // Çok yaygın adlar
+  const COMMON = ['items', 'data', 'results', 'rows', ...keys];
+
+  // Derin gez ve ilk karşılaşılan dizi alanı döndür
+  function deepFind(obj: any, seen = new Set<any>()): any[] {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj !== 'object') return [];
+
+    // Doğrudan bilinen alanlar
+    for (const k of COMMON) {
+      const val = (obj as any)[k];
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object' && !seen.has(val)) {
+        seen.add(val);
+        const arr = deepFind(val, seen);
+        if (arr.length) return arr;
+      }
+    }
+
+    // Her ihtimale karşı tüm değerleri dolaş
+    for (const val of Object.values(obj)) {
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object' && !seen.has(val)) {
+        seen.add(val);
+        const arr = deepFind(val, seen);
+        if (arr.length) return arr;
+      }
+    }
+    return [];
+  }
+
+  if (Array.isArray(v)) return v;
+  return deepFind(v);
+}
+
   async function load() {
     setLoading(true);
     try {
+      const qs = new URLSearchParams();
+      if (q.trim()) qs.set('q', q.trim());
+      qs.set('order', order);
+
       const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then(r => r.json()).catch(() => []),
-        fetch('/api/tags').then(r => r.json()).catch(() => []),
-        fetch('/api/tags/trending').then(r => r.json()).catch(() => []),
+        fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
+          .then(async (r) => {
+            try {
+              // /api/items genelde { ok, items: [...] } döner; ama sadece [] de gelebilir
+              const j = await r.json();
+              return j ?? {};
+            } catch {
+              return {};
+            }
+          })
+          .catch(() => ({})),
+        fetch('/api/tags', { cache: 'no-store' })
+          .then((r) => r.json())
+          .catch(() => ({})),
+        fetch('/api/tags/trending', { cache: 'no-store' })
+          .then((r) => r.json())
+          .catch(() => ({})),
       ]);
-      setItems(Array.isArray(itemsRes) ? itemsRes : []);
-      setAllTags(Array.isArray(tagsRes) ? tagsRes : []);
-      setTrending(Array.isArray(trendRes) ? trendRes : []);
+
+      const _items = toArray(itemsRes, 'items', 'data');
+      const _allTags = toArray(tagsRes, 'tags', 'data');
+      const _trending = toArray(trendRes, 'tags', 'trending', 'data');
+
+      setItems(Array.isArray(_items) ? _items : []);
+      setAllTags(Array.isArray(_allTags) ? _allTags : []);
+      setTrending(Array.isArray(_trending) ? _trending : []);
+      setLoadedOnce(true);
     } finally {
       setLoading(false);
     }
@@ -306,6 +371,25 @@ export default function HomePage() {
   };
 
   const quickFormRef = useRef<HTMLFormElement>(null);
+
+  function normalizeTag(s: string) {
+    return s.trim().replace(/^#+/, '').toLowerCase();
+  }
+  function addTagsFromInput(src?: string) {
+    const raw = typeof src === 'string' ? src : quickTagInput;
+    const parts = raw.split(',').map(normalizeTag).filter(Boolean);
+    if (parts.length === 0) return;
+    setQuickTags(prev => {
+      const set = new Set(prev);
+      for (const p of parts) {
+        if (set.size >= 3) break; // cap at 3
+        set.add(p);
+      }
+      return Array.from(set).slice(0,3);
+    });
+    setQuickTagInput('');
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBucket, onStarBucket: setStarBucket }} />
@@ -404,6 +488,8 @@ export default function HomePage() {
                     setQuickName('');
                     setNewRating(5);
                     setNewImage(null);
+                    setQuickTags([]);
+                    setQuickTagInput('');
                   }
                 }}
               >
@@ -432,12 +518,49 @@ export default function HomePage() {
                     placeholder="kısa açıklama"
                     required
                   />
-                  <input
-                    name="tags"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="etiketler (virgülle)"
-                    required
-                  />
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
+                      {quickTags.map(t => (
+                        <span
+                          key={t}
+                          className={
+                            (trending.includes(t)
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') +
+                            ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'
+                          }
+                        >
+                          #{t}
+                          <button
+                            type="button"
+                            className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
+                            onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
+                            aria-label={`#${t} etiketini kaldır`}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      <input
+                        value={quickTagInput}
+                        onChange={e => setQuickTagInput(e.target.value)}
+                        onKeyDown={e => {
+                          if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
+                            e.preventDefault();
+                            addTagsFromInput();
+                          } else if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault(); // stop adding beyond 3
+                          }
+                        }}
+                        onBlur={() => addTagsFromInput()}
+                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle)')}
+                        className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
+                        disabled={quickTags.length >= 3}
+                      />
+                    </div>
+                    {/* hidden: backend "tagsCsv" için */}
+                    <input type="hidden" name="tags" value={quickTags.join(',')} />
+                  </div>
                 </div>
 
                 {/* 2. satır: Yıldız seçimi + Yorum */}
@@ -485,25 +608,6 @@ export default function HomePage() {
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
-          {!loading && filteredItems.length === 0 && (
-            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" opacity="0.5"/><path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2"/></svg>
-                </div>
-                <div>
-                  <div className="font-medium">Hiç sonuç yok.</div>
-                  <div className="text-sm opacity-80">Eklemek ister misin?</div>
-                </div>
-              </div>
-              <button
-                onClick={jumpToQuickAdd}
-                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors"
-              >
-                Hızlı Ekle
-              </button>
-            </div>
-          )}
           {/* Filtre özet çubuğu + sonuç sayacı */}
           {(!!starBucket || selectedTags.size > 0) && (
             <div className="rounded-2xl border p-3 bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-3">
@@ -544,6 +648,30 @@ export default function HomePage() {
                   Temizle
                 </button>
               </div>
+            </div>
+          )}
+
+         {!loading
+  && loadedOnce
+  && filteredItems.length === 0
+  && (q.trim().length > 0 || starBucket !== null || selectedTags.size > 0 || items.length === 0)
+  && (
+            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" opacity="0.5"/><path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2"/></svg>
+                </div>
+                <div>
+                  <div className="font-medium">Hiç sonuç yok.</div>
+                  <div className="text-sm opacity-80">Eklemek ister misin?</div>
+                </div>
+              </div>
+              <button
+                onClick={jumpToQuickAdd}
+                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors"
+              >
+                Hızlı Ekle
+              </button>
             </div>
           )}
 
@@ -786,3 +914,4 @@ export default function HomePage() {
     </div>
   );
 }
+
