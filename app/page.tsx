@@ -127,6 +127,33 @@ export default function HomePage() {
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   // Yorumlarda "devamını gör" için açılanlar
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+  // Yorumlarda gerçek (görsel) truncation tespiti için
+  const [truncatedComments, setTruncatedComments] = useState<Set<string>>(new Set());
+  const commentTextRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  function measureTruncation(id: string) {
+    const el = commentTextRefs.current[id];
+    if (!el) return;
+    const over = el.scrollWidth > el.clientWidth; // 'truncate' tek satırda keserse scrollWidth > clientWidth olur
+    setTruncatedComments((prev) => {
+      const next = new Set(prev);
+      if (over) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  // item/yorum listesi değiştiğinde ve pencerede yeniden boyutlandığında tekrar ölç
+  useEffect(() => {
+    const ids = Object.keys(commentTextRefs.current);
+    ids.forEach((id) => measureTruncation(id));
+    function onResize() {
+      const ids2 = Object.keys(commentTextRefs.current);
+      ids2.forEach((id) => measureTruncation(id));
+    }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [items, sharedItem]);
   // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
@@ -833,24 +860,40 @@ export default function HomePage() {
                 )}
               </div>
               {(() => {
-                const long = (c.text || '').length > 120;
                 const isOpen = expandedComments.has(c.id);
+                const isTrunc = truncatedComments.has(c.id);
                 return (
-                  <div className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}>
+                  <div
+                    ref={(el) => {
+                      commentTextRefs.current[c.id] = el;
+                      if (el) setTimeout(() => measureTruncation(c.id), 0);
+                    }}
+                    className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}
+                  >
                     “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                    {!isOpen && long && (
+                    {!isOpen && isTrunc && (
                       <button
                         type="button"
                         className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
-                        onClick={() => setExpandedComments(prev => new Set(prev).add(c.id))}
-                      >devamını gör</button>
+                        onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
+                      >
+                        devamını gör
+                      </button>
                     )}
-                    {isOpen && long && (
+                    {isOpen && isTrunc && (
                       <button
                         type="button"
                         className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
-                        onClick={() => setExpandedComments(prev => { const n = new Set(prev); n.delete(c.id); return n; })}
-                      >daha az</button>
+                        onClick={() =>
+                          setExpandedComments((prev) => {
+                            const n = new Set(prev);
+                            n.delete(c.id);
+                            return n;
+                          })
+                        }
+                      >
+                        daha az
+                      </button>
                     )}
                   </div>
                 );
@@ -1330,24 +1373,40 @@ export default function HomePage() {
                               {/* Görünüm / Düzenleme */}
                               {!isEditing ? (
                                 (() => {
-                                  const long = (c.text || '').length > 120;
                                   const isOpen = expandedComments.has(c.id);
+                                  const isTrunc = truncatedComments.has(c.id);
                                   return (
-                                    <div className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}>
+                                    <div
+                                      ref={(el) => {
+                                        commentTextRefs.current[c.id] = el;
+                                        if (el) setTimeout(() => measureTruncation(c.id), 0);
+                                      }}
+                                      className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}
+                                    >
                                       “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                      {!isOpen && long && (
+                                      {!isOpen && isTrunc && (
                                         <button
                                           type="button"
                                           className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                          onClick={() => setExpandedComments(prev => new Set(prev).add(c.id))}
-                                        >devamını gör</button>
+                                          onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
+                                        >
+                                          devamını gör
+                                        </button>
                                       )}
-                                      {isOpen && long && (
+                                      {isOpen && isTrunc && (
                                         <button
                                           type="button"
                                           className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
-                                          onClick={() => setExpandedComments(prev => { const n = new Set(prev); n.delete(c.id); return n; })}
-                                        >daha az</button>
+                                          onClick={() =>
+                                            setExpandedComments((prev) => {
+                                              const n = new Set(prev);
+                                              n.delete(c.id);
+                                              return n;
+                                            })
+                                          }
+                                        >
+                                          daha az
+                                        </button>
                                       )}
                                     </div>
                                   );
