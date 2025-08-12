@@ -286,7 +286,10 @@ export default function MePage() {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-base md:text-lg font-semibold truncate">{me?.name || "Profilim"}</div>
+            <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
+  {me?.name || "Profilim"}
+  {(me as any)?.isAdmin && <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />}
+</div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
           </div>
         </section>

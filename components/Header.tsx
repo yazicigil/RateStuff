@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
-type Me = { id: string; name: string | null; avatarUrl?: string | null };
+type Me = { id: string; name: string | null; avatarUrl?: string | null; isAdmin?: boolean };
 
 type Controls = {
   q: string;
@@ -194,7 +194,10 @@ export default function Header({ controls }: { controls?: Controls }) {
                       {(me.name ?? 'U')[0]?.toUpperCase()}
                     </div>
                   )}
-                  <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
+                  <span className="hidden sm:flex items-center gap-1">
+  {me.name ?? 'Ben'}
+  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+</span>
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
@@ -289,7 +292,10 @@ export default function Header({ controls }: { controls?: Controls }) {
                     {(me.name ?? 'U')[0]?.toUpperCase()}
                   </div>
                 )}
-                <span className="hidden sm:block">{me.name ?? 'Ben'}</span>
+                <span className="hidden sm:flex items-center gap-1">
+  {me.name ?? 'Ben'}
+  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+</span>
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}

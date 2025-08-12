@@ -1057,7 +1057,7 @@ export default function HomePage() {
                     (highlightId === i.id ? 'ring-2 ring-emerald-400' : '')
                   }
                 >
-                  {((i as any).reportCount ?? 0) > 0 && (
+                  {amAdmin && ((i as any).reportCount ?? 0) > 0 && (
                     <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
                       <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 18H3L12 3z" fill="currentColor"/></svg>
                       <span className="tabular-nums">{(i as any).reportCount}</span>
@@ -1072,10 +1072,7 @@ export default function HomePage() {
                         aria-label="share"
                         onClick={() => setOpenShare(openShare === i.id ? null : i.id)}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                          <path d="M7 12l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M12 7v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        </svg>
+                        <img src="/share.svg" alt="" className="w-4 h-4 opacity-90" aria-hidden="true" />
                       </button>
                       {openShare === i.id && (
                         <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
@@ -1167,7 +1164,10 @@ export default function HomePage() {
                                 {maskName(i.createdBy.name).charAt(0).toUpperCase()}
                               </div>
                             )}
-                            <span>{maskName(i.createdBy.name)}</span>
+                            <span>{i.createdBy.name}</span>
+{(i.createdBy as any)?.verified && (
+  <img src="/verified.svg" alt="verified" title="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />
+)}
                             {i.createdBy.verified && (
                               <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
                                 <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
@@ -1243,7 +1243,10 @@ export default function HomePage() {
                             )}
 
                             <div className="min-w-0 flex-1">
-                              <div className="text-xs opacity-70">{maskName(c.user?.name)}</div>
+                              <div className="text-xs opacity-70">
+  {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
+  {(c.user as any)?.verified && <img src="/verified.svg" alt="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />}
+</div>
 
                               {/* Görünüm / Düzenleme */}
                               {!isEditing ? (
