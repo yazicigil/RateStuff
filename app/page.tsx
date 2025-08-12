@@ -1,3 +1,5 @@
+  'use client';
+  
   async function shareItem(id: string, name: string) {
     const url = `${window.location.origin}/share/${id}`;
     try {
@@ -14,7 +16,6 @@
       }
     } catch {}
   }
-'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
