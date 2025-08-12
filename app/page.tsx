@@ -224,17 +224,6 @@ export default function HomePage() {
           .catch(() => ({})),
       ]);
 
-      async function deleteItem(id: string) {
-  if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
-  const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
-  if (!res) return;
-  const j = await res.json().catch(() => null);
-  if (res.ok && (j?.ok ?? true)) {
-    await load();
-  } else {
-    alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
-  }
-}
 
       const _items = toArray(itemsRes, 'items', 'data');
       const _allTags = toArray(tagsRes, 'tags', 'data');
@@ -479,6 +468,18 @@ export default function HomePage() {
     const j = await res.json().catch(() => null);
     if (j?.ok) alert(`Report alındı (${j.count})`);
     else alert('Hata: ' + (j?.error || res.status));
+  }
+
+  async function deleteItem(id: string) {
+    if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
+    const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
+    if (!res) return;
+    const j = await res.json().catch(() => null);
+    if (res.ok && (j?.ok ?? true)) {
+      await load();
+    } else {
+      alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
+    }
   }
 
   // Bir kartı pürüzsüz şekilde öne getir
