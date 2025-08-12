@@ -63,7 +63,6 @@ export default function HomePage() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
-  const [loadedOnce, setLoadedOnce] = useState(false);
   const [starBucket, setStarBucket] = useState<number | null>(null);
   // Yorum düzenleme state'i
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
@@ -97,79 +96,17 @@ export default function HomePage() {
     }
   }
 
-  // JSON'u güvenle diziye çevir (API bazen {items:[...]} veya {data:[...]} döndürebilir)
-  function toArray(v: any, ...keys: string[]) {
-  // Çok yaygın adlar
-  const COMMON = ['items', 'data', 'results', 'rows', ...keys];
-
-  // Derin gez ve ilk karşılaşılan dizi alanı döndür
-  function deepFind(obj: any, seen = new Set<any>()): any[] {
-    if (!obj) return [];
-    if (Array.isArray(obj)) return obj;
-    if (typeof obj !== 'object') return [];
-
-    // Doğrudan bilinen alanlar
-    for (const k of COMMON) {
-      const val = (obj as any)[k];
-      if (Array.isArray(val)) return val;
-      if (val && typeof val === 'object' && !seen.has(val)) {
-        seen.add(val);
-        const arr = deepFind(val, seen);
-        if (arr.length) return arr;
-      }
-    }
-
-    // Her ihtimale karşı tüm değerleri dolaş
-    for (const val of Object.values(obj)) {
-      if (Array.isArray(val)) return val;
-      if (val && typeof val === 'object' && !seen.has(val)) {
-        seen.add(val);
-        const arr = deepFind(val, seen);
-        if (arr.length) return arr;
-      }
-    }
-    return [];
-  }
-
-  if (Array.isArray(v)) return v;
-  return deepFind(v);
-}
-
   async function load() {
     setLoading(true);
     try {
-      const qs = new URLSearchParams();
-      if (q.trim()) qs.set('q', q.trim());
-      qs.set('order', order);
-
       const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
-          .then(async (r) => {
-            try {
-              // /api/items genelde { ok, items: [...] } döner; ama sadece [] de gelebilir
-              const j = await r.json();
-              return j ?? {};
-            } catch {
-              return {};
-            }
-          })
-          .catch(() => ({})),
-        fetch('/api/tags', { cache: 'no-store' })
-          .then((r) => r.json())
-          .catch(() => ({})),
-        fetch('/api/tags/trending', { cache: 'no-store' })
-          .then((r) => r.json())
-          .catch(() => ({})),
+        fetch(`/api/items?q=${encodeURIComponent(q)}&order=${order}`).then(r => r.json()).catch(() => []),
+        fetch('/api/tags').then(r => r.json()).catch(() => []),
+        fetch('/api/tags/trending').then(r => r.json()).catch(() => []),
       ]);
-
-      const _items = toArray(itemsRes, 'items', 'data');
-      const _allTags = toArray(tagsRes, 'tags', 'data');
-      const _trending = toArray(trendRes, 'tags', 'trending', 'data');
-
-      setItems(Array.isArray(_items) ? _items : []);
-      setAllTags(Array.isArray(_allTags) ? _allTags : []);
-      setTrending(Array.isArray(_trending) ? _trending : []);
-      setLoadedOnce(true);
+      setItems(Array.isArray(itemsRes) ? itemsRes : []);
+      setAllTags(Array.isArray(tagsRes) ? tagsRes : []);
+      setTrending(Array.isArray(trendRes) ? trendRes : []);
     } finally {
       setLoading(false);
     }
@@ -651,11 +588,7 @@ export default function HomePage() {
             </div>
           )}
 
-         {!loading
-  && loadedOnce
-  && filteredItems.length === 0
-  && (q.trim().length > 0 || starBucket !== null || selectedTags.size > 0 || items.length === 0)
-  && (
+          {!loading && filteredItems.length === 0 && (
             <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
