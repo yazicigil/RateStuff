@@ -77,6 +77,18 @@ export default function MePage() {
     (notify as any)._t = window.setTimeout(() => setToast(null), 2200);
   }, []);
 
+  // helper: smooth-scroll and force-open a section
+  const jumpTo = useCallback((id: string) => {
+    try {
+      window.dispatchEvent(new CustomEvent('open-section', { detail: { id } }));
+    } catch {}
+    // wait a tick so Section can open, then smooth scroll
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
+  }, []);
+
   // giriş kontrolü
   const { status } = useSession();
 
@@ -289,8 +301,8 @@ export default function MePage() {
           ].map(s => (
             <button
               key={s.id}
-              onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="group rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition"
+              onClick={() => jumpTo(s.id)}
+              className="group rounded-xl border dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm"
             >
               <div className="text-xs opacity-60">{s.label}</div>
               <div className="text-xl font-semibold">{s.count}</div>
@@ -513,17 +525,30 @@ function Section({
   children,
 }: { id?: string; title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
+  // Listen for global open-section event
+  useEffect(() => {
+    function onOpen(e: any) {
+      if (e?.detail?.id && e.detail.id === id) setOpen(true);
+    }
+    window.addEventListener('open-section', onOpen as any);
+    return () => window.removeEventListener('open-section', onOpen as any);
+  }, [id]);
   return (
-    <section id={id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+    <section id={id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full cursor-pointer select-none px-4 py-3 text-lg font-semibold flex items-center justify-between"
+        className="w-full cursor-pointer select-none px-4 py-3 text-lg font-semibold flex items-center justify-between bg-gray-50/70 dark:bg-gray-800/60 backdrop-blur border-b dark:border-gray-800 hover:bg-gray-100/70 dark:hover:bg-gray-800/80 transition"
       >
-        <span>{title}</span>
-        <span className="text-sm opacity-60">{open ? '-' : '+'}</span>
+        <span className="flex items-center gap-2">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-md border dark:border-gray-700 text-xs leading-none bg-white dark:bg-gray-900">
+            {open ? '−' : '+'}
+          </span>
+          {title}
+        </span>
+        <span className="sr-only">Bölümü {open ? 'kapat' : 'aç'}</span>
       </button>
-      {open && <div className="px-4 pb-4 space-y-3">{children}</div>}
+      {open && <div className="px-4 pb-4 pt-3 space-y-3">{children}</div>}
     </section>
   );
 }
