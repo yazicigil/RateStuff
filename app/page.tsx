@@ -153,10 +153,16 @@ export default function HomePage() {
     }
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [items, sharedItem]);
+  }, [items]);
   // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
+
+  // sharedItem değiştiğinde de truncation ölç
+  useEffect(() => {
+    const ids = Object.keys(commentTextRefs.current);
+    ids.forEach((id) => measureTruncation(id));
+  }, [sharedItem]);
 
   // Spotlight yardımcıları
   async function refreshShared(id: string) {
