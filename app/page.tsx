@@ -59,6 +59,7 @@ type ItemVM = {
   imageUrl?: string | null;
   avg: number | null;
   count: number;
+  myRating?: number | null;
   edited?: boolean;
   createdBy?: { id: string; name: string; avatarUrl?: string | null } | null;
   comments: {
@@ -697,11 +698,21 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Rating row with wrap-safe spans */}
-        <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
-          <Stars value={sharedItem.avg ?? 0} onRate={(n) => rate(sharedItem.id, n)} />
-          <span className="text-sm font-medium tabular-nums whitespace-nowrap">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
-          <span className="text-xs opacity-60 whitespace-nowrap">({sharedItem.count})</span>
+        {/* Rating rows: Senin puanın + Ortalama */}
+        <div className="mt-2 flex flex-col gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs opacity-70">Senin puanın:</span>
+            <Stars value={sharedItem.myRating ?? 0} onRate={(n) => rate(sharedItem.id, n)} variant="mine" />
+            {sharedItem.myRating ? (
+              <span className="text-xs opacity-60 tabular-nums">{sharedItem.myRating} / 5</span>
+            ) : null}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs opacity-70">Ortalama:</span>
+            <Stars value={sharedItem.avg ?? 0} readOnly variant="muted" />
+            <span className="text-xs opacity-60 tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
+            <span className="text-xs opacity-60 whitespace-nowrap">({sharedItem.count})</span>
+          </div>
         </div>
 
         {sharedItem.tags?.length > 0 && (
@@ -1085,10 +1096,20 @@ export default function HomePage() {
                           </div>
                         )}
 
-                        <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
-                          <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
-                          <span className="text-sm font-medium tabular-nums whitespace-nowrap">{i.avg ? i.avg.toFixed(2) : '—'}</span>
-                          <span className="text-xs opacity-60 whitespace-nowrap">({i.count})</span>
+                        <div className="mt-2 flex flex-col gap-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs opacity-70">Senin puanın:</span>
+                            <Stars value={i.myRating ?? 0} onRate={(n) => rate(i.id, n)} variant="mine" />
+                            {i.myRating ? (
+                              <span className="text-xs opacity-60 tabular-nums">{i.myRating} / 5</span>
+                            ) : null}
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs opacity-70">Ortalama:</span>
+                            <Stars value={i.avg ?? 0} readOnly variant="muted" />
+                            <span className="text-xs opacity-60 tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
+                            <span className="text-xs opacity-60 whitespace-nowrap">({i.count})</span>
+                          </div>
                         </div>
 
                         {i.tags.length > 0 && (

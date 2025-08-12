@@ -18,10 +18,13 @@ function buildDedupeKey(name: string, tags: string[]) {
   return `${nName}#${nTags.join(',')}`;
 }
 
-function shapeItem(i: any) {
+function shapeItem(i: any, currentUserId?: string | null) {
   const count = i.ratings?.length ?? 0;
   const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
   const itemEdited = i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
+  const myRating = currentUserId
+    ? (i.ratings || []).find((r: any) => r.userId === currentUserId)?.value ?? null
+    : null;
   return {
     id: i.id,
     name: i.name,
@@ -29,6 +32,7 @@ function shapeItem(i: any) {
     imageUrl: i.imageUrl,
     avg,
     count,
+    myRating,
     edited: !!itemEdited,
     createdBy: i.createdBy
       ? {
@@ -60,6 +64,7 @@ export const revalidate = 0;
 /** LISTE (anasayfa) — public */
 export async function GET(req: Request) {
   try {
+    const me = await getSessionUser().catch(()=>null);
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -74,7 +79,7 @@ export async function GET(req: Request) {
         },
       });
       if (!i) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
-      return NextResponse.json({ ok: true, item: shapeItem(i) });
+      return NextResponse.json({ ok: true, item: shapeItem(i, me?.id) });
     }
 
     const q = (searchParams.get("q") || "").trim();
@@ -107,7 +112,7 @@ export async function GET(req: Request) {
       take: 50,
     });
 
-    const shaped = items.map((i) => shapeItem(i));
+    const shaped = items.map((i) => shapeItem(i, me?.id));
 
     return NextResponse.json(shaped);
   } catch (e: any) {
