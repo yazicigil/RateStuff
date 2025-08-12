@@ -61,7 +61,7 @@ type ItemVM = {
   count: number;
   myRating?: number | null;
   edited?: boolean;
-  createdBy?: { id: string; name: string; avatarUrl?: string | null } | null;
+  createdBy?: { id: string; name: string; avatarUrl?: string | null; verified?: boolean } | null;
   comments: {
     id: string;
     text: string;
@@ -69,7 +69,16 @@ type ItemVM = {
     user?: { id?: string; name?: string | null; avatarUrl?: string | null };
   }[];
   tags: string[];
+  reportCount?: number;
 };
+  async function deleteItem(id: string) {
+    if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
+    const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
+    if (!res) return;
+    const j = await res.json().catch(() => null);
+    if (res.ok && (j?.ok ?? true)) { await load(); }
+    else alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
+  }
 
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
@@ -597,6 +606,12 @@ export default function HomePage() {
   <div className={
     `relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
   }>
+    {((sharedItem as any).reportCount ?? 0) > 0 && (
+      <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
+        <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 18H3L12 3z" fill="currentColor"/></svg>
+        <span className="tabular-nums">{(sharedItem as any).reportCount}</span>
+      </div>
+    )}
     {/* CLOSE (X) */}
     <button
       className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
@@ -649,6 +664,15 @@ export default function HomePage() {
         </button>
         {openMenu === sharedItem.id && (
           <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+            {amAdmin && (
+              <>
+                <button
+                  className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                  onClick={() => { setOpenMenu(null); deleteItem(sharedItem.id); }}
+                >Kaldır</button>
+                <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
+              </>
+            )}
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
@@ -695,6 +719,11 @@ export default function HomePage() {
               </div>
             )}
             <span>{sharedItem.createdBy.name}</span>
+            {sharedItem.createdBy.verified && (
+              <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
+              </span>
+            )}
           </div>
         )}
 
@@ -1004,6 +1033,12 @@ export default function HomePage() {
                     (highlightId === i.id ? 'ring-2 ring-emerald-400' : '')
                   }
                 >
+                  {((i as any).reportCount ?? 0) > 0 && (
+                    <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
+                      <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 18H3L12 3z" fill="currentColor"/></svg>
+                      <span className="tabular-nums">{(i as any).reportCount}</span>
+                    </div>
+                  )}
                   {/* LEFT TOP: Share + Options */}
                   <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
                     {/* Share button + popover */}
@@ -1045,26 +1080,35 @@ export default function HomePage() {
                       >
                         ⋯
                       </button>
-                      {openMenu === i.id && (
-                        <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-                          <button
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                              isSaved
-                                ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                                : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                            }`}
-                            onClick={() => toggleSave(i.id)}
-                          >
-                            {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
-                          </button>
-                          <button
-                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            onClick={() => { setOpenMenu(null); report(i.id); }}
-                          >
-                            Report
-                          </button>
-                        </div>
-                      )}
+                    {openMenu === i.id && (
+                      <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                        {amAdmin && (
+                          <>
+                            <button
+                              className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                              onClick={() => { setOpenMenu(null); deleteItem(i.id); }}
+                            >Kaldır</button>
+                            <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
+                          </>
+                        )}
+                        <button
+                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isSaved
+                              ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                          }`}
+                          onClick={() => toggleSave(i.id)}
+                        >
+                          {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
+                        </button>
+                        <button
+                          className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                          onClick={() => { setOpenMenu(null); report(i.id); }}
+                        >
+                          Report
+                        </button>
+                      </div>
+                    )}
                     </div>
                   </div>
 
@@ -1092,14 +1136,19 @@ export default function HomePage() {
 
                         {i.createdBy && (
                           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-                        {i.createdBy.avatarUrl ? (
-                          <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                            {(i.createdBy.name || 'U')[0]?.toUpperCase()}
-                          </div>
-                        )}
+                            {i.createdBy.avatarUrl ? (
+                              <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                                {(i.createdBy.name || 'U')[0]?.toUpperCase()}
+                              </div>
+                            )}
                             <span>{i.createdBy.name}</span>
+                            {i.createdBy.verified && (
+                              <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
+                                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
+                              </span>
+                            )}
                           </div>
                         )}
 

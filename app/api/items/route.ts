@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 
+const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
+
 // --- helpers for normalization & dedupe ---
 function normalizeText(s: string) {
   return s
@@ -34,11 +36,13 @@ function shapeItem(i: any, currentUserId?: string | null) {
     count,
     myRating,
     edited: !!itemEdited,
+    reportCount: (i as any)._count?.reports ?? (i as any).reportsCount ?? 0,
     createdBy: i.createdBy
       ? {
           id: i.createdBy.id,
           name: i.createdBy.maskedName ?? "anon",
           avatarUrl: i.createdBy.avatarUrl ?? null,
+          verified: (i.createdBy as any)?.email === ADMIN_EMAIL,
         }
       : null,
     comments: (i.comments || []).map((c: any) => {
@@ -75,7 +79,8 @@ export async function GET(req: Request) {
           ratings: true,
           comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } } },
           tags: { include: { tag: true } },
-          createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
+          createdBy: { select: { id: true, maskedName: true, avatarUrl: true, email: true } },
+          _count: { select: { reports: true } },
         },
       });
       if (!i) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
@@ -100,10 +105,11 @@ export async function GET(req: Request) {
         ratings: true,
         comments: {
           orderBy: { createdAt: "desc" },
-          include: { user: { select: { id: true, maskedName: true, avatarUrl: true} } },
+          include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } },
         },
         tags: { include: { tag: true } },
-        createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
+        createdBy: { select: { id: true, maskedName: true, avatarUrl: true, email: true } },
+        _count: { select: { reports: true } },
       },
       orderBy:
         order === "top"
