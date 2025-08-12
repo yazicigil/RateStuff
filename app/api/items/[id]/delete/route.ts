@@ -1,5 +1,3 @@
-
-
 // app/api/items/[id]/delete/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -42,6 +40,11 @@ export async function POST(
       await tx.itemTag.deleteMany({ where: { itemId } });
       // item
       await tx.item.delete({ where: { id: itemId } });
+
+      // Orphan tag cleanup: hiçbir ItemTag ile ilişkisi kalmayan tag'leri sil
+      await tx.tag.deleteMany({
+        where: { items: { none: {} } },
+      });
     });
 
     return NextResponse.json({ ok: true });

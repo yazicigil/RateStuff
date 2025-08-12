@@ -125,6 +125,8 @@ export default function HomePage() {
   const [editingCommentItem, setEditingCommentItem] = useState<string|null>(null);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  // Yorumlarda "devamını gör" için açılanlar
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
@@ -830,7 +832,29 @@ export default function HomePage() {
                   </svg>
                 )}
               </div>
-              <div className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
+              {(() => {
+                const long = (c.text || '').length > 120;
+                const isOpen = expandedComments.has(c.id);
+                return (
+                  <div className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}>
+                    “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                    {!isOpen && long && (
+                      <button
+                        type="button"
+                        className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
+                        onClick={() => setExpandedComments(prev => new Set(prev).add(c.id))}
+                      >devamını gör</button>
+                    )}
+                    {isOpen && long && (
+                      <button
+                        type="button"
+                        className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
+                        onClick={() => setExpandedComments(prev => { const n = new Set(prev); n.delete(c.id); return n; })}
+                      >daha az</button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         ))}
@@ -1305,9 +1329,29 @@ export default function HomePage() {
 
                               {/* Görünüm / Düzenleme */}
                               {!isEditing ? (
-                                <div className="truncate">
-                                  “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                </div>
+                                (() => {
+                                  const long = (c.text || '').length > 120;
+                                  const isOpen = expandedComments.has(c.id);
+                                  return (
+                                    <div className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}>
+                                      “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                      {!isOpen && long && (
+                                        <button
+                                          type="button"
+                                          className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                          onClick={() => setExpandedComments(prev => new Set(prev).add(c.id))}
+                                        >devamını gör</button>
+                                      )}
+                                      {isOpen && long && (
+                                        <button
+                                          type="button"
+                                          className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
+                                          onClick={() => setExpandedComments(prev => { const n = new Set(prev); n.delete(c.id); return n; })}
+                                        >daha az</button>
+                                      )}
+                                    </div>
+                                  );
+                                })()
                               ) : (
                                 <div className="space-y-2">
                                   <textarea

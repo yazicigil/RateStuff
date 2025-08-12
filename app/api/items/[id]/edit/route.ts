@@ -99,6 +99,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           data: { editedAt: new Date() },
         });
       }
+
+      // Orphan tag cleanup: hiçbir ItemTag ile ilişkisi kalmayan tag'leri sil
+      await tx.tag.deleteMany({
+        where: { items: { none: {} } },
+      });
     });
 
     return NextResponse.json({ ok: true });
