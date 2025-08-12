@@ -1,3 +1,19 @@
+  async function shareItem(id: string, name: string) {
+    const url = `${window.location.origin}/share/${id}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${name} — RateStuff`, text: 'RateStuff', url });
+      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+        alert('Bağlantı kopyalandı');
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        alert('Bağlantı kopyalandı');
+      }
+    } catch {}
+  }
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -723,6 +739,13 @@ export default function HomePage() {
                             onClick={() => toggleSave(i.id)}
                           >
                             {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
+                          </button>
+
+                          <button
+                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            onClick={() => { setOpenMenu(null); shareItem(i.id, i.name); }}
+                          >
+                            Paylaş…
                           </button>
 
                           {/* Report */}

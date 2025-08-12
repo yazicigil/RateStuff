@@ -18,6 +18,42 @@ function buildDedupeKey(name: string, tags: string[]) {
   return `${nName}#${nTags.join(',')}`;
 }
 
+function shapeItem(i: any) {
+  const count = i.ratings?.length ?? 0;
+  const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
+  const itemEdited = i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
+  return {
+    id: i.id,
+    name: i.name,
+    description: i.description,
+    imageUrl: i.imageUrl,
+    avg,
+    count,
+    edited: !!itemEdited,
+    createdBy: i.createdBy
+      ? {
+          id: i.createdBy.id,
+          name: i.createdBy.maskedName ?? "anon",
+          avatarUrl: i.createdBy.avatarUrl ?? null,
+        }
+      : null,
+    comments: (i.comments || []).map((c: any) => {
+      const cEdited = c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
+      return {
+        id: c.id,
+        text: c.text,
+        edited: !!cEdited,
+        user: {
+          id: c.user?.id,
+          name: c.user?.maskedName ?? "anon",
+          avatarUrl: c.user?.avatarUrl ?? null,
+        },
+      };
+    }),
+    tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
+  };
+}
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -25,6 +61,22 @@ export const revalidate = 0;
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (id) {
+      const i = await prisma.item.findUnique({
+        where: { id },
+        include: {
+          ratings: true,
+          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, maskedName: true, avatarUrl: true } } } },
+          tags: { include: { tag: true } },
+          createdBy: { select: { id: true, maskedName: true, avatarUrl: true } },
+        },
+      });
+      if (!i) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+      return NextResponse.json({ ok: true, item: shapeItem(i) });
+    }
+
     const q = (searchParams.get("q") || "").trim();
     const order = (searchParams.get("order") || "new") as "new" | "top";
 
@@ -55,46 +107,7 @@ export async function GET(req: Request) {
       take: 50,
     });
 
-    const shaped = items.map((i) => {
-      const count = i.ratings.length;
-      const avg =
-        count ? i.ratings.reduce((a, r) => a + r.value, 0) / count : null;
-
-      const itemEdited =
-        i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
-
-      return {
-        id: i.id,
-        name: i.name,
-        description: i.description,
-        imageUrl: i.imageUrl,
-        avg,
-        count,
-        edited: !!itemEdited,
-        createdBy: i.createdBy
-          ? {
-              id: i.createdBy.id,
-              name: i.createdBy.maskedName ?? "anon",
-              avatarUrl: i.createdBy.avatarUrl ?? null,
-            }
-          : null,
-        comments: i.comments.map((c) => {
-          const cEdited =
-            c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
-          return {
-            id: c.id,
-            text: c.text,
-            edited: !!cEdited,
-            user: {
-              id: c.user?.id,
-              name: c.user?.maskedName ?? "anon",
-              avatarUrl: c.user?.avatarUrl ?? null,
-            },
-          };
-        }),
-        tags: i.tags.map((t) => t.tag.name),
-      };
-    });
+    const shaped = items.map((i) => shapeItem(i));
 
     return NextResponse.json(shaped);
   } catch (e: any) {
