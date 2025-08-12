@@ -60,8 +60,8 @@ export default function MePage() {
   const [editDesc, setEditDesc] = useState("");
   const [editImg,  setEditImg]  = useState<string|null>(null);
 
-  // Kaydedilenler filtre (tag)
-  const [savedTag, setSavedTag] = useState<string | null>(null);
+  // Kaydedilenler filtre (çoklu tag seçimi)
+  const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
 
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
@@ -112,9 +112,13 @@ export default function MePage() {
   }, [saved]);
 
   const filteredSaved = useMemo(() => {
-    if (!savedTag) return saved;
-    return saved.filter(it => (it.tags || []).includes(savedTag));
-  }, [saved, savedTag]);
+    if (savedSelected.size === 0) return saved;
+    return saved.filter(it => {
+      const tags = new Set(it.tags || []);
+      for (const t of savedSelected) if (!tags.has(t)) return false;
+      return true;
+    });
+  }, [saved, savedSelected]);
 
   async function saveItem(id: string) {
     const body: any = { description: editDesc, imageUrl: editImg ?? null };
@@ -204,6 +208,16 @@ export default function MePage() {
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="p-2 rounded-xl border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              aria-label="Anasayfa"
+              title="Anasayfa"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                <path fillRule="evenodd" d="M12.78 4.22a.75.75 0 0 1 0 1.06L8.56 9.5l4.22 4.22a.75.75 0 1 1-1.06 1.06l-4.75-4.75a.75.75 0 0 1 0-1.06l4.75-4.75a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+              </svg>
+            </Link>
             <span className="text-lg font-semibold">Profil</span>
           </div>
           <button
@@ -250,9 +264,10 @@ export default function MePage() {
                 <div className="mb-3 flex flex-wrap gap-2">
                   <button
                     className={`px-2 py-1 rounded-full border text-xs ${
-                      !savedTag ? "bg-black text-white border-black" : "bg-white dark:bg-gray-900 dark:border-gray-800"
+                      savedSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
                     }`}
-                    onClick={() => setSavedTag(null)}
+                    onClick={() => setSavedSelected(new Set())}
+                    onDoubleClick={() => setSavedSelected(new Set())}
                   >
                     Hepsi
                   </button>
@@ -260,11 +275,19 @@ export default function MePage() {
                     <button
                       key={t}
                       className={`px-2 py-1 rounded-full border text-xs ${
-                        savedTag === t
-                          ? "bg-black text-white border-black"
-                          : "bg-white dark:bg-gray-900 dark:border-gray-800"
+                        savedSelected.has(t)
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
                       }`}
-                      onClick={() => setSavedTag(t)}
+                      onClick={() =>
+                        setSavedSelected(prev => {
+                          const next = new Set(prev);
+                          if (next.has(t)) next.delete(t); else next.add(t);
+                          return next;
+                        })
+                      }
+                      onDoubleClick={() => setSavedSelected(new Set())}
+                      title={savedSelected.has(t) ? 'Filtreden kaldır' : 'Filtreye ekle'}
                     >
                       #{t}
                     </button>
