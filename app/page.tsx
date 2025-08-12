@@ -753,11 +753,13 @@ export default function HomePage() {
                 {( ((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
               </div>
             )}
-            <span>{sharedItem.createdBy.name}</span>
+            <span>
+              {(sharedItem.createdBy as any)?.verified ? (sharedItem.createdBy.name || 'Anonim') : maskName(sharedItem.createdBy.name)}
+            </span>
             {(sharedItem.createdBy as any).verified && (
-              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
-                <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
-                <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             )}
           </div>
@@ -822,9 +824,9 @@ export default function HomePage() {
               <div className="text-xs opacity-70">
                 {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
                 {(c.user as any)?.verified && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
-                    <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
-                    <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </div>
@@ -1204,11 +1206,13 @@ export default function HomePage() {
                                 {( ((i.createdBy as any)?.verified ? i.createdBy.name : maskName(i.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
                               </div>
                             )}
-                            <span>{i.createdBy.name}</span>
+                            <span>
+                              {(i.createdBy as any)?.verified ? (i.createdBy.name || 'Anonim') : maskName(i.createdBy.name)}
+                            </span>
                             {(i.createdBy as any)?.verified && (
-                              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
-                                <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
-                                <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                                <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                                <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             )}
                           </div>
@@ -1292,9 +1296,9 @@ export default function HomePage() {
                               <div className="text-xs opacity-70">
                                 {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
                                 {(c.user as any)?.verified && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
-                                    <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
-                                    <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 )}
                               </div>
