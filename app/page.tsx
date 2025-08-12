@@ -37,7 +37,21 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import ImageUploader from '@/components/ImageUploader';
+
 import { useSession } from 'next-auth/react';
+
+// İsimleri maskelemek için (Jane Doe -> J*** D**)
+function maskName(s?: string | null) {
+  if (!s) return 'Anonim';
+  const parts = String(s).trim().split(/\s+/).filter(Boolean);
+  return parts
+    .map(p => {
+      const first = p.charAt(0);
+      const restLen = Math.max(1, p.length - 1);
+      return first + '*'.repeat(restLen);
+    })
+    .join(' ');
+}
 
 // --- 401'de otomatik signin'e yönlendiren fetch ---
 async function fetchOrSignin(url: string, init?: RequestInit) {
@@ -718,13 +732,13 @@ export default function HomePage() {
         {sharedItem.createdBy && (
           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
             {sharedItem.createdBy.avatarUrl ? (
-              <img src={sharedItem.createdBy.avatarUrl} alt={sharedItem.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+              <img src={sharedItem.createdBy.avatarUrl} alt={maskName(sharedItem.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(sharedItem.createdBy.name) || 'u'} />
             ) : (
-              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(sharedItem.createdBy.name) || 'u'}>
                 {(sharedItem.createdBy.name || 'U')[0]?.toUpperCase()}
               </div>
             )}
-            <span>{sharedItem.createdBy.name}</span>
+            <span>{maskName(sharedItem.createdBy.name)}</span>
             {sharedItem.createdBy.verified && (
               <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
@@ -774,14 +788,14 @@ export default function HomePage() {
         {sharedItem.comments.map((c) => (
           <div key={c.id} className="flex items-start gap-2 min-w-0">
             {c.user?.avatarUrl ? (
-              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={c.user?.name || 'user'} />
+              <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
             ) : (
-              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={c.user?.name || 'user'}>
+              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
                 {(c.user?.name || 'U')[0]?.toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
-              <div className="text-xs opacity-70">{c.user?.name || 'anon'}</div>
+              <div className="text-xs opacity-70">{maskName(c.user?.name)}</div>
               <div className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
             </div>
           </div>
@@ -1143,13 +1157,13 @@ export default function HomePage() {
                         {i.createdBy && (
                           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                             {i.createdBy.avatarUrl ? (
-                              <img src={i.createdBy.avatarUrl} alt={i.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+                              <img src={i.createdBy.avatarUrl} alt={maskName(i.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(i.createdBy.name) || 'u'} />
                             ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(i.createdBy.name) || 'u'}>
                                 {(i.createdBy.name || 'U')[0]?.toUpperCase()}
                               </div>
                             )}
-                            <span>{i.createdBy.name}</span>
+                            <span>{maskName(i.createdBy.name)}</span>
                             {i.createdBy.verified && (
                               <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
                                 <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
@@ -1217,15 +1231,15 @@ export default function HomePage() {
                         <div key={c.id} className="flex items-start gap-2 justify-between">
                           <div className="flex items-start gap-2 min-w-0 flex-1">
                             {c.user?.avatarUrl ? (
-                              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={c.user?.name || 'user'} />
+                              <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
                             ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={c.user?.name || 'user'}>
+                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
                                 {(c.user?.name || 'U')[0]?.toUpperCase()}
                               </div>
                             )}
 
                             <div className="min-w-0 flex-1">
-                              <div className="text-xs opacity-70">{c.user?.name || 'anon'}</div>
+                              <div className="text-xs opacity-70">{maskName(c.user?.name)}</div>
 
                               {/* Görünüm / Düzenleme */}
                               {!isEditing ? (
