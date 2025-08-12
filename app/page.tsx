@@ -658,7 +658,11 @@ export default function HomePage() {
           onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
         >
           {/* share icon */}
-          <img src="/share.svg" alt="" className="w-4 h-4 opacity-90" aria-hidden="true" />
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
         </button>
         {openShare === sharedItem.id && (
           <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
@@ -735,15 +739,26 @@ export default function HomePage() {
         {sharedItem.createdBy && (
           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
             {sharedItem.createdBy.avatarUrl ? (
-              <img src={sharedItem.createdBy.avatarUrl} alt={maskName(sharedItem.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(sharedItem.createdBy.name) || 'u'} />
+              <img
+                src={sharedItem.createdBy.avatarUrl}
+                alt={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+                className="w-5 h-5 rounded-full object-cover"
+                title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+              />
             ) : (
-              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(sharedItem.createdBy.name) || 'u'}>
-                {maskName(sharedItem.createdBy.name).charAt(0).toUpperCase()}
+              <div
+                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]"
+                title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+              >
+                {( ((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
               </div>
             )}
             <span>{sharedItem.createdBy.name}</span>
             {(sharedItem.createdBy as any).verified && (
-              <img src="/verified.svg" alt="verified" title="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
+                <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
+                <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             )}
           </div>
         )}
@@ -789,16 +804,29 @@ export default function HomePage() {
         {sharedItem.comments.map((c) => (
           <div key={c.id} className="flex items-start gap-2 min-w-0">
             {c.user?.avatarUrl ? (
-              <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
+              <img
+                src={c.user.avatarUrl}
+                alt={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+                className="w-5 h-5 rounded-full object-cover mt-0.5"
+                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+              />
             ) : (
-              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
-                {maskName(c.user?.name).charAt(0).toUpperCase()}
+              <div
+                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5"
+                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+              >
+                {( (((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user').charAt(0).toUpperCase() )}
               </div>
             )}
             <div className="min-w-0">
               <div className="text-xs opacity-70">
                 {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
-                {(c.user as any)?.verified && <img src="/verified.svg" alt="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />}
+                {(c.user as any)?.verified && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
+                    <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
+                    <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
               </div>
               <div className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
             </div>
@@ -1072,7 +1100,11 @@ export default function HomePage() {
                         aria-label="share"
                         onClick={() => setOpenShare(openShare === i.id ? null : i.id)}
                       >
-                        <img src="/share.svg" alt="" className="w-4 h-4 opacity-90" aria-hidden="true" />
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                          <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
                       </button>
                       {openShare === i.id && (
                         <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
@@ -1158,20 +1190,26 @@ export default function HomePage() {
                         {i.createdBy && (
                           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                             {i.createdBy.avatarUrl ? (
-                              <img src={i.createdBy.avatarUrl} alt={maskName(i.createdBy.name) || 'u'} className="w-5 h-5 rounded-full object-cover" title={maskName(i.createdBy.name) || 'u'} />
+                              <img
+                                src={i.createdBy.avatarUrl}
+                                alt={((i.createdBy as any)?.verified ? i.createdBy.name : maskName(i.createdBy.name)) || 'u'}
+                                className="w-5 h-5 rounded-full object-cover"
+                                title={((i.createdBy as any)?.verified ? i.createdBy.name : maskName(i.createdBy.name)) || 'u'}
+                              />
                             ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={maskName(i.createdBy.name) || 'u'}>
-                                {maskName(i.createdBy.name).charAt(0).toUpperCase()}
+                              <div
+                                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]"
+                                title={((i.createdBy as any)?.verified ? i.createdBy.name : maskName(i.createdBy.name)) || 'u'}
+                              >
+                                {( ((i.createdBy as any)?.verified ? i.createdBy.name : maskName(i.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
                               </div>
                             )}
                             <span>{i.createdBy.name}</span>
-{(i.createdBy as any)?.verified && (
-  <img src="/verified.svg" alt="verified" title="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />
-)}
-                            {i.createdBy.verified && (
-                              <span title="verified" className="inline-flex items-center ml-1 text-emerald-600 dark:text-emerald-400">
-                                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" fill="none"/></svg>
-                              </span>
+                            {(i.createdBy as any)?.verified && (
+                              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
+                                <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
+                                <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
                             )}
                           </div>
                         )}
@@ -1235,18 +1273,31 @@ export default function HomePage() {
                         <div key={c.id} className="flex items-start gap-2 justify-between">
                           <div className="flex items-start gap-2 min-w-0 flex-1">
                             {c.user?.avatarUrl ? (
-                              <img src={c.user.avatarUrl} alt={maskName(c.user?.name) || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={maskName(c.user?.name) || 'user'} />
+                              <img
+                                src={c.user.avatarUrl}
+                                alt={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+                                className="w-5 h-5 rounded-full object-cover mt-0.5"
+                                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+                              />
                             ) : (
-                              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={maskName(c.user?.name) || 'user'}>
-                                {maskName(c.user?.name).charAt(0).toUpperCase()}
+                              <div
+                                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5"
+                                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
+                              >
+                                {( (((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user').charAt(0).toUpperCase() )}
                               </div>
                             )}
 
                             <div className="min-w-0 flex-1">
                               <div className="text-xs opacity-70">
-  {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
-  {(c.user as any)?.verified && <img src="/verified.svg" alt="verified" className="inline-block ml-1 w-3.5 h-3.5 align-[-2px] opacity-90" />}
-</div>
+                                {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
+                                {(c.user as any)?.verified && (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 align-[-2px]">
+                                    <path d="M12 2l2.3 2.2 3.2-.3 1.2 3 2.8 1.4-1.1 3 1.1 3-2.8 1.4-1.2 3-3.2-.3L12 22l-2.3-2.2-3.2.3-1.2-3L2.5 15l1.1-3-1.1-3L5.3 7.6l1.2-3 3.2.3L12 2z" fill="#3B82F6"/>
+                                    <path d="M9.5 12.2l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                )}
+                              </div>
 
                               {/* Görünüm / Düzenleme */}
                               {!isEditing ? (
