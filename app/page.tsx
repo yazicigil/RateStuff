@@ -703,33 +703,34 @@ export default function HomePage() {
           {/* Senin puanın — tek kontrol */}
           <Stars value={sharedItem.myRating ?? 0} onRate={(n)=>rate(sharedItem.id, n)} variant="mine" />
 
-          {/* Senin puanın sayısal (netlik için) */}
-          <span className="text-xs opacity-60 tabular-nums">
-            {sharedItem.myRating ? `(${sharedItem.myRating})` : 'Puanla'}
-          </span>
+          {sharedItem.myRating ? (
+            <span className="text-xs opacity-60 tabular-nums">({sharedItem.myRating})</span>
+          ) : null}
 
           {/* Ayırıcı */}
           <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
 
           {/* Ortalama + adet (ufak pill) */}
           <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 .6l3.3 6.6 7.3 1.1-5.3 5.1 1.2 7.1L12 17.9 5.2 20.5l1.2-7.1L1 8.3l7.3-1.1z" fill="currentColor"/>
-            </svg>
+            <span aria-hidden="true" className="leading-none">⭐</span>
             <span className="tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
             <span className="opacity-60 tabular-nums">({sharedItem.count})</span>
           </span>
         </div>
 
-        {sharedItem.tags?.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {sharedItem.tags.slice(0, 10).map((t) => (
-              <Tag key={t} label={t} />
-            ))}
-          </div>
-        )}
+        
       </div>
     </div>
+
+    {sharedItem.tags?.length > 0 && (
+      <div className="mt-2 pt-2 border-t dark:border-gray-800">
+        <div className="flex flex-wrap gap-1">
+          {sharedItem.tags.slice(0, 10).map((t) => (
+            <Tag key={t} label={t} />
+          ))}
+        </div>
+      </div>
+    )}
 
     {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
@@ -1107,43 +1108,22 @@ export default function HomePage() {
                           {/* Senin puanın — tek kontrol */}
                           <Stars value={i.myRating ?? 0} onRate={(n)=>rate(i.id, n)} variant="mine" />
 
-                          {/* Senin puanın sayısal (netlik için) */}
-                          <span className="text-xs opacity-60 tabular-nums">
-                            {i.myRating ? `(${i.myRating})` : 'Puanla'}
-                          </span>
+                          {i.myRating ? (
+                            <span className="text-xs opacity-60 tabular-nums">({i.myRating})</span>
+                          ) : null}
 
                           {/* Ayırıcı */}
                           <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
 
                           {/* Ortalama + adet (ufak pill) */}
                           <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-                            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M12 .6l3.3 6.6 7.3 1.1-5.3 5.1 1.2 7.1L12 17.9 5.2 20.5l1.2-7.1L1 8.3l7.3-1.1z" fill="currentColor"/>
-                            </svg>
+                            <span aria-hidden="true" className="leading-none">⭐</span>
                             <span className="tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
                             <span className="opacity-60 tabular-nums">({i.count})</span>
                           </span>
                         </div>
 
-                        {i.tags.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {i.tags.slice(0, 10).map((t) => (
-                              <Tag
-                                key={t}
-                                label={t}
-                                active={selectedTags.has(t)}
-                                onClick={() => {
-                                  setSelectedTags(prev => {
-                                    const next = new Set(prev);
-                                    if (next.has(t)) next.delete(t); else next.add(t);
-                                    return next;
-                                  });
-                                }}
-                                onDoubleClick={() => setSelectedTags(new Set())}
-                              />
-                            ))}
-                          </div>
-                        )}
+                        
                       </div>
                     </div>
 
@@ -1278,3 +1258,27 @@ export default function HomePage() {
   );
 }
 
+
+                  </div>
+
+                  {i.tags.length > 0 && (
+                    <div className="mt-2 pt-2 border-t dark:border-gray-800">
+                      <div className="flex flex-wrap gap-1">
+                        {i.tags.slice(0, 10).map((t) => (
+                          <Tag
+                            key={t}
+                            label={t}
+                            active={selectedTags.has(t)}
+                            onClick={() => {
+                              setSelectedTags(prev => {
+                                const next = new Set(prev);
+                                if (next.has(t)) next.delete(t); else next.add(t);
+                                return next;
+                              });
+                            }}
+                            onDoubleClick={() => setSelectedTags(new Set())}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
