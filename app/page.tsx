@@ -88,6 +88,11 @@ export default function HomePage() {
   const [editingCommentItem, setEditingCommentItem] = useState<string|null>(null);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
+  const [sharedId, setSharedId] = useState<string | null>(null);
+  const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   // Seçili etiket sayıları (başlıklarda göstermek için)
   const selectedInTrending = useMemo(
     () => trending.filter(t => selectedTags.has(t)).length,
@@ -193,6 +198,31 @@ export default function HomePage() {
   }
 
   useEffect(() => { load(); loadSavedIds(); }, []);
+  // URL'den ?item=... yakala ve spotlight için hazırla
+  useEffect(() => {
+    try {
+      const u = new URL(window.location.href);
+      const id = u.searchParams.get('item');
+      setSharedId(id);
+    } catch {}
+  }, []);
+  // sharedId değişince tek öğeyi çek (listeye karışmadan üstte göstereceğiz)
+  useEffect(() => {
+    let aborted = false;
+    async function run() {
+      if (!sharedId) { setSharedItem(null); return; }
+      try {
+        const r = await fetch(`/api/items?id=${encodeURIComponent(sharedId)}`, { cache: 'no-store' });
+        const j = await r.json().catch(() => null);
+        const arr = Array.isArray(j) ? j : (Array.isArray(j?.items) ? j.items : (j?.item ? [j.item] : []));
+        if (!aborted) setSharedItem(arr[0] || null);
+      } catch {
+        if (!aborted) setSharedItem(null);
+      }
+    }
+    run();
+    return () => { aborted = true; };
+  }, [sharedId]);
   useEffect(() => {
     const t = setTimeout(() => { load(); }, 250);
     return () => clearTimeout(t);
@@ -382,6 +412,25 @@ export default function HomePage() {
     else alert('Hata: ' + (j?.error || res.status));
   }
 
+  // Bir kartı pürüzsüz şekilde öne getir
+  function scrollToItem(id: string) {
+    const el = itemRefs.current[id];
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setHighlightId(id);
+    setTimeout(() => setHighlightId(null), 1600);
+  }
+
+  // Spotlight kartındaki "Listede göster" davranışı
+  function showInList(id: string) {
+    setSharedItem(null);
+    // Eğer filtreler sonucu gizliyorsa kaldır
+    setStarBuckets(new Set());
+    setSelectedTags(new Set());
+    // Küçük bir gecikmeden sonra kaydır
+    setTimeout(() => scrollToItem(id), 100);
+  }
+
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -488,6 +537,50 @@ export default function HomePage() {
         {/* Sağ: listeler */}
         <section className="space-y-4">
           
+          {/* Paylaşımdan gelen tek öğe (spotlight) */}
+          {sharedItem && (
+            <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
+              <div className="flex items-start gap-3">
+                <div className="w-28 h-28 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+                  {sharedItem.imageUrl ? (
+                    <img src={sharedItem.imageUrl} alt={sharedItem.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs opacity-60">no img</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-base md:text-lg font-semibold leading-snug">{sharedItem.name}</div>
+                  <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <Stars value={sharedItem.avg ?? 0} onRate={(n) => rate(sharedItem.id, n)} />
+                    <span className="text-sm font-medium tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
+                    <span className="text-xs opacity-60">({sharedItem.count})</span>
+                  </div>
+                  {sharedItem.tags?.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {sharedItem.tags.slice(0,10).map(t => (
+                        <Tag key={t} label={t} />
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      onClick={() => showInList(sharedItem.id)}
+                      className="px-3 py-2 rounded-xl text-sm border hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      Listede göster
+                    </button>
+                    <button
+                      onClick={() => shareItem(sharedItem.id, sharedItem.name)}
+                      className="px-3 py-2 rounded-xl text-sm border hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      Paylaş…
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Hızlı ekleme */}
           <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
             <CollapsibleSection
@@ -715,7 +808,11 @@ export default function HomePage() {
               return (
                 <div
                   key={i.id}
-                  className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md"
+                  ref={(el) => { itemRefs.current[i.id] = el; }}
+                  className={
+                    `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ` +
+                    (highlightId === i.id ? 'ring-2 ring-emerald-400' : '')
+                  }
                 >
                   {/* OPTIONS (⋯) – SAĞ ÜST */}
                   <div className="absolute top-3 right-3">
