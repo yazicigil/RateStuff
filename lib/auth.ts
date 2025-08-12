@@ -40,6 +40,11 @@ export const authOptions: NextAuthOptions = {
         },
       });
 
+      // Promote specific account to admin (centralized)
+      if (email === 'ratestuffnet@gmail.com') {
+        await prisma.user.update({ where: { email }, data: { isAdmin: true } });
+      }
+
       return true;
     },
 
@@ -49,12 +54,13 @@ export const authOptions: NextAuthOptions = {
       if (email) {
         const u = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, avatarUrl: true },
+          select: { id: true, name: true, avatarUrl: true, isAdmin: true },
         });
         if (u && session.user) {
           (session as any).user.id = u.id;
           session.user.name = u.name ?? session.user.name ?? null;
           (session.user as any).avatarUrl = u.avatarUrl ?? null;
+          (session.user as any).isAdmin = u.isAdmin;
         }
       }
       return session;
@@ -75,6 +81,6 @@ export async function getSessionUser() {
   if (!email) return null;
   return prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, avatarUrl: true },
+    select: { id: true, name: true, avatarUrl: true, isAdmin: true },
   });
 }

@@ -16,6 +16,7 @@ model User {
   maskedName String?
   avatarUrl  String?
   createdAt  DateTime @default(now())
+  isAdmin    Boolean  @default(false)
 
   items     Item[]
   ratings   Rating[]

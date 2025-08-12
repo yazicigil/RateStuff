@@ -1216,8 +1216,8 @@ export default function HomePage() {
                             </div>
                           </div>
 
-                          {/* Sadece kendi yorumlarım: kalem + çöp */}
-                          {isMine && !isEditing && (
+                          {/* Sadece kendi yorumlarım veya admin: kalem + çöp */}
+                          {(isMine || isAdmin) && !isEditing && (
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
