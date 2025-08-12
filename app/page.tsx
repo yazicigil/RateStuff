@@ -99,17 +99,41 @@ export default function HomePage() {
 
   // JSON'u güvenle diziye çevir (API bazen {items:[...]} veya {data:[...]} döndürebilir)
   function toArray(v: any, ...keys: string[]) {
-    if (Array.isArray(v)) return v;
-    if (v && typeof v === 'object') {
-      for (const k of keys) {
-        const arr = (v as any)[k];
-        if (Array.isArray(arr)) return arr;
+  // Çok yaygın adlar
+  const COMMON = ['items', 'data', 'results', 'rows', ...keys];
+
+  // Derin gez ve ilk karşılaşılan dizi alanı döndür
+  function deepFind(obj: any, seen = new Set<any>()): any[] {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    if (typeof obj !== 'object') return [];
+
+    // Doğrudan bilinen alanlar
+    for (const k of COMMON) {
+      const val = (obj as any)[k];
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object' && !seen.has(val)) {
+        seen.add(val);
+        const arr = deepFind(val, seen);
+        if (arr.length) return arr;
       }
-      if (Array.isArray((v as any).items)) return (v as any).items;
-      if (Array.isArray((v as any).data)) return (v as any).data;
+    }
+
+    // Her ihtimale karşı tüm değerleri dolaş
+    for (const val of Object.values(obj)) {
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object' && !seen.has(val)) {
+        seen.add(val);
+        const arr = deepFind(val, seen);
+        if (arr.length) return arr;
+      }
     }
     return [];
   }
+
+  if (Array.isArray(v)) return v;
+  return deepFind(v);
+}
 
   async function load() {
     setLoading(true);
@@ -604,7 +628,11 @@ export default function HomePage() {
             </div>
           )}
 
-          {!loading && loadedOnce && filteredItems.length === 0 && (
+         {!loading
+  && loadedOnce
+  && filteredItems.length === 0
+  && (q.trim().length > 0 || starBucket !== null || selectedTags.size > 0 || items.length === 0)
+  && (
             <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
