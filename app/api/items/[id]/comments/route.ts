@@ -43,7 +43,7 @@ export async function POST(
     // herkes (giriş yapmış) yorum atabilir
     const comment = await prisma.comment.create({
       data: { itemId, userId: me.id, text: clean },
-      include: { user: { select: { name: true, maskedName: true, avatarUrl: true } } },
+      include: { user: { select: { name: true, maskedName: true, avatarUrl: true, email: true } } },
     });
 
     return NextResponse.json({
@@ -53,8 +53,11 @@ export async function POST(
         text: comment.text,
         edited: !!comment.editedAt,
         user: {
-          name: comment.user?.maskedName ?? (comment.user?.name ? maskName(comment.user.name) : "Anonim"),
+          name: (comment.user as any)?.email === 'ratestuffnet@gmail.com'
+            ? (comment.user?.name || 'Anonim')
+            : (comment.user?.maskedName ?? (comment.user?.name ? maskName(comment.user.name) : 'Anonim')),
           avatarUrl: comment.user?.avatarUrl ?? null,
+          verified: (comment.user as any)?.email === 'ratestuffnet@gmail.com',
         },
       },
     });

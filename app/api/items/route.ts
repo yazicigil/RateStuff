@@ -41,7 +41,10 @@ function shapeItem(i: any, currentUserId?: string | null) {
     createdBy: i.createdBy
       ? {
           id: i.createdBy.id,
-          name: i.createdBy.maskedName ?? (i.createdBy.name ? maskName(i.createdBy.name) : "Anonim"),
+          name:
+            (i.createdBy as any)?.email === ADMIN_EMAIL
+              ? (i.createdBy.name || 'Anonim')
+              : (i.createdBy.maskedName ?? (i.createdBy.name ? maskName(i.createdBy.name) : 'Anonim')),
           avatarUrl: i.createdBy.avatarUrl ?? null,
           verified: (i.createdBy as any)?.email === ADMIN_EMAIL,
         }
@@ -54,8 +57,12 @@ function shapeItem(i: any, currentUserId?: string | null) {
         edited: !!cEdited,
         user: {
           id: c.user?.id,
-          name: c.user?.maskedName ?? (c.user?.name ? maskName(c.user.name) : "Anonim"),
+          name:
+            (c.user as any)?.email === ADMIN_EMAIL
+              ? (c.user?.name || 'Anonim')
+              : (c.user?.maskedName ?? (c.user?.name ? maskName(c.user.name) : 'Anonim')),
           avatarUrl: c.user?.avatarUrl ?? null,
+          verified: (c.user as any)?.email === ADMIN_EMAIL,
         },
       };
     }),
@@ -78,7 +85,7 @@ export async function GET(req: Request) {
         where: { id },
         include: {
           ratings: true,
-          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true } } } },
+          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } } },
           tags: { include: { tag: true } },
           createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
           _count: { select: { reports: true } },
@@ -106,7 +113,7 @@ export async function GET(req: Request) {
         ratings: true,
         comments: {
           orderBy: { createdAt: "desc" },
-          include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true } } },
+          include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } },
         },
         tags: { include: { tag: true } },
         createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
