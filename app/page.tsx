@@ -1,21 +1,34 @@
   'use client';
   
-  async function shareItem(id: string, name: string) {
-    const url = `${window.location.origin}/share/${id}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: `${name} — RateStuff`, text: 'RateStuff', url });
-      } else if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(url);
-        alert('Bağlantı kopyalandı');
-      } else {
-        const ta = document.createElement('textarea');
-        ta.value = url; document.body.appendChild(ta); ta.select();
-        document.execCommand('copy'); document.body.removeChild(ta);
-        alert('Bağlantı kopyalandı');
-      }
-    } catch {}
-  }
+
+// --- PAYLAŞIM YARDIMCILARI ---
+function buildShareUrl(id: string) {
+  return `${window.location.origin}/share/${id}`;
+}
+async function copyShareLink(id: string) {
+  const url = buildShareUrl(id);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(url);
+      alert('Bağlantı kopyalandı');
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      alert('Bağlantı kopyalandı');
+    }
+  } catch {}
+}
+async function nativeShare(id: string, name: string) {
+  const url = buildShareUrl(id);
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: `${name} — RateStuff`, text: 'RateStuff', url });
+    } else {
+      await copyShareLink(id);
+    }
+  } catch {}
+}
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -68,6 +81,7 @@ export default function HomePage() {
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [openShare, setOpenShare] = useState<string | null>(null);
   const [quickRating, setQuickRating] = useState(5);
   const [justAdded, setJustAdded] = useState(false);
   const [pulseQuick, setPulseQuick] = useState(false);
@@ -198,6 +212,18 @@ export default function HomePage() {
   }
 
   useEffect(() => { load(); loadSavedIds(); }, []);
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      // close both menus if any is open and click is not on a menu button or popover
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest('.rs-pop')) return;
+      setOpenMenu(null);
+      setOpenShare(null);
+    }
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
   // URL'den ?item=... yakala ve spotlight için hazırla
   useEffect(() => {
     try {
@@ -539,48 +565,155 @@ export default function HomePage() {
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {sharedItem && (
-            <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">
-              <div className="flex items-start gap-3">
-                <div className="w-28 h-28 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
-                  {sharedItem.imageUrl ? (
-                    <img src={sharedItem.imageUrl} alt={sharedItem.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xs opacity-60">no img</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-base md:text-lg font-semibold leading-snug">{sharedItem.name}</div>
-                  <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
-                  <div className="mt-2 flex items-center gap-3">
-                    <Stars value={sharedItem.avg ?? 0} onRate={(n) => rate(sharedItem.id, n)} />
-                    <span className="text-sm font-medium tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
-                    <span className="text-xs opacity-60">({sharedItem.count})</span>
-                  </div>
-                  {sharedItem.tags?.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {sharedItem.tags.slice(0,10).map(t => (
-                        <Tag key={t} label={t} />
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      onClick={() => showInList(sharedItem.id)}
-                      className="px-3 py-2 rounded-xl text-sm border hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                      Listede göster
-                    </button>
-                    <button
-                      onClick={() => shareItem(sharedItem.id, sharedItem.name)}
-                      className="px-3 py-2 rounded-xl text-sm border hover:bg-gray-50 dark:hover:bg-gray-800"
-                    >
-                      Paylaş…
-                    </button>
-                  </div>
-                </div>
+  <div className={
+    `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150`
+  }>
+    {/* LEFT TOP: Share + Options */}
+    <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+      <div className="relative">
+        <button
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+          aria-label="share"
+          onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
+        >
+          {/* share icon */}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M7 12l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 7v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </button>
+        {openShare === sharedItem.id && (
+          <div className="rs-pop absolute left-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+            <button
+              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
+            >
+              Kopyala
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
+            >
+              Daha fazla seçenek
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="relative">
+        <button
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+          onClick={() => setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id)}
+          aria-label="options"
+        >
+          ⋯
+        </button>
+        {openMenu === sharedItem.id && (
+          <div className="rs-pop absolute left-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+            <button
+              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
+            >
+              Report
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => { setOpenMenu(null); showInList(sharedItem.id); }}
+            >
+              Listede göster
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* CONTENT */}
+    <div className="flex items-start gap-3">
+      <div className="flex flex-col items-center shrink-0 w-28">
+        {sharedItem.imageUrl ? (
+          <img src={sharedItem.imageUrl} alt={sharedItem.name} className="w-28 h-28 object-cover rounded-lg" />
+        ) : (
+          <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
+        )}
+        {sharedItem.edited && (
+          <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+        )}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={sharedItem.name}>
+          {sharedItem.name}
+        </h3>
+        <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
+
+        {sharedItem.createdBy && (
+          <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+            {sharedItem.createdBy.avatarUrl ? (
+              <img src={sharedItem.createdBy.avatarUrl} alt={sharedItem.createdBy.name || 'u'} className="w-5 h-5 rounded-full object-cover" />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
+                {(sharedItem.createdBy.name || 'U')[0]?.toUpperCase()}
               </div>
+            )}
+            <span>{sharedItem.createdBy.name}</span>
+          </div>
+        )}
+
+        {/* Rating row with wrap-safe spans */}
+        <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+          <Stars value={sharedItem.avg ?? 0} onRate={(n) => rate(sharedItem.id, n)} />
+          <span className="text-sm font-medium tabular-nums whitespace-nowrap">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
+          <span className="text-xs opacity-60 whitespace-nowrap">({sharedItem.count})</span>
+        </div>
+
+        {sharedItem.tags?.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {sharedItem.tags.slice(0, 10).map((t) => (
+              <Tag key={t} label={t} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+
+    {sharedItem.comments?.length > 0 && (
+      <div className="pt-3 space-y-2 text-sm leading-relaxed">
+        {sharedItem.comments.map((c) => (
+          <div key={c.id} className="flex items-start gap-2 min-w-0">
+            {c.user?.avatarUrl ? (
+              <img src={c.user.avatarUrl} alt={c.user?.name || 'user'} className="w-5 h-5 rounded-full object-cover mt-0.5" title={c.user?.name || 'user'} />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5" title={c.user?.name || 'user'}>
+                {(c.user?.name || 'U')[0]?.toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="text-xs opacity-70">{c.user?.name || 'anon'}</div>
+              <div className="truncate">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
             </div>
-          )}
+          </div>
+        ))}
+      </div>
+    )}
+
+    {/* Comment input for spotlight */}
+    <div className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2">
+      <input
+        value={drafts[sharedItem.id] || ''}
+        onChange={(e) => setDrafts((d) => ({ ...d, [sharedItem.id]: e.target.value }))}
+        placeholder="yorum yaz…"
+        className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+      />
+      <button
+        onClick={() => sendComment(sharedItem.id)}
+        className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
+      >
+        Gönder
+      </button>
+    </div>
+  </div>
+)}
           {/* Hızlı ekleme */}
           <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
             <CollapsibleSection
@@ -814,8 +947,39 @@ export default function HomePage() {
                     (highlightId === i.id ? 'ring-2 ring-emerald-400' : '')
                   }
                 >
-                  {/* OPTIONS (⋯) – SAĞ ÜST */}
-                  <div className="absolute top-3 right-3">
+                  {/* LEFT TOP: Share + Options */}
+                  <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
+                    {/* Share button + popover */}
+                    <div className="relative">
+                      <button
+                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+                        aria-label="share"
+                        onClick={() => setOpenShare(openShare === i.id ? null : i.id)}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M7 12l5-5 5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M12 7v10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        </svg>
+                      </button>
+                      {openShare === i.id && (
+                        <div className="rs-pop absolute left-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                          <button
+                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                            onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
+                          >
+                            Kopyala
+                          </button>
+                          <button
+                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                            onClick={() => { nativeShare(i.id, i.name); setOpenShare(null); }}
+                          >
+                            Daha fazla seçenek
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Options button + menu */}
                     <div className="relative">
                       <button
                         className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
@@ -824,10 +988,8 @@ export default function HomePage() {
                       >
                         ⋯
                       </button>
-
                       {openMenu === i.id && (
-                        <div className="absolute right-0 z-20 mt-2 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-                          {/* Kaydet / Kaydedilenlerden Kaldır */}
+                        <div className="rs-pop absolute left-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           <button
                             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                               isSaved
@@ -838,15 +1000,6 @@ export default function HomePage() {
                           >
                             {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
                           </button>
-
-                          <button
-                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                            onClick={() => { setOpenMenu(null); shareItem(i.id, i.name); }}
-                          >
-                            Paylaş…
-                          </button>
-
-                          {/* Report */}
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                             onClick={() => { setOpenMenu(null); report(i.id); }}
@@ -893,10 +1046,10 @@ export default function HomePage() {
                           </div>
                         )}
 
-                        <div className="mt-2 flex items-center gap-3">
+                        <div className="mt-2 flex items-center gap-2 sm:gap-3 flex-wrap">
                           <Stars value={i.avg ?? 0} onRate={(n) => rate(i.id, n)} />
-                          <span className="text-sm font-medium tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
-                          <span className="text-xs opacity-60">({i.count})</span>
+                          <span className="text-sm font-medium tabular-nums whitespace-nowrap">{i.avg ? i.avg.toFixed(2) : '—'}</span>
+                          <span className="text-xs opacity-60 whitespace-nowrap">({i.count})</span>
                         </div>
 
                         {i.tags.length > 0 && (
