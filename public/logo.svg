@@ -1,111 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="170" height="100" viewBox="0 0 127.5 75" preserveAspectRatio="xMidYMid meet" version="1.2">
-  <defs>
-    <clipPath id="63a2c5420a"><path d="M0 .144h127v74.708H0z"/></clipPath>
-    <clipPath id="0c26569505"><path d="M1 .144h125v74.708H1z"/></clipPath>
-    <filter id="2dc9c452ba" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-      <feColorMatrix type="matrix" in="SourceGraphic" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/>
-    </filter>
-    <clipPath id="58c2d2782e"><path d="M.914.144h123.121v74.708H.914z"/></clipPath>
-    <clipPath id="ee098d8ac6"><path d="M6.922-24.035h111.16c3.289 0 5.953 2.668 5.953 5.953v111.164c0 3.285-2.664 5.953-5.953 5.953H6.922A5.953 5.953 0 0 1 .969 93.082V-18.082c0-3.285 2.664-5.953 5.953-5.953z"/></clipPath>
-    <clipPath id="d8612c7f83"><path d="M.914.144h123.121v74.708H.914z"/></clipPath>
-    <clipPath id="717a7d2d79"><path d="M6.922-24.035h111.16c3.289 0 5.953 2.668 5.953 5.953v111.164c0 3.285-2.664 5.953-5.953 5.953H6.922A5.953 5.953 0 0 1 .969 93.082V-18.082c0-3.285 2.664-5.953 5.953-5.953z"/></clipPath>
-    <clipPath id="2b503f62cd"><rect x="0" y="0" width="125" height="75"/></clipPath>
-    <clipPath id="661aa2e8f3"><rect x="0" y="0" width="125" height="75"/></clipPath>
-    <clipPath id="ab38827315"><path d="M12 .144h103v74.708H12z"/></clipPath>
-    <clipPath id="6b77f43fab"><rect x="0" y="0" width="103" height="75"/></clipPath>
-    <clipPath id="dba5e87343"><path d="M45.629 11.125h11.629V23.23H45.629z"/></clipPath>
-    <clipPath id="2e17c57030"><path d="M.629.125h11.629V12.23H.629z"/></clipPath>
-    <clipPath id="be92d472d0"><rect x="0" y="0" width="13" height="13"/></clipPath>
-    <clipPath id="a175fffb5f"><path d="M41.395 7.602h20.125v19.152H41.395z"/></clipPath>
-    <clipPath id="5ee291b177"><path d="M51.441 7.602l2.371 7.316h7.676l-6.207 4.52 2.371 7.316-6.211-4.523-6.207 4.523 2.371-7.316-6.211-4.52h7.676z"/></clipPath>
-    <clipPath id="13177419a8"><path d="M.395.602h20.125v19.152H.395z"/></clipPath>
-    <clipPath id="4370aa6164"><path d="M10.441.602l2.371 7.316h7.676l-6.207 4.52 2.371 7.316-6.211-4.523-6.207 4.523 2.371-7.316L.395 7.918h7.676z"/></clipPath>
-    <clipPath id="7e5e8c14e2"><rect x="0" y="0" width="21" height="20"/></clipPath>
-  </defs>
-
-  <g clip-path="url(#63a2c5420a)">
-    <!-- formerly white background -> transparent -->
-    <path d="M0 .144h127v74.708H0z" fill="none"/>
-    <path d="M0 .144h127v74.708H0z" fill="none"/>
-  </g>
-
-  <g clip-path="url(#0c26569505)">
-    <g mask="url(#e2a2320baf)" transform="matrix(1,0,0,1,1,0)">
-      <g clip-path="url(#661aa2e8f3)">
-        <g clip-path="url(#58c2d2782e)">
-          <g clip-path="url(#ee098d8ac6)">
-            <g id="48a412824c" clip-path="url(#2b503f62cd)">
-              <g clip-path="url(#d8612c7f83)">
-                <g clip-path="url(#717a7d2d79)">
-                  <!-- formerly white panel -> transparent -->
-                  <path d="M.969-24.035h123.066V99.035H.969z" fill="none"/>
-                </g>
-              </g>
-            </g>
-          </g>
-        </g>
-      </g>
-      <mask id="e2a2320baf">
-        <g filter="url(#2dc9c452ba)">
-          <rect x="0" y="0" width="127.5" height="75" style="fill:#000;fill-opacity:.5;stroke:none;"/>
-        </g>
-      </mask>
-    </g>
-  </g>
-
-  <!-- main glyphs: use currentColor -->
-  <g clip-path="url(#ab38827315)" transform="matrix(1,0,0,1,12,0)">
-    <g clip-path="url(#6b77f43fab)" fill="currentColor">
-      <g transform="translate(1.129704,36.995728)">
-        <path d="M24.266 0l-4.516-8.563h4.516V-30.711H1.195V0h7.692v-8.563h3.312L16.574 0zm-7.692-15.562H8.887v-8.102h7.687z"/>
-      </g>
-      <g transform="translate(26.590568,36.995728)">
-        <path d="M24.266 0v-30.711H1.195V0h7.692v-8.563h7.687V0zm-7.692-15.562H8.887v-8.102h7.687z"/>
-      </g>
-      <g transform="translate(52.051431,36.995728)">
-        <path d="M23.758-23.664v-7.047H.691v7.047h7.735V0h7.687v-23.664z"/>
-      </g>
-      <g transform="translate(76.499387,36.995728)">
-        <path d="M24.172 0v-7H8.887v-5.062h15.285v-6.77H8.887v-4.832h15.285v-7.047H1.195V0z"/>
-      </g>
-
-      <g transform="translate(1.581823,68.326029)">
-        <path d="M19.219 0v-14.914H7.039v-3.828h12.18v-5.578H.949v14.766h12.18v4.012H.949V0z"/>
-      </g>
-      <g transform="translate(21.709197,68.326029)">
-        <path d="M18.816-18.742v-5.578H.547v5.578h6.125V0h6.09v-18.742z"/>
-      </g>
-      <g transform="translate(41.070854,68.326029)">
-        <path d="M19.219 0v-24.32h-6.09v18.777H7.039V-24.32H.949V0z"/>
-      </g>
-      <g transform="translate(61.234688,68.326029)">
-        <path d="M19.145-9.555v-5.359H7.039v-3.828h12.106v-5.578H.949V0h6.09v-9.555z"/>
-      </g>
-      <g transform="translate(81.325601,68.326029)">
-        <path d="M19.145-9.555v-5.359H7.039v-3.828h12.106v-5.578H.949V0h6.09v-9.555z"/>
-      </g>
-    </g>
-  </g>
-
-  <!-- small square (keep as currentColor) -->
-  <g clip-path="url(#dba5e87343)" transform="matrix(1,0,0,1,45,11)">
-    <g clip-path="url(#be92d472d0)">
-      <g clip-path="url(#2e17c57030)">
-        <path d="M.629.125h11.629V12.254H.629z" fill="currentColor"/>
-      </g>
-    </g>
-  </g>
-
-  <!-- inner star panel outline becomes transparent (no white) -->
-  <g clip-path="url(#a175fffb5f)">
-    <g clip-path="url(#5ee291b177)" transform="matrix(1,0,0,1,41,7)">
-      <g clip-path="url(#7e5e8c14e2)">
-        <g clip-path="url(#13177419a8)">
-          <g clip-path="url(#4370aa6164)">
-            <path d="M.395.602h20.125v19.152H.395z" fill="none"/>
-          </g>
-        </g>
-      </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="100" viewBox="0 0 298 175" preserveAspectRatio="xMidYMid meet">
+  <g transform="translate(0,175) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+    <path d="M340 1245 l0 -355 85 0 85 0 0 100 0 100 43 0 43 0 53 -100 52 -100 86 0 85 0 -51 95 c-28 53 -51 98 -51 100 0 3 23 5 50 5 l50 0 0 255 0 255 -265 0 -265 0 0 -355z m360 100 l0 -95 -95 0 -95 0 0 95 0 95 95 0 95 0 0 -95z"/>
+    <path d="M940 1245 l0 -355 85 0 85 0 0 100 0 100 95 0 95 0 0 -100 0 -100 85 0 85 0 0 355 0 355 -265 0 -265 0 0 -355z m299 243 l22 -67 82 -3 82 -3 -62 -44 c-35 -25 -63 -52 -63 -61 0 -9 9 -43 20 -75 11 -32 20 -62 20 -67 0 -4 -30 14 -67 40 l-67 49 -65 -48 c-36 -26 -67 -47 -68 -45 -2 1 8 35 22 76 13 40 22 76 19 81 -2 4 -32 28 -66 51 l-61 43 83 5 83 5 25 73 c13 41 28 70 32 65 4 -4 17 -38 29 -75z"/>
+    <path d="M1520 1520 l0 -80 90 0 90 0 0 -275 0 -275 90 0 90 0 0 275 0 275 90 0 90 0 0 80 0 80 -270 0 -270 0 0 -80z"/>
+    <path d="M2110 1245 l0 -355 265 0 265 0 0 75 0 75 -177 2 -178 3 -3 63 -3 62 181 0 180 0 0 75 0 75 -180 0 -180 0 0 60 0 60 180 0 180 0 0 80 0 80 -265 0 -265 0 0 -355z"/>
+    <path d="M340 550 l0 -170 145 0 145 0 0 -50 0 -50 -145 0 -145 0 0 -60 0 -60 215 0 215 0 0 170 0 170 -145 0 -145 0 0 50 0 50 145 0 145 0 0 60 0 60 -215 0 -215 0 0 -170z"/>
+    <path d="M810 660 l0 -60 70 0 70 0 0 -220 0 -220 70 0 70 0 0 220 0 220 70 0 70 0 0 60 0 60 -210 0 -210 0 0 -60z"/>
+    <path d="M1270 440 l0 -280 210 0 210 0 0 280 0 280 -65 0 -65 0 0 -220 0 -220 -75 0 -75 0 0 220 0 220 -70 0 -70 0 0 -280z"/>
+    <path d="M1740 440 l0 -280 70 0 70 0 0 110 0 110 140 0 140 0 0 60 0 60 -140 0 -140 0 0 50 0 50 140 0 140 0 0 60 0 60 -210 0 -210 0 0 -280z"/>
+    <path d="M2220 440 l0 -280 65 0 65 0 0 110 0 110 145 0 145 0 0 60 0 60 -145 0 -145 0 0 50 0 50 145 0 145 0 0 60 0 60 -210 0 -210 0 0 -280z"/>
   </g>
 </svg>
