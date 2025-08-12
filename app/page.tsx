@@ -105,6 +105,29 @@ export default function HomePage() {
   // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
+
+  // Spotlight yardımcıları
+  async function refreshShared(id: string) {
+    try {
+      const r = await fetch(`/api/items?id=${encodeURIComponent(id)}`, { cache: 'no-store' });
+      const j = await r.json().catch(() => null);
+      const arr = Array.isArray(j) ? j : (Array.isArray(j?.items) ? j.items : (j?.item ? [j.item] : []));
+      setSharedItem(arr[0] || null);
+    } catch {
+      // yut
+    }
+  }
+  function closeSpotlight() {
+    setSharedItem(null);
+    setSharedId(null);
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('item')) {
+        url.searchParams.delete('item');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {}
+  }
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
   // Seçili etiket sayıları (başlıklarda göstermek için)
@@ -412,8 +435,13 @@ export default function HomePage() {
     });
     if (!res) return;
     const j = await res.json().catch(() => null);
-    if (j?.ok) { setDrafts(d => ({ ...d, [itemId]: '' })); await load(); }
-    else alert('Hata: ' + (j?.error || res.status));
+    if (j?.ok) {
+      setDrafts(d => ({ ...d, [itemId]: '' }));
+      await load();
+      if (sharedId && itemId === sharedId) {
+        await refreshShared(itemId);
+      }
+    } else alert('Hata: ' + (j?.error || res.status));
   }
 
   function jumpToQuickAdd() {
@@ -566,10 +594,21 @@ export default function HomePage() {
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {sharedItem && (
   <div className={
-    `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150`
+    `relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
   }>
+    {/* CLOSE (X) */}
+    <button
+      className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
+      onClick={closeSpotlight}
+      aria-label="Spotlight kartını kapat"
+      title="Kapat"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      </svg>
+    </button>
     {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
+    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
       <div className="relative">
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
