@@ -12,8 +12,8 @@ type Controls = {
   onQ: (v: string) => void;
   order: 'new' | 'top';
   onOrder: (v: 'new' | 'top') => void;
-  starBucket: number | null;
-  onStarBucket: (v: number | null) => void;
+  starBuckets: number[];
+  onStarBuckets: (v: number[]) => void;
 };
 
 const USE_CURRENTCOLOR = true;
@@ -178,22 +178,32 @@ export default function Header({ controls }: { controls?: Controls }) {
             </div>
 
             {/* ★ Yıldız filtresi */}
-            <select
-              value={controls.starBucket ?? ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                controls.onStarBucket(v ? Number(v) : null);
-              }}
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              title="Yıldız"
-            >
-              <option value="">Hepsi</option>
-              <option value="1">1 ★</option>
-              <option value="2">2 ★</option>
-              <option value="3">3 ★</option>
-              <option value="4">4 ★</option>
-              <option value="5">5 ★</option>
-            </select>
+            <div className="flex items-center gap-1" title="Yıldız filtresi">
+              {[1,2,3,4,5].map((n) => {
+                const active = controls.starBuckets.includes(n);
+                return (
+                  <button
+                    key={`star-${n}`}
+                    type="button"
+                    onClick={() => {
+                      const set = new Set(controls.starBuckets);
+                      if (set.has(n)) set.delete(n); else set.add(n);
+                      controls.onStarBuckets(Array.from(set).sort());
+                    }}
+                    className={
+                      `px-2.5 py-1.5 rounded-lg border text-sm ` +
+                      (active
+                        ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800')
+                    }
+                    aria-pressed={active}
+                    aria-label={`${n} yıldız filtrele`}
+                  >
+                    {n} ★
+                  </button>
+                );
+              })}
+            </div>
 
             <select
               value={controls.order}
@@ -287,22 +297,32 @@ export default function Header({ controls }: { controls?: Controls }) {
             </div>
 
             {/* ★ Yıldız filtresi (mobil) */}
-            <select
-              value={controls.starBucket ?? ''}
-              onChange={(e) => {
-                const v = e.target.value;
-                controls.onStarBucket(v ? Number(v) : null);
-              }}
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-              title="Yıldız"
-            >
-              <option value="">Hepsi</option>
-              <option value="1">1 ★</option>
-              <option value="2">2 ★</option>
-              <option value="3">3 ★</option>
-              <option value="4">4 ★</option>
-              <option value="5">5 ★</option>
-            </select>
+            <div className="flex items-center gap-1" title="Yıldız filtresi">
+              {[1,2,3,4,5].map((n) => {
+                const active = controls.starBuckets.includes(n);
+                return (
+                  <button
+                    key={`star-${n}`}
+                    type="button"
+                    onClick={() => {
+                      const set = new Set(controls.starBuckets);
+                      if (set.has(n)) set.delete(n); else set.add(n);
+                      controls.onStarBuckets(Array.from(set).sort());
+                    }}
+                    className={
+                      `px-2.5 py-1.5 rounded-lg border text-sm ` +
+                      (active
+                        ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800')
+                    }
+                    aria-pressed={active}
+                    aria-label={`${n} yıldız filtrele`}
+                  >
+                    {n} ★
+                  </button>
+                );
+              })}
+            </div>
 
             <select
               value={controls.order}

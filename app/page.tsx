@@ -64,7 +64,7 @@ export default function HomePage() {
   const [newImage, setNewImage] = useState<string | null>(null);
   const [newRating, setNewRating] = useState<number>(5);
   const [loadedOnce, setLoadedOnce] = useState(false);
-  const [starBucket, setStarBucket] = useState<number | null>(null);
+  const [starBuckets, setStarBuckets] = useState<Set<number>>(new Set());
   // Yorum düzenleme state'i
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
@@ -192,8 +192,11 @@ export default function HomePage() {
   // Filtreleme: yıldız ve çoklu etiket seçimi
   const filteredItems = useMemo(() => {
     let filtered = items;
-    if (starBucket) {
-      filtered = filtered.filter(i => bucketOf(i.avg) === starBucket);
+    if (starBuckets.size > 0) {
+      filtered = filtered.filter(i => {
+        const b = bucketOf(i.avg);
+        return b !== null && starBuckets.has(b);
+      });
     }
     if (selectedTags.size > 0) {
       filtered = filtered.filter(i =>
@@ -201,7 +204,7 @@ export default function HomePage() {
       );
     }
     return filtered;
-  }, [items, starBucket, selectedTags]);
+  }, [items, starBuckets, selectedTags]);
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -392,7 +395,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBucket, onStarBucket: setStarBucket }} />
+      <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBuckets: Array.from(starBuckets), onStarBuckets: (arr)=>setStarBuckets(new Set(arr)) }} />
       <style jsx global>{`
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(-4px); }
@@ -609,52 +612,65 @@ export default function HomePage() {
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
           {/* Filtre özet çubuğu + sonuç sayacı */}
-          {(!!starBucket || selectedTags.size > 0) && (
-            <div className="rounded-2xl border p-3 bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm opacity-70">Filtreler:</span>
-                {starBucket && (
-                  <span className="px-2 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700">
-                    {starBucket} ★ ve üzeri
-                  </span>
-                )}
-                {Array.from(selectedTags).map((t) => (
-                  <button
-                    key={`sel-${t}`}
-                    type="button"
-                    className="group inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20"
-                    onClick={() => {
-                      setSelectedTags(prev => {
-                        const next = new Set(prev);
-                        next.delete(t);
-                        return next;
-                      });
-                    }}
-                    title={`#${t} filtresini kaldır`}
-                  >
-                    <span className="truncate max-w-[140px]">#{t}</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" className="opacity-60 group-hover:opacity-100"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm opacity-70 hidden sm:inline">{filteredItems.length} sonuç</span>
-                <button
-                  type="button"
-                  className="px-2.5 py-1.5 rounded-lg border text-xs hover:bg-gray-50 dark:hover:bg-gray-800"
-                  onClick={() => { setStarBucket(null); setSelectedTags(new Set()); }}
-                  title="Tüm filtreleri temizle"
-                >
-                  Temizle
-                </button>
-              </div>
-            </div>
-          )}
+      {(starBuckets.size > 0 || selectedTags.size > 0) && (
+        <div className="rounded-2xl border p-3 bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm opacity-70">Filtreler:</span>
+            {Array.from(starBuckets).sort().map((n) => (
+              <button
+                key={`star-chip-${n}`}
+                type="button"
+                className="group inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-amber-50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700"
+                onClick={() => {
+                  setStarBuckets(prev => {
+                    const next = new Set(prev);
+                    next.delete(n);
+                    return next;
+                  });
+                }}
+                title={`${n} ★ filtresini kaldır`}
+              >
+                <span className="tabular-nums">{n} ★</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" className="opacity-60 group-hover:opacity-100"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            ))}
+            {Array.from(selectedTags).map((t) => (
+              <button
+                key={`sel-${t}`}
+                type="button"
+                className="group inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20"
+                onClick={() => {
+                  setSelectedTags(prev => {
+                    const next = new Set(prev);
+                    next.delete(t);
+                    return next;
+                  });
+                }}
+                title={`#${t} filtresini kaldır`}
+              >
+                <span className="truncate max-w-[140px]">#{t}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" className="opacity-60 group-hover:opacity-100"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm opacity-70 hidden sm:inline">{filteredItems.length} sonuç</span>
+            <button
+              type="button"
+              className="px-2.5 py-1.5 rounded-lg border text-xs hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => { setStarBuckets(new Set()); setSelectedTags(new Set()); }}
+              title="Tüm filtreleri temizle"
+            >
+              Temizle
+            </button>
+          </div>
+        </div>
+      )}
 
          {!loading
   && loadedOnce
   && filteredItems.length === 0
-  && (q.trim().length > 0 || starBucket !== null || selectedTags.size > 0 || items.length === 0)
+  && (q.trim().length > 0 || starBuckets.size > 0 || selectedTags.size > 0 || items.length === 0)
   && (
             <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
               <div className="flex items-start gap-3">
