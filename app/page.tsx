@@ -1122,7 +1122,6 @@ export default function HomePage() {
     const othersAll = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
     const displayOthers = othersAll.slice(0, spotlightShowCount);
     const hasMoreOthers = othersAll.length > spotlightShowCount;
-    const [showQuickAdd, setShowQuickAdd] = useState(false);
 
     return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
