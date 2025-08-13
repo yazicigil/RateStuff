@@ -360,28 +360,29 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       }
     }
     run();
-    useEffect(() => {
-  let aborted = false;
-  async function run() {
-    const typed = qInput.trim();
-    if (!typed || typed === qCommitted) { setSuggestions([]); return; }
-    try {
-      const r = await fetch(`/api/items?q=${encodeURIComponent(typed)}&limit=10`, { cache: 'no-store' });
-      const j = await r.json().catch(() => null);
-      const arr = toArray(j, 'items', 'data');
-      const names: string[] = Array.isArray(arr)
-        ? Array.from(new Set(arr.map((x:any) => String(x?.name || '').trim()).filter(Boolean)))
-        : [];
-      if (!aborted) setSuggestions(names.slice(0, 10));
-    } catch {
-      if (!aborted) setSuggestions([]);
-    }
-  }
-  const id = setTimeout(run, 150);
-  return () => { aborted = true; clearTimeout(id); };
-}, [qInput, qCommitted]);
     return () => { aborted = true; };
   }, [sharedId]);
+
+  useEffect(() => {
+    let aborted = false;
+    async function run() {
+      const typed = qInput.trim();
+      if (!typed || typed === qCommitted) { setSuggestions([]); return; }
+      try {
+        const r = await fetch(`/api/items?q=${encodeURIComponent(typed)}&limit=10`, { cache: 'no-store' });
+        const j = await r.json().catch(() => null);
+        const arr = toArray(j, 'items', 'data');
+        const names: string[] = Array.isArray(arr)
+          ? Array.from(new Set(arr.map((x:any) => String(x?.name || '').trim()).filter(Boolean)))
+          : [];
+        if (!aborted) setSuggestions(names.slice(0, 10));
+      } catch {
+        if (!aborted) setSuggestions([]);
+      }
+    }
+    const id = setTimeout(run, 150);
+    return () => { aborted = true; clearTimeout(id); };
+  }, [qInput, qCommitted]);
   useEffect(() => {
   load();
 }, [qCommitted, order]);
