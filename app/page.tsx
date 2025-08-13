@@ -136,6 +136,8 @@ export default function HomePage() {
   const [truncatedComments, setTruncatedComments] = useState<Set<string>>(new Set());
   const commentTextRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const [spotlightShowCount, setSpotlightShowCount] = useState(7);
+  
   function measureTruncation(id: string) {
     const el = commentTextRefs.current[id];
     if (!el) return;
@@ -162,6 +164,7 @@ export default function HomePage() {
   // — Paylaş linkinden gelen tek öğeyi (spotlight) göstermek için
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [sharedItem, setSharedItem] = useState<ItemVM | null>(null);
+  useEffect(() => { setSpotlightShowCount(7); }, [sharedId, sharedItem?.id]);
 
   // sharedItem değiştiğinde de truncation ölç
   useEffect(() => {
@@ -900,12 +903,14 @@ export default function HomePage() {
       {sharedItem.comments?.length > 0 && (
   (() => {
     const my = myId ? sharedItem.comments.find(c => c.user?.id === myId) : null;
-    const others = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
+    const othersAll = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
+    const displayOthers = othersAll.slice(0, spotlightShowCount);
+    const hasMoreOthers = othersAll.length > spotlightShowCount;
 
     return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
         {/* Başkalarının yorumları */}
-        {others.map((c) => {
+        {displayOthers.map((c) => {
           const isEditing = editingCommentId === c.id;
           return (
             <div key={c.id} className="flex items-start gap-2 justify-between">
@@ -992,6 +997,17 @@ export default function HomePage() {
             </div>
           );
         })}
+        {hasMoreOthers && (
+          <div className="pt-1">
+            <button
+              type="button"
+              className="text-[12px] underline opacity-75 hover:opacity-100"
+              onClick={() => setSpotlightShowCount(n => n + 7)}
+            >
+              daha fazla gör
+            </button>
+          </div>
+        )}
 
         {/* Senin yorumun – en altta, highlight’lı */}
         {my && (() => {
@@ -1591,17 +1607,6 @@ export default function HomePage() {
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
         {/* Başkalarının yorumları */}
         {displayOthers.map((c) => {
-        {hasMore && (
-          <div className="pt-1">
-            <button
-              type="button"
-              className="text-[12px] underline opacity-75 hover:opacity-100"
-              onClick={() => openSpotlight(i.id)}
-            >
-              hepsini gör
-            </button>
-          </div>
-        )}
           const isEditing =
   editingCommentId === c.id && editingCommentItem === i.id;
           return (
@@ -1688,6 +1693,18 @@ export default function HomePage() {
             </div>
           );
         })}
+
+        {hasMore && (
+          <div className="pt-1">
+            <button
+              type="button"
+              className="text-[12px] underline opacity-75 hover:opacity-100"
+              onClick={() => openSpotlight(i.id)}
+            >
+              hepsini gör
+            </button>
+          </div>
+        )}
 
         {/* Senin yorumun – en altta, highlight’lı */}
         {my && (() => {
