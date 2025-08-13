@@ -16,6 +16,15 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const commentId = params.id;
 
+    // Prevent self-vote
+    const owner = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { userId: true },
+    });
+    if (owner?.userId === me.id) {
+      return NextResponse.json({ ok: false, error: 'cannot-self-vote' }, { status: 400 });
+    }
+
     if (value === 0) {
       // Oy kaldır
       await (prisma as any).commentVote.deleteMany({ where: { commentId, userId: me.id } });

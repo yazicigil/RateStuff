@@ -39,32 +39,43 @@ function shapeItem(i: any, meId?: string | null) {
           verified: i.createdBy.email === ADMIN_EMAIL,
         }
       : null,
-    comments: (i.comments || []).map((c: any) => {
-      const votes = Array.isArray((c as any).votes) ? (c as any).votes : [];
-      const score = votes.reduce((sum: number, v: any) => sum + (typeof v?.value === 'number' ? v.value : 0), 0);
-      const myVote =
-        meId ? (votes.find((v: any) => v?.userId === meId)?.value ?? 0) : 0;
-
-      return {
-        id: c.id,
-        text: c.text,
-        rating: (c as any)?.rating ?? null,
-        score,
-        myVote,
-        edited: Boolean(c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000),
-        user: c.user
-          ? {
-              id: c.user.id,
-              name:
-                c.user.email === ADMIN_EMAIL
-                  ? c.user.name || 'Anonim'
-                  : c.user.maskedName ?? (c.user.name ? maskName(c.user.name) : 'Anonim'),
-              avatarUrl: c.user.avatarUrl ?? null,
-              verified: c.user.email === ADMIN_EMAIL,
-            }
-          : null,
-      };
-    }),
+    comments: (() => {
+      const enriched = (i.comments || []).map((c: any) => {
+        const votes = Array.isArray((c as any).votes) ? (c as any).votes : [];
+        const score = votes.reduce((sum: number, v: any) => sum + (typeof v?.value === 'number' ? v.value : 0), 0);
+        const myVote = meId ? (votes.find((v: any) => v?.userId === meId)?.value ?? 0) : 0;
+        return {
+          createdAt: c.createdAt,
+          data: {
+            id: c.id,
+            text: c.text,
+            rating: (c as any)?.rating ?? null,
+            score,
+            myVote,
+            edited: Boolean(c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000),
+            user: c.user
+              ? {
+                  id: c.user.id,
+                  name:
+                    c.user.email === ADMIN_EMAIL
+                      ? c.user.name || 'Anonim'
+                      : c.user.maskedName ?? (c.user.name ? maskName(c.user.name) : 'Anonim'),
+                  avatarUrl: c.user.avatarUrl ?? null,
+                  verified: c.user.email === ADMIN_EMAIL,
+                }
+              : null,
+          },
+        };
+      });
+      enriched.sort((a: any, b: any) => {
+        const diff = (b.data.score ?? 0) - (a.data.score ?? 0);
+        if (diff !== 0) return diff;
+        const at = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bt = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bt - at; // tie-breaker: newer first
+      });
+      return enriched.map((x: any) => x.data);
+    })(),
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
     reportCount: i.reportCount ?? 0,
   };
