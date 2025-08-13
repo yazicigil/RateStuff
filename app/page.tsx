@@ -1583,12 +1583,25 @@ export default function HomePage() {
 {i.comments?.length > 0 && (
   (() => {
     const my = myId ? i.comments.find(c => c.user?.id === myId) : null;
-    const others = i.comments.filter(c => c.id !== (my?.id || ''));
+    const othersAll = i.comments.filter(c => c.id !== (my?.id || ''));
+    const displayOthers = othersAll.slice(0, 3);
+    const hasMore = othersAll.length > 3;
 
     return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
         {/* Başkalarının yorumları */}
-        {others.map((c) => {
+        {displayOthers.map((c) => {
+        {hasMore && (
+          <div className="pt-1">
+            <button
+              type="button"
+              className="text-[12px] underline opacity-75 hover:opacity-100"
+              onClick={() => openSpotlight(i.id)}
+            >
+              hepsini gör
+            </button>
+          </div>
+        )}
           const isEditing =
   editingCommentId === c.id && editingCommentItem === i.id;
           return (
