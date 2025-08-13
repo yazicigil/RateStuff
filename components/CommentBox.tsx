@@ -21,7 +21,7 @@ export default function CommentBox({
       await signIn('google');
       return;
     }
-    if (!text.trim() || rating === 0) return;
+    if (rating === 0) return;
     setBusy(true);
     const r = await fetch(`/api/items/${itemId}/comments`, {
       method: 'POST',

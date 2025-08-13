@@ -37,7 +37,7 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import ImageUploader from '@/components/ImageUploader';
-
+import CommentBox from '@/components/CommentBox';
 import { useSession } from 'next-auth/react';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
@@ -125,6 +125,7 @@ export default function HomePage() {
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
   const [editingCommentItem, setEditingCommentItem] = useState<string|null>(null);
+  const [editingCommentRating, setEditingCommentRating] = useState<number>(0);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   // Yorumlarda "devamını gör" için açılanlar
@@ -430,12 +431,12 @@ export default function HomePage() {
     }
   }
 
-  async function updateComment(commentId: string, text: string, itemId?: string) {
+  async function updateComment(commentId: string, text: string, itemId?: string, rating?: number) {
     // 1) /api/comments/:id (çoğul) → PATCH
     let res = await fetchOrSignin(`/api/comments/${commentId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ text, rating })
     });
     if (res && res.ok) { await load(); return true; }
 
@@ -444,7 +445,7 @@ export default function HomePage() {
       res = await fetchOrSignin(`/api/items/${itemId}/comments`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ commentId: commentId, text })
+        body: JSON.stringify({ commentId: commentId, text, rating })
       });
       if (res && res.ok) { await load(); return true; }
     }
@@ -931,23 +932,21 @@ export default function HomePage() {
       </div>
     )}
 
-    {/* Comment input for spotlight */}
-    <div className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2">
-      <input
-        value={drafts[sharedItem.id] || ''}
-        onChange={(e) => setDrafts((d) => ({ ...d, [sharedItem.id]: e.target.value }))}
-        placeholder="yorum yaz…"
-        className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+    {/* Comment input for spotlight (tek yorum kuralı) */}
+  {!(sharedItem as any).myCommentId && (
+    <div className="mt-3 pt-3 border-t dark:border-gray-800">
+      <CommentBox
+        itemId={sharedItem.id}
+        onDone={async () => {
+          await load();
+          await refreshShared(sharedItem.id);
+        }}
+        initialRating={0}
       />
-      <button
-        onClick={() => sendComment(sharedItem.id)}
-        className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
-      >
-        Gönder
-      </button>
     </div>
-  </div>
-)}
+  )}
+    </div>
+  )}
           {/* Hızlı ekleme */}
           <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
             <CollapsibleSection
@@ -1444,40 +1443,50 @@ export default function HomePage() {
                                   );
                                 })()
                               ) : (
-                                <div className="space-y-2">
-                                  <textarea
-                                    className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-                                    rows={3}
-                                    value={editingCommentText}
-                                    onChange={(e) => setEditingCommentText(e.target.value)}
-                                    autoFocus
-                                  />
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white"
-                                      onClick={async () => {
-                                        const ok = await updateComment(c.id, editingCommentText, i.id);
-                                        if (ok) {
+                                (
+                                  <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
+                                      <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
+                                    </div>
+                                    <textarea
+                                      className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                                      rows={3}
+                                      value={editingCommentText}
+                                      onChange={(e) => setEditingCommentText(e.target.value)}
+                                      autoFocus
+                                    />
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
+                                        onClick={async () => {
+                                          if (!editingCommentRating) return;
+                                          const ok = await updateComment(c.id, editingCommentText, i.id, editingCommentRating);
+                                          if (ok) {
+                                            setEditingCommentId(null);
+                                            setEditingCommentItem(null);
+                                            setEditingCommentText('');
+                                            setEditingCommentRating(0);
+                                          }
+                                        }}
+                                        disabled={!editingCommentRating}
+                                      >
+                                        Kaydet
+                                      </button>
+                                      <button
+                                        className="px-2.5 py-1.5 rounded-lg border text-xs"
+                                        onClick={() => {
                                           setEditingCommentId(null);
                                           setEditingCommentItem(null);
                                           setEditingCommentText('');
-                                        }
-                                      }}
-                                    >
-                                      Kaydet
-                                    </button>
-                                    <button
-                                      className="px-2.5 py-1.5 rounded-lg border text-xs"
-                                      onClick={() => {
-                                        setEditingCommentId(null);
-                                        setEditingCommentItem(null);
-                                        setEditingCommentText('');
-                                      }}
-                                    >
-                                      Vazgeç
-                                    </button>
+                                          setEditingCommentRating(0);
+                                        }}
+                                      >
+                                        Vazgeç
+                                      </button>
+                                    </div>
                                   </div>
-                                </div>
+                                )
                               )}
                             </div>
                           </div>
@@ -1492,6 +1501,7 @@ export default function HomePage() {
                                   setEditingCommentId(c.id);
                                   setEditingCommentItem(i.id);
                                   setEditingCommentText(c.text);
+                                  setEditingCommentRating(c.rating || 0);
                                 }}
                               >
                                 {/* Pencil icon */}
@@ -1522,21 +1532,19 @@ export default function HomePage() {
                     )}
                   </div>
 
-                  {/* Yorum yaz */}
-                  <div className="mt-3 pt-3 border-t dark:border-gray-800 flex items-center gap-2">
-                    <input
-                      value={drafts[i.id] || ''}
-                      onChange={(e) => setDrafts((d) => ({ ...d, [i.id]: e.target.value }))}
-                      placeholder="yorum yaz…"
-                      className="flex-1 min-w-0 border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                    />
-                    <button
-                      onClick={() => sendComment(i.id)}
-                      className="px-3 py-2 rounded-xl text-sm bg-black text-white shrink-0"
-                    >
-                      Gönder
-                    </button>
-                  </div>
+                  {/* Yorum yaz (tek yorum kuralı) */}
+                  {!(i as any).myCommentId && (
+                    <div className="mt-3 pt-3 border-t dark:border-gray-800">
+                      <CommentBox
+                        itemId={i.id}
+                        onDone={async () => {
+                          await load();
+                          if (sharedId && i.id === sharedId) await refreshShared(i.id);
+                        }}
+                        initialRating={0}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}

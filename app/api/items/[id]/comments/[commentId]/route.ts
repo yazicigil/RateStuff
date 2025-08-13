@@ -27,6 +27,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string; co
     });
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message ?? "error" }, { status: 400 });
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ ok: false, error: "duplicate-comment" }, { status: 409 });
+    }
+    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }

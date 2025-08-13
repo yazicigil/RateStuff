@@ -22,11 +22,14 @@ function buildDedupeKey(name: string, tags: string[]) {
 }
 
 function shapeItem(i: any, currentUserId?: string | null) {
-  const count = i.ratings?.length ?? 0;
-  const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
+  const rrs = (i.comments || [])
+    .map((c: any) => (typeof c.rating === 'number' ? c.rating : 0))
+    .filter((n: number) => n > 0);
+  const count = rrs.length;
+  const avg = count ? rrs.reduce((a: number, n: number) => a + n, 0) / count : null;
   const itemEdited = i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
   const myRating = currentUserId
-    ? (i.ratings || []).find((r: any) => r.userId === currentUserId)?.value ?? null
+    ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.rating ?? null)
     : null;
   return {
     id: i.id,
@@ -68,6 +71,8 @@ function shapeItem(i: any, currentUserId?: string | null) {
         },
       };
     }),
+    myCommentId: currentUserId ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.id ?? null) : null,
+    myRatingViaComment: myRating,
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
   };
 }

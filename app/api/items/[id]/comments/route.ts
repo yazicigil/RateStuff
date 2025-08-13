@@ -43,6 +43,11 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "not-found" }, { status: 404 });
     }
 
+    // tek yorum kuralı: aynı item + aynı user için zaten yorum varsa 409
+    const existing = await prisma.comment.findFirst({ where: { itemId, userId: me.id }, select: { id: true } });
+    if (existing) {
+      return NextResponse.json({ ok: false, error: "duplicate-comment" }, { status: 409 });
+    }
     // herkes (giriş yapmış) yorum atabilir
     const comment = await prisma.comment.create({
       data: { itemId, userId: me.id, text: clean, rating: score },
@@ -66,6 +71,9 @@ export async function POST(
       },
     });
   } catch (e: any) {
+    if (e?.code === 'P2002') {
+      return NextResponse.json({ ok: false, error: "duplicate-comment" }, { status: 409 });
+    }
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
