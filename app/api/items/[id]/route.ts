@@ -7,11 +7,14 @@ import { maskName } from '@/lib/mask';
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
 function shapeItem(i: any, currentUserId?: string | null) {
-  const count = i.ratings?.length ?? 0;
-  const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
+  const rrs = (i.comments || [])
+    .map((c: any) => (typeof c.rating === 'number' ? c.rating : 0))
+    .filter((n: number) => n > 0);
+  const count = rrs.length;
+  const avg = count ? rrs.reduce((a: number, n: number) => a + n, 0) / count : null;
   const itemEdited = i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
   const myRating = currentUserId
-    ? (i.ratings || []).find((r: any) => r.userId === currentUserId)?.value ?? null
+    ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.rating ?? null)
     : null;
   return {
     id: i.id,
@@ -22,6 +25,8 @@ function shapeItem(i: any, currentUserId?: string | null) {
     avgRating: avg,
     count,
     myRating,
+    myCommentId: currentUserId ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.id ?? null) : null,
+    myRatingViaComment: myRating,
     edited: !!itemEdited,
     createdBy: i.createdBy
       ? {
@@ -65,7 +70,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const i = await prisma.item.findUnique({
       where: { id: params.id },
       include: {
-        ratings: true,
         comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } } },
         tags: { include: { tag: true } },
         createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
@@ -75,5 +79,39 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ ok: true, item: shapeItem(i, me?.id) });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    const me = await getSessionUser();
+    if (!me) {
+      return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    }
+
+    const item = await prisma.item.findUnique({
+      where: { id: params.id },
+      select: { id: true, createdById: true },
+    });
+    if (!item) {
+      return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    }
+
+    const isOwner = item.createdById === me.id;
+    const isAdmin = (me as any)?.email === ADMIN_EMAIL || (me as any)?.isAdmin === true;
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.comment.deleteMany({ where: { itemId: item.id } });
+      await tx.itemTag.deleteMany({ where: { itemId: item.id } });
+      // Eğer başka ilişkiler varsa ve CASCADE yoksa, benzer deleteMany blokları eklenebilir.
+      await tx.item.delete({ where: { id: item.id } });
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }
 }
