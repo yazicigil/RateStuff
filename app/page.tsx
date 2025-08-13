@@ -191,6 +191,7 @@ export default function HomePage() {
   }
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
+  const spotlightRef = useRef<HTMLDivElement>(null);
   // Seçili etiket sayıları (başlıklarda göstermek için)
   const selectedInTrending = useMemo(
     () => trending.filter(t => selectedTags.has(t)).length,
@@ -573,6 +574,19 @@ export default function HomePage() {
     setTimeout(() => scrollToItem(id), 100);
   }
 
+  function openSpotlight(id: string) {
+    setSharedId(id);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('item', id);
+      window.history.replaceState({}, '', url.toString());
+    } catch {}
+    // spotlight render edildikten hemen sonra yukarı kaydır
+    setTimeout(() => {
+      spotlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  }
+
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -682,7 +696,7 @@ export default function HomePage() {
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {sharedItem && (
-  <div className={
+  <div ref={spotlightRef} className={
     `relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
   }>
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
@@ -1365,9 +1379,25 @@ export default function HomePage() {
                     <div className="flex items-start gap-3">
                       <div className="flex flex-col items-center shrink-0 w-28">
                         {i.imageUrl ? (
-                          <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
+                          <button
+                            type="button"
+                            onClick={() => openSpotlight(i.id)}
+                            className="rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                            aria-label={`${i.name} spotlight'ı aç`}
+                            title={`${i.name} spotlight'ı aç`}
+                          >
+                            <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
+                          </button>
                         ) : (
-                          <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
+                          <button
+                            type="button"
+                            onClick={() => openSpotlight(i.id)}
+                            className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                            aria-label={`${i.name} spotlight'ı aç`}
+                            title={`${i.name} spotlight'ı aç`}
+                          >
+                            no img
+                          </button>
                         )}
                         {i.edited && (
                           <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
@@ -1378,7 +1408,15 @@ export default function HomePage() {
 
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={i.name}>
-                          {i.name}
+                          <button
+                            type="button"
+                            onClick={() => openSpotlight(i.id)}
+                            className="text-left hover:underline underline-offset-2 decoration-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded"
+                            aria-label={`${i.name} spotlight'ı aç`}
+                            title={`${i.name} spotlight'ı aç`}
+                          >
+                            {i.name}
+                          </button>
                         </h3>
                         <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>
 
