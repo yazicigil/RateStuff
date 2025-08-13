@@ -2,7 +2,7 @@
   
 type Variant = 'default' | 'muted' | 'mine';
 type Size = 'sm' | 'md';
-  
+
 function Star({ filled, onClick, disabled, title, size='md', variant='default' }: { filled: boolean; onClick?: ()=>void; disabled?: boolean; title?: string; size?: Size; variant?: Variant; }) {
   const base = 'inline-flex items-center justify-center transition-transform';
   const canClick = !!onClick && !disabled;
@@ -18,16 +18,46 @@ function Star({ filled, onClick, disabled, title, size='md', variant='default' }
     </button>
   );
 }
-  
-export default function Stars({ value, onRate, readOnly=false, variant='default', size='md' }: { value: number; onRate?: (n:number)=>void; readOnly?: boolean; variant?: Variant; size?: Size; }) {
-  const rounded = Math.round(value || 0);
+
+export default function Stars({
+  value,
+  onRate,
+  readOnly = false,
+  variant = 'default',
+  size = 'md',
+  rating,
+  onRatingChange,
+}: {
+  value?: number;
+  onRate?: (n: number) => void;
+  readOnly?: boolean;
+  variant?: Variant;
+  size?: Size;
+  rating?: number;
+  onRatingChange?: (n: number) => void;
+}) {
+  // Support both value/onRate and rating/onRatingChange for backward compatibility
+  const actualValue = typeof rating === "number" ? rating : value || 0;
+  const handleRate = onRatingChange ? onRatingChange : onRate;
+  const rounded = Math.round(actualValue || 0);
+
+  if (readOnly) {
+    return (
+      <div className="flex">
+        {[1,2,3,4,5].map(n => (
+          <span key={n} className={n <= rounded ? "text-yellow-400" : "text-gray-300"}>★</span>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-1">
       {[1,2,3,4,5].map(n => (
         <Star
           key={n}
           filled={n <= rounded}
-          onClick={readOnly ? undefined : () => onRate?.(n)}
+          onClick={readOnly ? undefined : () => handleRate?.(n)}
           disabled={readOnly}
           title={readOnly ? undefined : `Puan: ${n}`}
           size={size}

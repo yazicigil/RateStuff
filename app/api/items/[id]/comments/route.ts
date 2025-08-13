@@ -24,10 +24,13 @@ export async function POST(
     }
 
     const itemId = params.id;
-    const { text } = await req.json();
+    const { text, rating } = await req.json();
     const clean = String(text ?? "").trim();
-
-    if (!clean) {
+    const score = Number(rating);
+    if (!Number.isInteger(score) || score < 1 || score > 5) {
+      return NextResponse.json({ ok: false, error: "invalid-rating" }, { status: 400 });
+    }
+    if (!clean && !score) {
       return NextResponse.json({ ok: false, error: "empty" }, { status: 400 });
     }
     if (clean.length > 1000) {
@@ -42,7 +45,7 @@ export async function POST(
 
     // herkes (giriş yapmış) yorum atabilir
     const comment = await prisma.comment.create({
-      data: { itemId, userId: me.id, text: clean },
+      data: { itemId, userId: me.id, text: clean, rating: score },
       include: { user: { select: { name: true, maskedName: true, avatarUrl: true, email: true } } },
     });
 
@@ -51,6 +54,7 @@ export async function POST(
       comment: {
         id: comment.id,
         text: comment.text,
+        rating: comment.rating,
         edited: !!comment.editedAt,
         user: {
           name: (comment.user as any)?.email === 'ratestuffnet@gmail.com'
@@ -78,10 +82,14 @@ export async function PATCH(
       return redirectToSignin(req);
     }
 
-    const { commentId, text } = await req.json();
+    const { commentId, text, rating } = await req.json();
     const clean = String(text ?? "").trim();
-    if (!commentId || !clean) {
+    const score = Number(rating);
+    if (!commentId || !Number.isInteger(score) || score < 1 || score > 5) {
       return NextResponse.json({ ok:false, error:"bad-request" }, { status:400 });
+    }
+    if (clean.length > 1000) {
+      return NextResponse.json({ ok:false, error:"too-long" }, { status:400 });
     }
 
     // sahiplik kontrolü
@@ -98,7 +106,7 @@ export async function PATCH(
 
     await prisma.comment.update({
       where: { id: commentId },
-      data: { text: clean, editedAt: new Date() },
+      data: { text: clean, rating: score, editedAt: new Date() },
     });
 
     return NextResponse.json({ ok:true });

@@ -48,6 +48,7 @@ model Comment {
   itemId    String
   userId    String
   text      String
+  rating    Int      @default(0)
   createdAt DateTime @default(now())
   editedAt  DateTime?
 

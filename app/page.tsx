@@ -78,6 +78,7 @@ type ItemVM = {
   description: string;
   imageUrl?: string | null;
   avg: number | null;
+  avgRating?: number | null;
   count: number;
   myRating?: number | null;
   edited?: boolean;
@@ -85,6 +86,7 @@ type ItemVM = {
   comments: {
     id: string;
     text: string;
+    rating?: number | null;
     edited?: boolean;
     user?: { id?: string; name?: string | null; avatarUrl?: string | null; verified?: boolean };
   }[];
@@ -800,18 +802,10 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Tek satır: Senin puanın + Ortalama pill */}
+        {/* Tek satır: Ortalama yıldızlar + adet (ufak pill) */}
         <div className="mt-2 flex items-center gap-2 flex-wrap">
-          {/* Senin puanın — tek kontrol */}
-          <Stars value={sharedItem.myRating ?? 0} onRate={(n)=>rate(sharedItem.id, n)} variant="mine" />
-
-          {sharedItem.myRating ? (
-            <span className="text-xs opacity-60 tabular-nums">({sharedItem.myRating})</span>
-          ) : null}
-
-          {/* Ayırıcı */}
-          <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
-
+          {/* Ortalama yıldızlar (display only) */}
+          <Stars rating={sharedItem.avgRating ?? sharedItem.avg ?? 0} readOnly />
           {/* Ortalama + adet (ufak pill) */}
           <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
             <span aria-hidden="true" className="leading-none">⭐</span>
@@ -856,7 +850,7 @@ export default function HomePage() {
               </div>
             )}
             <div className="min-w-0">
-              <div className="text-xs opacity-70">
+              <div className="text-xs opacity-70 flex items-center">
                 {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
                 {(c.user as any)?.verified && (
                   <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
@@ -864,6 +858,11 @@ export default function HomePage() {
                     <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
+                {c.rating ? (
+                  <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">
+                    {c.rating}★
+                  </span>
+                ) : null}
               </div>
               {(() => {
                 const isOpen = expandedComments.has(c.id);
@@ -1299,18 +1298,10 @@ export default function HomePage() {
                           </div>
                         )}
 
-                        {/* Tek satır: Senin puanın + Ortalama pill */}
+                        {/* Tek satır: Ortalama yıldızlar + adet (ufak pill) */}
                         <div className="mt-2 flex items-center gap-2 flex-wrap">
-                          {/* Senin puanın — tek kontrol */}
-                          <Stars value={i.myRating ?? 0} onRate={(n)=>rate(i.id, n)} variant="mine" />
-
-                          {i.myRating ? (
-                            <span className="text-xs opacity-60 tabular-nums">({i.myRating})</span>
-                          ) : null}
-
-                          {/* Ayırıcı */}
-                          <span className="mx-2 h-4 w-px bg-gray-200 dark:bg-gray-800" />
-
+                          {/* Ortalama yıldızlar (display only) */}
+                          <Stars rating={i.avgRating ?? i.avg ?? 0} readOnly />
                           {/* Ortalama + adet (ufak pill) */}
                           <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
                             <span aria-hidden="true" className="leading-none">⭐</span>
@@ -1374,7 +1365,7 @@ export default function HomePage() {
                             )}
 
                             <div className="min-w-0 flex-1">
-                              <div className="text-xs opacity-70">
+                              <div className="text-xs opacity-70 flex items-center">
                                 {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
                                 {(c.user as any)?.verified && (
                                   <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
@@ -1382,6 +1373,11 @@ export default function HomePage() {
                                     <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                   </svg>
                                 )}
+                                {c.rating ? (
+                                  <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">
+                                    {c.rating}★
+                                  </span>
+                                ) : null}
                               </div>
 
                               {/* Görünüm / Düzenleme */}
