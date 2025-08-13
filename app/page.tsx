@@ -427,6 +427,9 @@ export default function HomePage() {
 
     if (res.ok && (j?.ok ?? true)) {
       await load();
+      if (sharedId) {
+        await refreshShared(sharedId);
+      }
     } else {
       alert('Hata: ' + (j?.error || `${res.status} ${res.statusText}`));
     }
@@ -439,7 +442,13 @@ export default function HomePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, rating })
     });
-    if (res && res.ok) { await load(); return true; }
+    if (res && res.ok) {
+      await load();
+      if (sharedId) {
+        await refreshShared(sharedId);
+      }
+      return true;
+    }
 
     // 2) Yedek rota: /api/items/:itemId/comments → PATCH (commentId + text)
     if (itemId) {
@@ -448,7 +457,13 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ commentId: commentId, text, rating })
       });
-      if (res && res.ok) { await load(); return true; }
+      if (res && res.ok) {
+        await load();
+        if (sharedId) {
+          await refreshShared(sharedId);
+        }
+        return true;
+      }
     }
 
     // Hata
@@ -860,47 +875,108 @@ export default function HomePage() {
 
     {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
-        {sharedItem.comments?.length > 0 && (
+      {sharedItem.comments?.length > 0 && (
+  (() => {
+    const my = myId ? sharedItem.comments.find(c => c.user?.id === myId) : null;
+    const others = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
+
+    return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
-        {sharedItem.comments.map((c) => {
-          const isMine = myId && c.user?.id === myId;
+        {/* Başkalarının yorumları */}
+        {others.map((c) => {
           const isEditing = editingCommentId === c.id;
           return (
             <div key={c.id} className="flex items-start gap-2 justify-between">
               <div className="flex items-start gap-2 min-w-0 flex-1">
                 {c.user?.avatarUrl ? (
-                  <img
-                    src={c.user.avatarUrl}
-                    alt={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                    className="w-5 h-5 rounded-full object-cover mt-0.5"
-                    title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                  />
+                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
                 ) : (
-                  <div
-                    className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5"
-                    title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                  >
-                    {( (((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user').charAt(0).toUpperCase() )}
+                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
+                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
                   </div>
                 )}
-
                 <div className="min-w-0 flex-1">
                   <div className="text-xs opacity-70 flex items-center">
-                    {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
+                    {((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name))}
                     {(c.user as any)?.verified && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                      <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
                         <circle cx="12" cy="12" r="9" fill="#3B82F6" />
                         <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                     {c.rating ? (
-                      <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">
-                        {c.rating}★
-                      </span>
+                      <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
                   </div>
 
-                  {/* Görünüm / Düzenleme */}
+                  {(() => {
+                    const isOpen = expandedComments.has(c.id);
+                    const isTrunc = truncatedComments.has(c.id);
+                    const longish = (c.text || '').length >= 60;
+
+                    if (isOpen) {
+                      return (
+                        <div className="w-full">
+                          <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
+                          {(isTrunc || longish) && (
+                            <button
+                              type="button"
+                              className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                              onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
+                            >daha az</button>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="w-full flex items-baseline gap-1 min-w-0">
+                        <div
+                          ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
+                          className="truncate w-full"
+                        >
+                          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                        </div>
+                        {(isTrunc || longish) && (
+                          <button
+                            type="button"
+                            className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
+                            onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
+                          >devamını gör</button>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+              {/* başkalarında edit/sil yok */}
+              {!isEditing && null}
+            </div>
+          );
+        })}
+
+        {/* Senin yorumun – en altta, highlight’lı */}
+        {my && (() => {
+          const c = my;
+          const isEditing = editingCommentId === c.id;
+          return (
+            <div key={c.id} className="flex items-start gap-2 justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-900/20 p-2">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
+                {c.user?.avatarUrl ? (
+                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
+                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs opacity-70 flex items-center">
+                    Senin yorumun
+                    {c.rating ? (
+                      <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{c.rating}★</span>
+                    ) : null}
+                  </div>
+
                   {!isEditing ? (
                     (() => {
                       const isOpen = expandedComments.has(c.id);
@@ -910,18 +986,12 @@ export default function HomePage() {
                       if (isOpen) {
                         return (
                           <div className="w-full">
-                            <div className="whitespace-pre-wrap break-words">
-                              “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                            </div>
+                            <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
                             {(isTrunc || longish) && (
                               <button
                                 type="button"
                                 className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                onClick={() =>
-                                  setExpandedComments((prev) => {
-                                    const n = new Set(prev); n.delete(c.id); return n;
-                                  })
-                                }
+                                onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
                               >daha az</button>
                             )}
                           </div>
@@ -931,10 +1001,7 @@ export default function HomePage() {
                       return (
                         <div className="w-full flex items-baseline gap-1 min-w-0">
                           <div
-                            ref={(el) => {
-                              commentTextRefs.current[c.id] = el;
-                              if (el) setTimeout(() => measureTruncation(c.id), 0);
-                            }}
+                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
                             className="truncate w-full"
                           >
                             “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
@@ -943,63 +1010,56 @@ export default function HomePage() {
                             <button
                               type="button"
                               className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
+                              onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
                             >devamını gör</button>
                           )}
                         </div>
                       );
                     })()
                   ) : (
-                    (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                          <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
-                        </div>
-                        <textarea
-                          className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-                          rows={3}
-                          value={editingCommentText}
-                          onChange={(e) => setEditingCommentText(e.target.value)}
-                          autoFocus
-                        />
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
-                            onClick={async () => {
-                              if (!editingCommentRating) return;
-                              const ok = await updateComment(c.id, editingCommentText, sharedItem!.id, editingCommentRating);
-                              if (ok) {
-                                setEditingCommentId(null);
-                                setEditingCommentItem(null);
-                                setEditingCommentText('');
-                                setEditingCommentRating(0);
-                              }
-                            }}
-                            disabled={!editingCommentRating}
-                          >
-                            Kaydet
-                          </button>
-                          <button
-                            className="px-2.5 py-1.5 rounded-lg border text-xs"
-                            onClick={() => {
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
+                        <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
+                      </div>
+                      <textarea
+                        className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                        rows={3}
+                        value={editingCommentText}
+                        onChange={(e) => setEditingCommentText(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
+                          onClick={async () => {
+                            if (!editingCommentRating) return;
+                            const ok = await updateComment(c.id, editingCommentText, sharedItem!.id, editingCommentRating);
+                            if (ok) {
                               setEditingCommentId(null);
                               setEditingCommentItem(null);
                               setEditingCommentText('');
                               setEditingCommentRating(0);
-                            }}
-                          >
-                            Vazgeç
-                          </button>
-                        </div>
+                            }
+                          }}
+                          disabled={!editingCommentRating}
+                        >Kaydet</button>
+                        <button
+                          className="px-2.5 py-1.5 rounded-lg border text-xs"
+                          onClick={() => {
+                            setEditingCommentId(null);
+                            setEditingCommentItem(null);
+                            setEditingCommentText('');
+                            setEditingCommentRating(0);
+                          }}
+                        >Vazgeç</button>
                       </div>
-                    )
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Sadece kendi yorumum veya admin isem: kalem + çöp */}
-              {(isMine || amAdmin) && !isEditing && (
+              {!isEditing && (
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -1011,33 +1071,26 @@ export default function HomePage() {
                       setEditingCommentRating(c.rating || 0);
                     }}
                   >
-                    {/* Pencil icon */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
-                      <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-0.75-0.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
-                    </svg>
+                    {/* kalem */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
                   </button>
                   <button
                     className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
                     title="Yorumu sil"
                     onClick={() => deleteComment(c.id)}
                   >
-                    {/* Trash icon */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    </svg>
+                    {/* çöp */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
                   </button>
                 </div>
               )}
             </div>
           );
-        })}
+        })()}
       </div>
-    )}
-
+    );
+  })()
+)}
     {/* Comment input for spotlight (tek yorum kuralı) */}
   {!(sharedItem as any).myCommentId && (
     <div className="mt-3 pt-3 border-t dark:border-gray-800">
@@ -1489,185 +1542,221 @@ export default function HomePage() {
                     )}
 
                     {(i.comments?.length ?? 0) > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+{i.comments?.length > 0 && (
+  (() => {
+    const my = myId ? i.comments.find(c => c.user?.id === myId) : null;
+    const others = i.comments.filter(c => c.id !== (my?.id || ''));
 
-                    {i.comments?.length > 0 && (
-                      <div className="pt-3 space-y-2 text-sm leading-relaxed">
-                    {i.comments.map((c) => {
-                      const isMine = myId && c.user?.id === myId;
-                      const isEditing = editingCommentId === c.id;
+    return (
+      <div className="pt-3 space-y-2 text-sm leading-relaxed">
+        {/* Başkalarının yorumları */}
+        {others.map((c) => {
+          const isEditing = editingCommentId === c.id;
+          return (
+            <div key={c.id} className="flex items-start gap-2 justify-between">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
+                {c.user?.avatarUrl ? (
+                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
+                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs opacity-70 flex items-center">
+                    {((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name))}
+                    {(c.user as any)?.verified && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
+                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                    {c.rating ? (
+                      <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
+                    ) : null}
+                  </div>
 
+                  {(() => {
+                    const isOpen = expandedComments.has(c.id);
+                    const isTrunc = truncatedComments.has(c.id);
+                    const longish = (c.text || '').length >= 60;
+
+                    if (isOpen) {
                       return (
-                        <div key={c.id} className="flex items-start gap-2 justify-between">
-                          <div className="flex items-start gap-2 min-w-0 flex-1">
-                            {c.user?.avatarUrl ? (
-                              <img
-                                src={c.user.avatarUrl}
-                                alt={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                                className="w-5 h-5 rounded-full object-cover mt-0.5"
-                                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                              />
-                            ) : (
-                              <div
-                                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5"
-                                title={(((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user')}
-                              >
-                                {( (((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)) || 'user').charAt(0).toUpperCase() )}
-                              </div>
-                            )}
-
-                            <div className="min-w-0 flex-1">
-                              <div className="text-xs opacity-70 flex items-center">
-                                {(c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
-                                {(c.user as any)?.verified && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                )}
-                                {c.rating ? (
-                                  <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">
-                                    {c.rating}★
-                                  </span>
-                                ) : null}
-                              </div>
-
-                              {/* Görünüm / Düzenleme */}
-                              {!isEditing ? (
-                                (() => {
-                                  const isOpen = expandedComments.has(c.id);
-                                  const isTrunc = truncatedComments.has(c.id);
-                                  const longish = (c.text || '').length >= 60;
-
-                                  if (isOpen) {
-                                    return (
-                                      <div className="w-full">
-                                        <div className="whitespace-pre-wrap break-words">
-                                          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                        </div>
-                                        {(isTrunc || longish) && (
-                                          <button
-                                            type="button"
-                                            className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                            onClick={() =>
-                                              setExpandedComments((prev) => {
-                                                const n = new Set(prev); n.delete(c.id); return n;
-                                              })
-                                            }
-                                          >daha az</button>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-
-                                  return (
-                                    <div className="w-full flex items-baseline gap-1 min-w-0">
-                                      <div
-                                        ref={(el) => {
-                                          commentTextRefs.current[c.id] = el;
-                                          if (el) setTimeout(() => measureTruncation(c.id), 0);
-                                        }}
-                                        className="truncate w-full"
-                                      >
-                                        “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                      </div>
-                                      {(isTrunc || longish) && (
-                                        <button
-                                          type="button"
-                                          className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                                          onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
-                                        >devamını gör</button>
-                                      )}
-                                    </div>
-                                  );
-                                })()
-                              ) : (
-                                (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                                      <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
-                                    </div>
-                                    <textarea
-                                      className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-                                      rows={3}
-                                      value={editingCommentText}
-                                      onChange={(e) => setEditingCommentText(e.target.value)}
-                                      autoFocus
-                                    />
-                                    <div className="flex items-center gap-2">
-                                      <button
-                                        className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
-                                        onClick={async () => {
-                                          if (!editingCommentRating) return;
-                                          const ok = await updateComment(c.id, editingCommentText, i.id, editingCommentRating);
-                                          if (ok) {
-                                            setEditingCommentId(null);
-                                            setEditingCommentItem(null);
-                                            setEditingCommentText('');
-                                            setEditingCommentRating(0);
-                                          }
-                                        }}
-                                        disabled={!editingCommentRating}
-                                      >
-                                        Kaydet
-                                      </button>
-                                      <button
-                                        className="px-2.5 py-1.5 rounded-lg border text-xs"
-                                        onClick={() => {
-                                          setEditingCommentId(null);
-                                          setEditingCommentItem(null);
-                                          setEditingCommentText('');
-                                          setEditingCommentRating(0);
-                                        }}
-                                      >
-                                        Vazgeç
-                                      </button>
-                                    </div>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Sadece kendi yorumlarım veya admin: kalem + çöp */}
-                          {(isMine || amAdmin) && !isEditing && (
-                            <div className="flex items-center gap-1 shrink-0">
-                              <button
-                                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                                title="Yorumu düzenle"
-                                onClick={() => {
-                                  setEditingCommentId(c.id);
-                                  setEditingCommentItem(i.id);
-                                  setEditingCommentText(c.text);
-                                  setEditingCommentRating(c.rating || 0);
-                                }}
-                              >
-                                {/* Pencil icon */}
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
-                                  <path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-0.75-0.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor" />
-                                </svg>
-                              </button>
-                              <button
-                                className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                                title="Yorumu sil"
-                                onClick={() => deleteComment(c.id)}
-                              >
-                                {/* Trash icon */}
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                  <path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                  <path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                </svg>
-                              </button>
-                            </div>
+                        <div className="w-full">
+                          <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
+                          {(isTrunc || longish) && (
+                            <button
+                              type="button"
+                              className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                              onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
+                            >daha az</button>
                           )}
                         </div>
                       );
-                    })}
+                    }
+
+                    return (
+                      <div className="w-full flex items-baseline gap-1 min-w-0">
+                        <div
+                          ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
+                          className="truncate w-full"
+                        >
+                          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                        </div>
+                        {(isTrunc || longish) && (
+                          <button
+                            type="button"
+                            className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
+                            onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
+                          >devamını gör</button>
+                        )}
                       </div>
-                    )}
+                    );
+                  })()}
+                </div>
+              </div>
+              {!isEditing && null}
+            </div>
+          );
+        })}
+
+        {/* Senin yorumun – en altta, highlight’lı */}
+        {my && (() => {
+          const c = my;
+          const isEditing = editingCommentId === c.id;
+          return (
+            <div key={c.id} className="flex items-start gap-2 justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-900/20 p-2">
+              <div className="flex items-start gap-2 min-w-0 flex-1">
+                {c.user?.avatarUrl ? (
+                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
+                ) : (
+                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
+                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs opacity-70 flex items-center">
+                    Senin yorumun
+                    {c.rating ? (
+                      <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{c.rating}★</span>
+                    ) : null}
+                  </div>
+
+                  {!isEditing ? (
+                    (() => {
+                      const isOpen = expandedComments.has(c.id);
+                      const isTrunc = truncatedComments.has(c.id);
+                      const longish = (c.text || '').length >= 60;
+
+                      if (isOpen) {
+                        return (
+                          <div className="w-full">
+                            <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
+                            {(isTrunc || longish) && (
+                              <button
+                                type="button"
+                                className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
+                              >daha az</button>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div className="w-full flex items-baseline gap-1 min-w-0">
+                          <div
+                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
+                            className="truncate w-full"
+                          >
+                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                          </div>
+                          {(isTrunc || longish) && (
+                            <button
+                              type="button"
+                              className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
+                              onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
+                            >devamını gör</button>
+                          )}
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
+                        <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
+                      </div>
+                      <textarea
+                        className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                        rows={3}
+                        value={editingCommentText}
+                        onChange={(e) => setEditingCommentText(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
+                          onClick={async () => {
+                            if (!editingCommentRating) return;
+                            const ok = await updateComment(c.id, editingCommentText, i.id, editingCommentRating);
+                            if (ok) {
+                              setEditingCommentId(null);
+                              setEditingCommentItem(null);
+                              setEditingCommentText('');
+                              setEditingCommentRating(0);
+                            }
+                          }}
+                          disabled={!editingCommentRating}
+                        >Kaydet</button>
+                        <button
+                          className="px-2.5 py-1.5 rounded-lg border text-xs"
+                          onClick={() => {
+                            setEditingCommentId(null);
+                            setEditingCommentItem(null);
+                            setEditingCommentText('');
+                            setEditingCommentRating(0);
+                          }}
+                        >Vazgeç</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {!isEditing && (
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                    title="Yorumu düzenle"
+                    onClick={() => {
+                      setEditingCommentId(c.id);
+                      setEditingCommentItem(i.id);
+                      setEditingCommentText(c.text);
+                      setEditingCommentRating(c.rating || 0);
+                    }}
+                  >
+                    {/* kalem */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
+                  </button>
+                  <button
+                    className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
+                    title="Yorumu sil"
+                    onClick={() => deleteComment(c.id)}
+                  >
+                    {/* çöp */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2 2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+    );
+  })()
+)}
                   </div>
 
                   {/* Yorum yaz (tek yorum kuralı) */}
