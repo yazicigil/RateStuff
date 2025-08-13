@@ -702,6 +702,19 @@ function smoothScrollIntoView(el: Element) {
   const quickFormRef = useRef<HTMLFormElement>(null);
   const quickValid = quickName.trim().length > 0 && quickTags.length > 0 && newRating > 0;
 
+  // Quick-add spotlight kapanınca formu ve alanları sıfırla
+  useEffect(() => {
+    if (!showQuickAdd) {
+      // Form ve alanları sıfırla
+      try { quickFormRef.current?.reset(); } catch {}
+      setQuickName('');
+      setQuickTagInput('');
+      setQuickTags([]);
+      setNewRating(0);
+      setNewImage(null);
+    }
+  }, [showQuickAdd]);
+
   function normalizeTag(s: string) {
     return s.trim().replace(/^#+/, '').toLowerCase();
   }
@@ -1222,22 +1235,6 @@ function smoothScrollIntoView(el: Element) {
                     {c.rating ? (
                       <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
-                    {/* VOTE CONTROLS (spotlight - others) */}
-                    <span className="ml-2 inline-flex items-center gap-1 select-none">
-                      <button
-                        type="button"
-                        className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                        title="Upvote"
-                        onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                      >▲</button>
-                      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                      <button
-                        type="button"
-                        className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                        title="Downvote"
-                        onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                      >▼</button>
-                    </span>
                   </div>
 
                   {(() => {
@@ -1247,34 +1244,70 @@ function smoothScrollIntoView(el: Element) {
 
                     if (isOpen) {
                       return (
-                        <div className="w-full">
-                          <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
-                          {(isTrunc || longish) && (
+                        <div className="w-full flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
+                            {(isTrunc || longish) && (
+                              <button
+                                type="button"
+                                className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
+                              >daha az</button>
+                            )}
+                          </div>
+                          {/* VOTE CONTROLS (moved next to comment) */}
+                          <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
                             <button
                               type="button"
-                              className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
-                            >daha az</button>
-                          )}
+                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                              title="Upvote"
+                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                            >▲</button>
+                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                            <button
+                              type="button"
+                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                              title="Downvote"
+                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                            >▼</button>
+                          </span>
                         </div>
                       );
                     }
 
                     return (
-                      <div className="w-full flex items-baseline gap-1 min-w-0">
-                        <div
-                          ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
-                          className="truncate w-full"
-                        >
-                          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                      <div className="w-full flex items-start justify-between gap-2 min-w-0">
+                        <div className="min-w-0 flex items-baseline gap-1 flex-1">
+                          <div
+                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
+                            className="truncate w-full"
+                          >
+                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                          </div>
+                          {(isTrunc || longish) && (
+                            <button
+                              type="button"
+                              className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
+                              onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
+                            >devamını gör</button>
+                          )}
                         </div>
-                        {(isTrunc || longish) && (
+                        {/* VOTE CONTROLS (moved next to comment) */}
+                        <span className="shrink-0 inline-flex items-center gap-1 select-none">
                           <button
                             type="button"
-                            className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                            onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
-                          >devamını gör</button>
-                        )}
+                            className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                            title="Upvote"
+                            onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                          >▲</button>
+                          <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                          <button
+                            type="button"
+                            className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                            title="Downvote"
+                            onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                          >▼</button>
+                        </span>
                       </div>
                     );
                   })()}
