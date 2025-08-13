@@ -1,229 +1,63 @@
-// app/api/items/route.ts
+// app/api/items/[id]/comments/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
-import { maskName } from "@/lib/mask";
-
-const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
-
-// --- helpers for normalization & dedupe ---
-function normalizeText(s: string) {
-  return s
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-function buildDedupeKey(name: string, tags: string[]) {
-  const nName = normalizeText(name);
-  const nTags = Array.from(new Set(tags.map(t => normalizeText(t)))).sort();
-  return `${nName}#${nTags.join(',')}`;
-}
-
-function shapeItem(i: any, currentUserId?: string | null) {
-  const rrs = (i.comments || [])
-    .map((c: any) => (typeof c.rating === 'number' ? c.rating : 0))
-    .filter((n: number) => n > 0);
-  const count = rrs.length;
-  const avg = count ? rrs.reduce((a: number, n: number) => a + n, 0) / count : null;
-  const itemEdited = i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
-  const myRating = currentUserId
-    ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.rating ?? null)
-    : null;
-  return {
-    id: i.id,
-    name: i.name,
-    description: i.description,
-    imageUrl: i.imageUrl,
-    avg,
-    avgRating: avg,
-    count,
-    myRating,
-    edited: !!itemEdited,
-    reportCount: (i as any)._count?.reports ?? (i as any).reportsCount ?? 0,
-    createdBy: i.createdBy
-      ? {
-          id: i.createdBy.id,
-          name:
-            (i.createdBy as any)?.email === ADMIN_EMAIL
-              ? (i.createdBy.name || 'Anonim')
-              : (i.createdBy.maskedName ?? (i.createdBy.name ? maskName(i.createdBy.name) : 'Anonim')),
-          avatarUrl: i.createdBy.avatarUrl ?? null,
-          verified: (i.createdBy as any)?.email === ADMIN_EMAIL,
-        }
-      : null,
-    comments: (i.comments || []).map((c: any) => {
-      const cEdited = c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000;
-      return {
-        id: c.id,
-        text: c.text,
-        rating: (c as any)?.rating ?? null,
-        edited: !!cEdited,
-        user: {
-          id: c.user?.id,
-          name:
-            (c.user as any)?.email === ADMIN_EMAIL
-              ? (c.user?.name || 'Anonim')
-              : (c.user?.maskedName ?? (c.user?.name ? maskName(c.user.name) : 'Anonim')),
-          avatarUrl: c.user?.avatarUrl ?? null,
-          verified: (c.user as any)?.email === ADMIN_EMAIL,
-        },
-      };
-    }),
-    myCommentId: currentUserId ? ((i.comments || []).find((c: any) => c.userId === currentUserId)?.id ?? null) : null,
-    myRatingViaComment: myRating,
-    tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
-  };
-}
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-/** LISTE (anasayfa) — public */
-export async function GET(req: Request) {
-  try {
-    const me = await getSessionUser().catch(()=>null);
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    if (id) {
-      const i = await prisma.item.findUnique({
-        where: { id },
-        include: {
-          ratings: true,
-          comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } } },
-          tags: { include: { tag: true } },
-          createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
-          _count: { select: { reports: true } },
-        },
-      });
-      if (!i) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
-      return NextResponse.json({ ok: true, item: shapeItem(i, me?.id) });
-    }
-
-    const q = (searchParams.get("q") || "").trim();
-    const order = (searchParams.get("order") || "new") as "new" | "top";
-
-    const where: any = {};
-    if (q) {
-      where.OR = [
-        { name: { contains: q, mode: "insensitive" } },
-        { description: { contains: q, mode: "insensitive" } },
-        { tags: { some: { tag: { name: { contains: q, mode: "insensitive" } } } } },
-      ];
-    }
-
-    const items = await prisma.item.findMany({
-      where,
-      include: {
-        ratings: true,
-        comments: {
-          orderBy: { createdAt: "desc" },
-          include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } },
-        },
-        tags: { include: { tag: true } },
-        createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
-        _count: { select: { reports: true } },
-      },
-      orderBy:
-        order === "top"
-          ? { ratings: { _count: "desc" } }
-          : { createdAt: "desc" },
-      take: 50,
-    });
-
-    const shaped = items.map((i) => shapeItem(i, me?.id));
-
-    // Frontend bazı yerlerde düz dizi bekliyor; liste endpoint'i dizi döndürsün
-    return NextResponse.json(shaped);
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
-  }
-}
-
-/** EKLE (form) — auth zorunlu; yoksa signin’e yönlendir */
-export async function POST(req: Request) {
+// POST: create a new comment for an existing item (rating required, text optional)
+export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     const me = await getSessionUser();
     if (!me) {
-      const url = new URL(req.url);
-      const referer = req.headers.get("referer");
-      const signin = new URL("/api/auth/signin", url.origin);
-      signin.searchParams.set("callbackUrl", referer ?? `${url.origin}/`);
-      return NextResponse.redirect(signin);
+      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const name = String(body.name || "").trim();
-    const description = String(body.description || "").trim();
-    const imageUrl = body.imageUrl ? String(body.imageUrl) : null;
-    const tagsCsv = String(body.tagsCsv || "");
-    const rating = Number(body.rating || 0);
-    const comment = String(body.comment || "").trim();
+    const body = await req.json().catch(() => ({} as any));
+    const ratingRaw = Number(body.rating);
+    const textRaw = typeof body.comment === "string" ? body.comment : (typeof body.text === "string" ? body.text : "");
+    const text = String(textRaw || "").trim();
+    const rating = Number.isFinite(ratingRaw) ? Math.round(ratingRaw) : 0;
 
-    if (!name || !description) {
-      return NextResponse.json({ ok: false, error: "name/description boş" }, { status: 400 });
+    // rating zorunlu (1..5)
+    if (!(rating >= 1 && rating <= 5)) {
+      return NextResponse.json({ ok: false, error: "rating-required" }, { status: 400 });
     }
 
-    const tagNames = Array.from(
-      new Set(
-        tagsCsv
-          .split(",")
-          .map((s: string) => s.trim().toLowerCase())
-          .filter(Boolean)
-      )
-    ).slice(0, 3); // max 3 tag
-    if (tagNames.length > 3) {
-      return NextResponse.json({ ok:false, error:"En fazla 3 etiket girebilirsin." }, { status: 400 });
+    // Item var mı?
+    const item = await prisma.item.findUnique({ where: { id: params.id }, select: { id: true } });
+    if (!item) {
+      return NextResponse.json({ ok: false, error: "item-not-found" }, { status: 404 });
     }
 
-    // dedupe: same normalized title + same normalized tag set cannot be created twice
-    const dedupeKey = buildDedupeKey(name, tagNames);
+    // tek yorum kuralı: aynı item + aynı user için zaten yorum varsa 409
+    const existing = await prisma.comment.findFirst({
+      where: { itemId: params.id, userId: me.id },
+      select: { id: true },
+    });
+    if (existing) {
+      return NextResponse.json({ ok: false, error: "duplicate-comment" }, { status: 409 });
+    }
 
-    const result = await prisma.$transaction(async (tx) => {
-      const item = await tx.item.create({
-        data: { name, description, imageUrl, createdById: me.id, dedupeKey },
-      });
-
-      if (tagNames.length) {
-        const tags = await Promise.all(
-          tagNames.map((n) =>
-            tx.tag.upsert({
-              where: { name: n },
-              create: { name: n },
-              update: {},
-            })
-          )
-        );
-        await tx.itemTag.createMany({
-          data: tags.map((t) => ({ itemId: item.id, tagId: t.id })),
-          skipDuplicates: true,
-        });
-      }
-
-      if (rating >= 1 && rating <= 5) {
-        await tx.rating.upsert({
-          where: { itemId_userId: { itemId: item.id, userId: me.id } },
-          create: { itemId: item.id, userId: me.id, value: rating },
-          update: { value: rating, editedAt: new Date() },
-        });
-      }
-
-      if (comment) {
-        await tx.comment.create({
-          data: { itemId: item.id, userId: me.id, text: comment },
-        });
-      }
-
-      return { id: item.id };
+    const created = await prisma.comment.create({
+      data: {
+        itemId: params.id,
+        userId: me.id,
+        text,
+        rating,
+      },
+      include: {
+        user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+      },
     });
 
-    return NextResponse.json({ ok: true, itemId: result.id });
+    return NextResponse.json({ ok: true, comment: created }, { status: 201 });
   } catch (e: any) {
-    if (e?.code === 'P2002' && Array.isArray(e?.meta?.target) && e.meta.target.includes('dedupeKey')) {
-      return NextResponse.json({ ok: false, error: 'duplicate-item' }, { status: 409 });
+    if (e?.code === "P2002") {
+      // unique violation (itemId,userId)
+      return NextResponse.json({ ok: false, error: "duplicate-comment" }, { status: 409 });
     }
-    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
