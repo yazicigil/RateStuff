@@ -140,6 +140,13 @@ export default function HomePage() {
   const [editingCommentText, setEditingCommentText] = useState('');
   const [editingCommentItem, setEditingCommentItem] = useState<string|null>(null);
   const [editingCommentRating, setEditingCommentRating] = useState<number>(0);
+  // Silme için onay durumu (tek id tutar)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!confirmDeleteId) return;
+    const t = setTimeout(() => setConfirmDeleteId(null), 4000);
+    return () => clearTimeout(t);
+  }, [confirmDeleteId]);
   // Çoklu etiket seçimi için state
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   // Yorumlarda "devamını gör" için açılanlar
@@ -1710,51 +1717,25 @@ if (!already) {
                     {/* kalem */}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
                   </button>
-                  {/* Delete with confirmation */}
-                  {(() => {
-                    // local state for delete confirmation
-                    const [confirmDelete, setConfirmDelete] = (() => {
-                      // Use React.useState, but we need to hoist it out of the render
-                      // Since this is inside a function component, use a ref to store state per comment
-                      // We create a React state hook for each comment by id
-                      // To make this work in this inline function, use a ref map
-                      const _deleteConfirmMap = (window as any).__rs_deleteConfirmMap_spotlight || ((window as any).__rs_deleteConfirmMap_spotlight = {});
-                      if (!_deleteConfirmMap[c.id]) {
-                        // create the state only once per comment id
-                        const React = require('react');
-                        _deleteConfirmMap[c.id] = React.useState(false);
+                  <button
+                    className={`p-1.5 rounded-md ${confirmDeleteId === c.id ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
+                    title={confirmDeleteId === c.id ? 'Silmek için tekrar tıkla' : 'Yorumu sil'}
+                    onClick={() => {
+                      if (confirmDeleteId !== c.id) {
+                        setConfirmDeleteId(c.id);
+                        return;
                       }
-                      return _deleteConfirmMap[c.id];
-                    })();
-                    // Effect to reset after 4s
-                    require('react').useEffect(() => {
-                      if (confirmDelete) {
-                        const t = setTimeout(() => setConfirmDelete(false), 4000);
-                        return () => clearTimeout(t);
-                      }
-                    }, [confirmDelete]);
-                    return (
-                      <button
-                        className={`p-1.5 rounded-md ${confirmDelete ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
-                        title={confirmDelete ? "Silmek için tekrar tıkla" : "Yorumu sil"}
-                        onClick={() => {
-                          if (!confirmDelete) {
-                            setConfirmDelete(true);
-                            return;
-                          }
-                          deleteComment(c.id);
-                        }}
-                      >
-                        {confirmDelete ? (
-                          // check icon
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        ) : (
-                          // trash icon
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                        )}
-                      </button>
-                    );
-                  })()}
+                      deleteComment(c.id);
+                    }}
+                  >
+                    {confirmDeleteId === c.id ? (
+                      // check icon
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    ) : (
+                      // trash icon
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
