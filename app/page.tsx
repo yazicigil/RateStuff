@@ -667,71 +667,156 @@ export default function HomePage() {
           100% { opacity: 0; transform: translateY(-4px); }
         }
       `}</style>
+{/* Hızlı ekleme */}
+          <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
+            <CollapsibleSection
+              title="Eklemek istediğin bir şey mi var?"
+              defaultOpen={false}
+            >
+              <form
+                ref={quickFormRef}
+                className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+                onSubmit={async (e) => {
+  e.preventDefault();
+  const formEl = e.currentTarget;
+  const fd = new FormData(formEl);
+
+  // name*, en az 1 etiket*, rating*
+  const nameVal = String(fd.get('name') || '').trim();
+  if (!nameVal) { alert('Ad gerekli'); return; }
+  if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
+  if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
+
+  const ok = await addItem(fd);
+  if (ok) {
+    // Formu tamamen temizle
+    quickFormRef.current?.reset();
+    setQuickName('');
+    setNewRating(0);
+    setNewImage(null);
+    setQuickTags([]);
+    setQuickTagInput('');
+  }
+}}
+              >
+                {justAdded && (
+                  <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
+                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span className="text-sm font-medium">Eklendi</span>
+                    </div>
+                  </div>
+                )}
+                {/* 1. satır: Ad + Kısa açıklama */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={quickNameRef}
+                    name="name"
+                    value={quickName}
+                    onChange={(e) => setQuickName(e.target.value)}
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="adı *"
+                    required
+                  />
+                 <input
+  name="desc"
+  className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+  placeholder="kısa açıklama (opsiyonel)"
+/>
+                  <div className="flex-1 min-w-[200px]">
+                   <div className="text-xs opacity-70 mb-1">
+  
+</div>
+                    <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
+                      {quickTags.map(t => (
+                        <span
+                          key={t}
+                          className={
+                            (trending.includes(t)
+                              ? 'bg-violet-600 text-white border-violet-600'
+                              : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') +
+                            ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'
+                          }
+                        >
+                          #{t}
+                          <button
+                            type="button"
+                            className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
+                            onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
+                            aria-label={`#${t} etiketini kaldır`}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      <input
+                        value={quickTagInput}
+                        onChange={e => setQuickTagInput(e.target.value)}
+                        onKeyDown={e => {
+                          if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
+                            e.preventDefault();
+                            addTagsFromInput();
+                          } else if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault(); // stop adding beyond 3
+                          }
+                        }}
+                        onBlur={() => addTagsFromInput()}
+                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
+                        className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
+                        disabled={quickTags.length >= 3}
+                      />
+                    </div>
+                    {/* hidden: backend "tagsCsv" için */}
+                    <input type="hidden" name="tags" value={quickTags.join(',')} />
+                  </div>
+                </div>
+
+                {/* 2. satır: Yıldız seçimi + Yorum */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
+                    <Stars value={newRating} onRate={(n) => setNewRating(n)} />
+                  </div>
+                  {/* hidden: addItem tarafına rating’i geçelim */}
+                  <input type="hidden" name="rating" value={newRating} />
+                  <input
+                    name="comment"
+                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                    placeholder="yorum (opsiyonel)"
+                  />
+                </div>
+
+                {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
+                <div>
+                  <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
+                  <ImageUploader value={newImage} onChange={setNewImage} />
+                  {/* hidden: addItem tarafına url’i geçelim */}
+                  <input type="hidden" name="imageUrl" value={newImage ?? ''} />
+                </div>
+
+                {/* 4. satır: Buton sağda ve biraz büyük */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    disabled={adding}
+                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
+                  >
+                    {adding ? (
+                      <span className="inline-flex items-center gap-2">
+                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
+                        Ekleniyor…
+                      </span>
+                    ) : (
+                      'Ekle'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </CollapsibleSection></div>
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
         <aside>
-          {/* Sıralama + Yıldız filtresi (compact) */}
-          <div className="rounded-2xl border p-3 mb-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm opacity-70">Sıralama</div>
-              <div className="inline-flex overflow-hidden rounded-lg border dark:border-gray-700">
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 text-sm ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-                  onClick={() => setOrder('new')}
-                  aria-pressed={order === 'new'}
-                >
-                  En yeni
-                </button>
-                <button
-                  type="button"
-                  className={`px-3 py-1.5 text-sm border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-                  onClick={() => setOrder('top')}
-                  aria-pressed={order === 'top'}
-                >
-                  En çok oy
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div className="text-sm opacity-70 mb-1">Yıldızlar</div>
-              <div className="flex flex-wrap gap-1">
-                {[1,2,3,4,5].map((n) => {
-                  const active = starBuckets.has(n);
-                  return (
-                    <button
-                      key={`sb-${n}`}
-                      type="button"
-                      className={`px-2.5 py-1 rounded-full text-sm border ${active ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'}`}
-                      onClick={() => {
-                        setStarBuckets(prev => {
-                          const next = new Set(prev);
-                          if (next.has(n)) next.delete(n); else next.add(n);
-                          return next;
-                        });
-                      }}
-                      aria-pressed={active}
-                      title={`${n} yıldız`}
-                    >
-                      {n} ★
-                    </button>
-                  );
-                })}
-                {starBuckets.size > 0 && (
-                  <button
-                    type="button"
-                    className="ml-1 px-2.5 py-1 rounded-full text-sm border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
-                    onClick={() => setStarBuckets(new Set())}
-                    title="Filtreyi temizle"
-                  >
-                    Temizle
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+         
           <CollapsibleSection
             title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
             defaultOpen={true}
@@ -790,6 +875,71 @@ export default function HomePage() {
               ))}
             </div>
           </CollapsibleSection>
+          {/* Sıralama + Yıldız filtresi (compact, alt tarafta) */}
+<div className="rounded-xl border p-2 mt-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-2">
+  <div className="flex items-center justify-between">
+    <div className="text-xs opacity-70">Sıralama</div>
+    <div className="inline-flex overflow-hidden rounded-md border text-xs dark:border-gray-700">
+      <button
+        type="button"
+        className={`px-2.5 py-1 ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+        onClick={() => setOrder('new')}
+        aria-pressed={order === 'new'}
+      >
+        En yeni
+      </button>
+      <button
+        type="button"
+        className={`px-2.5 py-1 border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+        onClick={() => setOrder('top')}
+        aria-pressed={order === 'top'}
+      >
+        En çok oy
+      </button>
+    </div>
+  </div>
+
+  <div>
+    <div className="text-xs opacity-70 mb-1">Yıldızlar</div>
+    <div className="flex flex-wrap gap-1">
+      {[1,2,3,4,5].map((n) => {
+        const active = starBuckets.has(n);
+        return (
+          <button
+            key={`sb-${n}`}
+            type="button"
+            className={`px-2 py-0.5 rounded-full text-xs border ${
+              active
+                ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'
+            }`}
+            onClick={() => {
+              setStarBuckets(prev => {
+                const next = new Set(prev);
+                if (next.has(n)) next.delete(n); else next.add(n);
+                return next;
+              });
+            }}
+            aria-pressed={active}
+            title={`${n} yıldız`}
+          >
+            {n} ★
+          </button>
+        );
+      })}
+      {starBuckets.size > 0 && (
+        <button
+          type="button"
+          className="ml-1 px-2 py-0.5 rounded-full text-xs border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+          onClick={() => setStarBuckets(new Set())}
+          title="Filtreyi temizle"
+        >
+          Temizle
+        </button>
+      )}
+    </div>
+  </div>
+</div>
         </aside>
 
         {/* Sağ: listeler */}
@@ -1221,151 +1371,7 @@ export default function HomePage() {
   )}
     </div>
   )}
-          {/* Hızlı ekleme */}
-          <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
-            <CollapsibleSection
-              title="Eklemek istediğin bir şey mi var?"
-              defaultOpen={true}
-            >
-              <form
-                ref={quickFormRef}
-                className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
-                onSubmit={async (e) => {
-  e.preventDefault();
-  const formEl = e.currentTarget;
-  const fd = new FormData(formEl);
-
-  // name*, en az 1 etiket*, rating*
-  const nameVal = String(fd.get('name') || '').trim();
-  if (!nameVal) { alert('Ad gerekli'); return; }
-  if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
-  if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
-
-  const ok = await addItem(fd);
-  if (ok) {
-    // Formu tamamen temizle
-    quickFormRef.current?.reset();
-    setQuickName('');
-    setNewRating(0);
-    setNewImage(null);
-    setQuickTags([]);
-    setQuickTagInput('');
-  }
-}}
-              >
-                {justAdded && (
-                  <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span className="text-sm font-medium">Eklendi</span>
-                    </div>
-                  </div>
-                )}
-                {/* 1. satır: Ad + Kısa açıklama */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    ref={quickNameRef}
-                    name="name"
-                    value={quickName}
-                    onChange={(e) => setQuickName(e.target.value)}
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="adı *"
-                    required
-                  />
-                 <input
-  name="desc"
-  className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-  placeholder="kısa açıklama (opsiyonel)"
-/>
-                  <div className="flex-1 min-w-[200px]">
-                   <div className="text-xs opacity-70 mb-1">
-  
-</div>
-                    <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
-                      {quickTags.map(t => (
-                        <span
-                          key={t}
-                          className={
-                            (trending.includes(t)
-                              ? 'bg-violet-600 text-white border-violet-600'
-                              : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') +
-                            ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'
-                          }
-                        >
-                          #{t}
-                          <button
-                            type="button"
-                            className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                            onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
-                            aria-label={`#${t} etiketini kaldır`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      <input
-                        value={quickTagInput}
-                        onChange={e => setQuickTagInput(e.target.value)}
-                        onKeyDown={e => {
-                          if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
-                            e.preventDefault();
-                            addTagsFromInput();
-                          } else if (e.key === 'Enter' || e.key === ',') {
-                            e.preventDefault(); // stop adding beyond 3
-                          }
-                        }}
-                        onBlur={() => addTagsFromInput()}
-                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
-                        className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
-                        disabled={quickTags.length >= 3}
-                      />
-                    </div>
-                    {/* hidden: backend "tagsCsv" için */}
-                    <input type="hidden" name="tags" value={quickTags.join(',')} />
-                  </div>
-                </div>
-
-                {/* 2. satır: Yıldız seçimi + Yorum */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                    <Stars value={newRating} onRate={(n) => setNewRating(n)} />
-                  </div>
-                  {/* hidden: addItem tarafına rating’i geçelim */}
-                  <input type="hidden" name="rating" value={newRating} />
-                  <input
-                    name="comment"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="yorum (opsiyonel)"
-                  />
-                </div>
-
-                {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
-                <div>
-                  <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
-                  <ImageUploader value={newImage} onChange={setNewImage} />
-                  {/* hidden: addItem tarafına url’i geçelim */}
-                  <input type="hidden" name="imageUrl" value={newImage ?? ''} />
-                </div>
-
-                {/* 4. satır: Buton sağda ve biraz büyük */}
-                <div className="flex justify-end pt-1">
-                  <button
-                    disabled={adding}
-                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
-                  >
-                    {adding ? (
-                      <span className="inline-flex items-center gap-2">
-                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
-                        Ekleniyor…
-                      </span>
-                    ) : (
-                      'Ekle'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </CollapsibleSection></div>
+          
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
