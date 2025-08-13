@@ -34,6 +34,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
     description: i.description,
     imageUrl: i.imageUrl,
     avg,
+    avgRating: avg,
     count,
     myRating,
     edited: !!itemEdited,
@@ -54,6 +55,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
       return {
         id: c.id,
         text: c.text,
+        rating: (c as any)?.rating ?? null,
         edited: !!cEdited,
         user: {
           id: c.user?.id,
@@ -170,7 +172,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok:false, error:"En fazla 3 etiket girebilirsin." }, { status: 400 });
     }
 
-    // dedupe: same title + same tag set cannot be created twice
+    // dedupe: same normalized title + same normalized tag set cannot be created twice
     const dedupeKey = buildDedupeKey(name, tagNames);
 
     const result = await prisma.$transaction(async (tx) => {
@@ -213,10 +215,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true, itemId: result.id });
   } catch (e: any) {
-    // Prisma unique violation on dedupeKey
-    if (e?.code === 'P2002' && Array.isArray(e?.meta?.target) ? e.meta.target.includes('dedupeKey') : String(e?.meta?.target || '').includes('dedupeKey')) {
-      return NextResponse.json({ ok:false, error:"Aynı başlık ve etiketlerle bir kayıt zaten var." }, { status: 409 });
+    if (e?.code === 'P2002' && Array.isArray(e?.meta?.target) && e.meta.target.includes('dedupeKey')) {
+      return NextResponse.json({ ok: false, error: 'duplicate-item' }, { status: 409 });
     }
-    return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }
 }
