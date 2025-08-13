@@ -1468,8 +1468,6 @@ function smoothScrollIntoView(el: Element) {
     </div>
   </CollapsibleSection>
 
-  <div className="h-4" />
-
   <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
     <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
       {allTags.map((t) => (
