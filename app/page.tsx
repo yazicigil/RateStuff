@@ -1006,7 +1006,7 @@ export default function HomePage() {
 />
                   <div className="flex-1 min-w-[200px]">
                    <div className="text-xs opacity-70 mb-1">
-  Etiketler <span className="text-red-500">*</span>
+  
 </div>
                     <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
                       {quickTags.map(t => (
@@ -1042,7 +1042,7 @@ export default function HomePage() {
                           }
                         }}
                         onBlur={() => addTagsFromInput()}
-                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle)')}
+                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
                         className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                         disabled={quickTags.length >= 3}
                       />
