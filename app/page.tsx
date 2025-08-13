@@ -617,11 +617,19 @@ export default function HomePage() {
 
   // Bir kartı pürüzsüz şekilde öne getir
   function headerOffset() {
-  // Mobil adres çubuğu vs. düşünerek biraz esnek tutuyoruz
-  const w = window.innerWidth || 0;
-  // sm<640: ~72-80px, md>=768: ~96px
-  return w < 640 ? 80 : 96;
-}
+    // Gerçek header yüksekliğini ölç, yoksa daha küçük bir mobil varsayılan kullan
+    try {
+      const header = document.querySelector('header');
+      if (header) {
+        const h = Math.round(header.getBoundingClientRect().height);
+        // küçük bir güvenlik payı ekle (8px)
+        return Math.max(48, Math.min(120, h + 8));
+      }
+    } catch {}
+    const w = window.innerWidth || 0;
+    // mobilde önceki 80px çoktu; 64 daha doğru hizalanıyor
+    return w < 640 ? 64 : 96;
+  }
 function smoothScrollToY(y: number) {
   try {
     window.scrollTo({ top: y, behavior: 'smooth' });
@@ -637,7 +645,7 @@ function smoothScrollIntoView(el: Element) {
   function scrollToItem(id: string) {
     const el = itemRefs.current[id];
     if (!el) return;
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    smoothScrollIntoView(el);
     setHighlightId(id);
     setTimeout(() => setHighlightId(null), 1600);
   }
@@ -660,14 +668,13 @@ function smoothScrollIntoView(el: Element) {
       url.searchParams.set('item', id);
       window.history.replaceState({}, '', url.toString());
     } catch {}
-    // spotlight render edildikten hemen sonra yukarı kaydır (header ofsetiyle)
-    setTimeout(() => {
-      const el = spotlightRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const y = rect.top + window.scrollY - 96; // ~96px üst boşluk
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    }, 120);
+    // render tamamlandıktan sonra doğru ofsetle pürüzsüz kaydır
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = spotlightRef.current;
+        if (el) smoothScrollIntoView(el);
+      });
+    });
   }
 
   const clamp2: React.CSSProperties = {
@@ -714,7 +721,7 @@ function smoothScrollIntoView(el: Element) {
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
-        <aside>
+        <aside className="order-2 md:order-1">
          
           <CollapsibleSection
             title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
@@ -842,7 +849,7 @@ function smoothScrollIntoView(el: Element) {
         </aside>
 
         {/* Sağ: listeler */}
-        <section className="space-y-4">
+        <section className="space-y-4 order-1 md:order-2">
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
@@ -1064,6 +1071,16 @@ function smoothScrollIntoView(el: Element) {
                 <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
               </>
             )}
+            <button
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                savedIds.has(sharedItem.id)
+                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+              }`}
+              onClick={() => { setOpenMenu(null); toggleSave(sharedItem.id); }}
+            >
+              {savedIds.has(sharedItem.id) ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
+            </button>
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
