@@ -261,18 +261,32 @@ export default function HomePage() {
       if (q.trim()) qs.set('q', q.trim());
       qs.set('order', order);
 
+      // Helper: fetchItemsRes
+      async function fetchItemsRes(url: string, fallbackUrl: string) {
+        // 1) Ana istek
+        try {
+          const r1 = await fetch(url, { cache: 'no-store' });
+          let j1: any = null;
+          try { j1 = await r1.json(); } catch { j1 = null; }
+          const arr1 = toArray(j1, 'items', 'data');
+          if (Array.isArray(arr1) && arr1.length > 0) return j1 ?? {};
+          // Eğer dizi döndü ama boşsa veya parse edemediysek fallback dene
+        } catch (e) {
+          // yut, fallback dene
+        }
+        // 2) Fallback istek (parametresiz)
+        try {
+          const r2 = await fetch(fallbackUrl, { cache: 'no-store' });
+          let j2: any = null;
+          try { j2 = await r2.json(); } catch { j2 = null; }
+          return j2 ?? {};
+        } catch {
+          return {};
+        }
+      }
+
       const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
-          .then(async (r) => {
-            try {
-              // /api/items genelde { ok, items: [...] } döner; ama sadece [] de gelebilir
-              const j = await r.json();
-              return j ?? {};
-            } catch {
-              return {};
-            }
-          })
-          .catch(() => ({})),
+        fetchItemsRes(`/api/items?${qs.toString()}`, '/api/items'),
         fetch('/api/tags', { cache: 'no-store' })
           .then((r) => r.json())
           .catch(() => ({})),
