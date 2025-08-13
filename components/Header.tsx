@@ -233,18 +233,6 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
             </div>
-
-            {/* ⭐️ Yıldız filtresi (dropdown, çoklu seçim) */}
-            <StarFilter value={controls.starBuckets} onChange={controls.onStarBuckets} />
-
-            <select
-              value={controls.order}
-              onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              <option value="new">En yeni</option>
-              <option value="top">En çok oy</option>
-            </select>
           </div>
         )}
 
@@ -330,18 +318,6 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
             </div>
-
-            {/* ⭐️ Yıldız filtresi (dropdown, çoklu seçim) */}
-            <StarFilter value={controls.starBuckets} onChange={controls.onStarBuckets} />
-
-            <select
-              value={controls.order}
-              onChange={(e) => controls.onOrder(e.target.value as 'new' | 'top')}
-              className="border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              <option value="new">En yeni</option>
-              <option value="top">En çok oy</option>
-            </select>
           </div>
         )}
       </div>

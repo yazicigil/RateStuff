@@ -671,6 +671,67 @@ export default function HomePage() {
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
         <aside>
+          {/* Sıralama + Yıldız filtresi (compact) */}
+          <div className="rounded-2xl border p-3 mb-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm opacity-70">Sıralama</div>
+              <div className="inline-flex overflow-hidden rounded-lg border dark:border-gray-700">
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 text-sm ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                  onClick={() => setOrder('new')}
+                  aria-pressed={order === 'new'}
+                >
+                  En yeni
+                </button>
+                <button
+                  type="button"
+                  className={`px-3 py-1.5 text-sm border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+                  onClick={() => setOrder('top')}
+                  aria-pressed={order === 'top'}
+                >
+                  En çok oy
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-sm opacity-70 mb-1">Yıldızlar</div>
+              <div className="flex flex-wrap gap-1">
+                {[1,2,3,4,5].map((n) => {
+                  const active = starBuckets.has(n);
+                  return (
+                    <button
+                      key={`sb-${n}`}
+                      type="button"
+                      className={`px-2.5 py-1 rounded-full text-sm border ${active ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100' : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'}`}
+                      onClick={() => {
+                        setStarBuckets(prev => {
+                          const next = new Set(prev);
+                          if (next.has(n)) next.delete(n); else next.add(n);
+                          return next;
+                        });
+                      }}
+                      aria-pressed={active}
+                      title={`${n} yıldız`}
+                    >
+                      {n} ★
+                    </button>
+                  );
+                })}
+                {starBuckets.size > 0 && (
+                  <button
+                    type="button"
+                    className="ml-1 px-2.5 py-1 rounded-full text-sm border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+                    onClick={() => setStarBuckets(new Set())}
+                    title="Filtreyi temizle"
+                  >
+                    Temizle
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           <CollapsibleSection
             title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
             defaultOpen={true}
