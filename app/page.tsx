@@ -1070,6 +1070,7 @@ export default function HomePage() {
                     title="Yorumu düzenle"
                     onClick={() => {
                       setEditingCommentId(c.id);
+                      setEditingCommentItem(null);
                       setEditingCommentText(c.text);
                       setEditingCommentRating(c.rating || 0);
                     }}
@@ -1554,7 +1555,8 @@ export default function HomePage() {
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
         {/* Başkalarının yorumları */}
         {others.map((c) => {
-          const isEditing = editingCommentId === c.id;
+          const isEditing =
+  editingCommentId === c.id && editingCommentItem === i.id;
           return (
             <div key={c.id} className="flex items-start gap-2 justify-between">
               <div className="flex items-start gap-2 min-w-0 flex-1">
@@ -1627,7 +1629,8 @@ export default function HomePage() {
         {/* Senin yorumun – en altta, highlight’lı */}
         {my && (() => {
           const c = my;
-          const isEditing = editingCommentId === c.id;
+          const isEditing =
+  editingCommentId === c.id && editingCommentItem === i.id;
           return (
             <div key={c.id} className="flex items-start gap-2 justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-900/20 p-2">
               <div className="flex items-start gap-2 min-w-0 flex-1">
