@@ -346,18 +346,24 @@ export default function Header({ controls }: { controls?: Controls }) {
                           İlgili Etiketler
                         </div>
                         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-                          {controls.tagMatches.slice(0, 12).map((t, i) => (
-                            <button
-                              key={t + i}
-                              type="button"
-                              onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
-                              title={`#${t}`}
-                            >
-                              <span className="opacity-70">#</span>
-                              <span className="truncate max-w-[10rem]">{t}</span>
-                            </button>
-                          ))}
+                          {controls.tagMatches.slice(0, 12).map((t, i) => {
+                            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+                            const trendingClasses = isTrending
+                              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                              : '';
+                            return (
+                              <button
+                                key={t + i}
+                                type="button"
+                                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                                title={`#${t}`}
+                              >
+                                <span className="opacity-70">#</span>
+                                <span className="truncate max-w-[10rem]">{t}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                         <div className="h-px bg-gray-100 dark:bg-gray-800" />
                       </>
@@ -495,18 +501,24 @@ export default function Header({ controls }: { controls?: Controls }) {
                           İlgili Etiketler
                         </div>
                         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-                          {controls.tagMatches.slice(0, 12).map((t, i) => (
-                            <button
-                              key={t + i}
-                              type="button"
-                              onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
-                              title={`#${t}`}
-                            >
-                              <span className="opacity-70">#</span>
-                              <span className="truncate max-w-[10rem]">{t}</span>
-                            </button>
-                          ))}
+                          {controls.tagMatches.slice(0, 12).map((t, i) => {
+                            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+                            const trendingClasses = isTrending
+                              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                              : '';
+                            return (
+                              <button
+                                key={t + i}
+                                type="button"
+                                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                                title={`#${t}`}
+                              >
+                                <span className="opacity-70">#</span>
+                                <span className="truncate max-w-[10rem]">{t}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                         <div className="h-px bg-gray-100 dark:bg-gray-800" />
                       </>
