@@ -1208,20 +1208,52 @@ if (!already) {
             </div>
 
             {/* 4. satır: Gönder */}
-            <div className="flex justify-end pt-1">
-              <button
-                disabled={adding}
-                className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              >
-                {adding ? (
-                  <span className="inline-flex items-center gap-2">
-                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
-                    Ekleniyor…
+            <div className="flex items-center gap-3 justify-end pt-1">
+              {!myId ? (
+                <>
+                  <button
+                    disabled
+                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 text-white opacity-60 cursor-not-allowed"
+                    title="Önce giriş yapmalısın"
+                  >
+                    Ekle
+                  </button>
+                  <span className="text-sm opacity-80">
+                    eklemek için{' '}
+                    <button
+                      type="button"
+                      className="underline hover:opacity-100"
+                      onClick={() => {
+                        try {
+                          const back = encodeURIComponent(window.location.href);
+                          window.location.href = `/api/auth/signin?callbackUrl=${back}`;
+                        } catch {
+                          window.location.href = '/api/auth/signin';
+                        }
+                      }}
+                    >
+                      giriş yap
+                    </button>
                   </span>
-                ) : (
-                  'Ekle'
-                )}
-              </button>
+                </>
+              ) : (
+                <button
+                  disabled={adding}
+                  className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                >
+                  {adding ? (
+                    <span className="inline-flex items-center gap-2">
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
+                        <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      </svg>
+                      Ekleniyor…
+                    </span>
+                  ) : (
+                    'Ekle'
+                  )}
+                </button>
+              )}
             </div>
     </form>
   </div>
