@@ -997,71 +997,80 @@ if (!already) {
               ))}
             </div>
           </CollapsibleSection>
-          {/* Sıralama + Yıldız filtresi (compact, alt tarafta) */}
-<div className="rounded-xl border p-2 mt-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-2">
-  <div className="flex items-center justify-between">
-    <div className="text-xs opacity-70">Sıralama</div>
-    <div className="inline-flex overflow-hidden rounded-md border text-xs dark:border-gray-700">
-      <button
-        type="button"
-        className={`px-2.5 py-1 ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-        onClick={() => setOrder('new')}
-        aria-pressed={order === 'new'}
-      >
-        En yeni
-      </button>
-      <button
-        type="button"
-        className={`px-2.5 py-1 border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-        onClick={() => setOrder('top')}
-        aria-pressed={order === 'top'}
-      >
-        En çok oy
-      </button>
-    </div>
-  </div>
-
-  <div>
-    <div className="text-xs opacity-70 mb-1">Yıldızlar</div>
-    <div className="flex flex-wrap gap-1">
-      {[1,2,3,4,5].map((n) => {
-        const active = starBuckets.has(n);
-        return (
-          <button
-            key={`sb-${n}`}
-            type="button"
-            className={`px-2 py-0.5 rounded-full text-xs border ${
-              active
-                ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'
-            }`}
-            onClick={() => {
-              setStarBuckets(prev => {
-                const next = new Set(prev);
-                if (next.has(n)) next.delete(n); else next.add(n);
-                return next;
-              });
-            }}
-            aria-pressed={active}
-            title={`${n} yıldız`}
-          >
-            {n} ★
-          </button>
-        );
-      })}
-      {starBuckets.size > 0 && (
-        <button
-          type="button"
-          className="ml-1 px-2 py-0.5 rounded-full text-xs border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
-          onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
-          title="Filtreyi temizle"
-        >
-          Temizle
-        </button>
-      )}
-    </div>
-  </div>
-</div>
+          {/* Sıralama + Yıldız filtresi (styled, alt tarafta) */}
+          <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
+            {/* Sıralama */}
+            <div>
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Sıralama</div>
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
+                    order === 'new'
+                      ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                      : ''
+                  }`}
+                  onClick={() => setOrder('new')}
+                  aria-pressed={order === 'new'}
+                >
+                  En yeni
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
+                    order === 'top'
+                      ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                      : ''
+                  }`}
+                  onClick={() => setOrder('top')}
+                  aria-pressed={order === 'top'}
+                >
+                  En çok oy
+                </button>
+              </div>
+            </div>
+            {/* Divider before Yıldızlar */}
+            <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Yıldızlar</div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {[1,2,3,4,5].map((n) => {
+                  const active = starBuckets.has(n);
+                  return (
+                    <button
+                      key={`sb-${n}`}
+                      type="button"
+                      className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors ${
+                        active
+                          ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        setStarBuckets(prev => {
+                          const next = new Set(prev);
+                          if (next.has(n)) next.delete(n); else next.add(n);
+                          return next;
+                        });
+                      }}
+                      aria-pressed={active}
+                      title={`${n} yıldız`}
+                    >
+                      {n} <span aria-hidden="true">★</span>
+                    </button>
+                  );
+                })}
+                {starBuckets.size > 0 && (
+                  <button
+                    type="button"
+                    className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+                    onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
+                    title="Filtreyi temizle"
+                  >
+                    Temizle
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
         </aside>
 
         {/* Sağ: listeler */}
@@ -1701,14 +1710,51 @@ if (!already) {
                     {/* kalem */}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
                   </button>
-                  <button
-                    className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                    title="Yorumu sil"
-                    onClick={() => deleteComment(c.id)}
-                  >
-                    {/* çöp */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  </button>
+                  {/* Delete with confirmation */}
+                  {(() => {
+                    // local state for delete confirmation
+                    const [confirmDelete, setConfirmDelete] = (() => {
+                      // Use React.useState, but we need to hoist it out of the render
+                      // Since this is inside a function component, use a ref to store state per comment
+                      // We create a React state hook for each comment by id
+                      // To make this work in this inline function, use a ref map
+                      const _deleteConfirmMap = (window as any).__rs_deleteConfirmMap_spotlight || ((window as any).__rs_deleteConfirmMap_spotlight = {});
+                      if (!_deleteConfirmMap[c.id]) {
+                        // create the state only once per comment id
+                        const React = require('react');
+                        _deleteConfirmMap[c.id] = React.useState(false);
+                      }
+                      return _deleteConfirmMap[c.id];
+                    })();
+                    // Effect to reset after 4s
+                    require('react').useEffect(() => {
+                      if (confirmDelete) {
+                        const t = setTimeout(() => setConfirmDelete(false), 4000);
+                        return () => clearTimeout(t);
+                      }
+                    }, [confirmDelete]);
+                    return (
+                      <button
+                        className={`p-1.5 rounded-md ${confirmDelete ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
+                        title={confirmDelete ? "Silmek için tekrar tıkla" : "Yorumu sil"}
+                        onClick={() => {
+                          if (!confirmDelete) {
+                            setConfirmDelete(true);
+                            return;
+                          }
+                          deleteComment(c.id);
+                        }}
+                      >
+                        {confirmDelete ? (
+                          // check icon
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        ) : (
+                          // trash icon
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                        )}
+                      </button>
+                    );
+                  })()}
                 </div>
               )}
             </div>
