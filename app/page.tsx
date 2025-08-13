@@ -408,17 +408,17 @@ export default function HomePage() {
     [sharedItem, filteredItems]
   );
 
-  function openByIndex(idx: number) {
+  function openByIndex(idx: number, fromDelta: boolean = false) {
     if (idx < 0 || idx >= filteredItems.length) return;
-    openSpotlight(filteredItems[idx].id);
+    openSpotlight(filteredItems[idx].id, fromDelta);
   }
-function openByDelta(d: number) {
-  if (currentIndex < 0) return;
-  const next = currentIndex + d;
-  if (next < 0 || next >= filteredItems.length) return; // wrap yok
-  setNavDir(d > 0 ? 1 : -1);
-  openByIndex(next);
-}
+  function openByDelta(d: number) {
+    if (currentIndex < 0) return;
+    const next = currentIndex + d;
+    if (next < 0 || next >= filteredItems.length) return; // wrap yok
+    setNavDir(d > 0 ? 1 : -1);
+    openByIndex(next, true);
+  }
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -693,9 +693,9 @@ function smoothScrollIntoView(el: Element) {
 
   
 
-  function openSpotlight(id: string) {
+  function openSpotlight(id: string, fromDelta: boolean = false) {
     setShowQuickAdd(false);
-    setNavDir(0);
+    if (!fromDelta) setNavDir(0);
     setSharedId(id);
     try {
       const url = new URL(window.location.href);
