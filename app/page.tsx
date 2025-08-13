@@ -660,6 +660,8 @@ function smoothScrollIntoView(el: Element) {
     setTimeout(() => scrollToItem(id), 100);
   }
 
+  
+
   function openSpotlight(id: string) {
     setShowQuickAdd(false);
     setSharedId(id);
@@ -721,7 +723,7 @@ function smoothScrollIntoView(el: Element) {
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
-        <aside className="order-2 md:order-1">
+        <aside className="hidden md:block">
          
           <CollapsibleSection
             title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
@@ -849,7 +851,7 @@ function smoothScrollIntoView(el: Element) {
         </aside>
 
         {/* Sağ: listeler */}
-        <section className="space-y-4 order-1 md:order-2">
+        <section className="space-y-4 order-2 md:order-2">
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
@@ -1434,7 +1436,133 @@ function smoothScrollIntoView(el: Element) {
   )}
     </div>
   )}
-          
+          {/* MOBIL: Etiketler/Filtreler (spotlight altı) */}
+<div className="md:hidden space-y-4">
+  <CollapsibleSection
+    title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
+    defaultOpen={true}
+    className="border-violet-300 bg-violet-50 dark:border-violet-700 dark:bg-violet-900/20"
+    summaryClassName="text-violet-900 dark:text-violet-200"
+  >
+    <div className="flex flex-wrap gap-2">
+      {trending.map((t) => (
+        <Tag
+          key={t}
+          label={t}
+          active={selectedTags.has(t)}
+          onClick={() => {
+            setSelectedTags(prev => {
+              const next = new Set(prev);
+              if (next.has(t)) next.delete(t); else next.add(t);
+              return next;
+            });
+          }}
+          onDoubleClick={() => setSelectedTags(new Set())}
+          className={
+            selectedTags.has(t)
+              ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
+              : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20'
+          }
+        />
+      ))}
+    </div>
+  </CollapsibleSection>
+
+  <div className="h-4" />
+
+  <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
+    <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
+      {allTags.map((t) => (
+        <Tag
+          key={t}
+          label={t}
+          active={selectedTags.has(t)}
+          onClick={() => {
+            setSelectedTags(prev => {
+              const next = new Set(prev);
+              if (next.has(t)) next.delete(t); else next.add(t);
+              return next;
+            });
+          }}
+          onDoubleClick={() => setSelectedTags(new Set())}
+          className={
+            trending.includes(t)
+              ? (selectedTags.has(t)
+                  ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
+                  : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20')
+              : ''
+          }
+        />
+      ))}
+    </div>
+  </CollapsibleSection>
+
+  {/* Sıralama + Yıldız filtresi (compact) */}
+  <div className="rounded-xl border p-2 mt-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-2">
+    <div className="flex items-center justify-between">
+      <div className="text-xs opacity-70">Sıralama</div>
+      <div className="inline-flex overflow-hidden rounded-md border text-xs dark:border-gray-700">
+        <button
+          type="button"
+          className={`px-2.5 py-1 ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+          onClick={() => setOrder('new')}
+          aria-pressed={order === 'new'}
+        >
+          En yeni
+        </button>
+        <button
+          type="button"
+          className={`px-2.5 py-1 border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
+          onClick={() => setOrder('top')}
+          aria-pressed={order === 'top'}
+        >
+          En çok oy
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div className="text-xs opacity-70 mb-1">Yıldızlar</div>
+      <div className="flex flex-wrap gap-1">
+        {[1,2,3,4,5].map((n) => {
+          const active = starBuckets.has(n);
+          return (
+            <button
+              key={`sb-m-${n}`}
+              type="button"
+              className={`px-2 py-0.5 rounded-full text-xs border ${
+                active
+                  ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
+                  : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'
+              }`}
+              onClick={() => {
+                setStarBuckets(prev => {
+                  const next = new Set(prev);
+                  if (next.has(n)) next.delete(n); else next.add(n);
+                  return next;
+                });
+              }}
+              aria-pressed={active}
+              title={`${n} yıldız`}
+            >
+              {n} ★
+            </button>
+          );
+        })}
+        {starBuckets.size > 0 && (
+          <button
+            type="button"
+            className="ml-1 px-2 py-0.5 rounded-full text-xs border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
+            onClick={() => setStarBuckets(new Set())}
+            title="Filtreyi temizle"
+          >
+            Temizle
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+</div>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
