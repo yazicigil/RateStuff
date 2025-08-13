@@ -202,6 +202,7 @@ export default function HomePage() {
   const spotlightRef = useRef<HTMLDivElement>(null);
   const [navDir, setNavDir] = useState<0 | 1 | -1>(0); // 0: yok, 1: sağa (next), -1: sola (prev)
   const [animKey, setAnimKey] = useState(0);
+  const [animArmed, setAnimArmed] = useState(false);
   // Seçili etiket sayıları (başlıklarda göstermek için)
   const selectedInTrending = useMemo(
     () => trending.filter(t => selectedTags.has(t)).length,
@@ -417,6 +418,8 @@ export default function HomePage() {
     if (currentIndex < 0) return;
     const next = currentIndex + d;
     if (next < 0 || next >= filteredItems.length) return; // wrap yok
+    // Önce sınıfı baskılamamız lazım; yeni içerik mount olduktan sonra tek sefer oynatacağız
+    setAnimArmed(false);
     setNavDir(d > 0 ? 1 : -1);
     openByIndex(next, true);
   }
@@ -704,12 +707,14 @@ function smoothScrollIntoView(el: Element) {
       window.history.replaceState({}, '', url.toString());
     } catch {}
     // render tamamlandıktan sonra doğru ofsetle pürüzsüz kaydır
+    if (!fromDelta) {
+  requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const el = spotlightRef.current;
-        if (el) smoothScrollIntoView(el);
-      });
+      const el = spotlightRef.current;
+      if (el) smoothScrollIntoView(el);
     });
+  });
+}
   }
 
   // Klavye kısayolları: ← → ile spotlight'ta gezin (form alanlarında devre dışı)
@@ -763,8 +768,9 @@ function smoothScrollIntoView(el: Element) {
   // Her delta gezinmede yeni içeriğe geçtikten sonra animasyonu yeniden tetiklemek için
   useEffect(() => {
     if (navDir !== 0 && sharedItem?.id) {
-      // React yeniden monte etsin diye ana wrapper'a key artır
+      // Yeni içerik geldikten sonra tek seferlik animasyonu tetikle
       setAnimKey((k) => k + 1);
+      setAnimArmed(true);
     }
   }, [sharedItem?.id, navDir]);
 
@@ -820,16 +826,16 @@ function smoothScrollIntoView(el: Element) {
           85% { opacity: 1; transform: translateY(0); }
           100% { opacity: 0; transform: translateY(-4px); }
         }
-        @keyframes slideInFromLeft {
-          0% { opacity: 0; transform: translateX(-12px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInFromRight {
-          0% { opacity: 0; transform: translateX(12px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        .animate-slideInFromLeft { animation: slideInFromLeft .18s ease-out; will-change: transform; }
-        .animate-slideInFromRight { animation: slideInFromRight .18s ease-out; will-change: transform; }
+       @keyframes slideInFromLeft {
+  0% { opacity: 0; transform: translate3d(-10px,0,0); }
+  100% { opacity: 1; transform: translate3d(0,0,0); }
+}
+@keyframes slideInFromRight {
+  0% { opacity: 0; transform: translate3d(10px,0,0); }
+  100% { opacity: 1; transform: translate3d(0,0,0); }
+}
+.animate-slideInFromLeft { animation: slideInFromLeft .14s cubic-bezier(0.22,1,0.36,1); will-change: transform; }
+.animate-slideInFromRight { animation: slideInFromRight .14s cubic-bezier(0.22,1,0.36,1); will-change: transform; }
         @media (prefers-reduced-motion: reduce) {
           .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
         }
@@ -1245,13 +1251,21 @@ function smoothScrollIntoView(el: Element) {
     {/* CONTENT (animated on left/right nav) */}
     <div
       key={animKey}
-      className={navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : ''}
+      className={animArmed ? (navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : '') : ''}
       style={{ willChange: 'transform' }}
     >
       <div className="flex items-start gap-3">
       <div className="flex flex-col items-center shrink-0 w-28">
         {sharedItem.imageUrl ? (
-          <img src={sharedItem.imageUrl} alt={sharedItem.name} className="w-28 h-28 object-cover rounded-lg" />
+          <img
+  src={sharedItem.imageUrl}
+  alt={sharedItem.name}
+  width={112}
+  height={112}
+  decoding="async"
+  loading="eager"
+  className="w-28 h-28 object-cover rounded-lg"
+/>
         ) : (
           <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
         )}
