@@ -137,6 +137,8 @@ export default function HomePage() {
   const commentTextRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
+  // Hızlı ekle spotlight kontrolü
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   
   function measureTruncation(id: string) {
     const el = commentTextRefs.current[id];
@@ -560,15 +562,11 @@ export default function HomePage() {
   function jumpToQuickAdd() {
     const name = q.trim();
     if (name) setQuickName(name);
-    // scroll & focus
-    quickSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setShowQuickAdd(true);
     setTimeout(() => {
       quickNameRef.current?.focus();
       quickNameRef.current?.select();
-    }, 250);
-    // visual cue
-    setPulseQuick(true);
-    setTimeout(() => setPulseQuick(false), 900);
+    }, 150);
   }
 
   async function report(id: string) {
@@ -667,151 +665,158 @@ export default function HomePage() {
           100% { opacity: 0; transform: translateY(-4px); }
         }
       `}</style>
-{/* Hızlı ekleme */}
-          <div ref={quickSectionRef} className={pulseQuick ? 'ring-2 ring-emerald-400 rounded-2xl transition' : ''}>
-            <CollapsibleSection
-              title="Eklemek istediğin bir şey mi var?"
-              defaultOpen={false}
-            >
-              <form
-                ref={quickFormRef}
-                className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
-                onSubmit={async (e) => {
-  e.preventDefault();
-  const formEl = e.currentTarget;
-  const fd = new FormData(formEl);
+      {/* QUICK-ADD SPOTLIGHT */}
+      {showQuickAdd && (
+        <div className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col">
+          {/* CLOSE (X) */}
+          <button
+            className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
+            onClick={() => setShowQuickAdd(false)}
+            aria-label="Hızlı ekle panelini kapat"
+            title="Kapat"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
 
-  // name*, en az 1 etiket*, rating*
-  const nameVal = String(fd.get('name') || '').trim();
-  if (!nameVal) { alert('Ad gerekli'); return; }
-  if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
-  if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
+          <div className="mb-2">
+            <h3 className="text-base md:text-lg font-semibold">Yeni öğe ekle</h3>
+            <p className="text-xs opacity-70">Ad*, en az 1 etiket* ve puan* zorunlu; açıklama ve görsel opsiyonel.</p>
+          </div>
 
-  const ok = await addItem(fd);
-  if (ok) {
-    // Formu tamamen temizle
-    quickFormRef.current?.reset();
-    setQuickName('');
-    setNewRating(0);
-    setNewImage(null);
-    setQuickTags([]);
-    setQuickTagInput('');
-  }
-}}
+          {/* FORM (eski hızlı ekle içeriği) */}
+          <form
+            ref={quickFormRef}
+            className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const formEl = e.currentTarget;
+              const fd = new FormData(formEl);
+
+              // name*, en az 1 etiket*, rating*
+              const nameVal = String(fd.get('name') || '').trim();
+              if (!nameVal) { alert('Ad gerekli'); return; }
+              if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
+              if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
+
+              const ok = await addItem(fd);
+              if (ok) {
+                // Formu tamamen temizle
+                quickFormRef.current?.reset();
+                setQuickName('');
+                setNewRating(0);
+                setNewImage(null);
+                setQuickTags([]);
+                setQuickTagInput('');
+                setShowQuickAdd(false);
+              }
+            }}
+          >
+            {justAdded && (
+              <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
+                <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <span className="text-sm font-medium">Eklendi</span>
+                </div>
+              </div>
+            )}
+
+            {/* 1. satır: Ad + Kısa açıklama + Etiketler */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                ref={quickNameRef}
+                name="name"
+                value={quickName}
+                onChange={(e) => setQuickName(e.target.value)}
+                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                placeholder="adı *"
+                required
+              />
+              <input
+                name="desc"
+                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                placeholder="kısa açıklama (opsiyonel)"
+              />
+              <div className="flex-1 min-w-[200px]">
+                <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
+                  {quickTags.map(t => (
+                    <span
+                      key={t}
+                      className={(trending.includes(t) ? 'bg-violet-600 text-white border-violet-600' : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') + ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'}
+                    >
+                      #{t}
+                      <button
+                        type="button"
+                        className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
+                        onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
+                        aria-label={`#${t} etiketini kaldır`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    value={quickTagInput}
+                    onChange={e => setQuickTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
+                        e.preventDefault();
+                        addTagsFromInput();
+                      } else if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault(); // stop adding beyond 3
+                      }
+                    }}
+                    onBlur={() => addTagsFromInput()}
+                    placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
+                    className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
+                    disabled={quickTags.length >= 3}
+                  />
+                </div>
+                <input type="hidden" name="tags" value={quickTags.join(',')} />
+              </div>
+            </div>
+
+            {/* 2. satır: Yıldız seçimi + Yorum */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
+                <Stars value={newRating} onRate={(n) => setNewRating(n)} />
+              </div>
+              <input type="hidden" name="rating" value={newRating} />
+              <input
+                name="comment"
+                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                placeholder="yorum (opsiyonel)"
+              />
+            </div>
+
+            {/* 3. satır: Resim ekle */}
+            <div>
+              <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
+              <ImageUploader value={newImage} onChange={setNewImage} />
+              <input type="hidden" name="imageUrl" value={newImage ?? ''} />
+            </div>
+
+            {/* 4. satır: Gönder */}
+            <div className="flex justify-end pt-1">
+              <button
+                disabled={adding}
+                className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
               >
-                {justAdded && (
-                  <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-                    <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      <span className="text-sm font-medium">Eklendi</span>
-                    </div>
-                  </div>
+                {adding ? (
+                  <span className="inline-flex items-center gap-2">
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
+                    Ekleniyor…
+                  </span>
+                ) : (
+                  'Ekle'
                 )}
-                {/* 1. satır: Ad + Kısa açıklama */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    ref={quickNameRef}
-                    name="name"
-                    value={quickName}
-                    onChange={(e) => setQuickName(e.target.value)}
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="adı *"
-                    required
-                  />
-                 <input
-  name="desc"
-  className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-  placeholder="kısa açıklama (opsiyonel)"
-/>
-                  <div className="flex-1 min-w-[200px]">
-                   <div className="text-xs opacity-70 mb-1">
-  
-</div>
-                    <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
-                      {quickTags.map(t => (
-                        <span
-                          key={t}
-                          className={
-                            (trending.includes(t)
-                              ? 'bg-violet-600 text-white border-violet-600'
-                              : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') +
-                            ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'
-                          }
-                        >
-                          #{t}
-                          <button
-                            type="button"
-                            className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                            onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
-                            aria-label={`#${t} etiketini kaldır`}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      <input
-                        value={quickTagInput}
-                        onChange={e => setQuickTagInput(e.target.value)}
-                        onKeyDown={e => {
-                          if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
-                            e.preventDefault();
-                            addTagsFromInput();
-                          } else if (e.key === 'Enter' || e.key === ',') {
-                            e.preventDefault(); // stop adding beyond 3
-                          }
-                        }}
-                        onBlur={() => addTagsFromInput()}
-                        placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
-                        className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
-                        disabled={quickTags.length >= 3}
-                      />
-                    </div>
-                    {/* hidden: backend "tagsCsv" için */}
-                    <input type="hidden" name="tags" value={quickTags.join(',')} />
-                  </div>
-                </div>
-
-                {/* 2. satır: Yıldız seçimi + Yorum */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                    <Stars value={newRating} onRate={(n) => setNewRating(n)} />
-                  </div>
-                  {/* hidden: addItem tarafına rating’i geçelim */}
-                  <input type="hidden" name="rating" value={newRating} />
-                  <input
-                    name="comment"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="yorum (opsiyonel)"
-                  />
-                </div>
-
-                {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
-                <div>
-                  <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
-                  <ImageUploader value={newImage} onChange={setNewImage} />
-                  {/* hidden: addItem tarafına url’i geçelim */}
-                  <input type="hidden" name="imageUrl" value={newImage ?? ''} />
-                </div>
-
-                {/* 4. satır: Buton sağda ve biraz büyük */}
-                <div className="flex justify-end pt-1">
-                  <button
-                    disabled={adding}
-                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
-                  >
-                    {adding ? (
-                      <span className="inline-flex items-center gap-2">
-                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/></svg>
-                        Ekleniyor…
-                      </span>
-                    ) : (
-                      'Ekle'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </CollapsibleSection></div>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
         {/* Sol: etiketler */}
@@ -1117,6 +1122,7 @@ export default function HomePage() {
     const othersAll = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
     const displayOthers = othersAll.slice(0, spotlightShowCount);
     const hasMoreOthers = othersAll.length > spotlightShowCount;
+    const [showQuickAdd, setShowQuickAdd] = useState(false);
 
     return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
@@ -1457,6 +1463,24 @@ export default function HomePage() {
 
           {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
+            {/* + EKLE KARTI (her zaman en başta) */}
+            <button
+              type="button"
+              onClick={() => {
+                setShowQuickAdd(true);
+                setTimeout(() => {
+                  quickNameRef.current?.focus();
+                }, 100);
+              }}
+              className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
+              aria-label="Yeni öğe ekle"
+              title="Yeni öğe ekle"
+            >
+              <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                <div className="text-4xl leading-none">+</div>
+                <div className="text-sm font-medium">Ekle</div>
+              </div>
+            </button>
             {filteredItems.map((i) => {
               const isSaved = savedIds.has(i.id);
               return (
