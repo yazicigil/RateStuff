@@ -1,47 +1,68 @@
 // app/api/comments/[id]/route.ts
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getSessionUser } from '@/lib/auth';
 
-const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
-async function isAdmin(me: any) {
-  if (!me) return false;
-  if (me.email) return me.email === ADMIN_EMAIL;
-  try {
-    const u = await prisma.user.findUnique({ where: { id: me.id }, select: { email: true } });
-    return (u?.email || '') === ADMIN_EMAIL;
-  } catch { return false; }
-}
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
-  const me = await getSessionUser();
-  if (!me) return NextResponse.json({ ok:false, error:"unauthorized" }, { status: 401 });
+  try {
+    const me = await getSessionUser();
+    if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
-  const { text } = await req.json();
-  const c = await prisma.comment.findUnique({ where: { id: params.id } });
-  if (!c) return NextResponse.json({ ok:false, error:"not_found" }, { status: 404 });
-  if (c.userId !== me.id && !(await isAdmin(me))) {
-    return NextResponse.json({ ok:false, error:"forbidden" }, { status: 403 });
+    const body = await req.json().catch(() => ({} as any));
+    const data: any = { editedAt: new Date() };
+
+    // metin opsiyonel
+    if (typeof body.text === 'string') data.text = String(body.text);
+
+    // rating opsiyonel ama geldiyse 1..5 olmalı
+    if (body.rating !== undefined) {
+      const r = Number(body.rating);
+      if (!Number.isFinite(r) || r < 1 || r > 5) {
+        return NextResponse.json({ ok: false, error: 'invalid-rating' }, { status: 400 });
+      }
+      data.rating = Math.round(r);
+    }
+
+    // yetki kontrolü (sahibi ya da admin)
+    const existing = await prisma.comment.findUnique({
+      where: { id: params.id }, select: { id: true, userId: true }
+    });
+    if (!existing) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    const isOwner = existing.userId === me.id;
+    const isAdmin = (me as any)?.email === 'ratestuffnet@gmail.com' || (me as any)?.isAdmin === true;
+    if (!isOwner && !isAdmin) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+
+    const updated = await prisma.comment.update({
+      where: { id: params.id },
+      data,
+      include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } },
+    });
+
+    return NextResponse.json({ ok: true, comment: updated });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }
-
-  await prisma.comment.update({
-    where: { id: params.id },
-    data: { text: String(text||"").trim(), editedAt: new Date() },
-  });
-  return NextResponse.json({ ok:true });
 }
 
+export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    const me = await getSessionUser();
+    if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const me = await getSessionUser();
-  if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    const existing = await prisma.comment.findUnique({
+      where: { id: params.id }, select: { id: true, userId: true }
+    });
+    if (!existing) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    const isOwner = existing.userId === me.id;
+    const isAdmin = (me as any)?.email === 'ratestuffnet@gmail.com' || (me as any)?.isAdmin === true;
+    if (!isOwner && !isAdmin) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
 
-  const c = await prisma.comment.findUnique({ where: { id: params.id } });
-  if (!c) return NextResponse.json({ ok: false, error: 'not_found' }, { status: 404 });
-  if (c.userId !== me.id && !(await isAdmin(me))) {
-    return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+    await prisma.comment.delete({ where: { id: params.id } });
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }
-
-  await prisma.comment.delete({ where: { id: params.id } });
-  return NextResponse.json({ ok: true });
 }

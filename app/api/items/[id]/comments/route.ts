@@ -61,3 +61,40 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const me = await getSessionUser();
+    if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+
+    const body = await req.json().catch(() => ({} as any));
+    const { commentId } = body || {};
+    if (!commentId) return NextResponse.json({ ok: false, error: 'commentId-required' }, { status: 400 });
+
+    const existing = await prisma.comment.findUnique({
+      where: { id: commentId },
+      select: { id: true, userId: true, itemId: true },
+    });
+    if (!existing || existing.itemId !== params.id) {
+      return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    }
+
+    const isOwner = existing.userId === me.id;
+    const isAdmin = (me as any)?.email === 'ratestuffnet@gmail.com' || (me as any)?.isAdmin === true;
+    if (!isOwner && !isAdmin) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+
+    const data: any = { editedAt: new Date() };
+    if (typeof body.text === 'string') data.text = String(body.text);
+    if (body.rating !== undefined) {
+      const r = Number(body.rating);
+      if (!Number.isFinite(r) || r < 1 || r > 5) {
+        return NextResponse.json({ ok: false, error: 'invalid-rating' }, { status: 400 });
+      }
+      data.rating = Math.round(r);
+    }
+
+    await prisma.comment.update({ where: { id: commentId }, data });
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
+  }
+}
