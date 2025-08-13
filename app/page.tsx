@@ -1402,17 +1402,12 @@ if (!already) {
                               >daha az</button>
                             )}
                           </div>
-                          {/* VOTE CONTROLS (moved next to comment) */}
+                          {/* Vote controls at the right of the expanded comment */}
                           {(c.user?.id === myId) ? (
-                            <span
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700 mt-0.5"
-                              title="Yorum puanı"
-                            >
-                              <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              </svg>
-                              <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                            <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5" aria-label="Yorum puanı">
+                              <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                              <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                              <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
                             </span>
                           ) : (
                             <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
@@ -1452,17 +1447,12 @@ if (!already) {
                             >devamını gör</button>
                           )}
                         </div>
-                        {/* VOTE CONTROLS (moved next to comment) */}
+                        {/* Vote controls at the right of the comment line */}
                         {(c.user?.id === myId) ? (
-                          <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700"
-                            title="Yorum puanı"
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                            <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                          <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
+                            <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                            <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
                           </span>
                         ) : (
                           <span className="shrink-0 inline-flex items-center gap-1 select-none">
@@ -1610,14 +1600,24 @@ if (!already) {
               {!isEditing && (
                 <div className="flex items-center gap-2 shrink-0">
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700"
-                    title="Yorum puanı"
+                    className="shrink-0 inline-flex items-center gap-1 select-none"
+                    aria-label="Yorum puanı"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                    <span
+                      className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title="Upvote"
+                    >
+                      ▲
+                    </span>
+                    <span className="tabular-nums text-xs opacity-80">
+                      {typeof c.score === 'number' ? c.score : 0}
+                    </span>
+                    <span
+                      className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800"
+                      title="Downvote"
+                    >
+                      ▼
+                    </span>
                   </span>
                   <button
                     className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
