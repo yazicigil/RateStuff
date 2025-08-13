@@ -119,6 +119,82 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemePref>('system');
 
+  // suggestions dropdown open/close control (closes on outside click)
+  const [suggOpen, setSuggOpen] = useState(false);
+  const suggWrapRefDesktop = useRef<HTMLDivElement|null>(null);
+  const suggWrapRefMobile = useRef<HTMLDivElement|null>(null);
+  // Keyboard navigation for suggestions
+  const [activeIdx, setActiveIdx] = useState<number>(-1);
+  const suggListRef = useRef<HTMLUListElement|null>(null);
+
+  // keep local open state in sync with external showSuggestions
+  useEffect(() => {
+    if (controls?.showSuggestions) setSuggOpen(true);
+    else setSuggOpen(false);
+  }, [controls?.showSuggestions]);
+
+  // Reset activeIdx when query, suggestions, or dropdown closes
+  useEffect(() => {
+    if (!suggOpen) { setActiveIdx(-1); return; }
+    setActiveIdx(-1);
+  }, [controls?.q, controls?.suggestions, suggOpen]);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      const t = e.target as Node | null;
+      const inDesktop = !!suggWrapRefDesktop.current && suggWrapRefDesktop.current.contains(t as Node);
+      const inMobile = !!suggWrapRefMobile.current && suggWrapRefMobile.current.contains(t as Node);
+      if (!inDesktop && !inMobile) setSuggOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  // Ensure active suggestion stays in view
+  useEffect(() => {
+    if (activeIdx < 0 || !suggListRef.current) return;
+    const li = suggListRef.current.querySelector<HTMLLIElement>(`li[data-idx="${activeIdx}"]`);
+    if (li) {
+      const list = suggListRef.current;
+      const liTop = li.offsetTop;
+      const liBottom = liTop + li.offsetHeight;
+      const viewTop = list.scrollTop;
+      const viewBottom = viewTop + list.clientHeight;
+      if (liTop < viewTop) list.scrollTop = liTop;
+      else if (liBottom > viewBottom) list.scrollTop = liBottom - list.clientHeight;
+    }
+  }, [activeIdx]);
+  // Shared search input keydown handler for suggestions navigation
+  function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    const len = controls?.suggestions?.length ?? 0;
+    if (!len) {
+      if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
+      if (e.key === 'Escape') { setSuggOpen(false); }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSuggOpen(true);
+      setActiveIdx((i) => (i + 1) % len);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSuggOpen(true);
+      setActiveIdx((i) => (i <= 0 ? len - 1 : i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggOpen && activeIdx >= 0 && activeIdx < len) {
+        const val = controls!.suggestions![activeIdx];
+        setSuggOpen(false);
+        controls?.onClickSuggestion?.(val);
+      } else {
+        controls?.onCommit?.();
+      }
+    } else if (e.key === 'Escape') {
+      setSuggOpen(false);
+      setActiveIdx(-1);
+    }
+  }
+
   async function refetchMe() {
     try {
       const r = await fetch('/api/me', { cache: 'no-store' });
@@ -238,11 +314,12 @@ export default function Header({ controls }: { controls?: Controls }) {
         {/* Desktop: arama + sıralama ortada */}
         {controls && (
           <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
-            <div className="relative flex-1">
+            <div className="relative flex-1" ref={suggWrapRefDesktop}>
               <input
+                onFocus={() => setSuggOpen(true)}
                 value={controls.q}
                 onChange={(e) => controls.onQ(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); controls.onCommit?.(); } }}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
@@ -256,7 +333,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
+              {controls?.showSuggestions && suggOpen && (controls?.suggestions?.length ?? 0) > 0 && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
@@ -273,7 +350,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                             <button
                               key={t + i}
                               type="button"
-                              onClick={() => controls.onClickTagMatch?.(t)}
+                              onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
                               title={`#${t}`}
                             >
@@ -289,14 +366,15 @@ export default function Header({ controls }: { controls?: Controls }) {
                       İlgili Sonuçlar
                     </div>
                   </div>
-                  <ul className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
+                  <ul ref={suggListRef} className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
                     {controls.suggestions!.map((s, i) => (
-                      <li key={i} role="option">
+                      <li key={i} role="option" data-idx={i} aria-selected={i === activeIdx}>
                         <button
                           type="button"
-                          onClick={() => controls.onClickSuggestion?.(s)}
-                          className="w-full flex items-center gap-2 px-3 py-3 text-sm hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70"
+                          onClick={() => { setSuggOpen(false); controls.onClickSuggestion?.(s); }}
+                          className={`w-full flex items-center gap-2 px-3 py-3 text-sm ${i === activeIdx ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70'}`}
                           title={s}
+                          onMouseEnter={() => setActiveIdx(i)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0 opacity-60">
                             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
@@ -385,11 +463,12 @@ export default function Header({ controls }: { controls?: Controls }) {
         {/* Mobil: arama + sıralama ikinci satır */}
         {controls && (
           <div className="md:hidden flex items-center gap-2">
-            <div className="relative flex-1">
+            <div className="relative flex-1" ref={suggWrapRefMobile}>
               <input
+                onFocus={() => setSuggOpen(true)}
                 value={controls.q}
                 onChange={(e) => controls.onQ(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); controls.onCommit?.(); } }}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
@@ -403,7 +482,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
+              {controls?.showSuggestions && suggOpen && (controls?.suggestions?.length ?? 0) > 0 && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
@@ -420,7 +499,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                             <button
                               key={t + i}
                               type="button"
-                              onClick={() => controls.onClickTagMatch?.(t)}
+                              onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
                               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
                               title={`#${t}`}
                             >
@@ -436,14 +515,15 @@ export default function Header({ controls }: { controls?: Controls }) {
                       İlgili Sonuçlar
                     </div>
                   </div>
-                  <ul className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
+                  <ul ref={suggListRef} className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
                     {controls.suggestions!.map((s, i) => (
-                      <li key={i} role="option">
+                      <li key={i} role="option" data-idx={i} aria-selected={i === activeIdx}>
                         <button
                           type="button"
-                          onClick={() => controls.onClickSuggestion?.(s)}
-                          className="w-full flex items-center gap-2 px-3 py-3 text-sm hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70"
+                          onClick={() => { setSuggOpen(false); controls.onClickSuggestion?.(s); }}
+                          className={`w-full flex items-center gap-2 px-3 py-3 text-sm ${i === activeIdx ? 'bg-gray-100 dark:bg-gray-800' : 'hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70'}`}
                           title={s}
+                          onMouseEnter={() => setActiveIdx(i)}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0 opacity-60">
                             <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />

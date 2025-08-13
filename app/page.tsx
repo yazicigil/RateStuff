@@ -1053,7 +1053,7 @@ if (!already) {
         <button
           type="button"
           className="ml-1 px-2 py-0.5 rounded-full text-xs border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
-          onClick={() => setStarBuckets(new Set())}
+          onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
           title="Filtreyi temizle"
         >
           Temizle
