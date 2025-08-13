@@ -139,7 +139,8 @@ export default function HomePage() {
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
   // Hızlı ekle spotlight kontrolü
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  
+  const quickAddRef = useRef<HTMLDivElement>(null);
+
   function measureTruncation(id: string) {
     const el = commentTextRefs.current[id];
     if (!el) return;
@@ -577,6 +578,17 @@ export default function HomePage() {
     const name = q.trim();
     if (name) setQuickName(name);
     setShowQuickAdd(true);
+
+    // spotlight açıksa kapat
+  setSharedItem(null);
+  setSharedId(null);
+
+ // render’ı bekleyip doğru yere smooth scroll
+  requestAnimationFrame(() => {
+    const el = quickAddRef.current;
+    if (el) smoothScrollIntoView(el);
+  });
+
     setTimeout(() => {
       quickNameRef.current?.focus();
       quickNameRef.current?.select();
@@ -604,6 +616,24 @@ export default function HomePage() {
   }
 
   // Bir kartı pürüzsüz şekilde öne getir
+  function headerOffset() {
+  // Mobil adres çubuğu vs. düşünerek biraz esnek tutuyoruz
+  const w = window.innerWidth || 0;
+  // sm<640: ~72-80px, md>=768: ~96px
+  return w < 640 ? 80 : 96;
+}
+function smoothScrollToY(y: number) {
+  try {
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  } catch {
+    window.scrollTo(0, y);
+  }
+}
+function smoothScrollIntoView(el: Element) {
+  const rect = el.getBoundingClientRect();
+  const y = rect.top + window.scrollY - headerOffset();
+  smoothScrollToY(y);
+}
   function scrollToItem(id: string) {
     const el = itemRefs.current[id];
     if (!el) return;
@@ -816,7 +846,7 @@ export default function HomePage() {
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
-  <div className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col">
+  <div ref={quickAddRef} className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col">
     {/* CLOSE (X) */}
     <button
       className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
@@ -1481,6 +1511,11 @@ export default function HomePage() {
   setSharedItem(null);
   setSharedId(null);
   setShowQuickAdd(true);
+  requestAnimationFrame(() => {
+    const el = quickAddRef.current;
+    if (el) smoothScrollIntoView(el);
+  });
+
   setTimeout(() => { quickNameRef.current?.focus(); }, 100);
 }}
               className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
