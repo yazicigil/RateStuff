@@ -869,38 +869,45 @@ export default function HomePage() {
                 const isOpen = expandedComments.has(c.id);
                 const isTrunc = truncatedComments.has(c.id);
                 const longish = (c.text || '').length >= 60;
+
+                if (isOpen) {
+                  return (
+                    <div className="w-full">
+                      <div className="whitespace-pre-wrap break-words">
+                        “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                      </div>
+                      {(isTrunc || longish) && (
+                        <button
+                          type="button"
+                          className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                          onClick={() =>
+                            setExpandedComments((prev) => {
+                              const n = new Set(prev); n.delete(c.id); return n;
+                            })
+                          }
+                        >daha az</button>
+                      )}
+                    </div>
+                  );
+                }
+
                 return (
-                  <div
-                    ref={(el) => {
-                      commentTextRefs.current[c.id] = el;
-                      if (el) setTimeout(() => measureTruncation(c.id), 0);
-                    }}
-                    className={isOpen ? 'whitespace-pre-wrap break-words w-full' : 'truncate w-full'}
-                  >
-                    “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                    {!isOpen && (isTrunc || longish) && (
+                  <div className="w-full flex items-baseline gap-1 min-w-0">
+                    <div
+                      ref={(el) => {
+                        commentTextRefs.current[c.id] = el;
+                        if (el) setTimeout(() => measureTruncation(c.id), 0);
+                      }}
+                      className="truncate w-full"
+                    >
+                      “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                    </div>
+                    {(isTrunc || longish) && (
                       <button
                         type="button"
-                        className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
+                        className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
                         onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
-                      >
-                        devamını gör
-                      </button>
-                    )}
-                    {isOpen && (isTrunc || longish) && (
-                      <button
-                        type="button"
-                        className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
-                        onClick={() =>
-                          setExpandedComments((prev) => {
-                            const n = new Set(prev);
-                            n.delete(c.id);
-                            return n;
-                          })
-                        }
-                      >
-                        daha az
-                      </button>
+                      >devamını gör</button>
                     )}
                   </div>
                 );
@@ -1383,38 +1390,45 @@ export default function HomePage() {
                                   const isOpen = expandedComments.has(c.id);
                                   const isTrunc = truncatedComments.has(c.id);
                                   const longish = (c.text || '').length >= 60;
+
+                                  if (isOpen) {
+                                    return (
+                                      <div className="w-full">
+                                        <div className="whitespace-pre-wrap break-words">
+                                          “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                        </div>
+                                        {(isTrunc || longish) && (
+                                          <button
+                                            type="button"
+                                            className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                            onClick={() =>
+                                              setExpandedComments((prev) => {
+                                                const n = new Set(prev); n.delete(c.id); return n;
+                                              })
+                                            }
+                                          >daha az</button>
+                                        )}
+                                      </div>
+                                    );
+                                  }
+
                                   return (
-                                    <div
-                                      ref={(el) => {
-                                        commentTextRefs.current[c.id] = el;
-                                        if (el) setTimeout(() => measureTruncation(c.id), 0);
-                                      }}
-                                      className={isOpen ? 'whitespace-pre-wrap break-words w-full' : 'truncate w-full'}
-                                    >
-                                      “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                      {!isOpen && (isTrunc || longish) && (
+                                    <div className="w-full flex items-baseline gap-1 min-w-0">
+                                      <div
+                                        ref={(el) => {
+                                          commentTextRefs.current[c.id] = el;
+                                          if (el) setTimeout(() => measureTruncation(c.id), 0);
+                                        }}
+                                        className="truncate w-full"
+                                      >
+                                        “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                      </div>
+                                      {(isTrunc || longish) && (
                                         <button
                                           type="button"
-                                          className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                          className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
                                           onClick={() => setExpandedComments((prev) => new Set(prev).add(c.id))}
-                                        >
-                                          devamını gör
-                                        </button>
-                                      )}
-                                      {isOpen && (isTrunc || longish) && (
-                                        <button
-                                          type="button"
-                                          className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
-                                          onClick={() =>
-                                            setExpandedComments((prev) => {
-                                              const n = new Set(prev);
-                                              n.delete(c.id);
-                                              return n;
-                                            })
-                                          }
-                                        >
-                                          daha az
-                                        </button>
+                                        >devamını gör</button>
                                       )}
                                     </div>
                                   );
