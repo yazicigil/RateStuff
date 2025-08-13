@@ -201,6 +201,7 @@ export default function HomePage() {
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
   const [navDir, setNavDir] = useState<0 | 1 | -1>(0); // 0: yok, 1: sağa (next), -1: sola (prev)
+  const [animKey, setAnimKey] = useState(0);
   // Seçili etiket sayıları (başlıklarda göstermek için)
   const selectedInTrending = useMemo(
     () => trending.filter(t => selectedTags.has(t)).length,
@@ -759,6 +760,14 @@ function smoothScrollIntoView(el: Element) {
     };
   }, [spotlightRef, sharedItem, currentIndex, filteredItems.length]);
 
+  // Her delta gezinmede yeni içeriğe geçtikten sonra animasyonu yeniden tetiklemek için
+  useEffect(() => {
+    if (navDir !== 0 && sharedItem?.id) {
+      // React yeniden monte etsin diye ana wrapper'a key artır
+      setAnimKey((k) => k + 1);
+    }
+  }, [sharedItem?.id, navDir]);
+
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
     WebkitLineClamp: 2,
@@ -819,8 +828,8 @@ function smoothScrollIntoView(el: Element) {
           0% { opacity: 0; transform: translateX(12px); }
           100% { opacity: 1; transform: translateX(0); }
         }
-        .animate-slideInFromLeft { animation: slideInFromLeft .18s ease-out; }
-        .animate-slideInFromRight { animation: slideInFromRight .18s ease-out; }
+        .animate-slideInFromLeft { animation: slideInFromLeft .18s ease-out; will-change: transform; }
+        .animate-slideInFromRight { animation: slideInFromRight .18s ease-out; will-change: transform; }
         @media (prefers-reduced-motion: reduce) {
           .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
         }
@@ -1234,7 +1243,11 @@ function smoothScrollIntoView(el: Element) {
     )}
 
     {/* CONTENT (animated on left/right nav) */}
-    <div className={navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : ''}>
+    <div
+      key={animKey}
+      className={navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : ''}
+      style={{ willChange: 'transform' }}
+    >
       <div className="flex items-start gap-3">
       <div className="flex flex-col items-center shrink-0 w-28">
         {sharedItem.imageUrl ? (
