@@ -811,14 +811,19 @@ function smoothScrollIntoView(el: Element) {
           85% { opacity: 1; transform: translateY(0); }
           100% { opacity: 0; transform: translateY(-4px); }
         }
-          @keyframes slideInFromLeft {
-  0% { opacity: 0; transform: translateX(-12px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInFromRight {
-  0% { opacity: 0; transform: translateX(12px); }
-  100% { opacity: 1; transform: translateX(0); }
-}
+        @keyframes slideInFromLeft {
+          0% { opacity: 0; transform: translateX(-12px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInFromRight {
+          0% { opacity: 0; transform: translateX(12px); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slideInFromLeft { animation: slideInFromLeft .18s ease-out; }
+        .animate-slideInFromRight { animation: slideInFromRight .18s ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
+        }
       `}</style>
       
 
@@ -1228,8 +1233,9 @@ function smoothScrollIntoView(el: Element) {
       </>
     )}
 
-    {/* CONTENT */}
-    <div className="flex items-start gap-3">
+    {/* CONTENT (animated on left/right nav) */}
+    <div className={navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : ''}>
+      <div className="flex items-start gap-3">
       <div className="flex flex-col items-center shrink-0 w-28">
         {sharedItem.imageUrl ? (
           <img src={sharedItem.imageUrl} alt={sharedItem.name} className="w-28 h-28 object-cover rounded-lg" />
@@ -1606,18 +1612,19 @@ function smoothScrollIntoView(el: Element) {
   })()
 )}
     {/* Comment input for spotlight (tek yorum kuralı) */}
-  {!(sharedItem as any).myCommentId && (
-    <div className="mt-3 pt-3 border-t dark:border-gray-800">
-      <CommentBox
-        itemId={sharedItem.id}
-        onDone={async () => {
-          await load();
-          await refreshShared(sharedItem.id);
-        }}
-        initialRating={0}
-      />
-    </div>
-  )}
+    {!(sharedItem as any).myCommentId && (
+      <div className="mt-3 pt-3 border-t dark:border-gray-800">
+        <CommentBox
+          itemId={sharedItem.id}
+          onDone={async () => {
+            await load();
+            await refreshShared(sharedItem.id);
+          }}
+          initialRating={0}
+        />
+      </div>
+    )}
+      </div>
     </div>
   )}
           {/* MOBIL: Etiketler/Filtreler (spotlight altı) */}
