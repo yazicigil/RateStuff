@@ -868,16 +868,17 @@ export default function HomePage() {
               {(() => {
                 const isOpen = expandedComments.has(c.id);
                 const isTrunc = truncatedComments.has(c.id);
+                const longish = (c.text || '').length >= 60;
                 return (
                   <div
                     ref={(el) => {
                       commentTextRefs.current[c.id] = el;
                       if (el) setTimeout(() => measureTruncation(c.id), 0);
                     }}
-                    className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}
+                    className={isOpen ? 'whitespace-pre-wrap break-words w-full' : 'truncate w-full'}
                   >
                     “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                    {!isOpen && isTrunc && (
+                    {!isOpen && (isTrunc || longish) && (
                       <button
                         type="button"
                         className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
@@ -886,7 +887,7 @@ export default function HomePage() {
                         devamını gör
                       </button>
                     )}
-                    {isOpen && isTrunc && (
+                    {isOpen && (isTrunc || longish) && (
                       <button
                         type="button"
                         className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
@@ -1381,16 +1382,17 @@ export default function HomePage() {
                                 (() => {
                                   const isOpen = expandedComments.has(c.id);
                                   const isTrunc = truncatedComments.has(c.id);
+                                  const longish = (c.text || '').length >= 60;
                                   return (
                                     <div
                                       ref={(el) => {
                                         commentTextRefs.current[c.id] = el;
                                         if (el) setTimeout(() => measureTruncation(c.id), 0);
                                       }}
-                                      className={isOpen ? 'whitespace-pre-wrap break-words' : 'truncate'}
+                                      className={isOpen ? 'whitespace-pre-wrap break-words w-full' : 'truncate w-full'}
                                     >
                                       “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                      {!isOpen && isTrunc && (
+                                      {!isOpen && (isTrunc || longish) && (
                                         <button
                                           type="button"
                                           className="ml-1 text-[11px] underline opacity-70 hover:opacity-100"
@@ -1399,7 +1401,7 @@ export default function HomePage() {
                                           devamını gör
                                         </button>
                                       )}
-                                      {isOpen && isTrunc && (
+                                      {isOpen && (isTrunc || longish) && (
                                         <button
                                           type="button"
                                           className="ml-2 text-[11px] underline opacity-70 hover:opacity-100"
