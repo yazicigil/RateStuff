@@ -118,7 +118,7 @@ export default function HomePage() {
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
-  const [newRating, setNewRating] = useState<number>(5);
+  const [newRating, setNewRating] = useState<number>(0);
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [starBuckets, setStarBuckets] = useState<Set<number>>(new Set());
   // Yorum düzenleme state'i
@@ -582,6 +582,7 @@ export default function HomePage() {
   };
 
   const quickFormRef = useRef<HTMLFormElement>(null);
+  const quickValid = quickName.trim().length > 0 && quickTags.length > 0 && newRating > 0;
 
   function normalizeTag(s: string) {
     return s.trim().replace(/^#+/, '').toLowerCase();
