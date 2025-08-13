@@ -1357,130 +1357,129 @@ if (!already) {
 
     return (
       <div className="pt-3 space-y-2 text-sm leading-relaxed">
-        {/* Başkalarının yorumları */}
-        {displayOthers.map((c) => {
-          const isEditing = editingCommentId === c.id;
-          return (
-            <div key={c.id} className="flex items-start gap-2 justify-between">
-              <div className="flex items-start gap-2 min-w-0 flex-1">
-                {c.user?.avatarUrl ? (
-                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
-                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs opacity-70 flex items-center">
-                    {((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name))}
-                    {(c.user as any)?.verified && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
-                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                    {c.rating ? (
-                      <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
-                    ) : null}
-                  </div>
-
-                  {(() => {
-                    const isOpen = expandedComments.has(c.id);
-                    const isTrunc = truncatedComments.has(c.id);
-                    const longish = (c.text || '').length >= 60;
-
-                    if (isOpen) {
-                      return (
-                        <div className="w-full flex items-start justify-between gap-2">
-                          <div className="flex-1">
-                            <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
-                            {(isTrunc || longish) && (
-                              <button
-                                type="button"
-                                className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
-                              >daha az</button>
-                            )}
-                          </div>
-                          {/* Vote controls at the right of the expanded comment */}
-                          {(c.user?.id === myId) ? (
-                            <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5" aria-label="Yorum puanı">
-                              <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                              <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                              <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-                            </span>
-                          ) : (
-                            <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
-                              <button
-                                type="button"
-                                className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                title="Upvote"
-                                onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                              >▲</button>
-                              <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                              <button
-                                type="button"
-                                className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                title="Downvote"
-                                onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                              >▼</button>
-                            </span>
-                          )}
+            {/* Başkalarının yorumları */}
+            {displayOthers.map((c) => {
+              const isEditing = editingCommentId === c.id;
+              return (
+                <div key={c.id}>
+                  <div className="flex items-start gap-2 justify-between">
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                      {c.user?.avatarUrl ? (
+                        <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
+                          {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
                         </div>
-                      );
-                    }
-
-                    return (
-                      <div className="w-full flex items-start justify-between gap-2 min-w-0">
-                        <div className="min-w-0 flex items-baseline gap-1 flex-1">
-                          <div
-                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
-                            className="truncate w-full"
-                          >
-                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                          </div>
-                          {(isTrunc || longish) && (
-                            <button
-                              type="button"
-                              className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
-                            >devamını gör</button>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs opacity-70 flex items-center">
+                          {((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name))}
+                          {(c.user as any)?.verified && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
+                              <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                              <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
                           )}
+                          {c.rating ? (
+                            <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
+                          ) : null}
                         </div>
-                        {/* Vote controls at the right of the comment line */}
-                        {(c.user?.id === myId) ? (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
-                            <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-                          </span>
-                        ) : (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none">
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Upvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                            >▲</button>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Downvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                            >▼</button>
-                          </span>
-                        )}
+                        {(() => {
+                          const isOpen = expandedComments.has(c.id);
+                          const isTrunc = truncatedComments.has(c.id);
+                          const longish = (c.text || '').length >= 60;
+                          if (isOpen) {
+                            return (
+                              <div className="flex items-start gap-2 justify-between">
+                                <div className="flex-1">
+                                  <div className="whitespace-pre-wrap break-words">
+                                    “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                  </div>
+                                  {(isTrunc || longish) && (
+                                    <button
+                                      type="button"
+                                      className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
+                                      onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
+                                    >daha az</button>
+                                  )}
+                                </div>
+                                {(c.user?.id === myId) ? (
+                                  <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5" aria-label="Yorum puanı">
+                                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
+                                  </span>
+                                ) : (
+                                  <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
+                                    <button
+                                      type="button"
+                                      className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                      title="Upvote"
+                                      onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                                    >▲</button>
+                                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                                    <button
+                                      type="button"
+                                      className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                      title="Downvote"
+                                      onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                                    >▼</button>
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          }
+                          return (
+                            <div className="flex items-start gap-2 justify-between min-w-0">
+                              <div className="min-w-0 flex items-baseline gap-1 flex-1">
+                                <div
+                                  ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
+                                  className="truncate w-full"
+                                >
+                                  “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+                                </div>
+                                {(isTrunc || longish) && (
+                                  <button
+                                    type="button"
+                                    className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
+                                    onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
+                                  >devamını gör</button>
+                                )}
+                              </div>
+                              {(c.user?.id === myId) ? (
+                                <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
+                                  <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                                  <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                                  <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
+                                </span>
+                              ) : (
+                                <span className="shrink-0 inline-flex items-center gap-1 select-none">
+                                  <button
+                                    type="button"
+                                    className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                    title="Upvote"
+                                    onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                                  >▲</button>
+                                  <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                                  <button
+                                    type="button"
+                                    className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                    title="Downvote"
+                                    onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                                  >▼</button>
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
-                    );
-                  })()}
+                    </div>
+                  </div>
+                  {/* başkalarında edit/sil yok */}
+                  {!isEditing && null}
                 </div>
-              </div>
-              {/* başkalarında edit/sil yok */}
-              {!isEditing && null}
-            </div>
-          );
-        })}
+              );
+            })}
         {hasMoreOthers && (
           <div className="pt-1">
             <button
@@ -1599,25 +1598,10 @@ if (!already) {
 
               {!isEditing && (
                 <div className="flex items-center gap-2 shrink-0">
-                  <span
-                    className="shrink-0 inline-flex items-center gap-1 select-none"
-                    aria-label="Yorum puanı"
-                  >
-                    <span
-                      className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title="Upvote"
-                    >
-                      ▲
-                    </span>
-                    <span className="tabular-nums text-xs opacity-80">
-                      {typeof c.score === 'number' ? c.score : 0}
-                    </span>
-                    <span
-                      className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800"
-                      title="Downvote"
-                    >
-                      ▼
-                    </span>
+                  <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
+                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
                   </span>
                   <button
                     className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
