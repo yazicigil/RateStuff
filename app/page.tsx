@@ -1001,13 +1001,13 @@ if (!already) {
           <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
             {/* Sıralama */}
             <div>
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Sıralama</div>
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sıralama</div>
               <div className="flex gap-2 mt-2">
                 <button
                   type="button"
                   className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
                     order === 'new'
-                      ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                      ? 'border-gray-400 dark:border-gray-500'
                       : ''
                   }`}
                   onClick={() => setOrder('new')}
@@ -1019,7 +1019,7 @@ if (!already) {
                   type="button"
                   className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
                     order === 'top'
-                      ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                      ? 'border-gray-400 dark:border-gray-500'
                       : ''
                   }`}
                   onClick={() => setOrder('top')}
@@ -1031,7 +1031,7 @@ if (!already) {
             </div>
             {/* Divider before Yıldızlar */}
             <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-300">Yıldızlar</div>
+              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Yıldızlar</div>
               <div className="flex flex-wrap gap-2 mt-2">
                 {[1,2,3,4,5].map((n) => {
                   const active = starBuckets.has(n);
@@ -1039,11 +1039,11 @@ if (!already) {
                     <button
                       key={`sb-${n}`}
                       type="button"
-                      className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors ${
+                      className={
                         active
-                          ? 'bg-purple-100 border-purple-300 text-purple-800 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
-                          : ''
-                      }`}
+                          ? "rounded-full bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-100 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+                          : "rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+                      }
                       onClick={() => {
                         setStarBuckets(prev => {
                           const next = new Set(prev);
@@ -1061,7 +1061,7 @@ if (!already) {
                 {starBuckets.size > 0 && (
                   <button
                     type="button"
-                    className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(168,85,247,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+                    className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
                     onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
                     title="Filtreyi temizle"
                   >
