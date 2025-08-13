@@ -19,6 +19,8 @@ type Controls = {
   suggestions?: string[];
   onClickSuggestion?: (s: string) => void;
   showSuggestions?: boolean;
+  tagMatches?: string[];
+  onClickTagMatch?: (t: string) => void;
 };
 
 const USE_CURRENTCOLOR = false;
@@ -147,6 +149,22 @@ export default function Header({ controls }: { controls?: Controls }) {
     ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
     : 'h-14 w-auto dark:invert';
 
+  // Helper to highlight query in suggestions
+  const renderHighlighted = (text: string, q: string) => {
+    const needle = (q || '').trim().toLowerCase();
+    if (!needle) return text;
+    const hay = text || '';
+    const i = hay.toLowerCase().indexOf(needle);
+    if (i === -1) return hay;
+    return (
+      <>
+        {hay.slice(0, i)}
+        <mark className="px-0.5 rounded bg-amber-200/70 dark:bg-amber-600/40">{hay.slice(i, i + needle.length)}</mark>
+        {hay.slice(i + needle.length)}
+      </>
+    );
+  };
+
   return (
     <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
@@ -239,22 +257,64 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
               {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg overflow-hidden">
-                  <div className="px-3 py-2 text-xs font-medium opacity-70">İlgili Sonuçlar</div>
-                  <ul className="max-h-72 overflow-auto">
+                <div
+                  className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
+                  role="listbox"
+                  aria-label="İlgili Sonuçlar"
+                >
+                  <div className="px-3 py-2 space-y-1">
+                    {Array.isArray(controls.tagMatches) && controls.tagMatches.length > 0 && (
+                      <>
+                        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                          İlgili Etiketler
+                        </div>
+                        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+                          {controls.tagMatches.slice(0, 12).map((t, i) => (
+                            <button
+                              key={t + i}
+                              type="button"
+                              onClick={() => controls.onClickTagMatch?.(t)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
+                              title={`#${t}`}
+                            >
+                              <span className="opacity-70">#</span>
+                              <span className="truncate max-w-[10rem]">{t}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="h-px bg-gray-100 dark:bg-gray-800" />
+                      </>
+                    )}
+                    <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                      İlgili Sonuçlar
+                    </div>
+                  </div>
+                  <ul className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
                     {controls.suggestions!.map((s, i) => (
-                      <li key={i}>
+                      <li key={i} role="option">
                         <button
                           type="button"
                           onClick={() => controls.onClickSuggestion?.(s)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 truncate"
+                          className="w-full flex items-center gap-2 px-3 py-3 text-sm hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70"
                           title={s}
                         >
-                          {s}
+                          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0 opacity-60">
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                          <span className="truncate flex-1">{renderHighlighted(s, controls.q)}</span>
                         </button>
                       </li>
                     ))}
                   </ul>
+                  <div className="px-3 py-2 text-[11px] text-gray-500/80 dark:text-gray-400/80 flex items-center justify-between">
+                    <span className="hidden sm:inline">Enter ile seç</span>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="rounded border px-1 py-0.5 text-[10px] dark:border-gray-700">↑</span>
+                      <span className="rounded border px-1 py-0.5 text-[10px] dark:border-gray-700">↓</span>
+                      <span className="opacity-70">ile gez</span>
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -344,22 +404,64 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
               )}
               {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
-                <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg overflow-hidden">
-                  <div className="px-3 py-2 text-xs font-medium opacity-70">İlgili Sonuçlar</div>
-                  <ul className="max-h-72 overflow-auto">
+                <div
+                  className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
+                  role="listbox"
+                  aria-label="İlgili Sonuçlar"
+                >
+                  <div className="px-3 py-2 space-y-1">
+                    {Array.isArray(controls.tagMatches) && controls.tagMatches.length > 0 && (
+                      <>
+                        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                          İlgili Etiketler
+                        </div>
+                        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+                          {controls.tagMatches.slice(0, 12).map((t, i) => (
+                            <button
+                              key={t + i}
+                              type="button"
+                              onClick={() => controls.onClickTagMatch?.(t)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70"
+                              title={`#${t}`}
+                            >
+                              <span className="opacity-70">#</span>
+                              <span className="truncate max-w-[10rem]">{t}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="h-px bg-gray-100 dark:bg-gray-800" />
+                      </>
+                    )}
+                    <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                      İlgili Sonuçlar
+                    </div>
+                  </div>
+                  <ul className="max-h-80 overflow-auto overscroll-contain divide-y dark:divide-gray-800">
                     {controls.suggestions!.map((s, i) => (
-                      <li key={i}>
+                      <li key={i} role="option">
                         <button
                           type="button"
                           onClick={() => controls.onClickSuggestion?.(s)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 truncate"
+                          className="w-full flex items-center gap-2 px-3 py-3 text-sm hover:bg-gray-50 active:bg-gray-100 dark:hover:bg-gray-800 dark:active:bg-gray-800/70"
                           title={s}
                         >
-                          {s}
+                          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0 opacity-60">
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
+                            <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" />
+                          </svg>
+                          <span className="truncate flex-1">{renderHighlighted(s, controls.q)}</span>
                         </button>
                       </li>
                     ))}
                   </ul>
+                  <div className="px-3 py-2 text-[11px] text-gray-500/80 dark:text-gray-400/80 flex items-center justify-between">
+                    <span className="hidden sm:inline">Enter ile seç</span>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="rounded border px-1 py-0.5 text-[10px] dark:border-gray-700">↑</span>
+                      <span className="rounded border px-1 py-0.5 text-[10px] dark:border-gray-700">↓</span>
+                      <span className="opacity-70">ile gez</span>
+                    </span>
+                  </div>
                 </div>
               )}
             </div>

@@ -108,6 +108,14 @@ export default function HomePage() {
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [trending, setTrending] = useState<string[]>([]);
+  // Arama kutusundaki yazıya göre etiket eşleşmeleri (ilgili etiketler)
+  const tagHits = useMemo(() => {
+    const s = qInput.trim().toLowerCase();
+    if (!s) return [] as string[];
+    // trending + allTags birleşimi, mükerrerleri kaldır
+    const pool = Array.from(new Set([...(trending || []), ...(allTags || [])]));
+    return pool.filter(t => t.toLowerCase().includes(s)).slice(0, 12);
+  }, [qInput, allTags, trending]);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -889,6 +897,19 @@ if (!already) {
   onCommit: () => setQCommitted(qInput),
   suggestions,
   onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
+  tagMatches: tagHits,
+  onClickTagMatch: (t: string) => {
+    if (!t) return;
+    setSelectedTags(prev => {
+      const next = new Set(prev);
+      next.add(t);
+      return next;
+    });
+    setQCommitted(qInput);
+    setShowQuickAdd(false);
+    setSharedItem(null);
+    setSharedId(null);
+  },
   showSuggestions: qInput !== qCommitted,
 }} />
       <style jsx global>{`
