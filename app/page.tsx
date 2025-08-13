@@ -87,6 +87,8 @@ type ItemVM = {
     id: string;
     text: string;
     rating?: number | null;
+    score?: number | null;              // toplam oy (up - down)
+    myVote?: 1 | -1 | 0 | null;         // kullanıcının mevcut oyu
     edited?: boolean;
     user?: { id?: string; name?: string | null; avatarUrl?: string | null; verified?: boolean };
   }[];
@@ -435,6 +437,22 @@ export default function HomePage() {
     }
   }
 
+    async function voteOnComment(commentId: string, nextValue: 1 | -1 | 0) {
+    const res = await fetchOrSignin(`/api/comments/${commentId}/vote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: nextValue })
+    });
+    if (!res) return;
+    const j = await res.json().catch(()=>null);
+    if (!res.ok || !j?.ok) {
+      alert('Hata: ' + (j?.error || res.status));
+      return;
+    }
+    await load();
+    if (sharedId) await refreshShared(sharedId);
+  }
+  
   async function updateComment(commentId: string, text: string, itemId?: string, rating?: number) {
     // 1) /api/comments/:id (çoğul) → PATCH
     let res = await fetchOrSignin(`/api/comments/${commentId}`, {
@@ -911,6 +929,22 @@ export default function HomePage() {
                     {c.rating ? (
                       <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
+                    {/* VOTE CONTROLS */}
+                    <span className="ml-2 inline-flex items-center gap-1 select-none">
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Upvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                      >▲</button>
+                      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Downvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                      >▼</button>
+                    </span>
                   </div>
 
                   {(() => {
@@ -979,6 +1013,22 @@ export default function HomePage() {
                     {c.rating ? (
                       <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
+                    {/* VOTE CONTROLS */}
+                    <span className="ml-2 inline-flex items-center gap-1 select-none">
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Upvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                      >▲</button>
+                      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Downvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                      >▼</button>
+                    </span>
                   </div>
 
                   {!isEditing ? (
@@ -1579,6 +1629,22 @@ export default function HomePage() {
                     {c.rating ? (
                       <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
+                    {/* VOTE CONTROLS */}
+                    <span className="ml-2 inline-flex items-center gap-1 select-none">
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Upvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                      >▲</button>
+                      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Downvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                      >▼</button>
+                    </span>
                   </div>
 
                   {(() => {
@@ -1647,6 +1713,22 @@ export default function HomePage() {
                     {c.rating ? (
                       <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{c.rating}★</span>
                     ) : null}
+                    {/* VOTE CONTROLS */}
+                    <span className="ml-2 inline-flex items-center gap-1 select-none">
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Upvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                      >▲</button>
+                      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                      <button
+                        type="button"
+                        className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                        title="Downvote"
+                        onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                      >▼</button>
+                    </span>
                   </div>
 
                   {!isEditing ? (
