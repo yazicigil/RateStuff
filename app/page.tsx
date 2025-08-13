@@ -1227,14 +1227,7 @@ function smoothScrollIntoView(el: Element) {
         </button>
       </>
     )}
-{/* Slide animation wrapper */}
-<div
-  key={sharedItem.id}
-  className={navDir === 1
-    ? 'animate-[slideInFromRight_180ms_ease]'
-    : (navDir === -1 ? 'animate-[slideInFromLeft_180ms_ease]' : '')
-  }
->
+
     {/* CONTENT */}
     <div className="flex items-start gap-3">
       <div className="flex flex-col items-center shrink-0 w-28">
@@ -1627,7 +1620,6 @@ function smoothScrollIntoView(el: Element) {
   )}
     </div>
   )}
-  
           {/* MOBIL: Etiketler/Filtreler (spotlight altı) */}
 <div className="md:hidden space-y-4">
   <CollapsibleSection
@@ -1869,7 +1861,6 @@ function smoothScrollIntoView(el: Element) {
                       <span className="tabular-nums">{(i as any).reportCount}</span>
                     </div>
                   )}
-                  
                   {/* LEFT TOP: Share + Options */}
                   <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
                     {/* Share button + popover */}
@@ -2326,7 +2317,6 @@ function smoothScrollIntoView(el: Element) {
             })}
           </div>
         </section>
-        
       </main>
     </div>
   );
