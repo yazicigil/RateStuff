@@ -596,10 +596,14 @@ export default function HomePage() {
       url.searchParams.set('item', id);
       window.history.replaceState({}, '', url.toString());
     } catch {}
-    // spotlight render edildikten hemen sonra yukarı kaydır
+    // spotlight render edildikten hemen sonra yukarı kaydır (header ofsetiyle)
     setTimeout(() => {
-      spotlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+      const el = spotlightRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const y = rect.top + window.scrollY - 96; // ~96px üst boşluk
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }, 120);
   }
 
   const clamp2: React.CSSProperties = {
@@ -712,7 +716,7 @@ export default function HomePage() {
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {sharedItem && (
   <div ref={spotlightRef} className={
-    `relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
+    `scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
   }>
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
@@ -1066,7 +1070,6 @@ export default function HomePage() {
                     title="Yorumu düzenle"
                     onClick={() => {
                       setEditingCommentId(c.id);
-                      setEditingCommentItem(sharedItem!.id);
                       setEditingCommentText(c.text);
                       setEditingCommentRating(c.rating || 0);
                     }}
