@@ -100,8 +100,10 @@ type ItemVM = {
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
   const [qInput, setQInput] = useState('');
-const [qCommitted, setQCommitted] = useState('');
-const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [qCommitted, setQCommitted] = useState('');
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [previewItems, setPreviewItems] = useState<ItemVM[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -394,6 +396,34 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     if (!avg || avg <= 0) return null;
     return Math.ceil(avg);
   }
+
+  // --- Preview/deleting logic ---
+  // Compute deleting and isPreviewing
+  const deleting =
+    qCommitted.length > 0 &&
+    qCommitted.startsWith(qInput) &&
+    qInput.length < qCommitted.length;
+  const isPreviewing =
+    (qInput.trim().length > 0) &&
+    (qInput !== qCommitted) &&
+    !deleting;
+
+  // Reset to full list when clearing or deleting
+  useEffect(() => {
+    // If user cleared the input OR started deleting from the committed query,
+    // reset committed search so we show the full default list.
+    if (!qCommitted) return;
+    const cleared = qInput.trim().length === 0;
+    const startedDeleting =
+      qCommitted.length > 0 &&
+      qCommitted.startsWith(qInput) &&
+      qInput.length < qCommitted.length;
+    if (cleared || startedDeleting) {
+      setQCommitted('');
+      setSuggestions([]);
+      setPreviewItems([]);
+    }
+  }, [qInput, qCommitted]);
 
   // Filtreleme ve sıralama: yıldız, çoklu etiket ve "top" sıralaması
   const filteredItems = useMemo(() => {
