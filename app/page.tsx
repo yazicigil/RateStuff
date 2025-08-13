@@ -369,7 +369,7 @@ export default function HomePage() {
     return Math.ceil(avg);
   }
 
-  // Filtreleme: yıldız ve çoklu etiket seçimi
+  // Filtreleme ve sıralama: yıldız, çoklu etiket ve "top" sıralaması
   const filteredItems = useMemo(() => {
     let filtered = items;
     if (starBuckets.size > 0) {
@@ -383,8 +383,22 @@ export default function HomePage() {
         Array.from(selectedTags).every(tag => i.tags.includes(tag))
       );
     }
+
+    // Sort by most liked when order === 'top'
+    if (order === 'top') {
+      filtered = [...filtered].sort((a, b) => {
+        const ar = (a.avgRating ?? a.avg ?? 0);
+        const br = (b.avgRating ?? b.avg ?? 0);
+        if (br !== ar) return br - ar; // higher average first
+        const ac = (a.count ?? 0);
+        const bc = (b.count ?? 0);
+        if (bc !== ac) return bc - ac; // more ratings first
+        return 0;
+      });
+    }
+
     return filtered;
-  }, [items, starBuckets, selectedTags]);
+  }, [items, starBuckets, selectedTags, order]);
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -946,9 +960,12 @@ export default function HomePage() {
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {!showQuickAdd && sharedItem && (
-  <div ref={spotlightRef} className={
-    `scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
-  }>
+  <div
+    ref={spotlightRef}
+    className={
+      `scroll-mt-24 relative rounded-2xl border p-4 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
+    }
+  >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
         <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 18H3L12 3z" fill="currentColor"/></svg>
