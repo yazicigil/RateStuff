@@ -18,11 +18,12 @@ model User {
   createdAt  DateTime @default(now())
   isAdmin    Boolean  @default(false)
 
-  items     Item[]
-  ratings   Rating[]
-  comments  Comment[]
-  saved     SavedItem[]    // ← eklendi
-  reports   Report[]
+  items        Item[]
+  ratings      Rating[]
+  comments     Comment[]
+  commentVotes CommentVote[]
+  saved        SavedItem[]    // ← eklendi
+  reports      Report[]
 }
 
 model Item {
@@ -34,7 +35,7 @@ model Item {
   editedAt     DateTime?
   createdById  String?
   createdBy    User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  dedupeKey    String?  @unique
+  dedupeKey    String?   @unique
 
   ratings   Rating[]
   comments  Comment[]
@@ -52,8 +53,9 @@ model Comment {
   createdAt DateTime @default(now())
   editedAt  DateTime?
 
-  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item  Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  votes CommentVote[]
 
   @@unique([itemId, userId])
 }
@@ -112,4 +114,18 @@ model SavedItem {
   @@id([userId, itemId])
   @@index([userId])
   @@index([itemId])
+}
+
+model CommentVote {
+  id        String  @id @default(cuid())
+  commentId String
+  userId    String
+  value     Int     // 1 = upvote, -1 = downvote
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId])
+  @@index([commentId])
+  @@index([userId])
 }
