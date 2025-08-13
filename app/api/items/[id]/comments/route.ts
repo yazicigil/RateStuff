@@ -52,7 +52,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       },
     });
 
-    return NextResponse.json({ ok: true, comment: created }, { status: 201 });
+    const score = 0; // yeni yorumda oy yok
+    const myVote = 0;
+
+    return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
   } catch (e: any) {
     if (e?.code === "P2002") {
       // unique violation (itemId,userId)

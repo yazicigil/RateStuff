@@ -1,4 +1,3 @@
-// app/api/items/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
@@ -40,23 +39,32 @@ function shapeItem(i: any, meId?: string | null) {
           verified: i.createdBy.email === ADMIN_EMAIL,
         }
       : null,
-    comments: (i.comments || []).map((c: any) => ({
-      id: c.id,
-      text: c.text,
-      rating: (c as any)?.rating ?? null,
-      edited: Boolean(c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000),
-      user: c.user
-        ? {
-            id: c.user.id,
-            name:
-              c.user.email === ADMIN_EMAIL
-                ? c.user.name || 'Anonim'
-                : c.user.maskedName ?? (c.user.name ? maskName(c.user.name) : 'Anonim'),
-            avatarUrl: c.user.avatarUrl ?? null,
-            verified: c.user.email === ADMIN_EMAIL,
-          }
-        : null,
-    })),
+    comments: (i.comments || []).map((c: any) => {
+      const votes = Array.isArray((c as any).votes) ? (c as any).votes : [];
+      const score = votes.reduce((sum: number, v: any) => sum + (typeof v?.value === 'number' ? v.value : 0), 0);
+      const myVote =
+        meId ? (votes.find((v: any) => v?.userId === meId)?.value ?? 0) : 0;
+
+      return {
+        id: c.id,
+        text: c.text,
+        rating: (c as any)?.rating ?? null,
+        score,
+        myVote,
+        edited: Boolean(c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000),
+        user: c.user
+          ? {
+              id: c.user.id,
+              name:
+                c.user.email === ADMIN_EMAIL
+                  ? c.user.name || 'Anonim'
+                  : c.user.maskedName ?? (c.user.name ? maskName(c.user.name) : 'Anonim'),
+              avatarUrl: c.user.avatarUrl ?? null,
+              verified: c.user.email === ADMIN_EMAIL,
+            }
+          : null,
+      };
+    }),
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
     reportCount: i.reportCount ?? 0,
   };
@@ -73,7 +81,10 @@ export async function GET(req: Request) {
     const include = {
       comments: {
         orderBy: { createdAt: 'desc' as const },
-        include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } },
+        include: {
+          user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+          votes: true,
+        },
       },
       tags: { include: { tag: true } },
       createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },

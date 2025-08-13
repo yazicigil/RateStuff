@@ -437,18 +437,18 @@ export default function HomePage() {
     }
   }
 
-    async function voteOnComment(commentId: string, nextValue: 1 | -1 | 0) {
-    const res = await fetchOrSignin(`/api/comments/${commentId}/vote`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: nextValue })
-    });
-    if (!res) return;
-    const j = await res.json().catch(()=>null);
-    if (!res.ok || !j?.ok) {
-      alert('Hata: ' + (j?.error || res.status));
-      return;
-    }
+   async function voteOnComment(commentId: string, nextValue: 1 | -1 | 0) {
+  const res = await fetchOrSignin(`/api/comments/${commentId}/vote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ value: nextValue })
+  });
+  if (!res) return;
+  const j = await res.json().catch(() => null);
+  if (!res.ok || !j?.ok) {
+    alert('Hata: ' + (j?.error || res.status));
+    return;
+  }
     await load();
     if (sharedId) await refreshShared(sharedId);
   }
