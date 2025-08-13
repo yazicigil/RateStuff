@@ -385,7 +385,7 @@ export default function HomePage() {
         name: String(form.get('name') || ''),
         description: String(form.get('desc') || ''),
         tagsCsv: String(form.get('tags') || ''),
-        rating: Number(form.get('rating') || '5'),
+        rating: Number(form.get('rating') || '0'),
         comment: String(form.get('comment') || ''),
         imageUrl: String(form.get('imageUrl') || '') || null, // ImageUploader, hidden input ile bunu dolduruyor
       };
@@ -958,20 +958,27 @@ export default function HomePage() {
                 ref={quickFormRef}
                 className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
                 onSubmit={async (e) => {
-                  e.preventDefault();
-                  const formEl = e.currentTarget;
-                  const fd = new FormData(formEl);
-                  const ok = await addItem(fd);
-                  if (ok) {
-                    // Formu tamamen temizle
-                    quickFormRef.current?.reset();
-                    setQuickName('');
-                    setNewRating(5);
-                    setNewImage(null);
-                    setQuickTags([]);
-                    setQuickTagInput('');
-                  }
-                }}
+  e.preventDefault();
+  const formEl = e.currentTarget;
+  const fd = new FormData(formEl);
+
+  // name*, en az 1 etiket*, rating*
+  const nameVal = String(fd.get('name') || '').trim();
+  if (!nameVal) { alert('Ad gerekli'); return; }
+  if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
+  if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
+
+  const ok = await addItem(fd);
+  if (ok) {
+    // Formu tamamen temizle
+    quickFormRef.current?.reset();
+    setQuickName('');
+    setNewRating(0);
+    setNewImage(null);
+    setQuickTags([]);
+    setQuickTagInput('');
+  }
+}}
               >
                 {justAdded && (
                   <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
@@ -989,16 +996,18 @@ export default function HomePage() {
                     value={quickName}
                     onChange={(e) => setQuickName(e.target.value)}
                     className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="adı"
+                    placeholder="adı *"
                     required
                   />
-                  <input
-                    name="desc"
-                    className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="kısa açıklama"
-                    required
-                  />
+                 <input
+  name="desc"
+  className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+  placeholder="kısa açıklama (opsiyonel)"
+/>
                   <div className="flex-1 min-w-[200px]">
+                   <div className="text-xs opacity-70 mb-1">
+  Etiketler <span className="text-red-500">*</span>
+</div>
                     <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
                       {quickTags.map(t => (
                         <span
@@ -1046,7 +1055,7 @@ export default function HomePage() {
                 {/* 2. satır: Yıldız seçimi + Yorum */}
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm opacity-70">Puanın:</span>
+                    <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
                     <Stars value={newRating} onRate={(n) => setNewRating(n)} />
                   </div>
                   {/* hidden: addItem tarafına rating’i geçelim */}
@@ -1054,14 +1063,13 @@ export default function HomePage() {
                   <input
                     name="comment"
                     className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                    placeholder="yorum"
-                    required
+                    placeholder="yorum (opsiyonel)"
                   />
                 </div>
 
                 {/* 3. satır: Resim ekle (başlığın altında derli toplu) */}
                 <div>
-                  <div className="text-sm font-medium mb-2">Resim ekle</div>
+                  <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
                   <ImageUploader value={newImage} onChange={setNewImage} />
                   {/* hidden: addItem tarafına url’i geçelim */}
                   <input type="hidden" name="imageUrl" value={newImage ?? ''} />
