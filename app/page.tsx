@@ -1256,21 +1256,34 @@ function smoothScrollIntoView(el: Element) {
                             )}
                           </div>
                           {/* VOTE CONTROLS (moved next to comment) */}
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Upvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                            >▲</button>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Downvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                            >▼</button>
-                          </span>
+                          {(c.user?.id === myId) ? (
+                            <span
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700 mt-0.5"
+                              title="Yorum puanı"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                              <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                            </span>
+                          ) : (
+                            <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
+                              <button
+                                type="button"
+                                className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                title="Upvote"
+                                onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                              >▲</button>
+                              <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                              <button
+                                type="button"
+                                className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                                title="Downvote"
+                                onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                              >▼</button>
+                            </span>
+                          )}
                         </div>
                       );
                     }
@@ -1293,21 +1306,34 @@ function smoothScrollIntoView(el: Element) {
                           )}
                         </div>
                         {/* VOTE CONTROLS (moved next to comment) */}
-                        <span className="shrink-0 inline-flex items-center gap-1 select-none">
-                          <button
-                            type="button"
-                            className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                            title="Upvote"
-                            onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                          >▲</button>
-                          <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                          <button
-                            type="button"
-                            className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                            title="Downvote"
-                            onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                          >▼</button>
-                        </span>
+                        {(c.user?.id === myId) ? (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700"
+                            title="Yorum puanı"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                              <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                          </span>
+                        ) : (
+                          <span className="shrink-0 inline-flex items-center gap-1 select-none">
+                            <button
+                              type="button"
+                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                              title="Upvote"
+                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
+                            >▲</button>
+                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                            <button
+                              type="button"
+                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
+                              title="Downvote"
+                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
+                            >▼</button>
+                          </span>
+                        )}
                       </div>
                     );
                   })()}
@@ -1435,7 +1461,17 @@ function smoothScrollIntoView(el: Element) {
               </div>
 
               {!isEditing && (
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs bg-white/60 dark:bg-gray-800/60 dark:border-gray-700"
+                    title="Yorum puanı"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 10l4-4 4 4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M16 14l-4 4-4-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span className="tabular-nums">{typeof c.score === 'number' ? c.score : 0}</span>
+                  </span>
                   <button
                     className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
                     title="Yorumu düzenle"
