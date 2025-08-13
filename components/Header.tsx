@@ -14,6 +14,11 @@ type Controls = {
   onOrder: (v: 'new' | 'top') => void;
   starBuckets: number[];
   onStarBuckets: (v: number[]) => void;
+  // NEW (optional) controls for enter-to-commit & suggestion list
+  onCommit?: () => void;
+  suggestions?: string[];
+  onClickSuggestion?: (s: string) => void;
+  showSuggestions?: boolean;
 };
 
 const USE_CURRENTCOLOR = false;
@@ -219,6 +224,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               <input
                 value={controls.q}
                 onChange={(e) => controls.onQ(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); controls.onCommit?.(); } }}
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
@@ -231,6 +237,25 @@ export default function Header({ controls }: { controls?: Controls }) {
                 >
                   ×
                 </button>
+              )}
+              {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 text-xs font-medium opacity-70">İlgili Sonuçlar</div>
+                  <ul className="max-h-72 overflow-auto">
+                    {controls.suggestions!.map((s, i) => (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onClick={() => controls.onClickSuggestion?.(s)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 truncate"
+                          title={s}
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>
@@ -304,6 +329,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               <input
                 value={controls.q}
                 onChange={(e) => controls.onQ(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); controls.onCommit?.(); } }}
                 placeholder="ara ( / )"
                 className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
               />
@@ -316,6 +342,25 @@ export default function Header({ controls }: { controls?: Controls }) {
                 >
                   ×
                 </button>
+              )}
+              {controls?.showSuggestions && (controls?.suggestions?.length ?? 0) > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg overflow-hidden">
+                  <div className="px-3 py-2 text-xs font-medium opacity-70">İlgili Sonuçlar</div>
+                  <ul className="max-h-72 overflow-auto">
+                    {controls.suggestions!.map((s, i) => (
+                      <li key={i}>
+                        <button
+                          type="button"
+                          onClick={() => controls.onClickSuggestion?.(s)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 truncate"
+                          title={s}
+                        >
+                          {s}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>

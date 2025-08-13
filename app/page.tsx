@@ -99,7 +99,9 @@ type ItemVM = {
 
 export default function HomePage() {
   const searchRef = useRef<HTMLInputElement>(null);
-  const [q, setQ] = useState('');
+  const [qInput, setQInput] = useState('');
+const [qCommitted, setQCommitted] = useState('');
+const [suggestions, setSuggestions] = useState<string[]>([]);
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -271,7 +273,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     setLoading(true);
     try {
       const qs = new URLSearchParams();
-      if (q.trim()) qs.set('q', q.trim());
+      if (qCommitted.trim()) qs.set('q', qCommitted.trim());
       qs.set('order', order);
 
       // Helper: fetchItemsRes
@@ -358,12 +360,31 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       }
     }
     run();
+    useEffect(() => {
+  let aborted = false;
+  async function run() {
+    const typed = qInput.trim();
+    if (!typed || typed === qCommitted) { setSuggestions([]); return; }
+    try {
+      const r = await fetch(`/api/items?q=${encodeURIComponent(typed)}&limit=10`, { cache: 'no-store' });
+      const j = await r.json().catch(() => null);
+      const arr = toArray(j, 'items', 'data');
+      const names: string[] = Array.isArray(arr)
+        ? Array.from(new Set(arr.map((x:any) => String(x?.name || '').trim()).filter(Boolean)))
+        : [];
+      if (!aborted) setSuggestions(names.slice(0, 10));
+    } catch {
+      if (!aborted) setSuggestions([]);
+    }
+  }
+  const id = setTimeout(run, 150);
+  return () => { aborted = true; clearTimeout(id); };
+}, [qInput, qCommitted]);
     return () => { aborted = true; };
   }, [sharedId]);
   useEffect(() => {
-    const t = setTimeout(() => { load(); }, 250);
-    return () => clearTimeout(t);
-  }, [q, order]);
+  load();
+}, [qCommitted, order]);
 
   // Kaldırıldı: activeTag ve single-tag selection, çoklu seçim state'e taşındı
 
@@ -444,8 +465,9 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       if (!res) return false;
       const j = await res.json().catch(()=>null);
       if (j?.ok) {
-        setQ('');
-        await load();
+  setQInput('');
+  setQCommitted('');
+  await load();
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 2000);
         return true;
@@ -599,7 +621,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }
 
   function jumpToQuickAdd() {
-    const name = q.trim();
+    const name = qInput.trim();
     if (name) setQuickName(name);
     setShowQuickAdd(true);
 
@@ -826,7 +848,18 @@ if (!already) {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <Header controls={{ q, onQ: setQ, order, onOrder: setOrder, starBuckets: Array.from(starBuckets), onStarBuckets: (arr)=>setStarBuckets(new Set(arr)) }} />
+     <Header controls={{
+  q: qInput,
+  onQ: setQInput,
+  order,
+  onOrder: setOrder,
+  starBuckets: Array.from(starBuckets),
+  onStarBuckets: (arr)=>setStarBuckets(new Set(arr)),
+  onCommit: () => setQCommitted(qInput),
+  suggestions,
+  onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
+  showSuggestions: qInput !== qCommitted,
+}} />
       <style jsx global>{`
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(-4px); }
@@ -1845,7 +1878,7 @@ if (!already) {
   setSharedId(null);
 
   // Mevcut filtrelerden hızlı eklemeyi önceden doldur
-  if (q.trim()) setQuickName(q.trim());
+  if (qInput.trim()) setQuickName(qInput.trim());
   if (selectedTags.size > 0) {
     setQuickTags(Array.from(selectedTags).slice(0, 3));
     setQuickTagInput('');
