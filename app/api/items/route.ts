@@ -130,7 +130,7 @@ export async function GET(req: Request) {
 
     const shaped = items.map((i) => shapeItem(i, me?.id));
 
-    return NextResponse.json(shaped);
+    return NextResponse.json({ ok: true, items: shaped });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 500 });
   }
