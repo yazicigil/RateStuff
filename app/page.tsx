@@ -1005,7 +1005,7 @@ if (!already) {
             </div>
           </CollapsibleSection>
           {/* Sıralama + Yıldız filtresi (styled, alt tarafta) */}
-          <div className="rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
+          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
             {/* Sıralama */}
             <div>
               <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sıralama</div>
@@ -1032,7 +1032,7 @@ if (!already) {
                   onClick={() => setOrder('top')}
                   aria-pressed={order === 'top'}
                 >
-                  En çok oy
+                  En yüksek puan
                 </button>
               </div>
             </div>
@@ -1821,70 +1821,72 @@ if (!already) {
   </CollapsibleSection>
 
   {/* Sıralama + Yıldız filtresi (compact) */}
-  <div className="rounded-xl border p-2 mt-4 bg-white dark:bg-gray-900 dark:border-gray-800 space-y-2">
-    <div className="flex items-center justify-between">
-      <div className="text-xs opacity-70">Sıralama</div>
-      <div className="inline-flex overflow-hidden rounded-md border text-xs dark:border-gray-700">
-        <button
-          type="button"
-          className={`px-2.5 py-1 ${order === 'new' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-          onClick={() => setOrder('new')}
-          aria-pressed={order === 'new'}
-        >
-          En yeni
-        </button>
-        <button
-          type="button"
-          className={`px-2.5 py-1 border-l dark:border-gray-700 ${order === 'top' ? 'bg-black text-white' : 'hover:bg-gray-50 dark:hover:bg-gray-800'}`}
-          onClick={() => setOrder('top')}
-          aria-pressed={order === 'top'}
-        >
-          En çok oy
-        </button>
-      </div>
-    </div>
-
-    <div>
-      <div className="text-xs opacity-70 mb-1">Yıldızlar</div>
-      <div className="flex flex-wrap gap-1">
-        {[1,2,3,4,5].map((n) => {
-          const active = starBuckets.has(n);
-          return (
-            <button
-              key={`sb-m-${n}`}
-              type="button"
-              className={`px-2 py-0.5 rounded-full text-xs border ${
-                active
-                  ? 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-900/30 dark:border-amber-700 dark:text-amber-100'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700'
-              }`}
-              onClick={() => {
-                setStarBuckets(prev => {
-                  const next = new Set(prev);
-                  if (next.has(n)) next.delete(n); else next.add(n);
-                  return next;
-                });
-              }}
-              aria-pressed={active}
-              title={`${n} yıldız`}
-            >
-              {n} ★
-            </button>
-          );
-        })}
-        {starBuckets.size > 0 && (
-          <button
-            type="button"
-            className="ml-1 px-2 py-0.5 rounded-full text-xs border hover:bg-gray-50 dark:hover:bg-gray-800 dark:border-gray-700"
-            onClick={() => setStarBuckets(new Set())}
-            title="Filtreyi temizle"
-          >
-            Temizle
-          </button>
-        )}
-      </div>
+<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
+  {/* Sıralama (desktop-like on mobile) */}
+  <div>
+    <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sıralama</div>
+    <div className="flex gap-2 mt-2">
+      <button
+        type="button"
+        className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${order === 'new' ? 'border-gray-400 dark:border-gray-500' : ''}`}
+        onClick={() => setOrder('new')}
+        aria-pressed={order === 'new'}
+      >
+        En yeni
+      </button>
+      <button
+        type="button"
+        className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${order === 'top' ? 'border-gray-400 dark:border-gray-500' : ''}`}
+        onClick={() => setOrder('top')}
+        aria-pressed={order === 'top'}
+      >
+        En yüksek puan
+      </button>
     </div>
   </div>
+
+  {/* Divider before Yıldızlar */}
+  <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
+    <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Yıldızlar</div>
+    <div className="flex flex-wrap gap-2 mt-2">
+      {[1,2,3,4,5].map((n) => {
+        const active = starBuckets.has(n);
+        return (
+          <button
+            key={`sbm-${n}`}
+            type="button"
+            className={
+              active
+                ? "rounded-full bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-100 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+                : "rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+            }
+            onClick={() => {
+              setStarBuckets(prev => {
+                const next = new Set(prev);
+                if (next.has(n)) next.delete(n); else next.add(n);
+                return next;
+              });
+            }}
+            aria-pressed={active}
+            title={`${n} yıldız`}
+          >
+            {n} <span aria-hidden="true">★</span>
+          </button>
+        );
+      })}
+      {starBuckets.size > 0 && (
+        <button
+          type="button"
+          className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
+          onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
+          title="Filtreyi temizle"
+        >
+          Temizle
+        </button>
+      )}
+    </div>
+  </div>
+</div>
 </div>
 
           {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
@@ -2406,31 +2408,47 @@ if (!already) {
                 </div>
               </div>
 
-              {!isEditing && (
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                    title="Yorumu düzenle"
-                    onClick={() => {
-                      setEditingCommentId(c.id);
-                      setEditingCommentItem(i.id);
-                      setEditingCommentText(c.text);
-                      setEditingCommentRating(c.rating || 0);
-                    }}
-                  >
-                    {/* kalem */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
-                  </button>
-                  <button
-                    className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                    title="Yorumu sil"
-                    onClick={() => deleteComment(c.id)}
-                  >
-                    {/* çöp */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2 2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                  </button>
-                </div>
-              )}
+            {!isEditing && (
+  <div className="flex items-center gap-2 shrink-0">
+    <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
+      <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+      <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+      <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
+    </span>
+    <button
+      className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+      title="Yorumu düzenle"
+      onClick={() => {
+        setEditingCommentId(c.id);
+        setEditingCommentItem(null);
+        setEditingCommentText(c.text);
+        setEditingCommentRating(c.rating || 0);
+      }}
+    >
+      {/* kalem */}
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
+    </button>
+    <button
+      className={`p-1.5 rounded-md ${confirmDeleteId === c.id ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
+      title={confirmDeleteId === c.id ? 'Silmek için tekrar tıkla' : 'Yorumu sil'}
+      onClick={() => {
+        if (confirmDeleteId !== c.id) {
+          setConfirmDeleteId(c.id);
+          return;
+        }
+        deleteComment(c.id);
+      }}
+    >
+      {confirmDeleteId === c.id ? (
+        // check icon
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      ) : (
+        // trash icon
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+      )}
+    </button>
+  </div>
+)}
             </div>
           );
         })()}
