@@ -609,6 +609,7 @@ export default function HomePage() {
   }
 
   function openSpotlight(id: string) {
+    setShowQuickAdd(false);
     setSharedId(id);
     try {
       const url = new URL(window.location.href);
@@ -815,13 +816,13 @@ export default function HomePage() {
     </button>
 
     <div className="mb-2">
-      <h3 className="text-base md:text-lg font-semibold">Yeni öğe ekle</h3>
-      <p className="text-xs opacity-70">Ad*, en az 1 etiket* ve puan* zorunlu; açıklama ve görsel opsiyonel.</p>
+      <h3 className="text-base md:text-lg font-semibold">Hızlı ekle</h3>
+      <p className="text-xs opacity-70">En fazla 3 etiket ekleyebilirsin</p>
     </div>
 
     <form
       ref={quickFormRef}
-      className="relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 space-y-3"
+      className="relative rounded-2xl border p-4 shadow-sm bg-transparent dark:bg-transparent border-emerald-200 dark:border-emerald-900/40 space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -927,7 +928,7 @@ export default function HomePage() {
             <div className="flex justify-end pt-1">
               <button
                 disabled={adding}
-                className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-black text-white disabled:opacity-60 transition-colors"
+                className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
                 {adding ? (
                   <span className="inline-flex items-center gap-2">
@@ -938,13 +939,13 @@ export default function HomePage() {
                   'Ekle'
                 )}
               </button>
-              </div>
+            </div>
     </form>
   </div>
 )}
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
-          {sharedItem && (
+          {!showQuickAdd && sharedItem && (
   <div ref={spotlightRef} className={
     `scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col transition-transform duration-150`
   }>
