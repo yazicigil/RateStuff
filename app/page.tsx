@@ -580,14 +580,26 @@ export default function HomePage() {
     setShowQuickAdd(true);
 
     // spotlight açıksa kapat
-  setSharedItem(null);
-  setSharedId(null);
+    setSharedItem(null);
+    setSharedId(null);
 
- // render’ı bekleyip doğru yere smooth scroll
-  requestAnimationFrame(() => {
-    const el = quickAddRef.current;
-    if (el) smoothScrollIntoView(el);
-  });
+    // Mevcut filtrelerden hızlı ekle formunu doldur
+    // Etiketler: maksimum 3
+    if (selectedTags.size > 0) {
+      setQuickTags(Array.from(selectedTags).slice(0, 3));
+      setQuickTagInput('');
+    }
+    // Yıldız: yalnızca tek kova seçiliyse otomatik doldur
+    {
+      const stars = Array.from(starBuckets);
+      setNewRating(stars.length === 1 ? stars[0] : 0);
+    }
+
+    // render’ı bekleyip doğru yere smooth scroll
+    requestAnimationFrame(() => {
+      const el = quickAddRef.current;
+      if (el) smoothScrollIntoView(el);
+    });
 
     setTimeout(() => {
       quickNameRef.current?.focus();
@@ -1620,29 +1632,6 @@ function smoothScrollIntoView(el: Element) {
         </div>
       )}
 
-         {!loading
-  && loadedOnce
-  && filteredItems.length === 0
-  && (q.trim().length > 0 || starBuckets.size > 0 || selectedTags.size > 0 || items.length === 0)
-  && (
-            <div className="rounded-2xl border p-6 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 p-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" opacity="0.5"/><path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2"/></svg>
-                </div>
-                <div>
-                  <div className="font-medium">Hiç sonuç yok.</div>
-                  <div className="text-sm opacity-80">Eklemek ister misin?</div>
-                </div>
-              </div>
-              <button
-                onClick={jumpToQuickAdd}
-                className="px-3 py-2 rounded-xl text-sm bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-colors"
-              >
-                Hızlı Ekle
-              </button>
-            </div>
-          )}
 
           {/* KART IZGARASI */}
           <div className="grid md:grid-cols-2 gap-4">
@@ -1653,7 +1642,20 @@ function smoothScrollIntoView(el: Element) {
   // varsa açık spotlight'ı kapat
   setSharedItem(null);
   setSharedId(null);
+
+  // Mevcut filtrelerden hızlı eklemeyi önceden doldur
+  if (q.trim()) setQuickName(q.trim());
+  if (selectedTags.size > 0) {
+    setQuickTags(Array.from(selectedTags).slice(0, 3));
+    setQuickTagInput('');
+  }
+  {
+    const stars = Array.from(starBuckets);
+    setNewRating(stars.length === 1 ? stars[0] : 0);
+  }
+
   setShowQuickAdd(true);
+
   requestAnimationFrame(() => {
     const el = quickAddRef.current;
     if (el) smoothScrollIntoView(el);
