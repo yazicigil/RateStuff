@@ -200,6 +200,7 @@ export default function HomePage() {
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const [navDir, setNavDir] = useState<0 | 1 | -1>(0); // 0: yok, 1: sağa (next), -1: sola (prev)
   // Seçili etiket sayıları (başlıklarda göstermek için)
   const selectedInTrending = useMemo(
     () => trending.filter(t => selectedTags.has(t)).length,
@@ -411,12 +412,13 @@ export default function HomePage() {
     if (idx < 0 || idx >= filteredItems.length) return;
     openSpotlight(filteredItems[idx].id);
   }
-  function openByDelta(d: number) {
-    if (currentIndex < 0) return;
-    const next = currentIndex + d;
-    if (next < 0 || next >= filteredItems.length) return; // wrap yok; istersen mod alabiliriz
-    openByIndex(next);
-  }
+function openByDelta(d: number) {
+  if (currentIndex < 0) return;
+  const next = currentIndex + d;
+  if (next < 0 || next >= filteredItems.length) return; // wrap yok
+  setNavDir(d > 0 ? 1 : -1);
+  openByIndex(next);
+}
 
   async function addItem(form: FormData) {
     setAdding(true);
@@ -693,6 +695,7 @@ function smoothScrollIntoView(el: Element) {
 
   function openSpotlight(id: string) {
     setShowQuickAdd(false);
+    setNavDir(0);
     setSharedId(id);
     try {
       const url = new URL(window.location.href);
@@ -808,6 +811,14 @@ function smoothScrollIntoView(el: Element) {
           85% { opacity: 1; transform: translateY(0); }
           100% { opacity: 0; transform: translateY(-4px); }
         }
+          @keyframes slideInFromLeft {
+  0% { opacity: 0; transform: translateX(-12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInFromRight {
+  0% { opacity: 0; transform: translateX(12px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
       `}</style>
       
 
@@ -1092,7 +1103,7 @@ function smoothScrollIntoView(el: Element) {
   <div
     ref={spotlightRef}
     className={
-      `scroll-mt-24 relative rounded-2xl border p-4 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
+      `scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
     }
   >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
@@ -1216,7 +1227,14 @@ function smoothScrollIntoView(el: Element) {
         </button>
       </>
     )}
-
+{/* Slide animation wrapper */}
+<div
+  key={sharedItem.id}
+  className={navDir === 1
+    ? 'animate-[slideInFromRight_180ms_ease]'
+    : (navDir === -1 ? 'animate-[slideInFromLeft_180ms_ease]' : '')
+  }
+></div>
     {/* CONTENT */}
     <div className="flex items-start gap-3">
       <div className="flex flex-col items-center shrink-0 w-28">
