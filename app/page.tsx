@@ -135,7 +135,7 @@ export default function HomePage() {
   // Yorumlarda gerçek (görsel) truncation tespiti için
   const [truncatedComments, setTruncatedComments] = useState<Set<string>>(new Set());
   const commentTextRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
+const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: false });
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
   // Hızlı ekle spotlight kontrolü
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -420,6 +420,7 @@ export default function HomePage() {
     if (next < 0 || next >= filteredItems.length) return; // wrap yok
     // Önce sınıfı baskılamamız lazım; yeni içerik mount olduktan sonra tek sefer oynatacağız
     setAnimArmed(false);
+    requestAnimationFrame(() => setAnimArmed(false)); // bazı tarayıcılarda reflow gecikmesine karşı
     setNavDir(d > 0 ? 1 : -1);
     openByIndex(next, true);
   }
@@ -769,8 +770,15 @@ function smoothScrollIntoView(el: Element) {
   useEffect(() => {
     if (navDir !== 0 && sharedItem?.id) {
       // Yeni içerik geldikten sonra tek seferlik animasyonu tetikle
-      setAnimKey((k) => k + 1);
-      setAnimArmed(true);
+      setAnimKey(k => k + 1);
+const already = firstAnimDoneRef.current[navDir];
+if (!already) {
+  const id = requestAnimationFrame(() => setAnimArmed(true));
+  firstAnimDoneRef.current[navDir] = true;
+  return () => cancelAnimationFrame(id);
+} else {
+  setAnimArmed(true);
+}
     }
   }, [sharedItem?.id, navDir]);
 
@@ -1264,7 +1272,10 @@ function smoothScrollIntoView(el: Element) {
   height={112}
   decoding="async"
   loading="eager"
+// @ts-ignore - experimental
+  fetchPriority="high"
   className="w-28 h-28 object-cover rounded-lg"
+  style={{ contentVisibility: 'auto' }}
 />
         ) : (
           <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
