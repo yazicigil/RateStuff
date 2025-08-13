@@ -401,6 +401,23 @@ export default function HomePage() {
     return filtered;
   }, [items, starBuckets, selectedTags, order]);
 
+  // Spotlight gezinme: aktif index ve yardımcılar
+  const currentIndex = useMemo(
+    () => (sharedItem ? filteredItems.findIndex(i => i.id === sharedItem.id) : -1),
+    [sharedItem, filteredItems]
+  );
+
+  function openByIndex(idx: number) {
+    if (idx < 0 || idx >= filteredItems.length) return;
+    openSpotlight(filteredItems[idx].id);
+  }
+  function openByDelta(d: number) {
+    if (currentIndex < 0) return;
+    const next = currentIndex + d;
+    if (next < 0 || next >= filteredItems.length) return; // wrap yok; istersen mod alabiliriz
+    openByIndex(next);
+  }
+
   async function addItem(form: FormData) {
     setAdding(true);
     try {
@@ -690,6 +707,54 @@ function smoothScrollIntoView(el: Element) {
       });
     });
   }
+
+  // Klavye kısayolları: ← → ile spotlight'ta gezin (form alanlarında devre dışı)
+  useEffect(() => {
+    if (!sharedItem) return;
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || target?.isContentEditable) return;
+
+      if (e.key === 'ArrowLeft') { e.preventDefault(); openByDelta(-1); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); openByDelta(1); }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sharedItem, currentIndex, filteredItems.length]);
+
+  // Mobil swipe jestleri (spotlight alanında yatay kaydırma)
+  useEffect(() => {
+    const el = spotlightRef.current;
+    if (!el || !sharedItem) return;
+    let x0 = 0, y0 = 0, t0 = 0;
+
+    function onStart(e: TouchEvent) {
+      const t = e.touches[0];
+      if (!t) return;
+      x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+    }
+    function onEnd(e: TouchEvent) {
+      const t = e.changedTouches[0];
+      if (!t) return;
+      const dx = t.clientX - x0;
+      const dy = t.clientY - y0;
+      const dt = Date.now() - t0;
+      // yatay baskın ve yeterli mesafe/hız
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) && dt < 600) {
+        if (dx < 0) openByDelta(1);   // sola kaydırdı → sonraki
+        else openByDelta(-1);         // sağa kaydırdı → önceki
+      }
+    }
+
+    // Not: TS için passive opsiyonunu any ile geçiyoruz
+    el.addEventListener('touchstart', onStart as any, { passive: true } as any);
+    el.addEventListener('touchend', onEnd as any, { passive: true } as any);
+    return () => {
+      el.removeEventListener('touchstart', onStart as any);
+      el.removeEventListener('touchend', onEnd as any);
+    };
+  }, [spotlightRef, sharedItem, currentIndex, filteredItems.length]);
 
   const clamp2: React.CSSProperties = {
     display: '-webkit-box',
@@ -1124,6 +1189,33 @@ function smoothScrollIntoView(el: Element) {
         )}
       </div>
     </div>
+    {/* Spotlight navigation arrows */}
+    {(currentIndex >= 0) && (
+      <>
+        <button
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          onClick={() => openByDelta(-1)}
+          disabled={currentIndex <= 0}
+          aria-label="Önceki öğe"
+          title="Önceki (←)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <button
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          onClick={() => openByDelta(1)}
+          disabled={currentIndex === filteredItems.length - 1}
+          aria-label="Sonraki öğe"
+          title="Sonraki (→)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </>
+    )}
 
     {/* CONTENT */}
     <div className="flex items-start gap-3">
