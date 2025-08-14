@@ -133,14 +133,16 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [compActive, setCompActive] = useState(false);
   const [compTag, setCompTag] = useState<string>('');
   // Local mirror for selected tag pills (keeps pills visible even if parent doesn't pass selectedTags)
-  const [localPills, setLocalPills] = useState<string[]>([]);
-  const renderPills = Array.isArray(controls?.selectedTags) ? controls!.selectedTags! : localPills;
-  // keep local pills in sync when parent provides selectedTags
-  useEffect(() => {
-    if (Array.isArray(controls?.selectedTags)) {
-      setLocalPills(controls!.selectedTags!);
-    }
-  }, [controls?.selectedTags]);
+  // components/Header.tsx, Header() içinde
+const [localPills, setLocalPills] = useState<string[]>([]);
+const parentPills = Array.isArray(controls?.selectedTags) ? controls!.selectedTags! : [];
+const renderPills = Array.from(new Set<string>([...parentPills, ...localPills]));
+
+useEffect(() => {
+  if (Array.isArray(controls?.selectedTags)) {
+    setLocalPills(prev => Array.from(new Set([...prev, ...controls!.selectedTags!])));
+  }
+}, [controls?.selectedTags]);
 
   // keep local open state in sync with external showSuggestions (don't force-close)
   useEffect(() => {
@@ -335,10 +337,11 @@ export default function Header({ controls }: { controls?: Controls }) {
     );
   };
 // Tag helpers
+// components/Header.tsx
 function normalizeTag(s: string) {
   return (s || '')
     .toLowerCase()
-    .replace(/^#/, '')
+    .replace(/#/g, '')          // <<< tüm # karakterlerini at
     .replace(/\s+/g, '')
     .replace(/[^a-z0-9ğüşöçı\-_.]/g, '');
 }
