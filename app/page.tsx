@@ -1417,27 +1417,23 @@ if (!already) {
       style={{ willChange: 'transform' }}
     >
       <div className="flex items-start gap-3">
-      <div className="flex flex-col items-center shrink-0 w-28">
-        {sharedItem.imageUrl ? (
-          <img
-  src={sharedItem.imageUrl || '/default-item.svg'}
-  alt={sharedItem.name || 'item'}
-  width={112}
-  height={112}
-  decoding="async"
-  loading="eager"
-// @ts-ignore - experimental
-  fetchPriority="high"
-  className="w-28 h-28 object-cover rounded-lg"
-  style={{ contentVisibility: 'auto' }}
-/>
-        ) : (
-          <div className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800">no img</div>
-        )}
-        {sharedItem.edited && (
-          <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
-        )}
-      </div>
+    <div className="flex flex-col items-center shrink-0 w-28">
+  <img
+    src={sharedItem.imageUrl || '/default-item.svg'}
+    alt={sharedItem.name || 'item'}
+    width={112}
+    height={112}
+    decoding="async"
+    loading="eager"
+    // @ts-ignore - experimental
+    fetchPriority="high"
+    className="w-28 h-28 object-cover rounded-lg"
+    style={{ contentVisibility: 'auto' }}
+  />
+  {sharedItem.edited && (
+    <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+  )}
+</div>
 
       <div className="flex-1 min-w-0">
         <h3 className="text-base md:text-lg font-semibold leading-snug" style={clamp2} title={sharedItem.name}>
@@ -2148,14 +2144,18 @@ if (!already) {
                           </button>
                         ) : (
                           <button
-                            type="button"
-                            onClick={() => openSpotlight(i.id)}
-                            className="w-28 h-28 rounded-lg bg-white/5 grid place-items-center text-xs opacity-60 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                            aria-label={`${i.name} spotlight'ı aç`}
-                            title={`${i.name} spotlight'ı aç`}
-                          >
-                            no img
-                          </button>
+  type="button"
+  onClick={() => openSpotlight(i.id)}
+  className="rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+  aria-label={`${i.name} spotlight'ı aç`}
+  title={`${i.name} spotlight'ı aç`}
+>
+  <img
+    src={i.imageUrl || '/default-item.svg'}
+    alt={i.name || 'item'}
+    className="w-28 h-28 object-cover rounded-lg"
+  />
+</button>
                         )}
                         {i.edited && (
                           <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
