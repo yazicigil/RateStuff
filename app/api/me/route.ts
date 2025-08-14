@@ -124,3 +124,41 @@ export async function GET(req: Request) {
     );
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const me = await getSessionUser();
+    if (!me?.id) {
+      return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    }
+
+    let body: any = {};
+    try { body = await req.json(); } catch {}
+
+    // Accept string or null. Empty string also treated as null (remove avatar).
+    let avatarUrl: string | null = null;
+    if (typeof body?.avatarUrl === "string") {
+      const trimmed = body.avatarUrl.trim();
+      avatarUrl = trimmed.length ? trimmed : null;
+    } else if (body?.avatarUrl === null) {
+      avatarUrl = null;
+    }
+
+    // Nothing to update -> return current state
+    if (avatarUrl === undefined) {
+      return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
+    }
+
+    await prisma.user.update({
+      where: { id: me.id },
+      data: { avatarUrl },
+    });
+
+    return NextResponse.json({ ok: true, avatarUrl });
+  } catch (e: any) {
+    return NextResponse.json(
+      { ok: false, error: e?.message || "internal-error" },
+      { status: 500 }
+    );
+  }
+}
