@@ -365,6 +365,30 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       setSharedId(id);
     } catch {}
   }, []);
+  // Hash'ten #quick-add yakala → Hızlı Ekle'yi aç
+  useEffect(() => {
+    function syncFromHash() {
+      try {
+        const hash = window.location.hash;
+        if (hash === '#quick-add') {
+          setShowQuickAdd(true);
+          // render tamamlandıktan sonra doğru yere smooth scroll + focus
+          requestAnimationFrame(() => {
+            const el = quickAddRef.current;
+            if (el) smoothScrollIntoView(el);
+            setTimeout(() => {
+              quickNameRef.current?.focus();
+              quickNameRef.current?.select();
+            }, 150);
+          });
+        }
+      } catch {}
+    }
+    // mount'ta ve her hash değişiminde çalıştır
+    syncFromHash();
+    window.addEventListener('hashchange', syncFromHash);
+    return () => window.removeEventListener('hashchange', syncFromHash);
+  }, []);
   // sharedId değişince tek öğeyi çek (listeye karışmadan üstte göstereceğiz)
   useEffect(() => {
     let aborted = false;
@@ -670,6 +694,11 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }
 
   function jumpToQuickAdd() {
+    try {
+      const url = new URL(window.location.href);
+      url.hash = 'quick-add';
+      window.history.replaceState({}, '', url.toString());
+    } catch {}
     const name = qInput.trim();
     if (name) setQuickName(name);
     setShowQuickAdd(true);
@@ -1101,7 +1130,17 @@ if (!already) {
     {/* CLOSE (X) */}
     <button
       className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
-      onClick={() => setShowQuickAdd(false)}
+      onClick={() => {
+        setShowQuickAdd(false);
+        // URL'de #quick-add varsa temizle
+        try {
+          if (window.location.hash === '#quick-add') {
+            const url = new URL(window.location.href);
+            url.hash = '';
+            window.history.replaceState({}, '', url.toString());
+          }
+        } catch {}
+      }}
       aria-label="Hızlı ekle panelini kapat"
       title="Kapat"
     >
@@ -1753,6 +1792,19 @@ if (!already) {
                     <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
                     <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
                   </span>
+                  <button
+                    className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                    title="Yorumu düzenle"
+                    onClick={() => {
+                      setEditingCommentId(c.id);
+                      setEditingCommentItem(null);
+                      setEditingCommentText(c.text);
+                      setEditingCommentRating(c.rating || 0);
+                    }}
+                  >
+                    {/* kalem */}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
+                  </button>
                   <button
                     className={`p-1.5 rounded-md ${confirmDeleteId === c.id ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
                     title={confirmDeleteId === c.id ? 'Silmek için tekrar tıkla' : 'Yorumu sil'}

@@ -10,6 +10,12 @@ import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
 import { useSession } from "next-auth/react";
 
+// Banned words (supports either default export or named `bannedWords`)
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import * as bannedModule from "@/lib/bannedwords";
+const BANNED_LIST: string[] = (bannedModule as any)?.bannedWords || (bannedModule as any)?.default || [];
+
 function IconTrash({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -23,6 +29,14 @@ function IconPencil({ className = "w-4 h-4" }: { className?: string }) {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       <path d="M16.862 3.487a1.875 1.875 0 0 1 2.651 2.651L8.9 16.75a4.5 4.5 0 0 1-1.897 1.128l-2.935.881a.75.75 0 0 1-.93-.93l.881-2.935A4.5 4.5 0 0 1 5.25 13.1L16.862 3.487Z"/>
       <path d="M18.225 8.401l-2.626-2.626 1.06-1.06a.375.375 0 0 1 .53 0l2.096 2.096a.375.375 0 0 1 0 .53l-1.06 1.06Z"/>
+    </svg>
+  );
+}
+
+function IconCheck({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
     </svg>
   );
 }
@@ -49,6 +63,21 @@ type MyComment = {
 // Spotlight deep link for an item
 const spotlightHref = (id: string) => `/?item=${id}`;
 
+// Build a single regex for banned words (case-insensitive, Unicode, word boundaries)
+const makeBannedRegex = (list: string[]) => {
+  if (!Array.isArray(list) || list.length === 0) return null;
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = list.filter(Boolean).map((w) => esc(w.trim())).filter(Boolean);
+  if (parts.length === 0) return null;
+  return new RegExp(`\\b(${parts.join("|")})\\b`, "iu");
+};
+const BANNED_RE = makeBannedRegex(BANNED_LIST);
+const findBanned = (text: string | null | undefined): string | null => {
+  if (!text || !BANNED_RE) return null;
+  const m = text.match(BANNED_RE);
+  return m ? m[0] : null;
+};
+
 export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -68,6 +97,8 @@ export default function MePage() {
 
   // Kaydedilenler filtre (çoklu tag seçimi)
   const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
+  // Saved: two-step remove confirmation
+  const [confirmRemoveSaved, setConfirmRemoveSaved] = useState<string | null>(null);
 
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
@@ -194,8 +225,6 @@ export default function MePage() {
   }
 
   async function deleteComment(commentId: string) {
-    const ok = window.confirm("Yorumu kaldırmak istediğine emin misin?");
-    if (!ok) return;
     const r = await fetch(`/api/comments/${commentId}`, { method: "DELETE" });
     const j = await r.json().catch(() => null);
     if (j?.ok) {
@@ -207,12 +236,11 @@ export default function MePage() {
   }
 
   async function removeSaved(itemId: string) {
-    const ok = window.confirm("Kaydedilenlerden kaldırmak istediğine emin misin?");
-    if (!ok) return;
     const r = await fetch(`/api/items/${itemId}/save`, { method: "DELETE" });
     const j = await r.json().catch(() => null);
     if (j?.ok) {
       setSaved(prev => prev.filter(x => x.id !== itemId));
+      setConfirmRemoveSaved(null);
       notify('Kaydedilenden kaldırıldı');
     } else {
       alert("Hata: " + (j?.error || r.status));
@@ -220,20 +248,14 @@ export default function MePage() {
   }
 
   async function deleteItem(itemId: string) {
-    const ok = window.confirm("Bu öğeyi silmek istediğine emin misin? Bu işlem geri alınamaz.");
-    if (!ok) return;
-
     // 1) Try native DELETE first
     let r = await fetch(`/api/items/${itemId}`, { method: "DELETE" });
-
-    // 2) If the route doesn't allow DELETE (405) or isn't found (404), try a common fallback POST endpoint
+    // 2) If the route doesn't allow DELETE (405) or isn't found (404), try a fallback endpoint
     if (r.status === 405 || r.status === 404) {
       r = await fetch(`/api/items/${itemId}/delete`, { method: "POST" });
     }
-
     let j: any = null;
     try { j = await r.json(); } catch {}
-
     if (r.ok && j?.ok !== false) {
       setItems(prev => prev.filter(x => x.id !== itemId));
       notify('Silindi');
@@ -241,6 +263,28 @@ export default function MePage() {
       alert('Hata: ' + (j?.error || `${r.status} ${r.statusText}`));
     }
   }
+  // --- EFFECTS for Saved REMOVE confirmation ---
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('[data-saved-remove-btn]')) {
+        setConfirmRemoveSaved(null);
+      }
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
+
+  const confirmSavedTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (confirmRemoveSaved) {
+      if (confirmSavedTimerRef.current) window.clearTimeout(confirmSavedTimerRef.current);
+      confirmSavedTimerRef.current = window.setTimeout(() => setConfirmRemoveSaved(null), 3000);
+    }
+    return () => {
+      if (confirmSavedTimerRef.current) window.clearTimeout(confirmSavedTimerRef.current);
+    };
+  }, [confirmRemoveSaved]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
@@ -376,7 +420,7 @@ export default function MePage() {
                         {it.imageUrl ? (
                           <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-xs opacity-60">no img</span>
+                          <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         )}
                       </Link>
                       <div className="flex-1 min-w-0">
@@ -385,12 +429,23 @@ export default function MePage() {
                             {it.name}
                           </Link>
                           <button
-                            onClick={() => removeSaved(it.id)}
-                            className="text-xs px-2 py-1 rounded-lg border hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-1"
-                            title="Kaydedilenlerden kaldır"
-                            aria-label="Kaydedilenlerden kaldır"
+                            onClick={() => {
+                              if (confirmRemoveSaved === it.id) {
+                                removeSaved(it.id);
+                              } else {
+                                setConfirmRemoveSaved(it.id);
+                              }
+                            }}
+                            data-saved-remove-btn
+                            className={`text-xs px-2 py-1 rounded-lg border flex items-center gap-1 ${
+                              confirmRemoveSaved === it.id
+                                ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
+                                : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
+                            }`}
+                            title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
+                            aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
                           >
-                            <IconTrash className="w-4 h-4" />
+                            {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
                           </button>
                         </div>
                         <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
@@ -437,7 +492,17 @@ export default function MePage() {
           {loading ? (
             <Skeleton rows={4} />
           ) : items.length === 0 ? (
-            <Box>Henüz yok.</Box>
+            <Box>
+              <span>Henüz bir şey eklememişsin. </span>
+              <Link
+                href="/#quick-add"
+                className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80"
+                aria-label="Ana sayfadaki Hızlı Ekle'ye git"
+                title="Hızlı Ekle"
+              >
+                Ekle
+              </Link>
+            </Box>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
               {items.map(it => (
@@ -582,12 +647,26 @@ function ItemEditor(props: {
   editDesc: string; setEditDesc: (s:string)=>void;
   editImg: string|null; setEditImg: (s:string|null)=>void;
   onSave: ()=>Promise<void>|void;
-  onDelete: (id: string) => Promise<void> | void;  // <-- EKLENDİ
+  onDelete: (id: string) => Promise<void> | void;
 }) {
   const {
-    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete // <-- EKLENDİ
+    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete
   } = props;
   const isEditing = editingItem === it.id;
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const confirmDelTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (confirmDelete) {
+      if (confirmDelTimerRef.current) window.clearTimeout(confirmDelTimerRef.current);
+      confirmDelTimerRef.current = window.setTimeout(() => setConfirmDelete(false), 3000);
+    }
+    return () => {
+      if (confirmDelTimerRef.current) window.clearTimeout(confirmDelTimerRef.current);
+    };
+  }, [confirmDelete]);
+
+  // Check for banned word violation in editDesc
+  const violatedItem = findBanned(editDesc);
 
   return (
     <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
@@ -596,7 +675,7 @@ function ItemEditor(props: {
           {it.imageUrl ? (
             <img src={it.imageUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={it.name} />
           ) : (
-            <span className="text-xs">no img</span>
+            <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
           )}
         </Link>
         <div className="flex-1 min-w-0">
@@ -614,12 +693,17 @@ function ItemEditor(props: {
             <div className="mt-3 space-y-3">
               <label className="block text-sm font-medium">Açıklama</label>
               <textarea
-                className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                className={`w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700 ${violatedItem ? 'border-red-500 focus:ring-red-500' : ''}`}
                 rows={3}
                 value={editDesc}
                 onChange={(e)=>setEditDesc(e.target.value)}
                 placeholder="açıklama"
               />
+              {violatedItem && (
+                <div className="mt-1 text-xs text-red-600">
+                  Bu metin yasaklı kelime içeriyor: “{violatedItem}”. Lütfen düzelt.
+                </div>
+              )}
 
               <div>
                 <div className="text-sm font-medium mb-1">Görsel</div>
@@ -627,7 +711,14 @@ function ItemEditor(props: {
               </div>
 
               <div className="flex gap-2">
-                <button onClick={()=>onSave()} className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white">Kaydet</button>
+                <button
+                  onClick={()=>{ if (!violatedItem) onSave(); }}
+                  disabled={!!violatedItem}
+                  className={`px-3 py-1.5 rounded-lg border text-sm ${violatedItem ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-black text-white'}`}
+                  title={violatedItem ? "Yasaklı kelime içeriyor" : "Kaydet"}
+                >
+                  Kaydet
+                </button>
                 <button onClick={()=>setEditingItem(null)} className="px-3 py-1.5 rounded-lg border text-sm">Vazgeç</button>
               </div>
             </div>
@@ -649,13 +740,24 @@ function ItemEditor(props: {
                   <span className="sr-only">Düzenle</span>
                 </button>
                 <button
-                  className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
-                  onClick={() => onDelete(it.id)}  // <-- deleteItem yerine prop
-                  title="Sil"
-                  aria-label="Sil"
+                  className={`px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2 ${
+                    confirmDelete
+                      ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
+                      : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
+                  }`}
+                  onClick={async () => {
+                    if (confirmDelete) {
+                      await onDelete(it.id);
+                      setConfirmDelete(false);
+                    } else {
+                      setConfirmDelete(true);
+                    }
+                  }}
+                  title={confirmDelete ? "Onaylamak için tekrar tıkla" : "Sil"}
+                  aria-label={confirmDelete ? "Silmeyi onayla" : "Sil"}
                 >
-                  <IconTrash className="w-4 h-4" />
-                  <span className="sr-only">Sil</span>
+                  {confirmDelete ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
+                  <span className="sr-only">{confirmDelete ? "Silmeyi onayla" : "Sil"}</span>
                 </button>
               </div>
             </>
@@ -678,6 +780,21 @@ function CommentRow({
 }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(c.text);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const confirmDelTimerRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (confirmDelete) {
+      if (confirmDelTimerRef.current) window.clearTimeout(confirmDelTimerRef.current);
+      confirmDelTimerRef.current = window.setTimeout(() => setConfirmDelete(false), 3000);
+    }
+    return () => {
+      if (confirmDelTimerRef.current) window.clearTimeout(confirmDelTimerRef.current);
+    };
+  }, [confirmDelete]);
+
+  // Check for banned word violation in comment text
+  const violatedComment = findBanned(val);
+
   return (
     <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 transition hover:shadow-md hover:-translate-y-0.5 h-full">
       <div className="flex items-start gap-3">
@@ -685,7 +802,7 @@ function CommentRow({
           {c.itemImageUrl ? (
             <img src={c.itemImageUrl} alt={c.itemName} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-[10px] opacity-60">no img</span>
+            <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -696,12 +813,19 @@ function CommentRow({
                 value={val}
                 onChange={(e)=>setVal(e.target.value)}
                 rows={3}
-                className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+                className={`w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700 ${violatedComment ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
+              {violatedComment && (
+                <div className="mt-1 text-xs text-red-600">
+                  Bu metin yasaklı kelime içeriyor: “{violatedComment}”. Lütfen düzelt.
+                </div>
+              )}
               <div className="flex gap-2">
                 <button
-                  className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
-                  onClick={()=>onSave(c.id, val).then(()=>setEditing(false))}
+                  className={`px-3 py-1.5 rounded-lg border text-sm ${violatedComment ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-black text-white'}`}
+                  onClick={()=> { if (!violatedComment) onSave(c.id, val).then(()=>setEditing(false)); }}
+                  disabled={!!violatedComment}
+                  title={violatedComment ? "Yasaklı kelime içeriyor" : "Kaydet"}
                 >
                   Kaydet
                 </button>
@@ -726,12 +850,23 @@ function CommentRow({
                   <IconPencil className="w-4 h-4" />
                 </button>
                 <button
-                  className="p-2 rounded-lg border text-sm hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center"
-                  onClick={()=>onDelete(c.id)}
-                  title="Yorumu kaldır"
-                  aria-label="Yorumu kaldır"
+                  className={`p-2 rounded-lg border text-sm flex items-center ${
+                    confirmDelete
+                      ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
+                      : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
+                  }`}
+                  onClick={async () => {
+                    if (confirmDelete) {
+                      await onDelete(c.id);
+                      setConfirmDelete(false);
+                    } else {
+                      setConfirmDelete(true);
+                    }
+                  }}
+                  title={confirmDelete ? "Onaylamak için tekrar tıkla" : "Yorumu kaldır"}
+                  aria-label={confirmDelete ? "Kaldırmayı onayla" : "Yorumu kaldır"}
                 >
-                  <IconTrash className="w-4 h-4" />
+                  {confirmDelete ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
                 </button>
               </div>
             </div>
