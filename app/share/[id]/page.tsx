@@ -5,14 +5,13 @@ import SeoLD from "@/components/SeoLD";
 
 type Props = { params: { id: string } };
 
-
 // Base URL'i güvenle üret (env yoksa host header'dan al)
 function getBaseUrl() {
   const env = process.env.NEXT_PUBLIC_SITE_URL;
   if (env && /^https?:\/\//i.test(env)) return env.replace(/\/+$/, "");
   const h = headers();
   const host = h.get("host");
-  return host ? `https://${host}` : ""; // Vercel'de host her zaman gelir
+  return host ? `https://${host}` : "https://ratestuff.net"; // güvenli varsayılan
 }
 
 async function getItemMeta(id: string, base: string) {
@@ -23,7 +22,7 @@ async function getItemMeta(id: string, base: string) {
     });
     if (!res.ok) return null;
     const j = await res.json();
-    return j?.item ?? null;
+    return (j?.item ?? (Array.isArray(j?.items) ? j.items[0] : null) ?? (Array.isArray(j) ? j[0] : null));
   } catch {
     return null;
   }
@@ -57,6 +56,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: "Bulunamadı — RateStuff",
         description: "İçerik bulunamadı.",
         images: [`${base}/og-image.jpg`],
+        siteName: "RateStuff",
+        locale: "tr_TR",
       },
       twitter: {
         card: "summary_large_image",
