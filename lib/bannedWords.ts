@@ -2,7 +2,7 @@
 
 export const bannedWords: string[] = [
   // Türkçe küfürler ve varyasyonları
-  "amk","a.m.k","a.m.q","amq","amına","amina","amına koy","amına koyayım","aminako","aminakoyim","aminakoy","amkoyim","a.mina","amına kodum","amına koduk","amına kodumun","amn","amına g","amınak","amınako","amına s","amına ş","aminas","amını","amın","amnı","amnım","amnın","amn","amnako","amnıko","amnk",
+  "amck","amcık","amcik","amk","a.m.k","a.m.q","amq","amına","amina","amına koy","amına koyayım","aminako","aminakoyim","aminakoy","amkoyim","a.mina","amına kodum","amına koduk","amına kodumun","amn","amına g","amınak","amınako","amına s","amına ş","aminas","amını","amın","amnı","amnım","amnın","amn","amnako","amnıko","amnk",
   "orospu","o.rospu","or0spu","or0spı","orospı","orosp","orospular","orospuluk","orospucuk","orospu çocuk","orospu çocuğu","oç","o.c","oçocuğu","oçlar","oçluk","oçsun","oçum","oçun",
   "sik","si.k","s1k","s!k","siq","sikerim","sikeyim","siktir","s!ktir","sıktir","sikm","sikmiş","siktirin","siktir git","siktir lan","sikik","siki","sikiyor","sikmişim","sikicem","sikcem","sikecem","sikem",
   "pezevenk","p.ezevenk","pezevank","pezewenk","pezev3nk","pezev","pezevengin","pezevenkler","pezevenklik","pez","peze",
