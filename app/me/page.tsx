@@ -110,6 +110,15 @@ export default function MePage() {
   useEffect(() => {
     setAvatarTemp(me?.avatarUrl ?? null);
   }, [me]);
+  // Close avatar editor with ESC
+  useEffect(() => {
+    if (!editingAvatar) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditingAvatar(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [editingAvatar]);
   async function saveAvatar() {
     try {
       const r = await fetch('/api/me', {
@@ -418,26 +427,140 @@ export default function MePage() {
               </svg>
             </button>
             {editingAvatar && (
-              <div className="absolute z-10 mt-2 left-0 top-full w-64 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-3">
-                <div className="text-sm font-medium mb-2">Profil fotoğrafı</div>
-                <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
-                <div className="mt-3 flex gap-2">
+              <>
+                {/* MOBILE: full-screen mini modal with overlay */}
+                <div className="fixed inset-0 z-50 sm:hidden">
+                  {/* backdrop */}
                   <button
                     type="button"
-                    onClick={saveAvatar}
-                    className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
+                    className="absolute inset-0 bg-black/40"
+                    aria-label="Kapat"
+                    title="Kapat"
+                    onClick={() => setEditingAvatar(false)}
+                  />
+                  {/* centered panel */}
+                  <div
+                    role="dialog"
+                    aria-label="Profil fotoğrafını düzenle"
+                    className="relative mx-4 my-16 rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-2xl p-0 backdrop-blur-md"
                   >
-                    Kaydet
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setAvatarTemp(me?.avatarUrl ?? null); setEditingAvatar(false); }}
-                    className="px-3 py-1.5 rounded-lg border text-sm"
-                  >
-                    Vazgeç
-                  </button>
+                    {/* header */}
+                    <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200 dark:border-gray-800 rounded-t-2xl">
+                      <div className="text-sm font-medium">Profil fotoğrafı</div>
+                      <button
+                        type="button"
+                        onClick={() => setEditingAvatar(false)}
+                        className="p-1 rounded-md border border-transparent hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
+                        aria-label="Kapat"
+                        title="Kapat"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                      </button>
+                    </div>
+                    {/* body */}
+                    <div className="p-3 space-y-3">
+                      {/* live preview */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full ring-2 ring-violet-300 dark:ring-violet-700 overflow-hidden bg-gray-200">
+                          {avatarTemp ? (
+                            <img src={avatarTemp} alt="Önizleme" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full grid place-items-center text-xs opacity-60">Yok</div>
+                          )}
+                        </div>
+                        <div className="text-xs opacity-70">
+                          Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
+                        </div>
+                      </div>
+                      <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
+                      <div className="text-[11px] opacity-60">
+                        JPG/PNG veya URL. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
+                      </div>
+                    </div>
+                    {/* footer */}
+                    <div className="px-3 py-2.5 border-t border-gray-200 dark:border-gray-800 rounded-b-2xl flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarTemp(me?.avatarUrl ?? null); setEditingAvatar(false); }}
+                        className="px-3 py-1.5 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        Vazgeç
+                      </button>
+                      <button
+                        type="button"
+                        onClick={saveAvatar}
+                        disabled={(avatarTemp ?? null) === (me?.avatarUrl ?? null)}
+                        className={`px-3 py-1.5 rounded-lg border text-sm ${ (avatarTemp ?? null) === (me?.avatarUrl ?? null) ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-black text-white' }`}
+                        title={(avatarTemp ?? null) === (me?.avatarUrl ?? null) ? 'Değişiklik yok' : 'Kaydet'}
+                      >
+                        Kaydet
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
+
+                {/* DESKTOP (sm+): anchored popover */}
+                <div
+                  role="dialog"
+                  aria-label="Profil fotoğrafını düzenle"
+                  className="hidden sm:block absolute z-20 mt-2 left-0 top-full w-72 sm:w-80 rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl p-0 backdrop-blur-md"
+                >
+                  {/* small pointer */}
+                  <div className="absolute -top-2 left-6 h-4 w-4 rotate-45 bg-white/95 dark:bg-gray-900/95 border-l border-t dark:border-gray-800" />
+                  {/* header */}
+                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-gray-200 dark:border-gray-800 rounded-t-2xl">
+                    <div className="text-sm font-medium">Profil fotoğrafı</div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingAvatar(false)}
+                      className="p-1 rounded-md border border-transparent hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
+                      aria-label="Kapat"
+                      title="Kapat"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 011.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/></svg>
+                    </button>
+                  </div>
+                  {/* body */}
+                  <div className="p-3 space-y-3">
+                    {/* live preview */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full ring-2 ring-violet-300 dark:ring-violet-700 overflow-hidden bg-gray-200">
+                        {avatarTemp ? (
+                          <img src={avatarTemp} alt="Önizleme" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full grid place-items-center text-xs opacity-60">Yok</div>
+                        )}
+                      </div>
+                      <div className="text-xs opacity-70">
+                        Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
+                      </div>
+                    </div>
+                    <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
+                    <div className="text-[11px] opacity-60">
+                      JPG/PNG veya URL. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
+                    </div>
+                  </div>
+                  {/* footer */}
+                  <div className="px-3 py-2.5 border-t border-gray-200 dark:border-gray-800 rounded-b-2xl flex items-center justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setAvatarTemp(me?.avatarUrl ?? null); setEditingAvatar(false); }}
+                      className="px-3 py-1.5 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      Vazgeç
+                    </button>
+                    <button
+                      type="button"
+                      onClick={saveAvatar}
+                      disabled={(avatarTemp ?? null) === (me?.avatarUrl ?? null)}
+                      className={`px-3 py-1.5 rounded-lg border text-sm ${ (avatarTemp ?? null) === (me?.avatarUrl ?? null) ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-black text-white' }`}
+                      title={(avatarTemp ?? null) === (me?.avatarUrl ?? null) ? 'Değişiklik yok' : 'Kaydet'}
+                    >
+                      Kaydet
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
           </div>
           <div className="flex-1 min-w-0">
