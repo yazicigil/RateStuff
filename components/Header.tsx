@@ -21,6 +21,8 @@ type Controls = {
   showSuggestions?: boolean;
   tagMatches?: string[];
   onClickTagMatch?: (t: string) => void;
+  // Trending tags source for suggestions (optional)
+  trendingTags?: string[];
   // Optional pills (parent can provide)
   selectedTags?: string[];
   onClickTagRemove?: (t: string) => void;
@@ -492,21 +494,25 @@ function currentHashChunk(q: string) {
                    {Array.isArray(controls.tagMatches) && (
   (() => {
     const pool = controls.tagMatches || [];
-    const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
+    const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
     // prefer composing text as needle; else derive from query
     const chunk = currentHashChunk(controls?.q || '');
     const typedNeedle = normalizeTag(chunk);
     const needle = compActive ? normalizeTag(compTag) : typedNeedle;
     const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
     const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
+    // search pool = union of tagMatches + trending (homepage source parity)
+    const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
     let filtered: string[] = [];
     if (needle) {
-      filtered = pool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash && trending.length) {
-      filtered = pool.filter(t => trending.includes(t));
+      filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
+    } else if (isOnlyHash && trendingSrc.length) {
+      // only `#` typed: show trending directly
+      filtered = trendingSrc.slice(0, 5);
     } else {
-      filtered = pool;
+      filtered = searchPool;
     }
+    // limit to max 5 tags always in this section
     filtered = filtered.slice(0, 5);
     const show = filtered.length > 0 || isOnlyHash || !!needle;
     if (!show) return null;
@@ -517,7 +523,7 @@ function currentHashChunk(q: string) {
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
           {filtered.map((t, i) => {
-            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+            const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
             const trendingClasses = isTrending
               ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
               : '';
@@ -708,20 +714,21 @@ function currentHashChunk(q: string) {
                     {Array.isArray(controls.tagMatches) && (
   (() => {
     const pool = controls.tagMatches || [];
-    const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
+    const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
     // prefer composing text as needle; else derive from query
     const chunk = currentHashChunk(controls?.q || '');
     const typedNeedle = normalizeTag(chunk);
     const needle = compActive ? normalizeTag(compTag) : typedNeedle;
     const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
     const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
+    const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
     let filtered: string[] = [];
     if (needle) {
-      filtered = pool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash && trending.length) {
-      filtered = pool.filter(t => trending.includes(t));
+      filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
+    } else if (isOnlyHash && trendingSrc.length) {
+      filtered = trendingSrc.slice(0, 5);
     } else {
-      filtered = pool;
+      filtered = searchPool;
     }
     filtered = filtered.slice(0, 5);
     const show = filtered.length > 0 || isOnlyHash || !!needle;
@@ -733,7 +740,7 @@ function currentHashChunk(q: string) {
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
           {filtered.map((t, i) => {
-            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+            const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
             const trendingClasses = isTrending
               ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
               : '';
