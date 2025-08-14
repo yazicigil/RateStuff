@@ -129,6 +129,9 @@ export default function Header({ controls }: { controls?: Controls }) {
   // Keyboard navigation for suggestions
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const suggListRef = useRef<HTMLUListElement|null>(null);
+  // hashtag composing (keeps text out of the input; renders as a pill)
+  const [compActive, setCompActive] = useState(false);
+  const [compTag, setCompTag] = useState<string>('');
 
   // keep local open state in sync with external showSuggestions
   useEffect(() => {
@@ -169,56 +172,103 @@ export default function Header({ controls }: { controls?: Controls }) {
   }, [activeIdx]);
   // Shared search input keydown handler for suggestions navigation
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-  // '#' yazıldığında önerileri aç
-  if (e.key === '#') {
-    setSuggOpen(true);
-  }
-  // '#etiket' parçasını Enter veya virgülle commit et
-  const chunk = currentHashChunk(controls?.q || '');
-  if ((e.key === 'Enter' || e.key === ',') && chunk.startsWith('#')) {
-    e.preventDefault();
-    const tag = normalizeTag(chunk);
-    if (tag) {
-      controls?.onClickTagMatch?.(tag);
+    // START a composing tag with '#'
+    if (e.key === '#') {
+      e.preventDefault();
+      setCompActive(true);
+      setCompTag((t) => t || '');
+      setSuggOpen(true);
+      return;
     }
-    // inputtaki son '#...' parçasını kaldır
-    const parts = (controls?.q || '').split(',');
-    parts.pop();
-    const nextQ = parts.join(',').replace(/,\s*$/, '').trim();
-    controls?.onQ(nextQ);
-    setSuggOpen(false);
-    setActiveIdx(-1);
-    return;
-  }
 
-  const len = controls?.suggestions?.length ?? 0;
-  if (!len) {
-    if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
-    if (e.key === 'Escape') { setSuggOpen(false); }
-    return;
-  }
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    setSuggOpen(true);
-    setActiveIdx((i) => (i + 1) % len);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    setSuggOpen(true);
-    setActiveIdx((i) => (i <= 0 ? len - 1 : i - 1));
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    if (suggOpen && activeIdx >= 0 && activeIdx < len) {
-      const val = controls!.suggestions![activeIdx];
-      setSuggOpen(false);
-      controls?.onClickSuggestion?.(val);
-    } else {
-      controls?.onCommit?.();
+    // If we are composing a tag, swallow characters and build the pill
+    if (compActive) {
+      const allowed = /^[a-z0-9ğüşöçı\-\._]$/i;
+      if (e.key.length === 1 && allowed.test(e.key)) {
+        e.preventDefault();
+        setCompTag((t) => (t + e.key).toLowerCase());
+        return;
+      }
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        setCompTag((t) => {
+          const next = t.slice(0, -1);
+          if (next.length === 0) setCompActive(false);
+          return next;
+        });
+        return;
+      }
+      // COMMIT current composing tag and keep typing another immediately with comma
+      if (e.key === ',') {
+        e.preventDefault();
+        const tag = normalizeTag(compTag);
+        if (tag) controls?.onClickTagMatch?.(tag);
+        // continue composing a new tag
+        setCompTag('');
+        setCompActive(true);
+        setSuggOpen(true);
+        setActiveIdx(-1);
+        return;
+      }
+      // COMMIT and switch to free-text with SPACE (adds a space to input)
+      if (e.key === ' ') {
+        const tag = normalizeTag(compTag);
+        if (tag) controls?.onClickTagMatch?.(tag);
+        setCompActive(false);
+        setCompTag('');
+        // allow space into the input so user can type normal words
+        return; // do not preventDefault
+      }
+      // COMMIT and run search with ENTER (do not clear q)
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const tag = normalizeTag(compTag);
+        if (tag) controls?.onClickTagMatch?.(tag);
+        setCompActive(false);
+        setCompTag('');
+        controls?.onCommit?.();
+        return;
+      }
+      // ESC cancels composing
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setCompActive(false);
+        setCompTag('');
+        setSuggOpen(false);
+        return;
+      }
+      // Let arrows/tab/home/end behave normally
     }
-  } else if (e.key === 'Escape') {
-    setSuggOpen(false);
-    setActiveIdx(-1);
+
+    // Suggestions keyboard navigation (when not composing)
+    const len = controls?.suggestions?.length ?? 0;
+    if (!len) {
+      if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
+      if (e.key === 'Escape') { setSuggOpen(false); }
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSuggOpen(true);
+      setActiveIdx((i) => (i + 1) % len);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSuggOpen(true);
+      setActiveIdx((i) => (i <= 0 ? len - 1 : i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (suggOpen && activeIdx >= 0 && activeIdx < len) {
+        const val = controls!.suggestions![activeIdx];
+        setSuggOpen(false);
+        controls?.onClickSuggestion?.(val);
+      } else {
+        controls?.onCommit?.();
+      }
+    } else if (e.key === 'Escape') {
+      setSuggOpen(false);
+      setActiveIdx(-1);
+    }
   }
-}
 
   async function refetchMe() {
     try {
@@ -283,7 +333,12 @@ function currentHashChunk(q: string) {
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
         <div className="flex items-center justify-between md:justify-start gap-2">
-          <Link href="/" className="shrink-0" title="Anasayfa">
+          <Link
+            href="/"
+            className="shrink-0"
+            title="Anasayfa"
+            onClick={(e) => { e.preventDefault(); window.location.href = '/' }}
+          >
             <img src="/logo.svg" alt="RateStuff" className={logoClass} />
           </Link>
           {/* Mobil sağ blok */}
@@ -358,7 +413,7 @@ function currentHashChunk(q: string) {
                 {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
                   <span
                     key={'sel-' + t}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
                     title={`#${t}`}
                   >
                     <span className="opacity-70">#</span>
@@ -377,16 +432,12 @@ function currentHashChunk(q: string) {
                   </span>
                 ))}
                 {/* Composing hashtag pill (until Enter/Comma) */}
-                {(() => {
-                  const chunk = currentHashChunk(controls?.q || '');
-                  const needle = normalizeTag(chunk);
-                  return chunk && needle ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30">
-                      <span className="opacity-70">#</span>
-                      <span className="truncate max-w-[10rem]">{needle}</span>
-                    </span>
-                  ) : null;
-                })()}
+                {compActive && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
+                    <span className="opacity-70">#</span>
+                    <span className="truncate max-w-[10rem]">{compTag || ''}</span>
+                  </span>
+                )}
                 {/* Real input */}
                 <input
                   onFocus={() => setSuggOpen(true)}
@@ -420,8 +471,21 @@ function currentHashChunk(q: string) {
     const chunk = currentHashChunk(controls?.q || '');
     const needle = normalizeTag(chunk);
     const pool = controls.tagMatches || [];
-    const filtered = needle ? pool.filter(t => t.toLowerCase().startsWith(needle)) : pool;
-    const show = filtered.length > 0 || !!needle || (controls?.q || '').includes('#');
+    const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
+    const isOnlyHash = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    let filtered: string[] = [];
+    if (needle) {
+      // search inside tag names like normal keyword search
+      filtered = pool.filter(t => t.toLowerCase().includes(needle));
+    } else if (isOnlyHash && trending.length) {
+      // only '#' typed: show trending tags as suggestions
+      filtered = pool.filter(t => trending.includes(t));
+    } else {
+      filtered = pool;
+    }
+    // limit to max 5 tags
+    filtered = filtered.slice(0, 5);
+    const show = filtered.length > 0 || isOnlyHash || !!needle;
     if (!show) return null;
     return (
       <>
@@ -429,7 +493,7 @@ function currentHashChunk(q: string) {
           İlgili Etiketler
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-          {filtered.slice(0, 12).map((t, i) => {
+          {filtered.map((t, i) => {
             const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
             const trendingClasses = isTrending
               ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
@@ -562,7 +626,7 @@ function currentHashChunk(q: string) {
                 {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
                   <span
                     key={'m-sel-' + t}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30"
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
                     title={`#${t}`}
                   >
                     <span className="opacity-70">#</span>
@@ -580,16 +644,12 @@ function currentHashChunk(q: string) {
                     )}
                   </span>
                 ))}
-                {(() => {
-                  const chunk = currentHashChunk(controls?.q || '');
-                  const needle = normalizeTag(chunk);
-                  return chunk && needle ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30">
-                      <span className="opacity-70">#</span>
-                      <span className="truncate max-w-[10rem]">{needle}</span>
-                    </span>
-                  ) : null;
-                })()}
+                {compActive && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
+                    <span className="opacity-70">#</span>
+                    <span className="truncate max-w-[10rem]">{compTag || ''}</span>
+                  </span>
+                )}
                 <input
                   onFocus={() => setSuggOpen(true)}
                   value={controls.q}
@@ -622,8 +682,21 @@ function currentHashChunk(q: string) {
     const chunk = currentHashChunk(controls?.q || '');
     const needle = normalizeTag(chunk);
     const pool = controls.tagMatches || [];
-    const filtered = needle ? pool.filter(t => t.toLowerCase().startsWith(needle)) : pool;
-    const show = filtered.length > 0 || !!needle || (controls?.q || '').includes('#');
+    const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
+    const isOnlyHash = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    let filtered: string[] = [];
+    if (needle) {
+      // search inside tag names like normal keyword search
+      filtered = pool.filter(t => t.toLowerCase().includes(needle));
+    } else if (isOnlyHash && trending.length) {
+      // only '#' typed: show trending tags as suggestions
+      filtered = pool.filter(t => trending.includes(t));
+    } else {
+      filtered = pool;
+    }
+    // limit to max 5 tags
+    filtered = filtered.slice(0, 5);
+    const show = filtered.length > 0 || isOnlyHash || !!needle;
     if (!show) return null;
     return (
       <>
@@ -631,7 +704,7 @@ function currentHashChunk(q: string) {
           İlgili Etiketler
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-          {filtered.slice(0, 12).map((t, i) => {
+          {filtered.map((t, i) => {
             const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
             const trendingClasses = isTrending
               ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
