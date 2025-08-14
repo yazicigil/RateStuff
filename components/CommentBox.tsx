@@ -2,6 +2,11 @@
 import { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Stars from "./Stars";
+import bannedWordsMod from "@/lib/bannedWords";
+const containsBannedWord: (t: string) => boolean =
+  (bannedWordsMod as any)?.containsBannedWord ||
+  (bannedWordsMod as any)?.default ||
+  ((t: string) => false);
 
 export default function CommentBox({
   itemId,
@@ -18,12 +23,17 @@ export default function CommentBox({
   const [rating, setRating] = useState<number>(initialRating || 0);
   const isMac = typeof window !== 'undefined' && /(Mac|iPhone|iPad|Macintosh)/.test(navigator.userAgent || '');
   const maxLen = 500;
-  const canSend = !busy && rating > 0 && text.trim().length > 0;
+  const hasBanned = containsBannedWord(text);
+  const canSend = !busy && rating > 0 && text.trim().length > 0 && !hasBanned;
   const ratingText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
   const counterId = `cb-count-${itemId}`;
   async function submit() {
     if (!session) {
       await signIn('google');
+      return;
+    }
+    if (containsBannedWord(text)) {
+      alert('Yorumda yasaklı kelime kullanılamaz.');
       return;
     }
     if (rating === 0) return;
@@ -65,7 +75,7 @@ export default function CommentBox({
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <textarea
-            className="w-full border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none overflow-hidden"
+            className={"w-full border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none resize-none overflow-hidden " + (hasBanned ? "focus:ring-2 focus:ring-red-400 ring-2 ring-red-400" : "focus:ring-2 focus:ring-emerald-400")}
             placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
             value={text}
             onChange={e => setText(e.target.value)}
@@ -75,7 +85,7 @@ export default function CommentBox({
               el.style.height = Math.min(el.scrollHeight, 160) + 'px';
             }}
             onKeyDown={e => {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 if (canSend) submit();
               }
@@ -85,20 +95,20 @@ export default function CommentBox({
             aria-describedby={counterId}
             rows={1}
           />
-          <div className="mt-1 flex items-center justify-between">
-            <span className="text-[11px] text-gray-500 dark:text-gray-400">
-              {isMac ? '⌘' : 'Ctrl'}+Enter ile gönder
-            </span>
+          <div className="mt-1 flex items-center justify-end">
             <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
               {text.length}/{maxLen}
             </span>
           </div>
+          {hasBanned && (
+            <p className="mt-1 text-[12px] text-red-500">Yorumda yasaklı kelime kullanılamaz.</p>
+          )}
         </div>
         {session ? (
           <button
             type="submit"
             aria-label="Gönder"
-            title={`Gönder (${isMac ? '⌘' : 'Ctrl'}+Enter)`}
+            title="Gönder"
             className={
               "grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 " +
               (canSend

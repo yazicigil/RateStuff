@@ -2,6 +2,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import bannedWordsMod from "@/lib/bannedWords";
+const containsBannedWord: (t: string) => boolean =
+  (bannedWordsMod as any)?.containsBannedWord ||
+  (bannedWordsMod as any)?.default ||
+  ((t: string) => false);
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -19,6 +24,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const textRaw = typeof body.comment === "string" ? body.comment : (typeof body.text === "string" ? body.text : "");
     const text = String(textRaw || "").trim();
     const rating = Number.isFinite(ratingRaw) ? Math.round(ratingRaw) : 0;
+
+    if (text && containsBannedWord(text)) {
+      return NextResponse.json({ ok: false, error: "banned-word" }, { status: 400 });
+    }
 
     // rating zorunlu (1..5)
     if (!(rating >= 1 && rating <= 5)) {
@@ -86,7 +95,13 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!isOwner && !isAdmin) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
 
     const data: any = { editedAt: new Date() };
-    if (typeof body.text === 'string') data.text = String(body.text);
+    if (typeof body.text === 'string') {
+      const t = String(body.text);
+      if (t && containsBannedWord(t)) {
+        return NextResponse.json({ ok: false, error: 'banned-word' }, { status: 400 });
+      }
+      data.text = t;
+    }
     if (body.rating !== undefined) {
       const r = Number(body.rating);
       if (!Number.isFinite(r) || r < 1 || r > 5) {
