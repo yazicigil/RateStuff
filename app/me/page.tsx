@@ -412,7 +412,21 @@ export default function MePage() {
             {me?.avatarUrl ? (
               <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
             ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
+              <span
+                className="w-14 h-14 inline-grid place-items-center rounded-full bg-gray-300 text-white font-bold ring-2 ring-violet-300 dark:ring-violet-700"
+                aria-hidden="true"
+              >
+                {(() => {
+                  const name = me?.name || "RS";
+                  const initials = name
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(s => (s[0] || "").toUpperCase())
+                    .join("") || "RS";
+                  return initials;
+                })()}
+              </span>
             )}
             <button
               type="button"

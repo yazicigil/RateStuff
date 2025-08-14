@@ -6,8 +6,8 @@ export default function UserAvatar({ src, name, size=20 }:{
     <img src={src} alt={name ?? 'user'} width={size} height={size}
          className="rounded-full object-cover inline-block" />
   ) : (
-    <span className="inline-grid place-items-center rounded-full bg-gray-200 text-gray-700"
-          style={{ width: size, height: size, fontSize: Math.max(10, size*0.5) }}>
+    <span className="inline-grid place-items-center rounded-full bg-gray-300 text-white font-bold"
+          style={{ width: size, height: size }}>
       {initial}
     </span>
   );
