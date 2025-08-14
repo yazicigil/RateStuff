@@ -104,8 +104,8 @@ export default function MePage() {
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
 
-  // Aktif tab (Saved/Items/Ratings/Comments)
-  const [activeSection, setActiveSection] = useState<'saved' | 'items' | 'ratings' | 'comments'>('saved');
+  // Aktif tab (Saved/Items/Comments)
+  const [activeSection, setActiveSection] = useState<'saved' | 'items' | 'comments'>('saved');
 
   // toast
   const [toast, setToast] = useState<string | null>(null);
@@ -303,7 +303,7 @@ export default function MePage() {
       const hash = window.location.hash || '';
       const m = hash.match(/tab=([a-z]+)/i);
       const tab = (m && m[1]) ? m[1].toLowerCase() : null;
-      if (tab === 'saved' || tab === 'items' || tab === 'ratings' || tab === 'comments') {
+      if (tab === 'saved' || tab === 'items' || tab === 'comments') {
         setActiveSection(tab as typeof activeSection);
       }
     } catch {}
@@ -314,7 +314,7 @@ export default function MePage() {
         const hash = window.location.hash || '';
         const m = hash.match(/tab=([a-z]+)/i);
         const tab = (m && m[1]) ? m[1].toLowerCase() : null;
-        if (tab === 'saved' || tab === 'items' || tab === 'ratings' || tab === 'comments') {
+        if (tab === 'saved' || tab === 'items' || tab === 'comments') {
           setActiveSection(tab as typeof activeSection);
         }
       } catch {}
@@ -381,22 +381,13 @@ export default function MePage() {
             </div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
           </div>
-          <Link
-            href="/#quick-add"
-            className="ml-auto block text-center px-3 py-2 rounded-xl border text-sm bg-green-600 border-green-600 text-white hover:bg-green-700 dark:border-green-600"
-            aria-label="Ana sayfadaki Hızlı Ekle'ye git"
-            title="Hızlı Ekle"
-          >
-            + Hızlı Ekle
-          </Link>
         </section>
 
         {/* Stat kartları = TABLAR */}
-        <nav className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <nav className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             { id: 'saved' as const,    label: 'Kaydedilenler', count: saved.length },
             { id: 'items' as const,    label: 'Eklediklerim',  count: items.length },
-            { id: 'ratings' as const,  label: 'Puanlarım',     count: ratings.length },
             { id: 'comments' as const, label: 'Değerlendirmelerim',    count: comments.length },
           ].map(s => (
             <button
@@ -566,19 +557,35 @@ export default function MePage() {
               {loading ? (
                 <Skeleton rows={4} />
               ) : items.length === 0 ? (
-                <Box>
-                  <span>Henüz bir şey eklememişsin. </span>
+                <div className="grid md:grid-cols-2 gap-4">
                   <Link
                     href="/#quick-add"
-                    className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80"
-                    aria-label="Ana sayfadaki Hızlı Ekle'ye git"
-                    title="Hızlı Ekle"
+                    prefetch={false}
+                    className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-56 sm:h-64 transition"
+                    aria-label="Hızlı ekle"
+                    title="Hızlı ekle"
                   >
-                    Ekle
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-5xl leading-none">+</span>
+                      <span className="text-base font-medium">Ekle</span>
+                    </div>
                   </Link>
-                </Box>
+                </div>
               ) : (
                 <div className="grid md:grid-cols-2 gap-4">
+                  {/* Quick Add card (always first) */}
+                  <Link
+                    href="/#quick-add"
+                    prefetch={false}
+                    className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-44 transition"
+                    aria-label="Hızlı ekle"
+                    title="Hızlı ekle"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-4xl leading-none">+</span>
+                      <span className="text-sm font-medium">Ekle</span>
+                    </div>
+                  </Link>
                   {items.map(it => (
                     <ItemEditor
                       key={it.id}
@@ -605,27 +612,6 @@ export default function MePage() {
           </section>
         )}
 
-        {/* RATINGS */}
-        {activeSection === 'ratings' && (
-          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="px-4 pb-4 pt-3 space-y-3">
-              {loading ? (
-                <Skeleton rows={4} />
-              ) : ratings.length === 0 ? (
-                <Box>Puan vermemişsin.</Box>
-              ) : (
-                <div className="space-y-2">
-                  {ratings.map(r => (
-                    <div key={r.id} className="rounded-xl border p-3 flex items-center justify-between">
-                      <div className="truncate">{r.itemName}</div>
-                      <Stars value={r.value} onRate={(n) => changeRating(r.itemId, n)} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
         {/* COMMENTS */}
         {activeSection === 'comments' && (
