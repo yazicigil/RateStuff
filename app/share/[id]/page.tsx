@@ -41,7 +41,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       : "RateStuff’ta keşfet");
 
   const shareUrl = `${base}/share/${params.id}`;
-  const ogImg = `${base}/api/og/item/${params.id}`;
+  let ogImg: string;
+if (it?.thumbnailUrl) {
+  ogImg = it.thumbnailUrl.startsWith("http")
+    ? it.thumbnailUrl
+    : `${base}${it.thumbnailUrl.startsWith("/") ? "" : "/"}${it.thumbnailUrl}`;
+} else {
+  ogImg = `${base}/api/og/item/${params.id}`;
+}
 
   // item yoksa noindex
   if (!it) {
