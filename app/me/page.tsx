@@ -13,7 +13,7 @@ import { useSession } from "next-auth/react";
 // Banned words (supports either default export or named `bannedWords`)
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import * as bannedModule from "@/lib/bannedwords";
+import * as bannedModule from "@/lib/bannedWords";
 const BANNED_LIST: string[] = (bannedModule as any)?.bannedWords || (bannedModule as any)?.default || [];
 
 function IconTrash({ className = "w-4 h-4" }: { className?: string }) {
