@@ -316,268 +316,285 @@ export default function MePage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Profil kartı */}
-        <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
-          <div className="relative">
-            {me?.avatarUrl ? (
-              <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
-            ) : (
-              <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
-  {me?.name || "Profilim"}
-  {(me as any)?.isAdmin && <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />}
-</div>
-            <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
-          </div>
-        </section>
-
-        {/* Quick stats / anchors */}
-        <nav className="grid grid-cols-2 sm:grid-cols-4 gap-3 -mt-2">
-          {[
-            { id: 'saved',    label: 'Kaydedilenler', count: saved.length },
-            { id: 'items',    label: 'Eklediklerim',  count: items.length },
-            { id: 'ratings',  label: 'Puanlarım',     count: ratings.length },
-            { id: 'comments', label: 'Yorumlarım',    count: comments.length },
-          ].map(s => (
-            <button
-              key={s.id}
-              onClick={() => jumpTo(s.id)}
-              className="group rounded-xl border dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 backdrop-blur py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm"
-            >
-              <div className="text-xs opacity-60">{s.label}</div>
-              <div className="text-xl font-semibold">{s.count}</div>
-            </button>
-          ))}
-        </nav>
-
-        {/* 1) KAYDEDİLENLER — en üstte, default açık, etiket filtreli */}
-        <Section id="saved" title="🔖 Kaydedilenler" defaultOpen>
-          {loading ? (
-            <Skeleton rows={4} />
-          ) : saved.length === 0 ? (
-            <Box>Henüz yok.</Box>
-          ) : (
-            <>
-              {/* Etiket filtresi (sadece saved içinde etiket varsa görünür) */}
-              {savedTags.length > 0 && (
-                <div className="mb-3 flex flex-wrap gap-2">
-                  <button
-                    className={`px-2 py-1 rounded-full border text-xs ${
-                      savedSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                    }`}
-                    onClick={() => setSavedSelected(new Set())}
-                    onDoubleClick={() => setSavedSelected(new Set())}
-                  >
-                    Hepsi
-                  </button>
-                  {savedTags.map(t => {
-                    const isSel = savedSelected.has(t);
-                    const isTrend = trending.includes(t);
-                    const base = 'px-2 py-1 rounded-full border text-xs';
-                    const className = isSel
-                      ? (isTrend
-                          ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
-                          : `${base} bg-black text-white border-black`)
-                      : (isTrend
-                          ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                          : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-                    return (
-                      <button
-                        key={t}
-                        className={className}
-                        onClick={() =>
-                          setSavedSelected(prev => {
-                            const next = new Set(prev);
-                            if (next.has(t)) next.delete(t); else next.add(t);
-                            return next;
-                          })
-                        }
-                        onDoubleClick={() => setSavedSelected(new Set())}
-                        title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                      >
-                        #{t}
-                      </button>
-                    );
-                  })}
-                </div>
+      <main className="max-w-6xl mx-auto px-4 py-6 lg:grid lg:grid-cols-[320px,1fr] lg:gap-6">
+        {/* LEFT: Sticky sidebar */}
+        <aside className="hidden lg:block lg:sticky lg:top-20 self-start space-y-4">
+          {/* Profil kartı */}
+          <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
+            <div className="relative">
+              {me?.avatarUrl ? (
+                <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
+              ) : (
+                <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
               )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
+                {me?.name || "Profilim"}
+                {(me as any)?.isAdmin && <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />}
+              </div>
+              <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
+            </div>
+          </section>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                {filteredSaved.map(it => (
-                  <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
-                    <div className="flex items-start gap-3">
-                      <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
-                        {it.imageUrl ? (
-                          <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                        ) : (
-                          <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                        )}
-                      </Link>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
-                            {it.name}
-                          </Link>
-                          <button
-                            onClick={() => {
-                              if (confirmRemoveSaved === it.id) {
-                                removeSaved(it.id);
-                              } else {
-                                setConfirmRemoveSaved(it.id);
-                              }
-                            }}
-                            data-saved-remove-btn
-                            className={`text-xs px-2 py-1 rounded-lg border flex items-center gap-1 ${
-                              confirmRemoveSaved === it.id
-                                ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
-                                : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
-                            }`}
-                            title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
-                            aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
-                          >
-                            {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
-                          </button>
-                        </div>
-                        <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
-                        <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
+          {/* Quick stats / anchors */}
+          <nav className="grid grid-cols-1 gap-3">
+            {[
+              { id: 'saved',    label: 'Kaydedilenler', count: saved.length },
+              { id: 'items',    label: 'Eklediklerim',  count: items.length },
+              { id: 'ratings',  label: 'Puanlarım',     count: ratings.length },
+              { id: 'comments', label: 'Yorumlarım',    count: comments.length },
+            ].map(s => (
+              <button
+                key={s.id}
+                onClick={() => jumpTo(s.id)}
+                className="group w-full rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm"
+              >
+                <div className="text-xs opacity-60">{s.label}</div>
+                <div className="mt-1 inline-flex items-center gap-2">
+                  <span className="text-xl font-semibold">{s.count}</span>
+                  <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] border dark:border-gray-700">adet</span>
+                </div>
+              </button>
+            ))}
+            <Link
+              href="/#quick-add"
+              className="block text-center px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              aria-label="Ana sayfadaki Hızlı Ekle'ye git"
+              title="Hızlı Ekle"
+            >
+              + Hızlı Ekle
+            </Link>
+          </nav>
+        </aside>
 
-                        {!!(it.tags && it.tags.length) && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {it.tags.slice(0, 10).map(t => {
-                              const isTrend = trending.includes(t);
-                              return (
-                                <span
-                                  key={t}
-                                  className={
-                                    "px-2 py-0.5 rounded-full text-xs border " +
-                                    (isTrend
-                                      ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
-                                      : "bg-white dark:bg-gray-800 dark:border-gray-700")
-                                  }
-                                  title={isTrend ? "Trend" : undefined}
-                                >
-                                  #{t}
-                                </span>
-                              );
-                            })}
+        {/* RIGHT: Content sections */}
+        <div className="space-y-6">
+          {error && (
+            <div className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* 1) KAYDEDİLENLER — default açık */}
+          <Section id="saved" title="🔖 Kaydedilenler" defaultOpen>
+            {loading ? (
+              <Skeleton rows={4} />
+            ) : saved.length === 0 ? (
+              <Box>Henüz yok.</Box>
+            ) : (
+              <>
+                {/* Etiket filtresi (sadece saved içinde etiket varsa görünür) */}
+                {savedTags.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      className={`px-2 py-1 rounded-full border text-xs ${
+                        savedSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                      }`}
+                      onClick={() => setSavedSelected(new Set())}
+                      onDoubleClick={() => setSavedSelected(new Set())}
+                    >
+                      Hepsi
+                    </button>
+                    {savedTags.map(t => {
+                      const isSel = savedSelected.has(t);
+                      const isTrend = trending.includes(t);
+                      const base = 'px-2 py-1 rounded-full border text-xs';
+                      const className = isSel
+                        ? (isTrend
+                            ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
+                            : `${base} bg-black text-white border-black`)
+                        : (isTrend
+                            ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                            : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
+                      return (
+                        <button
+                          key={t}
+                          className={className}
+                          onClick={() =>
+                            setSavedSelected(prev => {
+                              const next = new Set(prev);
+                              if (next.has(t)) next.delete(t); else next.add(t);
+                              return next;
+                            })
+                          }
+                          onDoubleClick={() => setSavedSelected(new Set())}
+                          title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                        >
+                          #{t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  {filteredSaved.map(it => (
+                    <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
+                      <div className="flex items-start gap-3">
+                        <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+                          {it.imageUrl ? (
+                            <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                          ) : (
+                            <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                          )}
+                        </Link>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
+                              {it.name}
+                            </Link>
+                            <button
+                              onClick={() => {
+                                if (confirmRemoveSaved === it.id) {
+                                  removeSaved(it.id);
+                                } else {
+                                  setConfirmRemoveSaved(it.id);
+                                }
+                              }}
+                              data-saved-remove-btn
+                              className={`text-xs px-2 py-1 rounded-lg border flex items-center gap-1 ${
+                                confirmRemoveSaved === it.id
+                                  ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
+                                  : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
+                              }`}
+                              title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
+                              aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
+                            >
+                              {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
+                            </button>
                           </div>
-                        )}
+                          <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
+                          <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
 
-                        {it.edited && (
-                          <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                            düzenlendi
-                          </span>
-                        )}
+                          {!!(it.tags && it.tags.length) && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {it.tags.slice(0, 10).map(t => {
+                                const isTrend = trending.includes(t);
+                                return (
+                                  <span
+                                    key={t}
+                                    className={
+                                      "px-2 py-0.5 rounded-full text-xs border " +
+                                      (isTrend
+                                        ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
+                                        : "bg-white dark:bg-gray-800 dark:border-gray-700")
+                                    }
+                                    title={isTrend ? "Trend" : undefined}
+                                  >
+                                    #{t}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {it.edited && (
+                            <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                              düzenlendi
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </Section>
-
-        {/* 2) EKLEDİKLERİM — collapsible, içinde ImageUploader ile düzenleme */}
-        <Section id="items" title="➕ Eklediklerim">
-          {loading ? (
-            <Skeleton rows={4} />
-          ) : items.length === 0 ? (
-            <Box>
-              <span>Henüz bir şey eklememişsin. </span>
-              <Link
-                href="/#quick-add"
-                className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80"
-                aria-label="Ana sayfadaki Hızlı Ekle'ye git"
-                title="Hızlı Ekle"
-              >
-                Ekle
-              </Link>
-            </Box>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4">
-              {items.map(it => (
-                <ItemEditor
-                  key={it.id}
-                  it={it}
-                  editingItem={editingItem}
-                  setEditingItem={(id) => {
-                    setEditingItem(id);
-                    if (id === it.id) {
-                      setEditDesc(it.description || "");
-                      setEditImg(it.imageUrl ?? null);
-                    }
-                  }}
-                  editDesc={editDesc}
-                  setEditDesc={setEditDesc}
-                  editImg={editImg}
-                  setEditImg={setEditImg}
-                  onSave={() => saveItem(it.id)}
-                  onDelete={deleteItem}
-                />
-              ))}
-            </div>
-          )}
-        </Section>
-
-        {/* 3) PUANLARIM — collapsible */}
-        <Section id="ratings" title="⭐ Puanlarım">
-          {loading ? (
-            <Skeleton rows={4} />
-          ) : ratings.length === 0 ? (
-            <Box>Puan vermemişsin.</Box>
-          ) : (
-            <div className="space-y-2">
-              {ratings.map(r => (
-                <div key={r.id} className="rounded-xl border p-3 flex items-center justify-between">
-                  <div className="truncate">{r.itemName}</div>
-                  <Stars value={r.value} onRate={(n) => changeRating(r.itemId, n)} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </Section>
+              </>
+            )}
+          </Section>
 
-        {/* 4) YORUMLARIM — collapsible, 2 sütun, son 5 + daha fazla */}
-        <Section id="comments" title="💬 Yorumlarım">
-          {loading ? (
-            <Skeleton rows={4} />
-          ) : comments.length === 0 ? (
-            <Box>Yorumun yok.</Box>
-          ) : (
-            <>
-              <div className="grid md:grid-cols-2 gap-3 items-stretch">
-                {comments.slice(0, commentsLimit).map(c => (
-                  <CommentRow
-                    key={c.id}
-                    c={c}
-                    onSave={saveComment}
-                    onDelete={deleteComment}
+          {/* 2) EKLEDİKLERİM */}
+          <Section id="items" title="➕ Eklediklerim">
+            {loading ? (
+              <Skeleton rows={4} />
+            ) : items.length === 0 ? (
+              <Box>
+                <span>Henüz bir şey eklememişsin. </span>
+                <Link
+                  href="/#quick-add"
+                  className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80"
+                  aria-label="Ana sayfadaki Hızlı Ekle'ye git"
+                  title="Hızlı Ekle"
+                >
+                  Ekle
+                </Link>
+              </Box>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-4">
+                {items.map(it => (
+                  <ItemEditor
+                    key={it.id}
+                    it={it}
+                    editingItem={editingItem}
+                    setEditingItem={(id) => {
+                      setEditingItem(id);
+                      if (id === it.id) {
+                        setEditDesc(it.description || "");
+                        setEditImg(it.imageUrl ?? null);
+                      }
+                    }}
+                    editDesc={editDesc}
+                    setEditDesc={setEditDesc}
+                    editImg={editImg}
+                    setEditImg={setEditImg}
+                    onSave={() => saveItem(it.id)}
+                    onDelete={deleteItem}
                   />
                 ))}
               </div>
-              {comments.length > commentsLimit && (
-                <div className="pt-2">
-                  <button
-                    className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
-                    onClick={() => setCommentsLimit(l => l + 5)}
-                  >
-                    Daha fazla göster
-                  </button>
+            )}
+          </Section>
+
+          {/* 3) PUANLARIM */}
+          <Section id="ratings" title="⭐ Puanlarım">
+            {loading ? (
+              <Skeleton rows={4} />
+            ) : ratings.length === 0 ? (
+              <Box>Puan vermemişsin.</Box>
+            ) : (
+              <div className="space-y-2">
+                {ratings.map(r => (
+                  <div key={r.id} className="rounded-xl border p-3 flex items-center justify-between">
+                    <div className="truncate">{r.itemName}</div>
+                    <Stars value={r.value} onRate={(n) => changeRating(r.itemId, n)} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* 4) YORUMLARIM */}
+          <Section id="comments" title="💬 Yorumlarım">
+            {loading ? (
+              <Skeleton rows={4} />
+            ) : comments.length === 0 ? (
+              <Box>Yorumun yok.</Box>
+            ) : (
+              <>
+                <div className="grid md:grid-cols-2 gap-3 items-stretch">
+                  {comments.slice(0, commentsLimit).map(c => (
+                    <CommentRow
+                      key={c.id}
+                      c={c}
+                      onSave={saveComment}
+                      onDelete={deleteComment}
+                    />
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </Section>
+                {comments.length > commentsLimit && (
+                  <div className="pt-2">
+                    <button
+                      className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+                      onClick={() => setCommentsLimit(l => l + 5)}
+                    >
+                      Daha fazla göster
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </Section>
+        </div>
       </main>
       {toast && (
         <div className="fixed bottom-4 right-4 z-[60]">
