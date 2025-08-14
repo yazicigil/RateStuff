@@ -289,12 +289,45 @@ export default function MePage() {
     };
   }, [confirmRemoveSaved]);
 
+  // --- URL hash ⇄ tab sync ---
+  useEffect(() => {
+    try {
+      const hash = window.location.hash || '';
+      const m = hash.match(/tab=([a-z]+)/i);
+      const tab = (m && m[1]) ? m[1].toLowerCase() : null;
+      if (tab === 'saved' || tab === 'items' || tab === 'ratings' || tab === 'comments') {
+        setActiveSection(tab as typeof activeSection);
+      }
+    } catch {}
+  }, []);
+  useEffect(() => {
+    function onHashChange() {
+      try {
+        const hash = window.location.hash || '';
+        const m = hash.match(/tab=([a-z]+)/i);
+        const tab = (m && m[1]) ? m[1].toLowerCase() : null;
+        if (tab === 'saved' || tab === 'items' || tab === 'ratings' || tab === 'comments') {
+          setActiveSection(tab as typeof activeSection);
+        }
+      } catch {}
+    }
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+  // Whenever tab changes, reflect it in the URL hash (without scrolling)
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      url.hash = `tab=${activeSection}`;
+      window.history.replaceState({}, '', url.toString());
+    } catch {}
+  }, [activeSection]);
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-        <div className="relative max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="relative max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Link
               href="/"
@@ -359,12 +392,19 @@ export default function MePage() {
               key={s.id}
               onClick={() => {
                 setActiveSection(s.id);
+                // URL hash'ı güncelle
+                try {
+                  const url = new URL(window.location.href);
+                  url.hash = `tab=${s.id}`;
+                  window.history.replaceState({}, '', url.toString());
+                } catch {}
+                // üstteki tab alanına kaydır
                 const el = document.getElementById('tabs-top');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
               className={`group w-full rounded-xl border py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm
                 ${activeSection === s.id
-                  ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                  ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:border-violet-500'
                   : 'bg-white dark:bg-gray-900 dark:border-gray-800'}`}
             >
               <div className="text-xs opacity-60">{s.label}</div>
@@ -385,7 +425,7 @@ export default function MePage() {
 
         {/* SAVED */}
         {activeSection === 'saved' && (
-          <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3">
               {loading ? (
                 <Skeleton rows={4} />
@@ -516,7 +556,7 @@ export default function MePage() {
 
         {/* ITEMS */}
         {activeSection === 'items' && (
-          <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3">
               {loading ? (
                 <Skeleton rows={4} />
@@ -562,7 +602,7 @@ export default function MePage() {
 
         {/* RATINGS */}
         {activeSection === 'ratings' && (
-          <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3">
               {loading ? (
                 <Skeleton rows={4} />
@@ -584,7 +624,7 @@ export default function MePage() {
 
         {/* COMMENTS */}
         {activeSection === 'comments' && (
-          <section className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
             <div className="px-4 pb-4 pt-3 space-y-3">
               {loading ? (
                 <Skeleton rows={4} />
@@ -625,6 +665,15 @@ export default function MePage() {
           </div>
         </div>
       )}
+      <style jsx>{`
+        @keyframes fadeSlideIn {
+          0% { opacity: 0; transform: translateY(6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        .fade-slide-in {
+          animation: fadeSlideIn 220ms ease-out both;
+        }
+      `}</style>
     </div>
   );
 }
