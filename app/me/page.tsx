@@ -58,12 +58,7 @@ type MyComment = {
   itemImageUrl?: string | null;
   text: string;
   edited?: boolean;
-  // oy sayıları (opsiyonel)
-  up?: number;
-  down?: number;
-  upvotes?: number;
-  downvotes?: number;
-  score?: number;
+  score?: number; // upvote sayacı (net skor)
 };
 
 // Spotlight deep link for an item
@@ -363,7 +358,7 @@ export default function MePage() {
           </button>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-12 w-auto dark:invert hover:opacity-90 transition" />
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert hover:opacity-90 transition" />
             </Link>
           </div>
         </div>
@@ -963,26 +958,11 @@ function CommentRow({
             </div>
           ) : (
             <div className="mt-1 text-sm">
-              “{c.text}”
-              {c.edited && <em className="opacity-60"> (düzenlendi)</em>}
-              {/* Oy sayıları (yorum metninin yanında) */}
-              <span className="ml-2 inline-flex items-center gap-2 align-middle text-xs opacity-70">
-                {(() => {
-                  const up = (c as any).up ?? (c as any).upvotes ?? 0;
-                  const down = (c as any).down ?? (c as any).downvotes ?? 0;
-                  return (
-                    <>
-                      <span className="inline-flex items-center gap-1" title="Upvote">
-                        <span aria-hidden>▲</span>
-                        <span className="tabular-nums">{up}</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1" title="Downvote">
-                        <span aria-hidden>▼</span>
-                        <span className="tabular-nums">{down}</span>
-                      </span>
-                    </>
-                  );
-                })()}
+              “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+              <span className="ml-2 shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
+                <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
+                <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
+                <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
               </span>
               <div className="mt-2 flex gap-2">
                 <button
