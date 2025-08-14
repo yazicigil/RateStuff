@@ -186,23 +186,23 @@ useEffect(() => {
   // Shared search input keydown handler for suggestions navigation
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     // START a composing tag with '#'
-    if (e.key === '#') {
-      e.preventDefault();
-      setCompActive(true);
-      setCompTag((t) => t || '');
-      setSuggOpen(true);
-      return;
-    }
+   if (e.key === '#') {
+  e.preventDefault();
+  setCompActive(true);
+  setCompTag((t) => t || '');
+  setSuggOpen(false); // hashtag modunda dropdown açma
+  return;
+}
 
     // If we are composing a tag, swallow characters and build the pill
     if (compActive) {
       const allowed = /^[a-z0-9ğüşöçı\-\._]$/i;
-      if (e.key.length === 1 && allowed.test(e.key)) {
-        e.preventDefault();
-        setCompTag((t) => (t + e.key).toLowerCase());
-        setSuggOpen(true); // keep suggestions open while typing a tag
-        return;
-      }
+     if (e.key.length === 1 && allowed.test(e.key)) {
+  e.preventDefault();
+  setCompTag((t) => (t + e.key).toLowerCase());
+  setSuggOpen(false); // hashtag modunda dropdown kapalı
+  return;
+}
       if (e.key === 'Backspace') {
         e.preventDefault();
         setCompTag((t) => {
@@ -223,7 +223,7 @@ useEffect(() => {
         // continue composing a new tag (empty pill stays visible)
         setCompTag('');
         setCompActive(true);
-        setSuggOpen(true);
+        setSuggOpen(false);
         setActiveIdx(-1);
         return;
       }
@@ -276,10 +276,10 @@ useEffect(() => {
           e.preventDefault();
           const last = pills[pills.length - 1];
           if (controls?.onClickTagRemove) {
-            controls.onClickTagRemove(last);
-          } else {
-            setLocalPills(prev => prev.filter(x => x !== last));
+            controls.onClickTagRemove(last); // remove from parent filters
           }
+          // always update local pills for instant UI feedback
+          setLocalPills(prev => prev.filter(x => x !== last));
           // keep suggestions state as-is; focus remains in input
           return;
         }
@@ -487,14 +487,20 @@ function currentHashChunk(q: string) {
                   </span>
                 )}
                 {/* Real input */}
-                <input
-                  onFocus={() => setSuggOpen(true)}
-                  value={controls.q}
-                  onChange={(e) => controls.onQ(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
-                />
+               <input
+  onFocus={() => { /* focus'ta açma */ }}
+  value={controls.q}
+  onChange={(e) => {
+    const v = e.target.value;
+    controls.onQ(v);
+    // sadece hashtag HARİCİ metin yazarken aç
+    if (!compActive && v.trim().length > 0) setSuggOpen(true);
+    else if (!compActive) setSuggOpen(false);
+  }}
+  onKeyDown={handleSearchKeyDown}
+  placeholder="ara ( / )"
+  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+/>
               </div>
               {!!controls.q && (
                 <button
@@ -708,13 +714,19 @@ function currentHashChunk(q: string) {
                   </span>
                 )}
                 <input
-                  onFocus={() => setSuggOpen(true)}
-                  value={controls.q}
-                  onChange={(e) => controls.onQ(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
-                />
+  onFocus={() => { /* focus'ta açma */ }}
+  value={controls.q}
+  onChange={(e) => {
+    const v = e.target.value;
+    controls.onQ(v);
+    // sadece hashtag HARİCİ metin yazarken aç
+    if (!compActive && v.trim().length > 0) setSuggOpen(true);
+    else if (!compActive) setSuggOpen(false);
+  }}
+  onKeyDown={handleSearchKeyDown}
+  placeholder="ara ( / )"
+  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+/>
               </div>
               {!!controls.q && (
                 <button
