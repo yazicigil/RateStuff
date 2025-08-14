@@ -103,6 +103,11 @@ export default function MePage() {
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
 
+  // Aktif bölüm (stat kartı vurgusu için)
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  // Mobil akordeon görünürlük
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
   // toast
   const [toast, setToast] = useState<string | null>(null);
   const notify = useCallback((msg: string) => {
@@ -111,12 +116,12 @@ export default function MePage() {
     (notify as any)._t = window.setTimeout(() => setToast(null), 2200);
   }, []);
 
-  // helper: smooth-scroll and force-open a section
+  // helper: smooth-scroll and toggle a section
   const jumpTo = useCallback((id: string) => {
     try {
-      window.dispatchEvent(new CustomEvent('open-section', { detail: { id } }));
+      window.dispatchEvent(new CustomEvent('toggle-section', { detail: { id } }));
     } catch {}
-    // wait a tick so Section can open, then smooth scroll
+    // wait a tick so Section can update, then smooth scroll
     setTimeout(() => {
       const el = document.getElementById(id);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -286,6 +291,18 @@ export default function MePage() {
     };
   }, [confirmRemoveSaved]);
 
+  // Bölüm açık/kapalı değişimini dinle → stat kartını vurgula
+  useEffect(() => {
+    function onChanged(e: any) {
+      const id = e?.detail?.id;
+      const open = !!e?.detail?.open;
+      if (!id) return;
+      setActiveSection(prev => open ? id : (prev === id ? null : prev));
+    }
+    window.addEventListener('section-changed', onChanged as any);
+    return () => window.removeEventListener('section-changed', onChanged as any);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -317,8 +334,26 @@ export default function MePage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 lg:grid lg:grid-cols-[320px,1fr] lg:gap-6">
+        {/* Mobil akordeon tetikleyici */}
+        <div className="lg:hidden mb-3">
+          <button
+            onClick={() => setMobileSidebarOpen(o => !o)}
+            className="w-full rounded-xl border px-3 py-2 text-sm flex items-center justify-between bg-white dark:bg-gray-900"
+            aria-expanded={mobileSidebarOpen}
+            aria-controls="me-sidebar"
+            title="Profil &amp; Kısayollar"
+          >
+            <span>Profil &amp; Kısayollar</span>
+            <span className="inline-flex h-6 w-6 items-center justify-center rounded-md border dark:border-gray-700 text-sm leading-none bg-white dark:bg-gray-900">
+              {mobileSidebarOpen ? '−' : '+'}
+            </span>
+          </button>
+        </div>
         {/* LEFT: Sticky sidebar */}
-        <aside className="hidden lg:block lg:sticky lg:top-20 self-start space-y-4">
+        <aside
+          id="me-sidebar"
+          className={`space-y-4 mb-4 lg:mb-0 lg:sticky lg:top-20 self-start ${mobileSidebarOpen ? '' : 'hidden'} lg:block`}
+        >
           {/* Profil kartı */}
           <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
             <div className="relative">
@@ -348,18 +383,20 @@ export default function MePage() {
               <button
                 key={s.id}
                 onClick={() => jumpTo(s.id)}
-                className="group w-full rounded-xl border dark:border-gray-800 bg-white dark:bg-gray-900 py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm"
+                className={`group w-full rounded-xl border py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm
+                  ${activeSection === s.id
+                    ? 'bg-black text-white border-black dark:bg-white dark:text-black dark:border-white'
+                    : 'bg-white dark:bg-gray-900 dark:border-gray-800'}`}
               >
                 <div className="text-xs opacity-60">{s.label}</div>
                 <div className="mt-1 inline-flex items-center gap-2">
                   <span className="text-xl font-semibold">{s.count}</span>
-                  <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2 py-0.5 text-[11px] border dark:border-gray-700">adet</span>
                 </div>
               </button>
             ))}
             <Link
               href="/#quick-add"
-              className="block text-center px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="block text-center px-3 py-2 rounded-xl border text-sm bg-green-600 border-green-600 text-white hover:bg-green-700 dark:border-green-600"
               aria-label="Ana sayfadaki Hızlı Ekle'ye git"
               title="Hızlı Ekle"
             >
@@ -615,14 +652,27 @@ function Section({
   children,
 }: { id?: string; title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
-  // Listen for global open-section event
+  // Listen for global open-section and toggle-section events
   useEffect(() => {
     function onOpen(e: any) {
       if (e?.detail?.id && e.detail.id === id) setOpen(true);
     }
+    function onToggle(e: any) {
+      if (e?.detail?.id && e.detail.id === id) setOpen((o) => !o);
+    }
     window.addEventListener('open-section', onOpen as any);
-    return () => window.removeEventListener('open-section', onOpen as any);
+    window.addEventListener('toggle-section', onToggle as any);
+    return () => {
+      window.removeEventListener('open-section', onOpen as any);
+      window.removeEventListener('toggle-section', onToggle as any);
+    };
   }, [id]);
+  useEffect(() => {
+    if (!id) return;
+    try {
+      window.dispatchEvent(new CustomEvent('section-changed', { detail: { id, open } }));
+    } catch {}
+  }, [id, open]);
   return (
     <section id={id} className="rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
       <button
