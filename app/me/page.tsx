@@ -345,7 +345,7 @@ export default function MePage() {
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
         <div className="relative max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Link
               href="/"
               className="p-2 rounded-xl border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
@@ -359,8 +359,9 @@ export default function MePage() {
             <span className="text-lg font-semibold">Profil</span>
           </div>
           <button
+            type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
+            className="ml-auto px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
           >
             Çıkış
           </button>
@@ -498,6 +499,7 @@ export default function MePage() {
                                 {it.name}
                               </Link>
                               <button
+                                type="button"
                                 onClick={() => {
                                   if (confirmRemoveSaved === it.id) {
                                     removeSaved(it.id);
@@ -514,7 +516,9 @@ export default function MePage() {
                                 title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
                                 aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
                               >
-                                {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
+                                <span data-saved-remove-btn className="inline-flex items-center gap-1">
+                                  {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
+                                </span>
                               </button>
                             </div>
                             <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
