@@ -468,9 +468,11 @@ function currentHashChunk(q: string) {
                     <button
                       type="button"
                       onClick={() => {
-                        if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
-                        else setLocalPills(prev => prev.filter(x => x !== t));
-                      }}
+  if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
+  else setLocalPills(prev => prev.filter(x => x !== t));
+  // filtre değişikliğini hemen uygula
+  controls?.onCommit?.();
+}}
                       className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
                       aria-label={`#${t} filtresini kaldır`}
                       title={`#${t} filtresini kaldır`}
@@ -695,10 +697,12 @@ function currentHashChunk(q: string) {
                     <span>{t}</span>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
-                        else setLocalPills(prev => prev.filter(x => x !== t));
-                      }}
+                     onClick={() => {
+  if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
+  else setLocalPills(prev => prev.filter(x => x !== t));
+  // filtre değişikliğini hemen uygula
+  controls?.onCommit?.();
+}}
                       className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
                       aria-label={`#${t} filtresini kaldır`}
                       title={`#${t} filtresini kaldır`}
