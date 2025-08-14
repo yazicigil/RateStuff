@@ -132,6 +132,15 @@ export default function Header({ controls }: { controls?: Controls }) {
   // hashtag composing (keeps text out of the input; renders as a pill)
   const [compActive, setCompActive] = useState(false);
   const [compTag, setCompTag] = useState<string>('');
+  // Local mirror for selected tag pills (keeps pills visible even if parent doesn't pass selectedTags)
+  const [localPills, setLocalPills] = useState<string[]>([]);
+  const renderPills = Array.isArray(controls?.selectedTags) ? controls!.selectedTags! : localPills;
+  // keep local pills in sync when parent provides selectedTags
+  useEffect(() => {
+    if (Array.isArray(controls?.selectedTags)) {
+      setLocalPills(controls!.selectedTags!);
+    }
+  }, [controls?.selectedTags]);
 
   // keep local open state in sync with external showSuggestions (don't force-close)
   useEffect(() => {
@@ -187,6 +196,7 @@ export default function Header({ controls }: { controls?: Controls }) {
       if (e.key.length === 1 && allowed.test(e.key)) {
         e.preventDefault();
         setCompTag((t) => (t + e.key).toLowerCase());
+        setSuggOpen(true); // keep suggestions open while typing a tag
         return;
       }
       if (e.key === 'Backspace') {
@@ -202,8 +212,11 @@ export default function Header({ controls }: { controls?: Controls }) {
       if (e.key === ',') {
         e.preventDefault();
         const tag = normalizeTag(compTag);
-        if (tag) controls?.onClickTagMatch?.(tag);
-        // continue composing a new tag
+        if (tag) {
+          controls?.onClickTagMatch?.(tag);
+          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+        }
+        // continue composing a new tag (empty pill stays visible)
         setCompTag('');
         setCompActive(true);
         setSuggOpen(true);
@@ -213,7 +226,10 @@ export default function Header({ controls }: { controls?: Controls }) {
       // COMMIT and switch to free-text with SPACE (adds a space to input)
       if (e.key === ' ') {
         const tag = normalizeTag(compTag);
-        if (tag) controls?.onClickTagMatch?.(tag);
+        if (tag) {
+          controls?.onClickTagMatch?.(tag);
+          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+        }
         setCompActive(false);
         setCompTag('');
         setSuggOpen(false); // do not show results on space
@@ -223,7 +239,10 @@ export default function Header({ controls }: { controls?: Controls }) {
       if (e.key === 'Enter') {
         e.preventDefault();
         const tag = normalizeTag(compTag);
-        if (tag) controls?.onClickTagMatch?.(tag);
+        if (tag) {
+          controls?.onClickTagMatch?.(tag);
+          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
+        }
         setCompActive(false);
         setCompTag('');
         controls?.onCommit?.();
@@ -410,7 +429,7 @@ function currentHashChunk(q: string) {
               {/* Faux input container: pills + text input */}
               <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
                 {/* Selected tag pills (left-aligned) */}
-                {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
+                {renderPills.map((t) => (
                   <span
                     key={'sel-' + t}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
@@ -418,17 +437,18 @@ function currentHashChunk(q: string) {
                   >
                     <span className="opacity-70">#</span>
                     <span>{t}</span>
-                    {controls.onClickTagRemove && (
-                      <button
-                        type="button"
-                        onClick={() => controls.onClickTagRemove?.(t)}
-                        className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
-                        aria-label={`#${t} filtresini kaldır`}
-                        title={`#${t} filtresini kaldır`}
-                      >
-                        ×
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
+                        else setLocalPills(prev => prev.filter(x => x !== t));
+                      }}
+                      className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
+                      aria-label={`#${t} filtresini kaldır`}
+                      title={`#${t} filtresini kaldır`}
+                    >
+                      ×
+                    </button>
                   </span>
                 ))}
                 {/* Composing hashtag pill (until Enter/Comma) */}
@@ -468,22 +488,22 @@ function currentHashChunk(q: string) {
                   <div className="px-3 py-2 space-y-1">
                    {Array.isArray(controls.tagMatches) && (
   (() => {
-    const chunk = currentHashChunk(controls?.q || '');
-    const needle = normalizeTag(chunk);
     const pool = controls.tagMatches || [];
     const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
-    const isOnlyHash = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    // prefer composing text as needle; else derive from query
+    const chunk = currentHashChunk(controls?.q || '');
+    const typedNeedle = normalizeTag(chunk);
+    const needle = compActive ? normalizeTag(compTag) : typedNeedle;
+    const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
     let filtered: string[] = [];
     if (needle) {
-      // search inside tag names like normal keyword search
       filtered = pool.filter(t => t.toLowerCase().includes(needle));
     } else if (isOnlyHash && trending.length) {
-      // only '#' typed: show trending tags as suggestions
       filtered = pool.filter(t => trending.includes(t));
     } else {
       filtered = pool;
     }
-    // limit to max 5 tags
     filtered = filtered.slice(0, 5);
     const show = filtered.length > 0 || isOnlyHash || !!needle;
     if (!show) return null;
@@ -502,7 +522,11 @@ function currentHashChunk(q: string) {
               <button
                 key={t + i}
                 type="button"
-                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                onClick={() => {
+                  setSuggOpen(false);
+                  controls.onClickTagMatch?.(t);
+                  setLocalPills((prev) => (prev.includes(t) ? prev : [...prev, t]));
+                }}
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
                 title={`#${t}`}
               >
@@ -623,7 +647,7 @@ function currentHashChunk(q: string) {
           <div className="md:hidden flex items-center gap-2">
             <div className="relative flex-1" ref={suggWrapRefMobile}>
               <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
-                {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
+                {renderPills.map((t) => (
                   <span
                     key={'m-sel-' + t}
                     className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
@@ -631,17 +655,18 @@ function currentHashChunk(q: string) {
                   >
                     <span className="opacity-70">#</span>
                     <span>{t}</span>
-                    {controls.onClickTagRemove && (
-                      <button
-                        type="button"
-                        onClick={() => controls.onClickTagRemove?.(t)}
-                        className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
-                        aria-label={`#${t} filtresini kaldır`}
-                        title={`#${t} filtresini kaldır`}
-                      >
-                        ×
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
+                        else setLocalPills(prev => prev.filter(x => x !== t));
+                      }}
+                      className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
+                      aria-label={`#${t} filtresini kaldır`}
+                      title={`#${t} filtresini kaldır`}
+                    >
+                      ×
+                    </button>
                   </span>
                 ))}
                 {compActive && (
@@ -679,22 +704,22 @@ function currentHashChunk(q: string) {
                   <div className="px-3 py-2 space-y-1">
                     {Array.isArray(controls.tagMatches) && (
   (() => {
-    const chunk = currentHashChunk(controls?.q || '');
-    const needle = normalizeTag(chunk);
     const pool = controls.tagMatches || [];
     const trending = Array.isArray((controls as any).trendingTags) ? (controls as any).trendingTags : [];
-    const isOnlyHash = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    // prefer composing text as needle; else derive from query
+    const chunk = currentHashChunk(controls?.q || '');
+    const typedNeedle = normalizeTag(chunk);
+    const needle = compActive ? normalizeTag(compTag) : typedNeedle;
+    const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
+    const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
     let filtered: string[] = [];
     if (needle) {
-      // search inside tag names like normal keyword search
       filtered = pool.filter(t => t.toLowerCase().includes(needle));
     } else if (isOnlyHash && trending.length) {
-      // only '#' typed: show trending tags as suggestions
       filtered = pool.filter(t => trending.includes(t));
     } else {
       filtered = pool;
     }
-    // limit to max 5 tags
     filtered = filtered.slice(0, 5);
     const show = filtered.length > 0 || isOnlyHash || !!needle;
     if (!show) return null;
@@ -713,7 +738,11 @@ function currentHashChunk(q: string) {
               <button
                 key={t + i}
                 type="button"
-                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                onClick={() => {
+                  setSuggOpen(false);
+                  controls.onClickTagMatch?.(t);
+                  setLocalPills((prev) => (prev.includes(t) ? prev : [...prev, t]));
+                }}
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
                 title={`#${t}`}
               >
