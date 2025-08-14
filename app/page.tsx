@@ -2508,19 +2508,7 @@ if (!already) {
       <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
       <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
     </span>
-    <button
-      className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-      title="Yorumu düzenle"
-      onClick={() => {
-        setEditingCommentId(c.id);
-        setEditingCommentItem(null);
-        setEditingCommentText(c.text);
-        setEditingCommentRating(c.rating || 0);
-      }}
-    >
-      {/* kalem */}
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
-    </button>
+   
     <button
       className={`p-1.5 rounded-md ${confirmDeleteId === c.id ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
       title={confirmDeleteId === c.id ? 'Silmek için tekrar tıkla' : 'Yorumu sil'}
