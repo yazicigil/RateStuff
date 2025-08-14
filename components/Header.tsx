@@ -491,7 +491,7 @@ function currentHashChunk(q: string) {
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                   {Array.isArray(controls.tagMatches) && (
+                   {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags) || compActive || (controls?.q || '').includes('#')) && (
   (() => {
     const pool = controls.tagMatches || [];
     const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
@@ -506,11 +506,11 @@ function currentHashChunk(q: string) {
     let filtered: string[] = [];
     if (needle) {
       filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash && trendingSrc.length) {
-      // only `#` typed: show trending directly
-      filtered = trendingSrc.slice(0, 5);
+    } else if (isOnlyHash) {
+      // only `#` typed: show trending if present, else fall back to pool
+      filtered = (trendingSrc.length ? trendingSrc : searchPool).slice(0, 5);
     } else {
-      filtered = searchPool;
+      filtered = searchPool.slice(0, 5);
     }
     // limit to max 5 tags always in this section
     filtered = filtered.slice(0, 5);
@@ -711,7 +711,7 @@ function currentHashChunk(q: string) {
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                    {Array.isArray(controls.tagMatches) && (
+                    {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags) || compActive || (controls?.q || '').includes('#')) && (
   (() => {
     const pool = controls.tagMatches || [];
     const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
@@ -725,10 +725,10 @@ function currentHashChunk(q: string) {
     let filtered: string[] = [];
     if (needle) {
       filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash && trendingSrc.length) {
-      filtered = trendingSrc.slice(0, 5);
+    } else if (isOnlyHash) {
+      filtered = (trendingSrc.length ? trendingSrc : searchPool).slice(0, 5);
     } else {
-      filtered = searchPool;
+      filtered = searchPool.slice(0, 5);
     }
     filtered = filtered.slice(0, 5);
     const show = filtered.length > 0 || isOnlyHash || !!needle;
