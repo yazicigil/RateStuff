@@ -399,7 +399,7 @@ export default function MePage() {
           </button>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert hover:opacity-90 transition" />
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-12 w-auto dark:invert hover:opacity-90 transition" />
             </Link>
           </div>
         </div>
@@ -459,22 +459,12 @@ export default function MePage() {
                     </div>
                     {/* body */}
                     <div className="p-3 space-y-3">
-                      {/* live preview */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-full ring-2 ring-violet-300 dark:ring-violet-700 overflow-hidden bg-gray-200">
-                          {avatarTemp ? (
-                            <img src={avatarTemp} alt="Önizleme" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full grid place-items-center text-xs opacity-60">Yok</div>
-                          )}
-                        </div>
-                        <div className="text-xs opacity-70">
-                          Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
-                        </div>
+                      <div className="text-xs opacity-70">
+                        Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
                       </div>
                       <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
                       <div className="text-[11px] opacity-60">
-                        JPG/PNG veya URL. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
+                        JPG/PNG. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
                       </div>
                     </div>
                     {/* footer */}
@@ -522,22 +512,12 @@ export default function MePage() {
                   </div>
                   {/* body */}
                   <div className="p-3 space-y-3">
-                    {/* live preview */}
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full ring-2 ring-violet-300 dark:ring-violet-700 overflow-hidden bg-gray-200">
-                        {avatarTemp ? (
-                          <img src={avatarTemp} alt="Önizleme" className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full grid place-items-center text-xs opacity-60">Yok</div>
-                        )}
-                      </div>
-                      <div className="text-xs opacity-70">
-                        Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
-                      </div>
+                    <div className="text-xs opacity-70">
+                      Kare görseller en iyi sonucu verir. Minimum 200×200 piksel önerilir.
                     </div>
                     <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
                     <div className="text-[11px] opacity-60">
-                      JPG/PNG veya URL. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
+                      JPG/PNG. İstersen boş bırakıp mevcut fotoğrafı kaldırabilirsin.
                     </div>
                   </div>
                   {/* footer */}
@@ -573,7 +553,7 @@ export default function MePage() {
         </section>
 
         {/* Stat kartları = TABLAR */}
-        <nav className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <nav className="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-3">
           {[
             { id: 'saved' as const,    label: 'Kaydedilenler', count: saved.length },
             { id: 'items' as const,    label: 'Eklediklerim',  count: items.length },
@@ -587,14 +567,14 @@ export default function MePage() {
                 const el = document.getElementById('tabs-top');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className={`group w-full rounded-xl border py-3 px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm
+              className={`group w-full rounded-xl border py-2 px-3 sm:py-3 sm:px-4 text-left hover:shadow-md hover:-translate-y-0.5 transition shadow-sm
                 ${activeSection === s.id
                   ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 dark:bg-violet-500 dark:border-violet-500'
                   : 'bg-white dark:bg-gray-900 dark:border-gray-800'}`}
             >
               <div className="text-xs opacity-60">{s.label}</div>
               <div className="mt-1 inline-flex items-center gap-2">
-                <span className="text-xl font-semibold">{s.count}</span>
+                <span className="text-base sm:text-xl font-semibold">{s.count}</span>
               </div>
             </button>
           ))}
