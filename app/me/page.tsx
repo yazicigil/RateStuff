@@ -58,6 +58,12 @@ type MyComment = {
   itemImageUrl?: string | null;
   text: string;
   edited?: boolean;
+  // oy sayıları (opsiyonel)
+  up?: number;
+  down?: number;
+  upvotes?: number;
+  downvotes?: number;
+  score?: number;
 };
 
 // Spotlight deep link for an item
@@ -357,7 +363,7 @@ export default function MePage() {
           </button>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert hover:opacity-90 transition" />
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-12 w-auto dark:invert hover:opacity-90 transition" />
             </Link>
           </div>
         </div>
@@ -396,7 +402,7 @@ export default function MePage() {
             { id: 'saved' as const,    label: 'Kaydedilenler', count: saved.length },
             { id: 'items' as const,    label: 'Eklediklerim',  count: items.length },
             { id: 'ratings' as const,  label: 'Puanlarım',     count: ratings.length },
-            { id: 'comments' as const, label: 'Yorumlarım',    count: comments.length },
+            { id: 'comments' as const, label: 'Değerlendirmelerim',    count: comments.length },
           ].map(s => (
             <button
               key={s.id}
@@ -957,7 +963,27 @@ function CommentRow({
             </div>
           ) : (
             <div className="mt-1 text-sm">
-              “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
+              “{c.text}”
+              {c.edited && <em className="opacity-60"> (düzenlendi)</em>}
+              {/* Oy sayıları (yorum metninin yanında) */}
+              <span className="ml-2 inline-flex items-center gap-2 align-middle text-xs opacity-70">
+                {(() => {
+                  const up = (c as any).up ?? (c as any).upvotes ?? 0;
+                  const down = (c as any).down ?? (c as any).downvotes ?? 0;
+                  return (
+                    <>
+                      <span className="inline-flex items-center gap-1" title="Upvote">
+                        <span aria-hidden>▲</span>
+                        <span className="tabular-nums">{up}</span>
+                      </span>
+                      <span className="inline-flex items-center gap-1" title="Downvote">
+                        <span aria-hidden>▼</span>
+                        <span className="tabular-nums">{down}</span>
+                      </span>
+                    </>
+                  );
+                })()}
+              </span>
               <div className="mt-2 flex gap-2">
                 <button
                   className="p-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center"
