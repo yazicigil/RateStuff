@@ -41,6 +41,14 @@ function IconCheck({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+function IconBookmarkMinus({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M6.75 2.25A2.25 2.25 0 0 0 4.5 4.5v17.19a.56.56 0 0 0 .89.46l6.11-4.58 6.11 4.58a.56.56 0 0 0 .89-.46V4.5A2.25 2.25 0 0 0 16.25 2.25h-9.5Zm2 8a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5h-6.5Z"/>
+    </svg>
+  );
+}
+
 type MyItem = {
   id: string;
   name: string;
@@ -335,12 +343,12 @@ export default function MePage() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur border-b bg-white/80 dark:bg-gray-900/70 dark:border-gray-800">
-        <div className="relative max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
+        <div className="relative max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-3">
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="p-2 rounded-xl border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="p-2 rounded-xl border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
               aria-label="Anasayfa"
               title="Anasayfa"
             >
@@ -352,7 +360,7 @@ export default function MePage() {
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
           >
             Çıkış
           </button>
@@ -506,7 +514,7 @@ export default function MePage() {
                                 title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
                                 aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
                               >
-                                {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconTrash className="w-4 h-4" />}
+                                {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
                               </button>
                             </div>
                             <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
@@ -945,11 +953,6 @@ function CommentRow({
           ) : (
             <div className="mt-1 text-sm">
               “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-              <span className="ml-2 shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
-                <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-              </span>
               <div className="mt-2 flex gap-2">
                 <button
                   className="p-2 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center"
