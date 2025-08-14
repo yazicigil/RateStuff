@@ -104,6 +104,29 @@ export default function MePage() {
   const [editDesc, setEditDesc] = useState("");
   const [editImg,  setEditImg]  = useState<string|null>(null);
 
+  // Profil foto düzenleme
+  const [editingAvatar, setEditingAvatar] = useState(false);
+  const [avatarTemp, setAvatarTemp] = useState<string | null>(null);
+  useEffect(() => {
+    setAvatarTemp(me?.avatarUrl ?? null);
+  }, [me]);
+  async function saveAvatar() {
+    try {
+      const r = await fetch('/api/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatarUrl: avatarTemp ?? null }),
+      });
+      const j = await r.json().catch(() => null);
+      if (!r.ok || j?.ok === false) throw new Error(j?.error || `status ${r.status}`);
+      setMe(prev => prev ? { ...prev, avatarUrl: avatarTemp ?? null } : prev);
+      setEditingAvatar(false);
+      notify('Profil fotoğrafı güncellendi');
+    } catch (e: any) {
+      alert('Hata: ' + (e?.message || e));
+    }
+  }
+
   // Kaydedilenler filtre (çoklu tag seçimi)
   const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
   // Saved: two-step remove confirmation
@@ -381,6 +404,40 @@ export default function MePage() {
               <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
             ) : (
               <div className="w-14 h-14 rounded-full bg-gray-200 ring-2 ring-violet-300 dark:ring-violet-700" />
+            )}
+            <button
+              type="button"
+              onClick={() => setEditingAvatar(v => !v)}
+              className="absolute -bottom-1 -right-1 p-1 rounded-md border bg-white/90 dark:bg-gray-900/90 dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+              title={editingAvatar ? 'Kapat' : 'Fotoğrafı düzenle'}
+              aria-label="Profil fotoğrafını düzenle"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                <path d="M16.862 3.487a1.875 1.875 0 0 1 2.651 2.651L8.9 16.75a4.5 4.5 0 0 1-1.897 1.128l-2.935.881a.75.75 0 0 1-.93-.93l.881-2.935A4.5 4.5 0 0 1 5.25 13.1L16.862 3.487Z"/>
+                <path d="M18.225 8.401l-2.626-2.626 1.06-1.06a.375.375 0 0 1 .53 0l2.096 2.096a.375.375 0 0 1 0 .53l-1.06 1.06Z"/>
+              </svg>
+            </button>
+            {editingAvatar && (
+              <div className="absolute z-10 mt-2 left-0 top-full w-64 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-3">
+                <div className="text-sm font-medium mb-2">Profil fotoğrafı</div>
+                <ImageUploader value={avatarTemp ?? null} onChange={setAvatarTemp} />
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={saveAvatar}
+                    className="px-3 py-1.5 rounded-lg border text-sm bg-black text-white"
+                  >
+                    Kaydet
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAvatarTemp(me?.avatarUrl ?? null); setEditingAvatar(false); }}
+                    className="px-3 py-1.5 rounded-lg border text-sm"
+                  >
+                    Vazgeç
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           <div className="flex-1 min-w-0">
@@ -908,15 +965,17 @@ function CommentRow({
   return (
     <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 transition hover:shadow-md hover:-translate-y-0.5 h-full">
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+        <Link href={spotlightHref(c.itemId)} prefetch={false} className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
           {c.itemImageUrl ? (
             <img src={c.itemImageUrl} alt={c.itemName} loading="lazy" decoding="async" className="w-full h-full object-cover" />
           ) : (
             <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
           )}
-        </div>
+        </Link>
         <div className="flex-1 min-w-0">
-          <div className="text-sm opacity-70 truncate">{c.itemName}</div>
+          <Link href={spotlightHref(c.itemId)} prefetch={false} className="text-sm opacity-70 truncate hover:underline">
+            {c.itemName}
+          </Link>
           <div className="mt-0.5 text-xs opacity-70 flex items-center gap-2">
             <span className="sr-only">Puanım</span>
             <div className="scale-90 origin-left">
