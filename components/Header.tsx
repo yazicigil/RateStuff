@@ -21,6 +21,9 @@ type Controls = {
   showSuggestions?: boolean;
   tagMatches?: string[];
   onClickTagMatch?: (t: string) => void;
+  // Optional pills (parent can provide)
+  selectedTags?: string[];
+  onClickTagRemove?: (t: string) => void;
 };
 
 const USE_CURRENTCOLOR = false;
@@ -166,34 +169,56 @@ export default function Header({ controls }: { controls?: Controls }) {
   }, [activeIdx]);
   // Shared search input keydown handler for suggestions navigation
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    const len = controls?.suggestions?.length ?? 0;
-    if (!len) {
-      if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
-      if (e.key === 'Escape') { setSuggOpen(false); }
-      return;
-    }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSuggOpen(true);
-      setActiveIdx((i) => (i + 1) % len);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSuggOpen(true);
-      setActiveIdx((i) => (i <= 0 ? len - 1 : i - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (suggOpen && activeIdx >= 0 && activeIdx < len) {
-        const val = controls!.suggestions![activeIdx];
-        setSuggOpen(false);
-        controls?.onClickSuggestion?.(val);
-      } else {
-        controls?.onCommit?.();
-      }
-    } else if (e.key === 'Escape') {
-      setSuggOpen(false);
-      setActiveIdx(-1);
-    }
+  // '#' yazıldığında önerileri aç
+  if (e.key === '#') {
+    setSuggOpen(true);
   }
+  // '#etiket' parçasını Enter veya virgülle commit et
+  const chunk = currentHashChunk(controls?.q || '');
+  if ((e.key === 'Enter' || e.key === ',') && chunk.startsWith('#')) {
+    e.preventDefault();
+    const tag = normalizeTag(chunk);
+    if (tag) {
+      controls?.onClickTagMatch?.(tag);
+    }
+    // inputtaki son '#...' parçasını kaldır
+    const parts = (controls?.q || '').split(',');
+    parts.pop();
+    const nextQ = parts.join(',').replace(/,\s*$/, '').trim();
+    controls?.onQ(nextQ);
+    setSuggOpen(false);
+    setActiveIdx(-1);
+    return;
+  }
+
+  const len = controls?.suggestions?.length ?? 0;
+  if (!len) {
+    if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
+    if (e.key === 'Escape') { setSuggOpen(false); }
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    setSuggOpen(true);
+    setActiveIdx((i) => (i + 1) % len);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    setSuggOpen(true);
+    setActiveIdx((i) => (i <= 0 ? len - 1 : i - 1));
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (suggOpen && activeIdx >= 0 && activeIdx < len) {
+      const val = controls!.suggestions![activeIdx];
+      setSuggOpen(false);
+      controls?.onClickSuggestion?.(val);
+    } else {
+      controls?.onCommit?.();
+    }
+  } else if (e.key === 'Escape') {
+    setSuggOpen(false);
+    setActiveIdx(-1);
+  }
+}
 
   async function refetchMe() {
     try {
@@ -240,7 +265,19 @@ export default function Header({ controls }: { controls?: Controls }) {
       </>
     );
   };
-
+// Tag helpers
+function normalizeTag(s: string) {
+  return (s || '')
+    .toLowerCase()
+    .replace(/^#/, '')
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9ğüşöçı\-_.]/g, '');
+}
+function currentHashChunk(q: string) {
+  const parts = (q || '').split(',');
+  const last = (parts[parts.length - 1] || '').trim();
+  return last.startsWith('#') ? last : '';
+}
   return (
     <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
@@ -333,41 +370,54 @@ export default function Header({ controls }: { controls?: Controls }) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && suggOpen && (controls?.suggestions?.length ?? 0) > 0 && (
+              {controls?.showSuggestions && suggOpen && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                    {Array.isArray(controls.tagMatches) && controls.tagMatches.length > 0 && (
-                      <>
-                        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
-                          İlgili Etiketler
-                        </div>
-                        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-                          {controls.tagMatches.slice(0, 12).map((t, i) => {
-                            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
-                            const trendingClasses = isTrending
-                              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
-                              : '';
-                            return (
-                              <button
-                                key={t + i}
-                                type="button"
-                                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
-                                title={`#${t}`}
-                              >
-                                <span className="opacity-70">#</span>
-                                <span className="truncate max-w-[10rem]">{t}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="h-px bg-gray-100 dark:bg-gray-800" />
-                      </>
-                    )}
+                   {Array.isArray(controls.tagMatches) && (
+  (() => {
+    const chunk = currentHashChunk(controls?.q || '');
+    const needle = normalizeTag(chunk);
+    const pool = controls.tagMatches || [];
+    const filtered = needle ? pool.filter(t => t.toLowerCase().startsWith(needle)) : pool;
+    const show = filtered.length > 0 || !!needle || (controls?.q || '').includes('#');
+    if (!show) return null;
+    return (
+      <>
+        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+          İlgili Etiketler
+        </div>
+        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+          {filtered.slice(0, 12).map((t, i) => {
+            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+            const trendingClasses = isTrending
+              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+              : '';
+            return (
+              <button
+                key={t + i}
+                type="button"
+                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                title={`#${t}`}
+              >
+                <span className="opacity-70">#</span>
+                <span className="truncate max-w-[10rem]">{t}</span>
+              </button>
+            );
+          })}
+          {filtered.length === 0 && needle && (
+            <span className="text-xs opacity-70 px-2 py-1">#{needle}</span>
+          )}
+        </div>
+        <div className="h-px bg-gray-100 dark:bg-gray-800" />
+      </>
+    );
+  })()
+)}
                     <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
                       İlgili Sonuçlar
                     </div>
@@ -488,41 +538,54 @@ export default function Header({ controls }: { controls?: Controls }) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && suggOpen && (controls?.suggestions?.length ?? 0) > 0 && (
+              {controls?.showSuggestions && suggOpen && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                    {Array.isArray(controls.tagMatches) && controls.tagMatches.length > 0 && (
-                      <>
-                        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
-                          İlgili Etiketler
-                        </div>
-                        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-                          {controls.tagMatches.slice(0, 12).map((t, i) => {
-                            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
-                            const trendingClasses = isTrending
-                              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
-                              : '';
-                            return (
-                              <button
-                                key={t + i}
-                                type="button"
-                                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
-                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
-                                title={`#${t}`}
-                              >
-                                <span className="opacity-70">#</span>
-                                <span className="truncate max-w-[10rem]">{t}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                        <div className="h-px bg-gray-100 dark:bg-gray-800" />
-                      </>
-                    )}
+                    {Array.isArray(controls.tagMatches) && (
+  (() => {
+    const chunk = currentHashChunk(controls?.q || '');
+    const needle = normalizeTag(chunk);
+    const pool = controls.tagMatches || [];
+    const filtered = needle ? pool.filter(t => t.toLowerCase().startsWith(needle)) : pool;
+    const show = filtered.length > 0 || !!needle || (controls?.q || '').includes('#');
+    if (!show) return null;
+    return (
+      <>
+        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+          İlgili Etiketler
+        </div>
+        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+          {filtered.slice(0, 12).map((t, i) => {
+            const isTrending = Array.isArray((controls as any).trendingTags) && (controls as any).trendingTags.includes(t);
+            const trendingClasses = isTrending
+              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+              : '';
+            return (
+              <button
+                key={t + i}
+                type="button"
+                onClick={() => { setSuggOpen(false); controls.onClickTagMatch?.(t); }}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                title={`#${t}`}
+              >
+                <span className="opacity-70">#</span>
+                <span className="truncate max-w-[10rem]">{t}</span>
+              </button>
+            );
+          })}
+          {filtered.length === 0 && needle && (
+            <span className="text-xs opacity-70 px-2 py-1">#{needle}</span>
+          )}
+        </div>
+        <div className="h-px bg-gray-100 dark:bg-gray-800" />
+      </>
+    );
+  })()
+)}
                     <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
                       İlgili Sonuçlar
                     </div>
