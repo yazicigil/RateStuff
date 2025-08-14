@@ -133,10 +133,10 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [compActive, setCompActive] = useState(false);
   const [compTag, setCompTag] = useState<string>('');
 
-  // keep local open state in sync with external showSuggestions
+  // keep local open state in sync with external showSuggestions (don't force-close)
   useEffect(() => {
     if (controls?.showSuggestions) setSuggOpen(true);
-    else setSuggOpen(false);
+    // else: do not auto-close; manual handlers (#, Escape, selections) control it
   }, [controls?.showSuggestions]);
 
   // Reset activeIdx when query, suggestions, or dropdown closes
@@ -216,8 +216,8 @@ export default function Header({ controls }: { controls?: Controls }) {
         if (tag) controls?.onClickTagMatch?.(tag);
         setCompActive(false);
         setCompTag('');
-        // allow space into the input so user can type normal words
-        return; // do not preventDefault
+        setSuggOpen(false); // do not show results on space
+        return; // do not preventDefault so space goes into the input
       }
       // COMMIT and run search with ENTER (do not clear q)
       if (e.key === 'Enter') {
@@ -435,7 +435,7 @@ function currentHashChunk(q: string) {
                 {compActive && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
                     <span className="opacity-70">#</span>
-                    <span className="truncate max-w-[10rem]">{compTag || ''}</span>
+                    <span className="truncate max-w-[10rem]">{compTag || '\u00A0'}</span>
                   </span>
                 )}
                 {/* Real input */}
@@ -459,7 +459,7 @@ function currentHashChunk(q: string) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && suggOpen && (
+              {suggOpen && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
@@ -647,7 +647,7 @@ function currentHashChunk(q: string) {
                 {compActive && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
                     <span className="opacity-70">#</span>
-                    <span className="truncate max-w-[10rem]">{compTag || ''}</span>
+                    <span className="truncate max-w-[10rem]">{compTag || '\u00A0'}</span>
                   </span>
                 )}
                 <input
@@ -670,7 +670,7 @@ function currentHashChunk(q: string) {
                   ×
                 </button>
               )}
-              {controls?.showSuggestions && suggOpen && (
+              {suggOpen && (
                 <div
                   className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
