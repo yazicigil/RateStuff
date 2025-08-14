@@ -263,6 +263,29 @@ useEffect(() => {
       // Let arrows/tab/home/end behave normally
     }
 
+    // If not composing and caret is at the start of the input, Backspace should remove the last pill
+    if (!compActive && e.key === 'Backspace') {
+      const el = e.currentTarget as HTMLInputElement;
+      const selStart = (el.selectionStart ?? 0);
+      const selEnd = (el.selectionEnd ?? 0);
+      const atStart = selStart === 0 && selEnd === 0;
+      // When input is empty or caret is at the very start, delete the last pill
+      if (atStart || (controls?.q ?? '') === '') {
+        const pills = renderPills;
+        if (pills.length > 0) {
+          e.preventDefault();
+          const last = pills[pills.length - 1];
+          if (controls?.onClickTagRemove) {
+            controls.onClickTagRemove(last);
+          } else {
+            setLocalPills(prev => prev.filter(x => x !== last));
+          }
+          // keep suggestions state as-is; focus remains in input
+          return;
+        }
+      }
+    }
+
     // Suggestions keyboard navigation (when not composing)
     const len = controls?.suggestions?.length ?? 0;
     if (!len) {
