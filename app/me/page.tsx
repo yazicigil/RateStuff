@@ -178,6 +178,13 @@ export default function MePage() {
     return Array.from(s).sort();
   }, [saved]);
 
+  // Yorumlar altında kendi puanımı göstermek için: itemId -> my rating
+  const myRatingByItem = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const r of ratings) m.set(r.itemId, r.value);
+    return m;
+  }, [ratings]);
+
   const filteredSaved = useMemo(() => {
     if (savedSelected.size === 0) return saved;
     return saved.filter(it => {
@@ -634,6 +641,8 @@ export default function MePage() {
                       <CommentRow
                         key={c.id}
                         c={c}
+                        myRating={myRatingByItem.get(c.itemId) ?? null}
+                        onRate={(itemId, value) => changeRating(itemId, value)}
                         onSave={saveComment}
                         onDelete={deleteComment}
                       />
@@ -869,10 +878,14 @@ function ItemEditor(props: {
 /* — Yorum satırı, kaldırma butonlu — */
 function CommentRow({
   c,
+  myRating,
+  onRate,
   onSave,
   onDelete,
 }: {
   c: MyComment;
+  myRating: number | null;
+  onRate: (itemId:string, value:number)=>Promise<void>|void;
   onSave: (id:string, t:string)=>Promise<void>;
   onDelete: (id:string)=>Promise<void>;
 }) {
@@ -905,6 +918,13 @@ function CommentRow({
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-sm opacity-70 truncate">{c.itemName}</div>
+          <div className="mt-0.5 text-xs opacity-70 flex items-center gap-2">
+            <span className="sr-only">Puanım</span>
+            <div className="scale-90 origin-left">
+              <Stars value={myRating ?? 0} onRate={(n)=>onRate(c.itemId, n)} />
+            </div>
+            <span className="tabular-nums">{myRating != null ? myRating.toFixed(1) : '—'}</span>
+          </div>
           {editing ? (
             <div className="mt-2 space-y-2">
               <textarea
