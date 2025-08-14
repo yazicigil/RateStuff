@@ -50,7 +50,7 @@ if (it?.thumbnailUrl) {
   ogImg = `${base}/api/og/item/${params.id}`;
 }
 
-  // item yoksa noindex
+  
   if (!it) {
     return {
       title: "Bulunamadı — RateStuff",
