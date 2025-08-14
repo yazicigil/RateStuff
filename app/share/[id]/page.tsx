@@ -1,43 +1,127 @@
 // app/share/[id]/page.tsx
-import type { Metadata } from 'next';
-
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+import type { Metadata } from "next";
+import { headers } from "next/headers";
+import SeoLD from "@/components/SeoLD";
 
 type Props = { params: { id: string } };
 
-async function getItemMeta(id: string) {
+
+// Base URL'i güvenle üret (env yoksa host header'dan al)
+function getBaseUrl() {
+  const env = process.env.NEXT_PUBLIC_SITE_URL;
+  if (env && /^https?:\/\//i.test(env)) return env.replace(/\/+$/, "");
+  const h = headers();
+  const host = h.get("host");
+  return host ? `https://${host}` : ""; // Vercel'de host her zaman gelir
+}
+
+async function getItemMeta(id: string, base: string) {
   try {
-    const base = SITE || '';
-    const res = await fetch(`${base}/api/items?id=${id}`, { next: { revalidate: 60 } });
+    const res = await fetch(`${base}/api/items?id=${encodeURIComponent(id)}`, {
+      // og/tweet önizlemeleri için 1 dk cache yeterli
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return null;
     const j = await res.json();
     return j?.item ?? null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const it = await getItemMeta(params.id);
-  const title = it?.name ? `${it.name} — RateStuff` : 'RateStuff';
-  const desc  = it?.description || (it?.avg ? `Ortalama ${it.avg.toFixed(2)} ⭐` : 'RateStuff’ta keşfet');
-  const ogImg = `${SITE || ''}/api/og/item/${params.id}`;
+  const base = getBaseUrl();
+  const it = await getItemMeta(params.id, base);
+
+  // fallback’ler
+  const title = it?.name ? `${it.name} — RateStuff` : "RateStuff";
+  const desc =
+    it?.description ??
+    (typeof it?.avg === "number"
+      ? `Ortalama ${Number(it.avg).toFixed(2)} ⭐`
+      : "RateStuff’ta keşfet");
+
+  const shareUrl = `${base}/share/${params.id}`;
+  const ogImg = `${base}/api/og/item/${params.id}`;
+
+  // item yoksa noindex
+  if (!it) {
+    return {
+      title: "Bulunamadı — RateStuff",
+      description: "İçerik bulunamadı.",
+      alternates: { canonical: shareUrl },
+      robots: { index: false, follow: true },
+      openGraph: {
+        type: "website",
+        url: shareUrl,
+        title: "Bulunamadı — RateStuff",
+        description: "İçerik bulunamadı.",
+        images: [`${base}/og-image.jpg`],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "Bulunamadı — RateStuff",
+        description: "İçerik bulunamadı.",
+        images: [`${base}/og-image.jpg`],
+      },
+    };
+  }
+
   return {
     title,
     description: desc,
-    openGraph: { title, description: desc, images: [ogImg], url: `${SITE || ''}/share/${params.id}`, type: 'website' },
-    twitter:   { card: 'summary_large_image', title, description: desc, images: [ogImg] },
+    alternates: { canonical: shareUrl },
+    openGraph: {
+      type: "article", // içerik sayfası daha anlamlı
+      url: shareUrl,
+      siteName: "RateStuff",
+      title,
+      description: desc,
+      images: [ogImg], // dinamik OG endpoint
+      locale: "tr_TR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: desc,
+      images: [ogImg],
+    },
   };
 }
 
 export default function ShareRedirectPage({ params }: Props) {
   const href = `/?item=${encodeURIComponent(params.id)}`;
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
+  const itemLD = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: "RateStuff içeriği",
+    url: `${base}/share/${params.id}`,
+    mainEntityOfPage: `${base}/share/${params.id}`,
+  };
   return (
-    <main className="min-h-screen grid place-items-center">
+    <main className="min-h-screen grid place-items-center p-6">
+      {/* SEO: JSON-LD for item */}
+      <SeoLD json={itemLD} />
       <div className="text-sm opacity-70">
-        RateStuff’a yönlendiriliyor… <a href={href} className="underline">git</a>
+        RateStuff’a yönlendiriliyor…{" "}
+        <a href={href} className="underline">
+          git
+        </a>
       </div>
-      {/* client-side redirect; bu sayfa client component değil */}
+
+      {/* Botlar metadata'yı okuyabilsin diye server-side redirect kullanmıyoruz */}
       <script
-        dangerouslySetInnerHTML={{ __html: `location.replace(${JSON.stringify(href)});` }}
+        dangerouslySetInnerHTML={{
+          __html: `try{location.replace(${JSON.stringify(href)})}catch(e){location.href=${JSON.stringify(
+            href
+          )}}`,
+        }}
       />
+
+      <noscript>
+        <meta httpEquiv="refresh" content={`0; url=${href}`} />
+      </noscript>
     </main>
   );
 }

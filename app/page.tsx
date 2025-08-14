@@ -1,7 +1,5 @@
   'use client';
-  
-
-// --- PAYLAŞIM YARDIMCILARI ---
+  // --- PAYLAŞIM YARDIMCILARI ---
 function buildShareUrl(id: string) {
   return `${window.location.origin}/share/${id}`;
 }
@@ -29,6 +27,7 @@ async function nativeShare(id: string, name: string) {
     }
   } catch {}
 }
+import SeoLD from "@/components/SeoLD";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -933,6 +932,26 @@ if (!already) {
     setQuickTagError(bannedHit ? 'Etikette yasaklı kelime kullanılamaz.' : null);
   }
 
+  // --- SEO: JSON-LD (WebSite + Organization) ---
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
+  const websiteLD = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "RateStuff",
+    url: base,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${base}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+  const orgLD = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "RateStuff",
+    url: base,
+    logo: `${base}/logo.svg`,
+  };
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
      <Header controls={{
@@ -1152,6 +1171,9 @@ if (!already) {
     <div className="mb-2">
       <h3 className="text-base md:text-lg font-semibold">Hızlı ekle</h3>
       <p className="text-xs opacity-70">En fazla 3 etiket ekleyebilirsin</p>
+      {/* SEO: JSON-LD */}
+      <SeoLD json={websiteLD} />
+      <SeoLD json={orgLD} />
     </div>
 
     <form
