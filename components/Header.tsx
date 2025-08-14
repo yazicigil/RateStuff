@@ -352,20 +352,58 @@ function currentHashChunk(q: string) {
         {controls && (
           <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
             <div className="relative flex-1" ref={suggWrapRefDesktop}>
-              <input
-                onFocus={() => setSuggOpen(true)}
-                value={controls.q}
-                onChange={(e) => controls.onQ(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                placeholder="ara ( / )"
-                className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
-              />
+              {/* Faux input container: pills + text input */}
+              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                {/* Selected tag pills (left-aligned) */}
+                {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
+                  <span
+                    key={'sel-' + t}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30"
+                    title={`#${t}`}
+                  >
+                    <span className="opacity-70">#</span>
+                    <span>{t}</span>
+                    {controls.onClickTagRemove && (
+                      <button
+                        type="button"
+                        onClick={() => controls.onClickTagRemove?.(t)}
+                        className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
+                        aria-label={`#${t} filtresini kaldır`}
+                        title={`#${t} filtresini kaldır`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {/* Composing hashtag pill (until Enter/Comma) */}
+                {(() => {
+                  const chunk = currentHashChunk(controls?.q || '');
+                  const needle = normalizeTag(chunk);
+                  return chunk && needle ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30">
+                      <span className="opacity-70">#</span>
+                      <span className="truncate max-w-[10rem]">{needle}</span>
+                    </span>
+                  ) : null;
+                })()}
+                {/* Real input */}
+                <input
+                  onFocus={() => setSuggOpen(true)}
+                  value={controls.q}
+                  onChange={(e) => controls.onQ(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="ara ( / )"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                />
+              </div>
               {!!controls.q && (
                 <button
                   type="button"
                   onClick={() => controls.onQ('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
                   aria-label="Temizle"
+                  title="Temizle"
                 >
                   ×
                 </button>
@@ -520,20 +558,54 @@ function currentHashChunk(q: string) {
         {controls && (
           <div className="md:hidden flex items-center gap-2">
             <div className="relative flex-1" ref={suggWrapRefMobile}>
-              <input
-                onFocus={() => setSuggOpen(true)}
-                value={controls.q}
-                onChange={(e) => controls.onQ(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                placeholder="ara ( / )"
-                className="w-full border rounded-xl px-3 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-400"
-              />
+              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100">
+                {Array.isArray(controls?.selectedTags) && controls.selectedTags.map((t) => (
+                  <span
+                    key={'m-sel-' + t}
+                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30"
+                    title={`#${t}`}
+                  >
+                    <span className="opacity-70">#</span>
+                    <span>{t}</span>
+                    {controls.onClickTagRemove && (
+                      <button
+                        type="button"
+                        onClick={() => controls.onClickTagRemove?.(t)}
+                        className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
+                        aria-label={`#${t} filtresini kaldır`}
+                        title={`#${t} filtresini kaldır`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </span>
+                ))}
+                {(() => {
+                  const chunk = currentHashChunk(controls?.q || '');
+                  const needle = normalizeTag(chunk);
+                  return chunk && needle ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border text-purple-700 border-purple-300 bg-purple-50 dark:text-purple-300 dark:border-purple-700 dark:bg-purple-900/30">
+                      <span className="opacity-70">#</span>
+                      <span className="truncate max-w-[10rem]">{needle}</span>
+                    </span>
+                  ) : null;
+                })()}
+                <input
+                  onFocus={() => setSuggOpen(true)}
+                  value={controls.q}
+                  onChange={(e) => controls.onQ(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="ara ( / )"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                />
+              </div>
               {!!controls.q && (
                 <button
                   type="button"
                   onClick={() => controls.onQ('')}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-sm"
                   aria-label="Temizle"
+                  title="Temizle"
                 >
                   ×
                 </button>
