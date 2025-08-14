@@ -289,7 +289,7 @@ export default function MePage() {
     };
   }, [confirmRemoveSaved]);
 
-  // --- URL hash ⇄ tab sync ---
+    // --- URL hash ⇄ tab sync ---
   useEffect(() => {
     try {
       const hash = window.location.hash || '';
@@ -323,6 +323,7 @@ export default function MePage() {
     } catch {}
   }, [activeSection]);
 
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       {/* Header */}
@@ -347,8 +348,10 @@ export default function MePage() {
           >
             Çıkış
           </button>
-          <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none">
-            <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert" />
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Link href="/" aria-label="Anasayfa" title="Anasayfa">
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-14 w-auto dark:invert hover:opacity-90 transition" />
+            </Link>
           </div>
         </div>
       </header>
@@ -392,12 +395,6 @@ export default function MePage() {
               key={s.id}
               onClick={() => {
                 setActiveSection(s.id);
-                // URL hash'ı güncelle
-                try {
-                  const url = new URL(window.location.href);
-                  url.hash = `tab=${s.id}`;
-                  window.history.replaceState({}, '', url.toString());
-                } catch {}
                 // üstteki tab alanına kaydır
                 const el = document.getElementById('tabs-top');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
