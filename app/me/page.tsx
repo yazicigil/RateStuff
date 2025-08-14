@@ -46,6 +46,9 @@ type MyComment = {
   edited?: boolean;
 };
 
+// Spotlight deep link for an item
+const spotlightHref = (id: string) => `/?item=${id}`;
+
 export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -369,16 +372,18 @@ export default function MePage() {
                 {filteredSaved.map(it => (
                   <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
                     <div className="flex items-start gap-3">
-                      <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
+                      <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                         {it.imageUrl ? (
                           <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         ) : (
                           <span className="text-xs opacity-60">no img</span>
                         )}
-                      </div>
+                      </Link>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <div className="text-base font-medium truncate">{it.name}</div>
+                          <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
+                            {it.name}
+                          </Link>
                           <button
                             onClick={() => removeSaved(it.id)}
                             className="text-xs px-2 py-1 rounded-lg border hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center gap-1"
@@ -587,14 +592,18 @@ function ItemEditor(props: {
   return (
     <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-start gap-3">
-        {it.imageUrl ? (
-          <img src={it.imageUrl} loading="lazy" decoding="async" className="w-20 h-20 rounded-lg object-cover" alt={it.name} />
-        ) : (
-          <div className="w-20 h-20 rounded-lg bg-gray-200 grid place-items-center text-xs">no img</div>
-        )}
+        <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 grid place-items-center">
+          {it.imageUrl ? (
+            <img src={it.imageUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={it.name} />
+          ) : (
+            <span className="text-xs">no img</span>
+          )}
+        </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="text-base font-medium truncate">{it.name}</div>
+            <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
+              {it.name}
+            </Link>
             {it.edited && (
               <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
             )}
