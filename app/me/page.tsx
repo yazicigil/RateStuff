@@ -322,8 +322,8 @@ export default function MePage() {
         setConfirmRemoveSaved(null);
       }
     };
-    document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener('click', onDocClick, true);
+    return () => document.removeEventListener('click', onDocClick, true);
   }, []);
 
   const confirmSavedTimerRef = useRef<number | null>(null);
@@ -680,8 +680,14 @@ export default function MePage() {
                               </Link>
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (confirmRemoveSaved === it.id) {
+                                onMouseDown={(e) => { e.stopPropagation(); }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  // If another click handler (document outside click or timeout) cleared it at the same tick,
+                                  // read the latest value safely and act accordingly.
+                                  const isConfirming = confirmRemoveSaved === it.id;
+                                  if (isConfirming) {
                                     removeSaved(it.id);
                                   } else {
                                     setConfirmRemoveSaved(it.id);
