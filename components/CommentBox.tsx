@@ -2,11 +2,7 @@
 import { useState } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Stars from "./Stars";
-import bannedWordsMod from "@/lib/bannedWords";
-const containsBannedWord: (t: string) => boolean =
-  (bannedWordsMod as any)?.containsBannedWord ||
-  (bannedWordsMod as any)?.default ||
-  ((t: string) => false);
+import { containsBannedWord } from "@/lib/bannedWords";
 
 export default function CommentBox({
   itemId,
@@ -28,12 +24,12 @@ export default function CommentBox({
   const ratingText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
   const counterId = `cb-count-${itemId}`;
   async function submit() {
-    if (!session) {
-      await signIn('google');
+    if (hasBanned) {
+      alert("Yorumunuzda yasaklı kelime bulunuyor.");
       return;
     }
-    if (containsBannedWord(text)) {
-      alert('Yorumda yasaklı kelime kullanılamaz.');
+    if (!session) {
+      await signIn('google');
       return;
     }
     if (rating === 0) return;
@@ -75,7 +71,12 @@ export default function CommentBox({
       <div className="flex items-end gap-2">
         <div className="flex-1">
           <textarea
-            className={"w-full border border-gray-300 dark:border-gray-700 rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none resize-none overflow-hidden " + (hasBanned ? "focus:ring-2 focus:ring-red-400 ring-2 ring-red-400" : "focus:ring-2 focus:ring-emerald-400")}
+            className={
+              "w-full border rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none overflow-hidden " +
+              (hasBanned
+                ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
+                : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+            }
             placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
             value={text}
             onChange={e => setText(e.target.value)}
@@ -95,14 +96,16 @@ export default function CommentBox({
             aria-describedby={counterId}
             rows={1}
           />
+          {hasBanned && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+              Yorumunuzda yasaklı kelime bulunuyor.
+            </p>
+          )}
           <div className="mt-1 flex items-center justify-end">
             <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
               {text.length}/{maxLen}
             </span>
           </div>
-          {hasBanned && (
-            <p className="mt-1 text-[12px] text-red-500">Yorumda yasaklı kelime kullanılamaz.</p>
-          )}
         </div>
         {session ? (
           <button

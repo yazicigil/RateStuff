@@ -2,11 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { maskName } from '@/lib/mask';
-import bannedWordsMod from "@/lib/bannedWords";
-const containsBannedWord: (t: string) => boolean =
-  (bannedWordsMod as any)?.containsBannedWord ||
-  (bannedWordsMod as any)?.default ||
-  ((t: string) => false);
+import { containsBannedWord } from '@/lib/bannedWords';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -152,6 +148,7 @@ export async function POST(req: Request) {
     if (containsBannedWord(String(name))) {
       return NextResponse.json({ ok: false, error: 'banned-word-in-name' }, { status: 400 });
     }
+
     if (commentText && containsBannedWord(commentText)) {
       return NextResponse.json({ ok: false, error: 'banned-word-in-comment' }, { status: 400 });
     }
@@ -159,6 +156,10 @@ export async function POST(req: Request) {
     const tagNames = Array.from(
       new Set(String(tagsCsv).split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean))
     ).slice(0, 10);
+
+    if (tagNames.some(tn => containsBannedWord(tn))) {
+      return NextResponse.json({ ok: false, error: 'banned-word-in-tag' }, { status: 400 });
+    }
 
     const newId = await prisma.$transaction(async (tx) => {
       const item = await tx.item.create({

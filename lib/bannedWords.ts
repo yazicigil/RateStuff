@@ -38,11 +38,6 @@ export const bannedWords: string[] = [
 
 export function containsBannedWord(text: string): boolean {
   if (!text) return false;
-  const lower = String(text).toLocaleLowerCase('tr-TR');
-  return bannedWords.some((w) => {
-    const needle = String(w || '').toLocaleLowerCase('tr-TR');
-    return needle && lower.includes(needle);
-  });
+  const lowerText = text.toLowerCase();
+  return bannedWords.some(word => lowerText.includes(word));
 }
-
-export default containsBannedWord;

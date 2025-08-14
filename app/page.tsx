@@ -39,6 +39,7 @@ import CollapsibleSection from '@/components/CollapsibleSection';
 import ImageUploader from '@/components/ImageUploader';
 import CommentBox from '@/components/CommentBox';
 import { useSession } from 'next-auth/react';
+import { containsBannedWord } from '@/lib/bannedWords';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -129,6 +130,8 @@ export default function HomePage() {
   const [quickName, setQuickName] = useState('');
   const [quickTags, setQuickTags] = useState<string[]>([]);
   const [quickTagInput, setQuickTagInput] = useState('');
+  const [quickComment, setQuickComment] = useState('');
+  const [quickTagError, setQuickTagError] = useState<string | null>(null);
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
@@ -860,6 +863,10 @@ if (!already) {
 
   const quickFormRef = useRef<HTMLFormElement>(null);
   const quickValid = quickName.trim().length > 0 && quickTags.length > 0 && newRating > 0;
+  const hasBannedName = containsBannedWord(quickName);
+  const hasBannedComment = containsBannedWord(quickComment);
+  const hasBannedTag = quickTags.some(t => containsBannedWord(t));
+  const quickBlocked = hasBannedName || hasBannedComment || hasBannedTag;
 
   // Quick-add spotlight kapanınca formu ve alanları sıfırla
   useEffect(() => {
@@ -871,6 +878,8 @@ if (!already) {
       setQuickTags([]);
       setNewRating(0);
       setNewImage(null);
+      setQuickComment('');
+      setQuickTagError(null);
     }
   }, [showQuickAdd]);
 
@@ -881,15 +890,18 @@ if (!already) {
     const raw = typeof src === 'string' ? src : quickTagInput;
     const parts = raw.split(',').map(normalizeTag).filter(Boolean);
     if (parts.length === 0) return;
+    let bannedHit = false;
     setQuickTags(prev => {
       const set = new Set(prev);
       for (const p of parts) {
         if (set.size >= 3) break; // cap at 3
+        if (containsBannedWord(p)) { bannedHit = true; continue; }
         set.add(p);
       }
       return Array.from(set).slice(0,3);
     });
     setQuickTagInput('');
+    setQuickTagError(bannedHit ? 'Etikette yasaklı kelime kullanılamaz.' : null);
   }
 
   return (
@@ -1108,6 +1120,7 @@ if (!already) {
       className="relative rounded-2xl border p-4 shadow-sm bg-transparent dark:bg-transparent border-emerald-200 dark:border-emerald-900/40 space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
+        if (quickBlocked) { alert('Yasaklı kelime içeriyor. Lütfen düzelt.'); return; }
         const fd = new FormData(e.currentTarget);
         const nameVal = String(fd.get('name') || '').trim();
         if (!nameVal) { alert('Ad gerekli'); return; }
@@ -1138,17 +1151,18 @@ if (!already) {
                 name="name"
                 value={quickName}
                 onChange={(e) => setQuickName(e.target.value)}
-                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none ${hasBannedName ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'}`}
                 placeholder="adı *"
                 required
               />
+              {hasBannedName && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
               <input
                 name="desc"
                 className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
                 placeholder="kısa açıklama (opsiyonel)"
               />
               <div className="flex-1 min-w-[200px]">
-                <div className="border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700">
+                <div className={`border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}>
                   {quickTags.map(t => (
                     <span
                       key={t}
@@ -1182,6 +1196,9 @@ if (!already) {
                     disabled={quickTags.length >= 3}
                   />
                 </div>
+                {(hasBannedTag || quickTagError) && (
+                  <span className="text-xs text-red-600">Etiketlerde yasaklı kelime var.</span>
+                )}
                 <input type="hidden" name="tags" value={quickTags.join(',')} />
               </div>
             </div>
@@ -1195,9 +1212,12 @@ if (!already) {
               <input type="hidden" name="rating" value={newRating} />
               <input
                 name="comment"
-                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                value={quickComment}
+                onChange={(e) => setQuickComment(e.target.value)}
+                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'}`}
                 placeholder="yorum (opsiyonel)"
               />
+              {hasBannedComment && <span className="text-xs text-red-600">Yorumda yasaklı kelime var.</span>}
             </div>
 
             {/* 3. satır: Resim ekle */}
@@ -1238,7 +1258,8 @@ if (!already) {
                 </>
               ) : (
                 <button
-                  disabled={adding}
+                  disabled={adding || quickBlocked || !quickValid}
+                  title={quickBlocked ? 'Yasaklı kelime içeriyor' : undefined}
                   className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 >
                   {adding ? (
@@ -1399,8 +1420,8 @@ if (!already) {
       <div className="flex flex-col items-center shrink-0 w-28">
         {sharedItem.imageUrl ? (
           <img
-  src={sharedItem.imageUrl}
-  alt={sharedItem.name}
+  src={sharedItem.imageUrl || '/default-item.svg'}
+  alt={sharedItem.name || 'item'}
   width={112}
   height={112}
   decoding="async"
@@ -2122,7 +2143,8 @@ if (!already) {
                             aria-label={`${i.name} spotlight'ı aç`}
                             title={`${i.name} spotlight'ı aç`}
                           >
-                            <img src={i.imageUrl} alt={i.name} className="w-28 h-28 object-cover rounded-lg" />
+                            <img  src={i.imageUrl || '/default-item.svg'}
+    alt={i.name || 'item'} className="w-28 h-28 object-cover rounded-lg" />
                           </button>
                         ) : (
                           <button
