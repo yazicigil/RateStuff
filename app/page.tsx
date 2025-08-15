@@ -228,6 +228,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const pendingSpotlightScrollRef = useRef(false);
   const [navDir, setNavDir] = useState<0 | 1 | -1>(0); // 0: yok, 1: sağa (next), -1: sola (prev)
   const [animKey, setAnimKey] = useState(0);
   const [animArmed, setAnimArmed] = useState(false);
@@ -823,8 +824,14 @@ function smoothScrollIntoView(el: Element) {
       if (url.searchParams.has('item')) url.searchParams.delete('item');
       window.history.replaceState({}, '', url.toString());
     } catch {}
-    // render tamamlandıktan sonra doğru ofsetle pürüzsüz kaydır
     if (!fromDelta) {
+      pendingSpotlightScrollRef.current = true;
+    }
+  }
+  // Spotlight içerik yüklendiğinde (sharedItem mount olduğunda) bekleyen scroll'u uygula
+  useEffect(() => {
+    if (pendingSpotlightScrollRef.current && sharedItem) {
+      pendingSpotlightScrollRef.current = false;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           const el = spotlightRef.current;
@@ -832,7 +839,7 @@ function smoothScrollIntoView(el: Element) {
         });
       });
     }
-  }
+  }, [sharedItem]);
 
   // Klavye kısayolları: ← → ile spotlight'ta gezin (form alanlarında devre dışı)
   useEffect(() => {
