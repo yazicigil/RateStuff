@@ -3,6 +3,7 @@ import "./globals.css";
 import Script from "next/script";
 import type { Metadata } from "next";
 import Providers from "@/components/Providers";
+import { Analytics } from '@vercel/analytics/react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -85,6 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-screen antialiased">
         <Providers>{children}</Providers>
+          <Analytics />
       </body>
     </html>
   );
