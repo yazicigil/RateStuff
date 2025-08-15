@@ -1,6 +1,8 @@
+// app/api/items/[id]/edit/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deleteBlobIfVercel } from "@/lib/blob";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -13,21 +15,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     // Başlık düzenlemek YOK
     const description =
-      body.description !== undefined
-        ? String(body.description).trim()
-        : undefined;
+      body.description !== undefined ? String(body.description).trim() : undefined;
 
     // Boş string => null, undefined => hiç değiştirme
     const rawImage = body.imageUrl;
-    const imageUrl =
-      rawImage === undefined
-        ? undefined
-        : rawImage === ""
-        ? null
-        : String(rawImage);
+    const nextImageUrl =
+      rawImage === undefined ? undefined : rawImage === "" ? null : String(rawImage);
 
-    const tagsCsv =
-      body.tagsCsv !== undefined ? String(body.tagsCsv) : undefined;
+    const tagsCsv = body.tagsCsv !== undefined ? String(body.tagsCsv) : undefined;
 
     // Basit validasyon
     if (typeof description === "string" && description.length > 500) {
@@ -36,37 +31,40 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         { status: 400 }
       );
     }
-    if (typeof imageUrl === "string" && imageUrl.length > 1024) {
+    if (typeof nextImageUrl === "string" && nextImageUrl.length > 1024) {
       return NextResponse.json(
         { ok: false, error: "imageUrl çok uzun (≤1024 karakter)" },
         { status: 400 }
       );
     }
 
-    // Yetki kontrolü
-    const item = await prisma.item.findUnique({
+    // Yetki + mevcut görsel bilgisi
+    const prev = await prisma.item.findUnique({
       where: { id: params.id },
-      select: { createdById: true },
+      select: { createdById: true, imageUrl: true },
     });
-    if (!item) {
+    if (!prev) {
       return NextResponse.json({ ok: false, error: "not-found" }, { status: 404 });
     }
-    if (item.createdById !== me.id) {
+    if (prev.createdById !== me.id) {
       return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
     }
 
-    const data: any = {};
+    const data: Record<string, any> = {};
     if (description !== undefined) data.description = description;
-    if (imageUrl !== undefined) data.imageUrl = imageUrl;
+    if (nextImageUrl !== undefined) data.imageUrl = nextImageUrl;
     if (Object.keys(data).length) data.editedAt = new Date();
 
     await prisma.$transaction(async (tx) => {
+      // Item alanları
       if (Object.keys(data).length) {
         await tx.item.update({
           where: { id: params.id },
           data,
         });
       }
+
+      // Tagler
       if (tagsCsv !== undefined) {
         const tagNames = Array.from(
           new Set(
@@ -77,7 +75,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           )
         ).slice(0, 12);
 
-        // Eski tag bağlantılarını sil
+        // Eski bağlantıları sil
         await tx.itemTag.deleteMany({ where: { itemId: params.id } });
 
         // Yeni tagleri ekle
@@ -100,11 +98,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         });
       }
 
-      // Orphan tag cleanup: hiçbir ItemTag ile ilişkisi kalmayan tag'leri sil
+      // Orphan tag cleanup
       await tx.tag.deleteMany({
         where: { items: { none: {} } },
       });
     });
+
+    // === DB update OK → Eski blob’u temizle (sadece değiştiyse) ===
+    if (nextImageUrl !== undefined && prev.imageUrl !== nextImageUrl) {
+      await deleteBlobIfVercel(prev.imageUrl);
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {

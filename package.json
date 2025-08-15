@@ -9,7 +9,12 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:cleanup": "tsx prisma/cleanup.ts",
+    "db:seed:comments": "tsx prisma/seed_comments.ts"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "5.18.0",
@@ -18,6 +23,7 @@
     "next": "14.2.5",
     "next-auth": "^4.24.7",
     "next-intl": "^4.3.4",
+    "node-fetch": "^3.3.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "zod": "3.23.8"
@@ -27,9 +33,11 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "autoprefixer": "10.4.19",
+    "dotenv": "^17.2.1",
     "postcss": "8.4.38",
     "prisma": "5.18.0",
     "tailwindcss": "3.4.10",
+    "ts-node": "^10.9.2",
     "tsx": "4.16.2",
     "typescript": "5.5.4"
   }

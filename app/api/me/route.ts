@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deleteBlobIfVercel } from "@/lib/blob"; // ← eklendi
 
 export async function GET(req: Request) {
   try {
@@ -27,14 +28,13 @@ export async function GET(req: Request) {
       prisma.rating.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
-        include: { item: { select: { id: true, name: true } } },
+        include: { item: { select: { id: true, name: true} } },
       }),
       prisma.comment.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
         include: { item: { select: { id: true, name: true, imageUrl: true } } },
       }),
-      // ↓ Kaydedilenlerde etiketleri de getiriyoruz
       prisma.savedItem.findMany({
         where: { userId: me.id },
         orderBy: { createdAt: "desc" },
@@ -48,7 +48,6 @@ export async function GET(req: Request) {
               editedAt: true,
               createdAt: true,
               ratings: { select: { value: true } },
-              // etiket isimlerini çıkarabilelim
               tags: { include: { tag: true } },
             },
           },
@@ -61,7 +60,6 @@ export async function GET(req: Request) {
     const comments = commentsRes.status === "fulfilled" ? commentsRes.value : [];
     const saved    = savedRes.status === "fulfilled" ? savedRes.value : [];
 
-    // Item'ı şekillendir (etiket varsa isimlerini de döndür)
     const shapeItem = (i: any) => {
       const count = i.ratings?.length ?? 0;
       const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
@@ -81,12 +79,12 @@ export async function GET(req: Request) {
         imageUrl: i.imageUrl,
         avg,
         edited,
-        ...(tags ? { tags } : {}), // sadece varsa ekle
+        ...(tags ? { tags } : {}),
       };
     };
 
     const shaped = {
-      items: items.map(shapeItem), // (eklediklerinde tags getirmiyoruz, gerekirse include eklenir)
+      items: items.map(shapeItem),
       ratings: ratings
         .filter((r: any) => !!r.item)
         .map((r: any) => ({
@@ -106,7 +104,6 @@ export async function GET(req: Request) {
           edited:
             c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000,
         })),
-      // saved'de tags artık mevcut
       saved: saved
         .filter((s: any) => !!s.item)
         .map((s: any) => shapeItem(s.item)),
@@ -135,26 +132,36 @@ export async function PATCH(req: Request) {
     let body: any = {};
     try { body = await req.json(); } catch {}
 
-    // Accept string or null. Empty string also treated as null (remove avatar).
-    let avatarUrl: string | null = null;
+    // Accept string or null. Empty string => null (avatar'ı kaldır).
+    let nextAvatar: string | null | undefined = undefined;
     if (typeof body?.avatarUrl === "string") {
       const trimmed = body.avatarUrl.trim();
-      avatarUrl = trimmed.length ? trimmed : null;
+      nextAvatar = trimmed.length ? trimmed : null;
     } else if (body?.avatarUrl === null) {
-      avatarUrl = null;
+      nextAvatar = null;
     }
 
-    // Nothing to update -> return current state
-    if (avatarUrl === undefined) {
+    if (nextAvatar === undefined) {
       return NextResponse.json({ ok: false, error: "invalid_payload" }, { status: 400 });
     }
 
+    // Önce mevcut avatar'ı çek
+    const prev = await prisma.user.findUnique({
+      where: { id: me.id },
+      select: { avatarUrl: true },
+    });
+    // DB'yi güncelle
     await prisma.user.update({
       where: { id: me.id },
-      data: { avatarUrl },
+      data: { avatarUrl: nextAvatar },
     });
 
-    return NextResponse.json({ ok: true, avatarUrl });
+    // Değiştiyse ve eski URL Vercel Blob'sa, sil
+    if (prev?.avatarUrl && prev.avatarUrl !== nextAvatar) {
+      await deleteBlobIfVercel(prev.avatarUrl);
+    }
+
+    return NextResponse.json({ ok: true, avatarUrl: nextAvatar ?? null });
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, error: e?.message || "internal-error" },

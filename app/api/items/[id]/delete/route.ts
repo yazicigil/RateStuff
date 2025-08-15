@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { deleteBlobIfVercel } from "@/lib/blob"; // ← EKLENDİ
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,7 +25,10 @@ export async function POST(
     }
 
     // Sadece kendisinin oluşturduğu item'ı silebilir
-    const item = await prisma.item.findUnique({ where: { id: itemId }, select: { id: true, createdById: true } });
+    const item = await prisma.item.findUnique({
+      where: { id: itemId },
+      select: { id: true, createdById: true, imageUrl: true } // ← imageUrl al
+    });
     if (!item) {
       return NextResponse.json({ ok: false, error: "not-found" }, { status: 404 });
     }
@@ -32,13 +36,12 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
     }
 
+    // 1) İlişkileri + item'ı DB'den sil (tek transaction)
     await prisma.$transaction(async (tx) => {
-      // ilişkili kayıtları temizle
       await tx.rating.deleteMany({ where: { itemId } });
       await tx.comment.deleteMany({ where: { itemId } });
       await tx.savedItem.deleteMany({ where: { itemId } });
       await tx.itemTag.deleteMany({ where: { itemId } });
-      // item
       await tx.item.delete({ where: { id: itemId } });
 
       // Orphan tag cleanup: hiçbir ItemTag ile ilişkisi kalmayan tag'leri sil
@@ -46,6 +49,9 @@ export async function POST(
         where: { items: { none: {} } },
       });
     });
+
+    // 2) DB silme başarılı → blob'u sil (DB dışında olduğu için transaction dışında)
+    await deleteBlobIfVercel(item.imageUrl);
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
