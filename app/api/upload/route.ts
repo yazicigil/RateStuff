@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { getSessionUser } from "@/lib/auth";
 
-export const runtime = "edge";
+export const runtime = "nodejs";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
