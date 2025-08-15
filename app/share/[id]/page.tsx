@@ -126,41 +126,88 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ShareRedirectPage({ params }: Props) {
+export default async function ShareRedirectPage({ params }: Props) {
+  // Build canonical targets
+  const base = getBaseUrl();
   const href = `/?item=${encodeURIComponent(params.id)}`;
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
 
-  // Minimal JSON-LD: ayrı item sayfan yokken CreativeWork yeterli
-  const itemLD = {
+  // Fetch item on the server so we render meaningful HTML (better for SEO & for bots that don't execute JS reliably)
+  const it = await getItemMeta(params.id, base);
+
+  // Minimal JSON-LD: enrich if we have rating info
+  const rawImg = pickThumb(it);
+  const absImg = rawImg
+    ? rawImg.startsWith("http")
+      ? rawImg
+      : `${base}${rawImg.startsWith("/") ? "" : "/"}${rawImg}`
+    : undefined;
+
+  const ratingValue = typeof it?.avg === "number" ? Number(it.avg) : undefined;
+  const ratingCount =
+    typeof it?.ratingCount === "number"
+      ? it.ratingCount
+      : Array.isArray(it?.ratings)
+      ? it.ratings.length
+      : undefined;
+
+  const itemLD: Record<string, any> = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
-    name: "RateStuff içeriği",
+    name: it?.name || "RateStuff içeriği",
+    description: it?.description || undefined,
     url: `${base}/share/${params.id}`,
     mainEntityOfPage: `${base}/share/${params.id}`,
+    image: absImg,
   };
+  if (ratingValue && ratingCount) {
+    itemLD.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(ratingValue.toFixed(2)),
+      ratingCount,
+    };
+  }
 
   return (
     <main className="min-h-screen grid place-items-center p-6">
-      {/* SEO: JSON-LD for item */}
+      {/* SEO: JSON-LD for item (server-rendered) */}
       <SeoLD json={itemLD} />
 
-      <div className="text-sm opacity-70">
-        RateStuff’a yönlendiriliyor…{" "}
-        <a href={href} className="underline">
-          git
-        </a>
-      </div>
+      {/* Server-rendered preview so crawlers see content */}
+      <article className="max-w-[720px] text-center">
+        <h1 className="text-xl font-semibold mb-2">{it?.name || "RateStuff içeriği"}</h1>
+        {it?.description ? (
+          <p className="text-sm opacity-80 mb-3 line-clamp-3">{it.description}</p>
+        ) : null}
+        {absImg ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={absImg}
+            alt={it?.name || "Görsel"}
+            className="mx-auto rounded border border-black/10 mb-4 max-h-64 object-contain"
+            loading="eager"
+          />
+        ) : null}
+        {ratingValue ? (
+          <div className="text-sm opacity-80 mb-2">Ortalama: {ratingValue.toFixed(2)} ⭐{ratingCount ? ` · ${ratingCount} oy` : ""}</div>
+        ) : null}
+        <div className="text-sm opacity-70">
+          RateStuff’a yönlendiriliyor…{" "}
+          <a href={href} className="underline">
+            git
+          </a>
+        </div>
+      </article>
 
-      {/* Botların metadata'yı okuması için server-side redirect yok; client'ta yönlendiriyoruz */}
+      {/* Client-side redirect with a short delay so bots/users can see content if needed */}
       <script
         dangerouslySetInnerHTML={{
-          __html: `try{location.replace(${JSON.stringify(href)})}catch(e){location.href=${JSON.stringify(
+          __html: `setTimeout(function(){try{location.replace(${JSON.stringify(
             href
-          )}}`,
+          )})}catch(e){location.href=${JSON.stringify(href)}}},150);`,
         }}
       />
       <noscript>
-        <meta httpEquiv="refresh" content={`0; url=${href}`} />
+        <meta httpEquiv="refresh" content={`1; url=${href}`} />
       </noscript>
     </main>
   );
