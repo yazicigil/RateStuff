@@ -982,7 +982,9 @@ if (!already) {
   },
   showSuggestions: qInput !== qCommitted,
 }} />
-      <style jsx global>{`
+     
+     
+     <style jsx global>{`
         @keyframes fadeInOut {
           0% { opacity: 0; transform: translateY(-4px); }
           15% { opacity: 1; transform: translateY(0); }
@@ -1002,6 +1004,20 @@ if (!already) {
         @media (prefers-reduced-motion: reduce) {
           .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
         }
+          .title-wrap {
+  word-break: normal;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+@media (min-width: 768px) {
+  .md-clamp2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
       `}</style>
       
 
@@ -1500,9 +1516,9 @@ if (!already) {
 </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24" style={clamp2} title={sharedItem.name} lang="tr">
-          {sharedItem.name}
-        </h3>
+      <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2" title={sharedItem.name} lang="tr">
+  {sharedItem.name}
+</h3>
 
         <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
 
@@ -2230,7 +2246,7 @@ if (!already) {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24" style={clamp2} title={i.name}>
+                        <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
                           <button
                             type="button"
                             onClick={() => openSpotlight(i.id)}
