@@ -501,7 +501,7 @@ function currentHashChunk(q: string) {
   }}
   onKeyDown={handleSearchKeyDown}
   placeholder="ara ( / )"
-  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
 />
               </div>
               {!!controls.q && (
@@ -729,7 +729,7 @@ function currentHashChunk(q: string) {
   }}
   onKeyDown={handleSearchKeyDown}
   placeholder="ara ( / )"
-  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-sm dark:text-gray-100 dark:placeholder-gray-400"
+  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
 />
               </div>
               {!!controls.q && (
