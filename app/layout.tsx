@@ -57,6 +57,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const orgLD = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "RateStuff",
+    url: SITE_URL,
+    logo: `${SITE_URL}/android-chrome-512x512.png`,
+    sameAs: [
+      "https://twitter.com/ratestuffnet",
+      "https://www.instagram.com/ratestuffnet"
+    ],
+  };
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
@@ -66,6 +77,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           strategy="afterInteractive"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6558549333507218"
           crossOrigin="anonymous"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLD) }}
         />
       </head>
       <body className="min-h-screen antialiased">
