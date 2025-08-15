@@ -214,10 +214,15 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     setSharedId(null);
     try {
       const url = new URL(window.location.href);
+      // Eğer /share/:id yolundaysak ana sayfaya dön
+      if (url.pathname.startsWith('/share/')) {
+        url.pathname = '/';
+      }
+      // Eski davranışla uyum: ?item=... varsa temizle
       if (url.searchParams.has('item')) {
         url.searchParams.delete('item');
-        window.history.replaceState({}, '', url.toString());
       }
+      window.history.replaceState({}, '', url.toString());
     } catch {}
   }
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -362,6 +367,13 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   useEffect(() => {
     try {
       const u = new URL(window.location.href);
+      // 1) /share/:id yolu
+      const m = u.pathname.match(/^\/share\/([^/?#]+)/);
+      if (m && m[1]) {
+        setSharedId(m[1]);
+        return;
+      }
+      // 2) ?item=... sorgu paramı (geriye dönük uyumluluk)
       const id = u.searchParams.get('item');
       setSharedId(id);
     } catch {}
@@ -805,18 +817,21 @@ function smoothScrollIntoView(el: Element) {
     setSharedId(id);
     try {
       const url = new URL(window.location.href);
-      url.searchParams.set('item', id);
+      // Adres çubuğunu /share/:id olarak güncelle (SPA içinde sayfayı yenilemeden)
+      url.pathname = `/share/${id}`;
+      // Eski query paramını sil (varsa)
+      if (url.searchParams.has('item')) url.searchParams.delete('item');
       window.history.replaceState({}, '', url.toString());
     } catch {}
     // render tamamlandıktan sonra doğru ofsetle pürüzsüz kaydır
     if (!fromDelta) {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const el = spotlightRef.current;
-      if (el) smoothScrollIntoView(el);
-    });
-  });
-}
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const el = spotlightRef.current;
+          if (el) smoothScrollIntoView(el);
+        });
+      });
+    }
   }
 
   // Klavye kısayolları: ← → ile spotlight'ta gezin (form alanlarında devre dışı)
