@@ -9,12 +9,6 @@ import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
 import { useSession } from "next-auth/react";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Profilim | RateStuff",
-  robots: { index: false, follow: false, nocache: true },
-};
 
 
 // Banned words (supports either default export or named `bannedWords`)

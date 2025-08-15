@@ -3,12 +3,6 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Giriş Yap | RateStuff",
-  robots: { index: false, follow: false, nocache: true },
-};
 
 export default function SignInPage() {
   const [loading, setLoading] = useState(false);
