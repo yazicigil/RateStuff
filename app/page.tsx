@@ -1059,15 +1059,20 @@ if (!already) {
     text-overflow: ellipsis;
   }
 }
-  @media (max-width: 767px) {
-  /* Mobilde item grid'i filtrelerle aynı hatta hizala */
-  .rs-mobile-edge {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-}
+       @media (max-width: 767px) {
+      /* Mobilde item grid'i filtrelerle aynı hatta hizala */
+      .rs-mobile-edge {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      /* Ensure children can't shift the column horizontally when data arrives */
+      .rs-mobile-edge > * {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+    }
       `}
       </style>
       
