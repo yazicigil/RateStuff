@@ -35,16 +35,18 @@ export const metadata: Metadata = {
     images: ["/og-image.jpg"],
   },
   robots: { index: true, follow: true },
-    icons: {
+  icons: {
     icon: [
-      { url: "/favicon.ico" },                       // classic
+      { url: "/favicon.ico" },
       { url: "/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
       { url: "/android-chrome-512x512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+    ],
     shortcut: ["/favicon.ico"],
     other: [
-      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#000000" }, // markanın ana rengi
+      { rel: "mask-icon", url: "/logo.svg", color: "#000000" },
     ],
   },
   themeColor: [
@@ -79,6 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLD) }}
         />
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className="min-h-screen antialiased">
         <Providers>{children}</Providers>
