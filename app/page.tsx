@@ -1073,6 +1073,25 @@ if (!already) {
         margin-right: 0 !important;
       }
     }
+
+    /* Hard stop any horizontal growth on mobile when item cards mount */
+    @media (max-width: 767px) {
+      html, body {
+        overflow-x: hidden;
+      }
+      .rs-mobile-edge,
+      .rs-mobile-edge > * {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .rs-mobile-edge img,
+      .rs-mobile-edge video,
+      .rs-mobile-edge canvas,
+      .rs-mobile-edge iframe {
+        max-width: 100% !important;
+      }
+    }
       `}
       </style>
       
