@@ -223,15 +223,23 @@ export default function MePage() {
   // Yorumlar altında kendi puanımı göstermek için: itemId -> my rating
   const myRatingByItem = useMemo(() => {
     const m = new Map<string, number>();
-    for (const r of ratings as any[]) {
-      const itemId = (r as any)?.itemId ?? (r as any)?.itemid ?? (r as any)?.item_id ?? (r as any)?.item?.id;
-      const val = (r as any)?.value ?? (r as any)?.rating ?? (typeof (r as any)?.score === 'number' ? (r as any)?.score : undefined);
-      if (itemId && typeof val === 'number') {
-        m.set(String(itemId), val);
-      }
+
+    // 1) Primary: ratings payload
+    for (const r of (ratings as any[]) || []) {
+      const itemId = r?.itemId ?? r?.itemid ?? r?.item_id ?? r?.item?.id;
+      const val = r?.value ?? r?.rating ?? (typeof r?.score === 'number' ? r?.score : undefined);
+      if (itemId && typeof val === 'number') m.set(String(itemId), val);
     }
+
+    // 2) Merge from comments if backend embedded rating into comments
+    for (const c of (comments as any[]) || []) {
+      const itemId = c?.itemId ?? c?.item?.id ?? c?.itemid ?? c?.item_id;
+      const val = c?.myRating ?? c?.rating ?? c?.value ?? c?.stars ?? c?.star ?? c?.rate ?? c?.scoreValue;
+      if (itemId && typeof val === 'number') m.set(String(itemId), val);
+    }
+
     return m;
-  }, [ratings]);
+  }, [ratings, comments]);
 
   const filteredSaved = useMemo(() => {
     if (savedSelected.size === 0) return saved;
