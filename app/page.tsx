@@ -29,6 +29,8 @@ async function nativeShare(id: string, name: string) {
 }
 import SeoLD from "@/components/SeoLD";
 
+import Head from 'next/head';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Tag from '@/components/Tag';
@@ -955,8 +957,32 @@ if (!already) {
     url: base,
     logo: `${base}/logo.svg`,
   };
+  const canonicalShareUrl = sharedId ? `${base}/share/${sharedId}` : null;
+  const itemLD = sharedItem ? {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: sharedItem.name || "RateStuff içeriği",
+    description: sharedItem.description || undefined,
+    url: canonicalShareUrl || undefined,
+    mainEntityOfPage: canonicalShareUrl || undefined,
+    image: sharedItem.imageUrl || undefined,
+    ...(typeof (sharedItem.avg ?? sharedItem.avgRating) === 'number' && (sharedItem.count ?? 0) > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(((sharedItem.avg ?? sharedItem.avgRating) as number).toFixed(2)),
+            ratingCount: sharedItem.count ?? undefined,
+          },
+        }
+      : {}),
+  } : null;
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+      {canonicalShareUrl && (
+        <Head>
+          <link rel="canonical" href={canonicalShareUrl} />
+        </Head>
+      )}
      <Header controls={{
   q: qInput,
   onQ: setQInput,
@@ -1193,6 +1219,7 @@ if (!already) {
       {/* SEO: JSON-LD */}
       <SeoLD json={websiteLD} />
       <SeoLD json={orgLD} />
+      {itemLD && <SeoLD json={itemLD} />}
     </div>
 
     <form
