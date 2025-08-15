@@ -20,7 +20,7 @@ export default function CommentBox({
   const isMac = typeof window !== 'undefined' && /(Mac|iPhone|iPad|Macintosh)/.test(navigator.userAgent || '');
   const maxLen = 500;
   const hasBanned = containsBannedWord(text);
-  const canSend = !busy && rating > 0 && text.trim().length > 0 && !hasBanned;
+  const canSend = !busy && rating > 0 && !hasBanned;
   const ratingText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
   const counterId = `cb-count-${itemId}`;
   async function submit() {
