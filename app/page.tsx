@@ -1059,7 +1059,17 @@ if (!already) {
     text-overflow: ellipsis;
   }
 }
-      `}</style>
+  @media (max-width: 767px) {
+  /* Mobilde item grid'i filtrelerle aynı hatta hizala */
+  .rs-mobile-edge {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+      `}
+      </style>
       
 
       <main className="max-w-5xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -1201,7 +1211,7 @@ if (!already) {
         </aside>
 
         {/* Sağ: listeler */}
-        <section className="space-y-4 order-2 md:order-2">
+        <section className="rs-mobile-edge space-y-4 order-2 md:order-2">
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
