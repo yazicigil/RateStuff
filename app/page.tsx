@@ -1488,7 +1488,7 @@ if (!already) {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+          <div className="rs-pop absolute right-10 top-0 z-50 min-w-[10rem] w-max whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1513,7 +1513,7 @@ if (!already) {
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+          <div className="rs-pop absolute right-10 top-0 z-50 min-w-[11.5rem] w-max whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             {amAdmin && (
               <>
                 <button

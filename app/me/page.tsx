@@ -223,7 +223,13 @@ export default function MePage() {
   // Yorumlar altında kendi puanımı göstermek için: itemId -> my rating
   const myRatingByItem = useMemo(() => {
     const m = new Map<string, number>();
-    for (const r of ratings) m.set(r.itemId, r.value);
+    for (const r of ratings as any[]) {
+      const itemId = (r as any)?.itemId ?? (r as any)?.itemid ?? (r as any)?.item_id ?? (r as any)?.item?.id;
+      const val = (r as any)?.value ?? (r as any)?.rating ?? (typeof (r as any)?.score === 'number' ? (r as any)?.score : undefined);
+      if (itemId && typeof val === 'number') {
+        m.set(String(itemId), val);
+      }
+    }
     return m;
   }, [ratings]);
 
