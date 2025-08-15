@@ -1046,8 +1046,8 @@ if (!already) {
           .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
         }
           .title-wrap {
-  word-break: normal;
-  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow-wrap: break-word;
   hyphens: auto;
 }
 @media (min-width: 768px) {
@@ -1087,6 +1087,8 @@ if (!already) {
         max-width: 100% !important;
         box-sizing: border-box !important;
       }
+      /* Prevent flex/grids from enforcing min-content width on mobile */
+      .rs-mobile-edge * { min-width: 0 !important; }
       .rs-mobile-edge img,
       .rs-mobile-edge video,
       .rs-mobile-edge canvas,
