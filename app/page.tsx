@@ -886,7 +886,10 @@ if (!already) {
     WebkitLineClamp: 2,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
-    wordBreak: 'break-word',
+    textOverflow: 'ellipsis',
+    wordBreak: 'normal',
+    overflowWrap: 'normal',
+    hyphens: 'auto',
   };
 
   const quickFormRef = useRef<HTMLFormElement>(null);
@@ -1497,9 +1500,10 @@ if (!already) {
 </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24" style={clamp2} title={sharedItem.name}>
+        <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24" style={clamp2} title={sharedItem.name} lang="tr">
           {sharedItem.name}
         </h3>
+
         <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
 
         {sharedItem.createdBy && (
