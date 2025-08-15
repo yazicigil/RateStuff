@@ -134,6 +134,11 @@ export default async function ShareRedirectPage({ params }: Props) {
   // Fetch item on the server so we render meaningful HTML (better for SEO & for bots that don't execute JS reliably)
   const it = await getItemMeta(params.id, base);
 
+  // Bot tespiti: User-Agent'i server tarafında al ve bilinen crawler imzalarını yakala
+  const h = headers();
+  const ua = (h.get("user-agent") || "").toLowerCase();
+  const isBot = /\b(googlebot|bingbot|duckduckbot|baiduspider|yandex(bot|images)|slurp|sogou|exabot|facebot|facebookexternalhit|twitterbot|linkedinbot|pinterest|whatsapp|telegrambot|applebot|discordbot|embedly|quora link preview|crawler|spider|bot)\b/.test(ua);
+
   // Minimal JSON-LD: enrich if we have rating info
   const rawImg = pickThumb(it);
   const absImg = rawImg
@@ -198,17 +203,21 @@ export default async function ShareRedirectPage({ params }: Props) {
         </div>
       </article>
 
-      {/* Client-side redirect with a short delay so bots/users can see content if needed */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `setTimeout(function(){try{location.replace(${JSON.stringify(
-            href
-          )})}catch(e){location.href=${JSON.stringify(href)}}},150);`,
-        }}
-      />
-      <noscript>
-        <meta httpEquiv="refresh" content={`1; url=${href}`} />
-      </noscript>
+      {/* Client-side redirect only for human users; bots stay on this server-rendered page */}
+      {!isBot && (
+        <>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `setTimeout(function(){try{location.replace(${JSON.stringify(
+                href
+              )})}catch(e){location.href=${JSON.stringify(href)}}},150);`,
+            }}
+          />
+          <noscript>
+            <meta httpEquiv="refresh" content={`1; url=${href}`} />
+          </noscript>
+        </>
+      )}
     </main>
   );
 }

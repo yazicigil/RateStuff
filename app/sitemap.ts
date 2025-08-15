@@ -3,8 +3,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base =
-    (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
+  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
   const now = new Date();
 
   const entries: MetadataRoute.Sitemap = [
@@ -18,21 +17,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Item’leri ekle (paylaşım linkleri üzerinden)
   try {
+    // Şemada 'updatedAt' yok; yalnızca createdAt alıyoruz
     const items = await prisma.item.findMany({
-      select: { id: true, createdAt: true as any }, // updatedAt yoksa sorun çıkarmaz
-      orderBy: { id: "desc" },                      // hızlı sıralama
+      select: { id: true, createdAt: true },
+      orderBy: { id: "desc" },
       take: 5000,
     });
 
-    for (const it of items) {
+    for (const it of items as Array<{ id: string; createdAt?: Date }>) {
+      const lastModified = it.createdAt ?? now;
       entries.push({
         url: `${base}/share/${it.id}`,
-        lastModified: (it as any).updatedAt ?? now,
+        lastModified,
         changeFrequency: "weekly",
         priority: 0.6,
       });
     }
-  } catch (_) {
+  } catch {
     // prisma erişilemezse ana sayfa ile yetinir
   }
 
