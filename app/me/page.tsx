@@ -388,7 +388,7 @@ export default function MePage() {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 overflow-x-hidden">
       {/* Header */}
       <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
         <div className="relative max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-3">
@@ -673,7 +673,7 @@ export default function MePage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     {filteredSaved.map(it => (
-                      <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
+                                            <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full">
                         <div className="flex items-start gap-3">
                           <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                             {it.imageUrl ? (
@@ -684,13 +684,13 @@ export default function MePage() {
                           </Link>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
+                              <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
                                 {it.name}
                               </Link>
                               <button
                                 type="button"
-                                onMouseDown={(e) => { e.stopPropagation(); }}
-                                onClick={(e) => {
+                                onMouseDown={(e: React.MouseEvent) => { e.stopPropagation(); }}
+                                onClick={(e: React.MouseEvent) => {
                                   e.stopPropagation();
                                   e.preventDefault();
                                   // If another click handler (document outside click or timeout) cleared it at the same tick,
@@ -708,8 +708,8 @@ export default function MePage() {
                                     ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
                                     : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
                                 }`}
-                                title={confirmRemoveSaved === it.id ? "Onaylamak için tekrar tıkla" : "Kaydedilenlerden kaldır"}
-                                aria-label={confirmRemoveSaved === it.id ? "Kaldırmayı onayla" : "Kaydedilenlerden kaldır"}
+                                title={confirmRemoveSaved === it.id ? 'Onaylamak için tekrar tıkla' : 'Kaydedilenlerden kaldır'}
+                                aria-label={confirmRemoveSaved === it.id ? 'Kaldırmayı onayla' : 'Kaydedilenlerden kaldır'}
                               >
                                 <span data-saved-remove-btn className="inline-flex items-center gap-1">
                                   {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
@@ -717,7 +717,7 @@ export default function MePage() {
                               </button>
                             </div>
                             <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
-                            <p className="text-sm opacity-80 mt-1 line-clamp-3">{it.description}</p>
+                            <p className="text-sm opacity-80 mt-1 line-clamp-3 break-words">{it.description}</p>
 
                             {!!(it.tags && it.tags.length) && (
                               <div className="mt-2 flex flex-wrap gap-1">
@@ -835,7 +835,7 @@ export default function MePage() {
                       <CommentRow
                         key={c.id}
                         c={c}
-                        myRating={myRatingByItem.get(c.itemId) ?? null}
+                                               myRating={myRatingByItem.get(String((c as any)?.itemId ?? (c as any)?.item?.id ?? '')) ?? null}
                         onRate={(itemId, value) => changeRating(itemId, value)}
                         onSave={saveComment}
                         onDelete={deleteComment}
@@ -981,7 +981,7 @@ function ItemEditor(props: {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate hover:underline">
+                                          <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
               {it.name}
             </Link>
             {it.edited && (
