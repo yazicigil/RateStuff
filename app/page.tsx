@@ -357,7 +357,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       // close both menus if any is open and click is not on a menu button or popover
       const target = e.target as HTMLElement | null;
       if (!target) return;
-      if (target.closest('.rs-pop')) return;
+     if (target.closest('.rs-pop') || target.closest('[data-pop]')) return;
       setOpenMenu(null);
       setOpenShare(null);
     }
@@ -1103,23 +1103,6 @@ if (!already) {
         max-width: 100% !important;
       }
     }
-      @media (max-width: 767px) {
-  /* Popover'ları viewport'a sabitle; .rs-mobile-edge * kurallarının sıkıştırmasını da geri al */
-  .rs-menu {
-    position: fixed !important;
-    top: calc(env(safe-area-inset-top, 0px) + 56px) !important; /* header altı */
-    left: 12px !important;
-    right: 12px !important;
-    transform: none !important;
-    z-index: 9999 !important;
-
-    /* .rs-mobile-edge * baskılarını geçersiz kıl */
-    min-width: max-content !important;
-    max-width: calc(100vw - 24px) !important;
-    box-sizing: content-box !important;
-    white-space: nowrap !important;
-  }
-}
       `}
       </style>
       
@@ -1490,13 +1473,13 @@ if (!already) {
       </svg>
     </button>
     {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
       <div className="relative">
-        <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-          aria-label="share"
-          onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
-        >
+        + <button data-pop
+  className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+  aria-label="share"
+  onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
+>
           {/* share icon */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1505,7 +1488,7 @@ if (!already) {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-         <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+         <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1522,11 +1505,11 @@ if (!already) {
         )}
       </div>
       <div className="relative">
-        <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-          onClick={() => setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id)}
-          aria-label="options"
-        >
+        <button data-pop
+  className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+  onClick={() => setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id)}
+  aria-label="options"
+>
           ⋯
         </button>
         {openMenu === sharedItem.id && (
@@ -2239,7 +2222,7 @@ if (!already) {
                     </div>
                   )}
                   {/* LEFT TOP: Share + Options */}
-                 <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                  <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
                     {/* Share button + popover */}
                     <div className="relative">
                       <button
@@ -2254,7 +2237,7 @@ if (!already) {
                         </svg>
                       </button>
                       {openShare === i.id && (
-                       <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                        <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
