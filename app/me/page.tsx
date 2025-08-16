@@ -221,11 +221,9 @@ export default function MePage() {
     return Array.from(s).sort();
   }, [saved]);
 
-  // Yorumlar altında kendi puanımı göstermek için: itemId -> my rating
+  // Yorumlar altında kendi puanımı göstermek için (yalnızca kalıcı Rating tablosu): itemId -> my rating
   const myRatingByItem = useMemo(() => {
     const m = new Map<string, number>();
-
-    // 1) Primary: ratings payload
     for (const r of (ratings as any[]) || []) {
       const rawItemId = r?.itemId ?? r?.itemid ?? r?.item_id ?? r?.item?.id;
       if (!rawItemId) continue;
@@ -237,22 +235,8 @@ export default function MePage() {
         m.set(itemId, clamped);
       }
     }
-
-    // 2) Merge from comments if backend embedded rating into comments
-    for (const c of (comments as any[]) || []) {
-      const rawItemId = c?.itemId ?? c?.item?.id ?? c?.itemid ?? c?.item_id;
-      if (!rawItemId) continue;
-      const itemId = String(rawItemId);
-      const rawVal = c?.myRating ?? c?.rating ?? c?.value ?? c?.stars ?? c?.star ?? c?.rate ?? c?.scoreValue;
-      const num = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
-      if (!m.has(itemId) && typeof num === 'number' && !Number.isNaN(num) && num > 0) {
-        const clamped = Math.max(0, Math.min(5, num));
-        m.set(itemId, clamped);
-      }
-    }
-
     return m;
-  }, [ratings, comments]);
+  }, [ratings]);
 
   const filteredSaved = useMemo(() => {
     if (savedSelected.size === 0) return saved;
@@ -848,11 +832,7 @@ export default function MePage() {
                       <CommentRow
                         key={c.id}
                         c={c}
-                        myRating={
-                          (typeof (c as any)?.rating === 'number' && (c as any).rating > 0)
-                            ? (c as any).rating
-                            : (myRatingByItem.get(String((c as any)?.itemId ?? (c as any)?.item?.id ?? '')) ?? null)
-                        }
+                        myRating={myRatingByItem.get(c.itemId) ?? null}
                         onRate={(itemId, value) => changeRating(itemId, value)}
                         onSave={saveComment}
                         onDelete={deleteComment}
