@@ -5,10 +5,11 @@ import React from "react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useCallback, useRef } from "react";
-import Stars from "@/components/Stars";
 import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
 import { useSession } from "next-auth/react";
+
+import Stars from "@/components/Stars";
 
 
 // Banned words (supports either default export or named `bannedWords`)
@@ -221,17 +222,18 @@ export default function MePage() {
     return Array.from(s).sort();
   }, [saved]);
 
-  // Yorumlar altında kendi verdiğim kalıcı puanı göstermek için (Rating tablosu): itemId -> my rating (0..5)
+  // Kendi verdiğim kalıcı puan (Rating tablosu) için itemId -> value map
   const myRatingByItem = useMemo(() => {
     const m = new Map<string, number>();
     for (const r of ratings || []) {
       if (!r || !r.itemId) continue;
       const id = String(r.itemId);
-      const valNum = Math.max(0, Math.min(5, Number((r as any).value ?? 0)));
-      if (!Number.isNaN(valNum)) m.set(id, valNum);
+      const val = Number((r as any).value);
+      if (!Number.isNaN(val)) m.set(id, Math.max(0, Math.min(5, val)));
     }
     return m;
   }, [ratings]);
+
 
   const filteredSaved = useMemo(() => {
     if (savedSelected.size === 0) return saved;
@@ -257,8 +259,23 @@ export default function MePage() {
     } else alert("Hata: " + (j?.error || r.status));
   }
 
+
+  async function saveComment(commentId: string, nextText: string) {
+    const r = await fetch(`/api/comments/${commentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: nextText }),
+    });
+    const j = await r.json().catch(() => null);
+    if (j?.ok) {
+      notify('Yorum güncellendi');
+      await load();
+    }
+    else alert("Hata: " + (j?.error || r.status));
+  }
+
   async function changeRating(itemId: string, value: number) {
-    // Optimistic update: reflect immediately in local state
+    // Optimistic update
     setRatings(prev => {
       const idStr = String(itemId);
       let found = false;
@@ -278,23 +295,8 @@ export default function MePage() {
     const j = await r.json().catch(() => null);
     if (!j?.ok) {
       alert("Hata: " + (j?.error || r.status));
-      // Rollback by reloading from server if failed
-      await load();
+      await load(); // rollback
     }
-  }
-
-  async function saveComment(commentId: string, nextText: string) {
-    const r = await fetch(`/api/comments/${commentId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: nextText }),
-    });
-    const j = await r.json().catch(() => null);
-    if (j?.ok) {
-      notify('Yorum güncellendi');
-      await load();
-    }
-    else alert("Hata: " + (j?.error || r.status));
   }
 
   async function deleteComment(commentId: string) {
@@ -1121,11 +1123,16 @@ function CommentRow({
           <Link href={spotlightHref(c.itemId)} prefetch={false} className="text-sm opacity-70 truncate hover:underline">
             {c.itemName}
           </Link>
-          <div className="mt-0.5 text-xs opacity-70 flex items-center gap-2">
-            <span className="sr-only">Puanım</span>
-            <div className="scale-90 origin-left">
-              <Stars key={`${c.id}:${myRating ?? 0}`} value={myRating ?? 0} onRate={(n) => onRate(c.itemId, n)} />
-            </div>
+          <div className="mt-1 text-xs opacity-70 flex items-center gap-2" aria-label="Puanım">
+            {editing ? (
+              <div className="scale-90 origin-left">
+                <Stars value={myRating ?? 0} onRate={(n) => onRate(c.itemId, n)} />
+              </div>
+            ) : (
+              <div className="scale-90 origin-left">
+                <Stars value={myRating ?? 0} readOnly />
+              </div>
+            )}
             <span className="tabular-nums">{myRating != null ? myRating.toFixed(1) : '—'}</span>
           </div>
           {editing ? (
