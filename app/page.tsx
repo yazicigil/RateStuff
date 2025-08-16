@@ -1103,6 +1103,28 @@ if (!already) {
         max-width: 100% !important;
       }
     }
+      @media (max-width: 767px) {
+  /* Menüler mobilde header'ın altında, ekran içinde sabitlensin */
+  .rs-menu {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 56px) !important;
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    z-index: 9999 !important;
+
+    /* .rs-mobile-edge * sıkıştırmasını menülerde geri al */
+    min-width: max-content !important;
+    max-width: calc(100vw - 24px) !important;
+    white-space: nowrap !important;
+    box-sizing: content-box !important;
+  }
+  .rs-mobile-edge .rs-menu, .rs-mobile-edge .rs-menu * {
+    max-width: unset !important;
+    min-width: unset !important;
+    box-sizing: content-box !important;
+  }
+}
       `}
       </style>
       
