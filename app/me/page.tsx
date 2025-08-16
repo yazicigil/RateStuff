@@ -224,34 +224,13 @@ export default function MePage() {
   // Yorumlar altında kendi verdiğim kalıcı puanı göstermek için (Rating tablosu): itemId -> my rating (0..5)
   const myRatingByItem = useMemo(() => {
     const m = new Map<string, number>();
-    const coerceNum = (v: any): number | null => {
-      if (v == null) return null;
-      const n = typeof v === 'string' ? parseFloat(v) : v;
-      return typeof n === 'number' && !Number.isNaN(n) ? Math.max(0, Math.min(5, n)) : null;
-    };
-    for (const r of (ratings as any[]) || []) {
-      // item id can arrive under several shapes; prefer explicit fields
-      const rawItemId = r?.itemId ?? r?.item_id ?? r?.itemid ?? r?.item?.id ?? null;
-      if (!rawItemId) continue;
-      const itemId = String(rawItemId);
-      // rating value can be named differently depending on API route
-      const val = coerceNum(r?.value ?? r?.rating ?? r?.stars ?? r?.score ?? r?.v);
-      if (val == null) continue;
-      // choose the most recent if duplicates exist
-      const tsRaw = r?.editedAt ?? r?.updatedAt ?? r?.createdAt ?? r?.created_at ?? 0;
-      const ts = typeof tsRaw === 'string' ? Date.parse(tsRaw) : (typeof tsRaw === 'number' ? tsRaw : 0);
-      const prev = m.get(itemId) as any;
-      if (!(prev && (prev as any)._t > ts)) {
-        // store value; tuck timestamp on the function object via map metadata by re-setting later
-        (m as any).set(itemId, Object.assign(val, { _t: ts }));
-      }
+    for (const r of ratings || []) {
+      if (!r || !r.itemId) continue;
+      const id = String(r.itemId);
+      const valNum = Math.max(0, Math.min(5, Number((r as any).value ?? 0)));
+      if (!Number.isNaN(valNum)) m.set(id, valNum);
     }
-    // strip metadata back to plain number
-    const out = new Map<string, number>();
-    for (const [k, v] of (m as any).entries()) {
-      out.set(k, typeof v === 'number' ? v : (v as any).value ?? Number(v));
-    }
-    return out;
+    return m;
   }, [ratings]);
 
   const filteredSaved = useMemo(() => {
@@ -279,14 +258,29 @@ export default function MePage() {
   }
 
   async function changeRating(itemId: string, value: number) {
+    // Optimistic update: reflect immediately in local state
+    setRatings(prev => {
+      const idStr = String(itemId);
+      let found = false;
+      const next = prev.map(r => {
+        if (String(r.itemId) === idStr) { found = true; return { ...r, value } as MyRating; }
+        return r;
+      });
+      if (!found) next.unshift({ id: `local-${idStr}`, itemId: idStr, itemName: '', value } as MyRating);
+      return next;
+    });
+
     const r = await fetch(`/api/items/${itemId}/rate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ value }),
     });
     const j = await r.json().catch(() => null);
-    if (j?.ok) await load();
-    else alert("Hata: " + (j?.error || r.status));
+    if (!j?.ok) {
+      alert("Hata: " + (j?.error || r.status));
+      // Rollback by reloading from server if failed
+      await load();
+    }
   }
 
   async function saveComment(commentId: string, nextText: string) {
