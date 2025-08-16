@@ -223,19 +223,24 @@ export default function MePage() {
 
   // Yorumlar altında kendi puanımı göstermek için (yalnızca kalıcı Rating tablosu): itemId -> my rating
   const myRatingByItem = useMemo(() => {
-    const m = new Map<string, number>();
+    // build with timestamp to ensure newest wins
+    const tmp = new Map<string, { v: number; t: number }>();
     for (const r of (ratings as any[]) || []) {
       const rawItemId = r?.itemId ?? r?.itemid ?? r?.item_id ?? r?.item?.id;
       if (!rawItemId) continue;
       const itemId = String(rawItemId);
       const rawVal = r?.value ?? r?.rating ?? (typeof r?.score === 'number' ? r?.score : undefined);
       const num = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
-      if (typeof num === 'number' && !Number.isNaN(num)) {
-        const clamped = Math.max(0, Math.min(5, num));
-        m.set(itemId, clamped);
-      }
+      if (typeof num !== 'number' || Number.isNaN(num)) continue;
+      const clamped = Math.max(0, Math.min(5, num));
+      const tsStr = (r as any)?.editedAt || (r as any)?.createdAt;
+      const ts = tsStr ? Date.parse(tsStr) : 0;
+      const prev = tmp.get(itemId);
+      if (!prev || ts >= prev.t) tmp.set(itemId, { v: clamped, t: ts });
     }
-    return m;
+    const out = new Map<string, number>();
+    for (const [k, { v }] of tmp) out.set(k, v);
+    return out;
   }, [ratings]);
 
   const filteredSaved = useMemo(() => {
@@ -832,7 +837,7 @@ export default function MePage() {
                       <CommentRow
                         key={c.id}
                         c={c}
-                        myRating={myRatingByItem.get(c.itemId) ?? null}
+                        myRating={myRatingByItem.get(String(c.itemId)) ?? null}
                         onRate={(itemId, value) => changeRating(itemId, value)}
                         onSave={saveComment}
                         onDelete={deleteComment}
