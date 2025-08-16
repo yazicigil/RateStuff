@@ -1114,7 +1114,7 @@ function CommentRow({
           <div className="mt-0.5 text-xs opacity-70 flex items-center gap-2">
             <span className="sr-only">Puanım</span>
             <div className="scale-90 origin-left">
-              <Stars value={myRating ?? 0} onRate={(n) => onRate(c.itemId, n)} />
+              <Stars key={`${c.id}:${myRating ?? 0}`} value={myRating ?? 0} onRate={(n) => onRate(c.itemId, n)} />
             </div>
             <span className="tabular-nums">{myRating != null ? myRating.toFixed(1) : '—'}</span>
           </div>
