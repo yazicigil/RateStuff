@@ -226,16 +226,28 @@ export default function MePage() {
 
     // 1) Primary: ratings payload
     for (const r of (ratings as any[]) || []) {
-      const itemId = r?.itemId ?? r?.itemid ?? r?.item_id ?? r?.item?.id;
-      const val = r?.value ?? r?.rating ?? (typeof r?.score === 'number' ? r?.score : undefined);
-      if (itemId && typeof val === 'number') m.set(String(itemId), val);
+      const rawItemId = r?.itemId ?? r?.itemid ?? r?.item_id ?? r?.item?.id;
+      if (!rawItemId) continue;
+      const itemId = String(rawItemId);
+      const rawVal = r?.value ?? r?.rating ?? (typeof r?.score === 'number' ? r?.score : undefined);
+      const num = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
+      if (typeof num === 'number' && !Number.isNaN(num)) {
+        const clamped = Math.max(0, Math.min(5, num));
+        m.set(itemId, clamped);
+      }
     }
 
     // 2) Merge from comments if backend embedded rating into comments
     for (const c of (comments as any[]) || []) {
-      const itemId = c?.itemId ?? c?.item?.id ?? c?.itemid ?? c?.item_id;
-      const val = c?.myRating ?? c?.rating ?? c?.value ?? c?.stars ?? c?.star ?? c?.rate ?? c?.scoreValue;
-      if (itemId && typeof val === 'number') m.set(String(itemId), val);
+      const rawItemId = c?.itemId ?? c?.item?.id ?? c?.itemid ?? c?.item_id;
+      if (!rawItemId) continue;
+      const itemId = String(rawItemId);
+      const rawVal = c?.myRating ?? c?.rating ?? c?.value ?? c?.stars ?? c?.star ?? c?.rate ?? c?.scoreValue;
+      const num = typeof rawVal === 'string' ? parseFloat(rawVal) : rawVal;
+      if (!m.has(itemId) && typeof num === 'number' && !Number.isNaN(num) && num > 0) {
+        const clamped = Math.max(0, Math.min(5, num));
+        m.set(itemId, clamped);
+      }
     }
 
     return m;
