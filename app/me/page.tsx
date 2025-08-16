@@ -67,6 +67,7 @@ type MyComment = {
   itemImageUrl?: string | null;
   text: string;
   edited?: boolean;
+  rating?: number; // yorumu atarken verilen yıldız (Comment.rating)
   score?: number; // upvote sayacı (net skor)
 };
 
@@ -847,7 +848,11 @@ export default function MePage() {
                       <CommentRow
                         key={c.id}
                         c={c}
-                                               myRating={myRatingByItem.get(String((c as any)?.itemId ?? (c as any)?.item?.id ?? '')) ?? null}
+                        myRating={
+                          (typeof (c as any)?.rating === 'number' && (c as any).rating > 0)
+                            ? (c as any).rating
+                            : (myRatingByItem.get(String((c as any)?.itemId ?? (c as any)?.item?.id ?? '')) ?? null)
+                        }
                         onRate={(itemId, value) => changeRating(itemId, value)}
                         onSave={saveComment}
                         onDelete={deleteComment}
