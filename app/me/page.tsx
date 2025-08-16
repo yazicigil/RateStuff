@@ -222,17 +222,6 @@ export default function MePage() {
     return Array.from(s).sort();
   }, [saved]);
 
-  // Kendi verdiğim kalıcı puan (Rating tablosu) için itemId -> value map
-  const myRatingByItem = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const r of ratings || []) {
-      if (!r || !r.itemId) continue;
-      const id = String(r.itemId);
-      const val = Number((r as any).value);
-      if (!Number.isNaN(val)) m.set(id, Math.max(0, Math.min(5, val)));
-    }
-    return m;
-  }, [ratings]);
 
 
   const filteredSaved = useMemo(() => {
@@ -272,6 +261,23 @@ export default function MePage() {
       await load();
     }
     else alert("Hata: " + (j?.error || r.status));
+  }
+
+  async function changeMyCommentRating(commentId: string, itemId: string, value: number) {
+    // Optimistic update on comments (Comment.rating is the source of truth here)
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, rating: value } : c));
+
+    // Try PATCH /api/comments/:id with { rating }
+    const r = await fetch(`/api/comments/${commentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ rating: value }),
+    });
+    const j = await r.json().catch(() => null);
+    if (!j?.ok) {
+      alert("Hata: " + (j?.error || r.status));
+      await load(); // rollback to server truth
+    }
   }
 
   async function changeRating(itemId: string, value: number) {
@@ -841,14 +847,14 @@ export default function MePage() {
                 <>
                   <div className="grid md:grid-cols-2 gap-3 items-stretch">
                     {comments.slice(0, commentsLimit).map(c => (
-                      <CommentRow
-                        key={c.id}
-                        c={c}
-                        myRating={myRatingByItem.get(String(c.itemId)) ?? null}
-                        onRate={(itemId, value) => changeRating(itemId, value)}
-                        onSave={saveComment}
-                        onDelete={deleteComment}
-                      />
+                        <CommentRow
+                          key={c.id}
+                          c={c}
+                          myRating={typeof c.rating === 'number' ? c.rating : null}
+                          onRate={(itemId, value) => changeMyCommentRating(c.id, itemId, value)}
+                          onSave={saveComment}
+                          onDelete={deleteComment}
+                        />
                     ))}
                   </div>
                   {comments.length > commentsLimit && (
