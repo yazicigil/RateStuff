@@ -101,6 +101,7 @@ export async function GET(req: Request) {
           itemName: c.item.name,
           itemImageUrl: c.item.imageUrl,
           text: c.text,
+          rating: typeof c.rating === 'number' ? c.rating : undefined,
           edited:
             c.editedAt && c.createdAt && c.editedAt.getTime() > c.createdAt.getTime() + 1000,
         })),
