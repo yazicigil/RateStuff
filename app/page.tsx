@@ -1103,6 +1103,19 @@ if (!already) {
         max-width: 100% !important;
       }
     }
+      @media (max-width: 767px) {
+  /* Mobilde popover'ları viewport'a sabitle: clipping ve wrap sorunu çözülür */
+  .rs-popover {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 56px) !important; /* header'ın hemen altı */
+    right: 12px !important;
+    left: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    transform: none !important;
+    z-index: 9999 !important;
+  }
+  .rs-popover * { white-space: nowrap; }
+}
       `}
       </style>
       
@@ -1488,7 +1501,7 @@ if (!already) {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute top-0 z-50 min-w-[10rem] w-max whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 md:right-10 md:left-auto right-full mr-2">
+          <div className="rs-pop rs-popover absolute top-0 z-50 min-w-[10rem] w-max whitespace-nowrap ... md:right-10 md:left-auto">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1513,7 +1526,7 @@ if (!already) {
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute top-0 z-50 min-w-[11.5rem] w-max whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 md:right-10 md:left-auto right-full mr-2">
+         <div className="rs-pop rs-popover absolute top-0 z-50 min-w-[11.5rem] w-max whitespace-nowrap ... md:right-10 md:left-auto">
             {amAdmin && (
               <>
                 <button
