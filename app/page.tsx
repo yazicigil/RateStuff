@@ -1103,6 +1103,23 @@ if (!already) {
         max-width: 100% !important;
       }
     }
+      @media (max-width: 767px) {
+  /* Popover'ları viewport'a sabitle; .rs-mobile-edge * kurallarının sıkıştırmasını da geri al */
+  .rs-menu {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 56px) !important; /* header altı */
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    z-index: 9999 !important;
+
+    /* .rs-mobile-edge * baskılarını geçersiz kıl */
+    min-width: max-content !important;
+    max-width: calc(100vw - 24px) !important;
+    box-sizing: content-box !important;
+    white-space: nowrap !important;
+  }
+}
       `}
       </style>
       
@@ -1473,7 +1490,7 @@ if (!already) {
       </svg>
     </button>
     {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
+    <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
       <div className="relative">
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
@@ -1488,7 +1505,7 @@ if (!already) {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+         <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -2222,7 +2239,7 @@ if (!already) {
                     </div>
                   )}
                   {/* LEFT TOP: Share + Options */}
-                  <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
+                 <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                     {/* Share button + popover */}
                     <div className="relative">
                       <button
@@ -2237,7 +2254,7 @@ if (!already) {
                         </svg>
                       </button>
                       {openShare === i.id && (
-                        <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                       <div className="rs-pop rs-menu absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
