@@ -808,26 +808,31 @@ export default function MePage() {
                       <span className="text-sm font-medium">Ekle</span>
                     </div>
                   </Link>
-                  {items.map(it => (
-                    <ItemEditor
-                      key={it.id}
-                      it={it}
-                      editingItem={editingItem}
-                      setEditingItem={(id) => {
-                        setEditingItem(id);
-                        if (id === it.id) {
-                          setEditDesc(it.description || "");
-                          setEditImg(it.imageUrl ?? null);
-                        }
-                      }}
-                      editDesc={editDesc}
-                      setEditDesc={setEditDesc}
-                      editImg={editImg}
-                      setEditImg={setEditImg}
-                      onSave={() => saveItem(it.id)}
-                      onDelete={deleteItem}
-                    />
-                  ))}
+                  {items.map(it => {
+                    const myC = comments.find(c => c.itemId === it.id) ?? null;
+                    return (
+                      <ItemEditor
+                        key={it.id}
+                        it={it}
+                        editingItem={editingItem}
+                        setEditingItem={(id) => {
+                          setEditingItem(id);
+                          if (id === it.id) {
+                            setEditDesc(it.description || "");
+                            setEditImg(it.imageUrl ?? null);
+                          }
+                        }}
+                        editDesc={editDesc}
+                        setEditDesc={setEditDesc}
+                        editImg={editImg}
+                        setEditImg={setEditImg}
+                        onSave={() => saveItem(it.id)}
+                        onDelete={deleteItem}
+                        myComment={myC}
+                        onRateMyComment={(commentId, itemId, value) => changeMyCommentRating(commentId, itemId, value)}
+                      />
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -964,9 +969,12 @@ function ItemEditor(props: {
   editImg: string|null; setEditImg: (s:string|null)=>void;
   onSave: ()=>Promise<void>|void;
   onDelete: (id: string) => Promise<void> | void;
+  myComment?: MyComment | null;
+  onRateMyComment?: (commentId: string, itemId: string, value: number) => Promise<void> | void;
 }) {
   const {
-    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete
+    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete,
+    myComment, onRateMyComment
   } = props;
   const isEditing = editingItem === it.id;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1004,6 +1012,20 @@ function ItemEditor(props: {
             )}
           </div>
           <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
+          {/* My rating (based on Comment.rating) */}
+          <div className="mt-1 text-xs opacity-70 flex items-center gap-2" aria-label="Puanım">
+            <div className="scale-90 origin-left">
+              <Stars
+                key={`${it.id}:${typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}`}
+                value={typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}
+                rating={typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}
+                onRate={(n) => { if (myComment && onRateMyComment) onRateMyComment(myComment.id, it.id, n); }}
+                onRatingChange={(n) => { if (myComment && onRateMyComment) onRateMyComment(myComment.id, it.id, n); }}
+                readOnly={!myComment}
+              />
+            </div>
+            <span className="tabular-nums">{typeof (myComment?.rating) === 'number' ? (myComment!.rating as number).toFixed(1) : '—'}</span>
+          </div>
 
           {isEditing ? (
             <div className="mt-3 space-y-3">
