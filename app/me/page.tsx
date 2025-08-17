@@ -1,4 +1,3 @@
-
 'use client';
 import React from "react";
 
@@ -57,6 +56,8 @@ type MyItem = {
   description: string;
   imageUrl?: string | null;
   avg: number | null;
+  /** Ana sayfadaki mantıkla uyum için opsiyonel alan */
+  avgRating?: number | null;
   edited?: boolean;
   tags?: string[]; // saved filtre + kartlarda gösterim
 };
@@ -89,6 +90,10 @@ const findBanned = (text: string | null | undefined): string | null => {
   const m = text.match(BANNED_RE);
   return m ? m[0] : null;
 };
+
+/** — Ortalama okuma helper’ı: ana sayfadaki gibi avgRating ?? avg — */
+const getAvg = (x: { avg?: number | null; avgRating?: number | null } | null | undefined) =>
+  (x as any)?.avgRating ?? (x as any)?.avg ?? null;
 
 export default function MePage() {
   const [loading, setLoading] = useState(true);
@@ -688,7 +693,7 @@ export default function MePage() {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     {filteredSaved.map(it => (
-                                            <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full">
+                      <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full">
                         <div className="flex items-start gap-3">
                           <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                             {it.imageUrl ? (
@@ -699,17 +704,27 @@ export default function MePage() {
                           </Link>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
-                              <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
-                                {it.name}
-                              </Link>
+                              {/* Sol: isim + ortalama pill */}
+                              <div className="min-w-0 flex items-center gap-2">
+                                <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
+                                  {it.name}
+                                </Link>
+                                {/* AVG PILL — ana sayfadaki mantık */}
+                                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700 shrink-0">
+                                  <span aria-hidden="true">★</span>
+                                  <span className="tabular-nums">
+                                    {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
+                                  </span>
+                                </span>
+                              </div>
+
+                              {/* Sağ: kaldır butonu */}
                               <button
                                 type="button"
                                 onMouseDown={(e: React.MouseEvent) => { e.stopPropagation(); }}
                                 onClick={(e: React.MouseEvent) => {
                                   e.stopPropagation();
                                   e.preventDefault();
-                                  // If another click handler (document outside click or timeout) cleared it at the same tick,
-                                  // read the latest value safely and act accordingly.
                                   const isConfirming = confirmRemoveSaved === it.id;
                                   if (isConfirming) {
                                     removeSaved(it.id);
@@ -731,7 +746,6 @@ export default function MePage() {
                                 </span>
                               </button>
                             </div>
-                            <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
                             <p className="text-sm opacity-80 mt-1 line-clamp-3 break-words">{it.description}</p>
 
                             {!!(it.tags && it.tags.length) && (
@@ -1004,28 +1018,24 @@ function ItemEditor(props: {
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-                                          <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
+            <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
               {it.name}
             </Link>
+
+            {/* AVG PILL — ana sayfadaki mantık */}
+            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700 shrink-0">
+              <span aria-hidden="true">★</span>
+              <span className="tabular-nums">
+                {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
+              </span>
+            </span>
+
             {it.edited && (
               <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
             )}
           </div>
-          <div className="text-xs opacity-70">{it.avg ? `${it.avg.toFixed(2)} ★` : "—"}</div>
           {/* My rating (based on Comment.rating) */}
-          <div className="mt-1 text-xs opacity-70 flex items-center gap-2" aria-label="Puanım">
-            <div className="scale-90 origin-left">
-              <Stars
-                key={`${it.id}:${typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}`}
-                value={typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}
-                rating={typeof (myComment?.rating) === 'number' ? myComment!.rating : 0}
-                onRate={(n) => { if (myComment && onRateMyComment) onRateMyComment(myComment.id, it.id, n); }}
-                onRatingChange={(n) => { if (myComment && onRateMyComment) onRateMyComment(myComment.id, it.id, n); }}
-                readOnly={!myComment}
-              />
-            </div>
-            <span className="tabular-nums">{typeof (myComment?.rating) === 'number' ? (myComment!.rating as number).toFixed(1) : '—'}</span>
-          </div>
+          
 
           {isEditing ? (
             <div className="mt-3 space-y-3">
