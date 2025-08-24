@@ -1,11 +1,16 @@
 import type { MetadataRoute } from "next";
-import { site } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
+  const BASE = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
-    sitemap: `${site.url}/sitemap.xml`,
-    host: site.url.replace(/^https?:\/\//, ""),
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/api/", "/signin", "/items/new"],
+      },
+    ],
+    sitemap: `${BASE}/sitemap.xml`,
+    host: BASE.replace(/^https?:\/\//, ""),
   };
-  
 }
