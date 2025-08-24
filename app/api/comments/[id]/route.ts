@@ -28,7 +28,8 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     // yetki kontrolü (sahibi ya da admin)
     const existing = await prisma.comment.findUnique({
-      where: { id: params.id }, select: { id: true, userId: true }
+      where: { id: params.id },
+      select: { id: true, userId: true, itemId: true }
     });
     if (!existing) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
     const isOwner = existing.userId === me.id;
@@ -40,6 +41,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data,
       include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } },
     });
+
+    // If rating was provided, sync it into the aggregate ratings table as well
+    if (data.rating !== undefined && existing?.itemId && existing?.userId) {
+      await prisma.rating.upsert({
+        where: { itemId_userId: { itemId: existing.itemId, userId: existing.userId } },
+        create: { itemId: existing.itemId, userId: existing.userId, value: data.rating },
+        update: { value: data.rating, editedAt: new Date() },
+      });
+    }
 
     return NextResponse.json({ ok: true, comment: updated });
   } catch (e: any) {
