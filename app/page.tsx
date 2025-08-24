@@ -1479,8 +1479,10 @@ if (!already) {
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
           aria-label="share"
-          onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
-        >
+onClick={() => {
+  setOpenShare(openShare === sharedItem.id ? null : sharedItem.id);
+  setOpenMenu(null); // options'ı kapat
+}}        >
           {/* share icon */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1508,8 +1510,10 @@ if (!already) {
       <div className="relative">
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-          onClick={() => setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id)}
-          aria-label="options"
+onClick={() => {
+  setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id);
+  setOpenShare(null); // share'i kapat
+}}          aria-label="options"
         >
           ⋯
         </button>
