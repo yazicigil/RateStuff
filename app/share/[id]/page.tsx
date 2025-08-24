@@ -93,10 +93,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const itemName = typeof it?.name === "string" && it.name.trim() ? it.name.trim() : "Bu içerik";
   const title = `${itemName} yorumları & puanları | RateStuff`;
   const hasAvg = typeof it?.avg === "number";
-  const avgTxt = hasAvg ? `ortalama ${Number(it.avg).toFixed(2)} ⭐. ` : "";
+  const avgTxt = hasAvg ? ` ${Number(it.avg).toFixed(2)} ⭐. ` : "";
   const desc =
     `${itemName} nasıl? ` +
-    `${itemName} yorumları & puanları: ${avgTxt}` +
+    `${itemName} puanı ${avgTxt}` +
     `Gerçek kullanıcı deneyimlerini oku; şimdi sen de yorum yap ve puan ver.`;
 
   // 1) item görselini kullan; absolute yap
