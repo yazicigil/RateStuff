@@ -7,7 +7,7 @@ import { useCallback, useRef } from "react";
 import { signOut } from "next-auth/react";
 import ImageUploader from "@/components/ImageUploader";
 import { useSession } from "next-auth/react";
-
+import RatingPill from '@/components/RatingPill';
 import Stars from "@/components/Stars";
 
 
@@ -710,14 +710,7 @@ export default function MePage() {
                                 <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
                                   {it.name}
                                 </Link>
-                                {/* AVG PILL — ana sayfadaki mantık */}
-                                <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700 shrink-0">
-                                  <span aria-hidden="true">★</span>
-                                  <span className="tabular-nums">
-                                    {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
-                                  </span>
-                                  <span className="opacity-60 tabular-nums">({it.count ?? 0})</span>
-                                </span>
+                                <RatingPill avg={getAvg(it)} count={it.count ?? 0} />
                               </div>
 
                               {/* Sağ: kaldır butonu */}
@@ -977,6 +970,7 @@ function Box({ children }:{children:any}) {
   return <div className="rounded-xl border dark:border-gray-800 p-3 bg-white dark:bg-gray-900 flex items-center gap-2">{children}</div>;
 }
 
+
 /* — Editor kartı (ImageUploader entegre) — */
 function ItemEditor(props: {
   it: MyItem;
@@ -1024,14 +1018,7 @@ function ItemEditor(props: {
               {it.name}
             </Link>
 
-            {/* AVG PILL — ana sayfadaki mantık */}
-            <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700 shrink-0">
-              <span aria-hidden="true">★</span>
-              <span className="tabular-nums">
-                {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
-              </span>
-              <span className="opacity-60 tabular-nums">({it.count ?? 0})</span>
-            </span>
+            <RatingPill avg={getAvg(it)} count={it.count ?? 0} />
 
             {it.edited && (
               <span className="text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
