@@ -1524,12 +1524,10 @@ if (!already) {
               onClick={() => handleCopyShare(sharedItem.id)}
             >
               {copiedShareId === sharedItem.id ? (
-                // Checkmark SVG
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               ) : (
-                // Copy SVG
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
                   <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2"/>
@@ -1541,10 +1539,10 @@ if (!already) {
               className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
             >
-              {/* Share/Export SVG */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M14 3v4a1 1 0 0 1-1 1H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-3a1 1 0 0 1-1-1V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 12V3m0 0l-3.5 3.5M12 3l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               <span>Daha fazla seçenek</span>
             </button>
@@ -1592,16 +1590,13 @@ if (!already) {
             >
               {savedIds.has(sharedItem.id) ? (
                 <>
-                  {/* Bookmark remove icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
-                    <path d="M9 9l6 6M15 9l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+                    <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a2 2 0 0 1 2-2Z" fill="currentColor"/>
                   </svg>
                   <span>Kaydedilenlerden Kaldır</span>
                 </>
               ) : (
                 <>
-                  {/* Bookmark icon */}
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
                   </svg>
@@ -1609,6 +1604,8 @@ if (!already) {
                 </>
               )}
             </button>
+          {/* GRID/LIST ITEM MENUS */}
+          {/* Remove any leftover placeholder comments related to previous grid patches */}
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
@@ -2323,17 +2320,36 @@ if (!already) {
                       {openShare === i.id && (
                         <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                          <button
-  className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
   onClick={() => handleCopyShare(i.id)}
 >
-  {copiedShareId === i.id ? 'Kopyalandı!' : 'Kopyala'}
+  {copiedShareId === i.id ? (
+    // check
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  ) : (
+    // copy
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
+      <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2"/>
+    </svg>
+  )}
+  <span>{copiedShareId === i.id ? 'Kopyalandı!' : 'Kopyala'}</span>
 </button>
-                          <button
-                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-                            onClick={() => { nativeShare(i.id, i.name); setOpenShare(null); }}
-                          >
-                            Daha fazla seçenek
-                          </button>
+
+<button
+  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+  onClick={() => { nativeShare(i.id, i.name); setOpenShare(null); }}
+>
+  {/* iOS-style share */}
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+  <span>Daha fazla seçenek</span>
+</button>
                         </div>
                       )}
                     </div>
@@ -2353,30 +2369,74 @@ if (!already) {
                     {openMenu === i.id && (
                       <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                         {amAdmin && (
-                          <>
-                            <button
-                              className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                              onClick={() => { setOpenMenu(null); deleteItem(i.id); }}
-                            >Kaldır</button>
-                            <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
-                          </>
-                        )}
-                        <button
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isSaved
-                              ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                          }`}
-                          onClick={() => toggleSave(i.id)}
-                        >
-                          {isSaved ? 'Kaydedilenlerden Kaldır' : 'Kaydet'}
-                        </button>
-                        <button
-                          className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                          onClick={() => { setOpenMenu(null); report(i.id); }}
-                        >
-                          Report
-                        </button>
+  <>
+    <button
+      className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+      onClick={() => { setOpenMenu(null); deleteItem(i.id); }}
+    >
+      {/* trash */}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="5" y="7" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
+        <path d="M9 10v4M15 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M3 7h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+      <span>Kaldır</span>
+    </button>
+    <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
+  </>
+)}
+
+<button
+  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+    savedIds.has(i.id)
+      ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+  }`}
+  onClick={() => { setOpenMenu(null); toggleSave(i.id); }}
+>
+  {savedIds.has(i.id) ? (
+    <>
+      {/* filled bookmark */}
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a2 2 0 0 1 2-2Z" fill="currentColor"/>
+      </svg>
+      <span>Kaydedilenlerden Kaldır</span>
+    </>
+  ) : (
+    <>
+      {/* outline bookmark */}
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2"/>
+      </svg>
+      <span>Kaydet</span>
+    </>
+  )}
+</button>
+
+<button
+  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+  onClick={() => { setOpenMenu(null); report(i.id); }}
+>
+  {/* flag */}
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M6 21V5a2 2 0 0 1 2-2h7l-1 4h6l-1 4h-6l1 4h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  </svg>
+  <span>Report</span>
+</button>
+
+<button
+  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+  onClick={() => { setOpenMenu(null); showInList(i.id); }}
+>
+  {/* list */}
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
+    <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
+    <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
+  </svg>
+  <span>Listede göster</span>
+</button>
                       </div>
                     )}
                     </div>
@@ -2773,3 +2833,4 @@ if (!already) {
     </div>
   );
 }
+     
