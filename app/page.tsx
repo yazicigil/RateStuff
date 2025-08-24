@@ -2260,7 +2260,7 @@ onClick={() => {
                     {/* Options button + menu */}
                     <div className="relative">
                       <button
-                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0"
                        onClick={() => {
   setOpenMenu(openMenu === i.id ? null : i.id);
   setOpenShare(null);
