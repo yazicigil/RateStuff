@@ -41,6 +41,7 @@ import ImageUploader from '@/components/ImageUploader';
 import CommentBox from '@/components/CommentBox';
 import { useSession } from 'next-auth/react';
 import { containsBannedWord } from '@/lib/bannedWords';
+import RatingPill from '@/components/RatingPill';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -1642,12 +1643,7 @@ if (!already) {
         <div className="mt-2 flex items-center gap-2 flex-wrap">
           {/* Ortalama yıldızlar (display only) */}
           <Stars rating={sharedItem.avgRating ?? sharedItem.avg ?? 0} readOnly />
-          {/* Ortalama + adet (ufak pill) */}
-          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-            <span aria-hidden="true" className="leading-none">⭐</span>
-            <span className="tabular-nums">{sharedItem.avg ? sharedItem.avg.toFixed(2) : '—'}</span>
-            <span className="opacity-60 tabular-nums">({sharedItem.count})</span>
-          </span>
+         <RatingPill avg={sharedItem.avgRating ?? sharedItem.avg} count={sharedItem.count} />
         </div>
 
         
@@ -2380,11 +2376,7 @@ if (!already) {
                           {/* Ortalama yıldızlar (display only) */}
                           <Stars rating={i.avgRating ?? i.avg ?? 0} readOnly />
                           {/* Ortalama + adet (ufak pill) */}
-                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-                            <span aria-hidden="true" className="leading-none">⭐</span>
-                            <span className="tabular-nums">{i.avg ? i.avg.toFixed(2) : '—'}</span>
-                            <span className="opacity-60 tabular-nums">({i.count})</span>
-                          </span>
+                          <RatingPill avg={i.avgRating ?? i.avg} count={i.count} />
                         </div>
 
                         
