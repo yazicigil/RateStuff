@@ -1104,19 +1104,25 @@ if (!already) {
         max-width: 100% !important;
       }
     }
-      /* === Mobile popover fixes for share/options (menus should not squeeze/overlap) === */
-      @media (max-width: 767px) {
-        /* Any popover opened from a button wrapper (.rs-pop) */
-        .rs-pop .rs-pop {
-          right: 0 !important;          /* stick to right edge of its containing card */
-          left: auto !important;
-          top: 2.5rem !important;        /* open below the button */
-          min-width: 12rem;              /* avoid squeezing */
-          white-space: nowrap;           /* keep labels on one line */
-          z-index: 50;                   /* above shadows */
-        }
-        .rs-pop .rs-pop > * { display: block; }
+    /* === Popover alignment (share/options) === */
+    .rs-pop-wrapper { position: relative; }
+    .rs-pop-menu {
+      position: absolute;
+      inset-inline-end: 0;   /* right in LTR, left in RTL */
+      top: 2.5rem;           /* opens below the button */
+      min-width: 12rem;
+      white-space: nowrap;
+      z-index: 50;
+      max-width: calc(100vw - 1rem);  /* never overflow viewport on mobile */
+    }
+    @media (min-width: 768px) {
+      .rs-pop-menu {
+        top: 2.5rem;         /* keep below button on desktop too (stable) */
+        inset-inline-end: 0;
       }
+    }
+    /* Buttons must not shrink in narrow columns */
+    .rs-pop-btn { flex-shrink: 0; }
       `}
       </style>
       
@@ -1488,14 +1494,15 @@ if (!already) {
     </button>
     {/* LEFT TOP: Share + Options */}
     <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2 items-end">
-      <div className="relative">
+      <div className="rs-pop-wrapper">
         <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0"
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0 rs-pop-btn"
           aria-label="share"
-onClick={() => {
-  setOpenShare(openShare === sharedItem.id ? null : sharedItem.id);
-  setOpenMenu(null); // options'ı kapat
-}}        >
+          onClick={() => {
+            setOpenShare(openShare === sharedItem.id ? null : sharedItem.id);
+            setOpenMenu(null); // options'ı kapat
+          }}
+        >
           {/* share icon */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1504,7 +1511,7 @@ onClick={() => {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-         <div className="rs-pop absolute right-0 top-10 md:right-10 md:top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+          <div className="rs-pop-menu w-auto rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1520,18 +1527,19 @@ onClick={() => {
           </div>
         )}
       </div>
-      <div className="relative">
+      <div className="rs-pop-wrapper">
         <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0"
-onClick={() => {
-  setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id);
-  setOpenShare(null); // share'i kapat
-}}          aria-label="options"
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0 rs-pop-btn"
+          onClick={() => {
+            setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id);
+            setOpenShare(null); // share'i kapat
+          }}
+          aria-label="options"
         >
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-0 top-10 md:right-10 md:top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+          <div className="rs-pop-menu w-auto rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             {amAdmin && (
               <>
                 <button
