@@ -1673,8 +1673,10 @@ if (!already) {
       className={animArmed ? (navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : '') : ''}
       style={{ willChange: 'transform' }}
     >
-      <div className="flex items-start gap-3">
-    <div className="flex flex-col items-center shrink-0 w-28">
+      {/* Safe side gutters for arrows */}
+      <div className="px-6 md:px-8 lg:px-12">
+      <div className="flex items-start gap-4 md:gap-5 mt-2">
+    <div className="flex flex-col items-center shrink-0 w-24 md:w-28">
   <img
     src={sharedItem.imageUrl || '/default-item.svg'}
     alt={sharedItem.name || 'item'}
@@ -1684,7 +1686,7 @@ if (!already) {
     loading="eager" 
     // @ts-ignore - experimental
     fetchPriority="high"
-    className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg" 
+    className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"
     style={{ contentVisibility: 'auto' }}
   />
   {sharedItem.edited && (
@@ -1693,9 +1695,13 @@ if (!already) {
 </div>
 
       <div className="flex-1 min-w-0">
-      <h3 className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2" title={sharedItem.name} lang="tr">
-  {sharedItem.name}
-</h3>
+      <h3
+        className="text-base md:text-lg font-semibold leading-snug mt-1 pr-16 md:pr-24 title-wrap md-clamp2"
+        title={sharedItem.name}
+        lang="tr"
+      >
+        {sharedItem.name}
+      </h3>
 
         <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
 
@@ -1737,6 +1743,8 @@ if (!already) {
 
         
       </div>
+    </div>
+    {/* Close px gutter wrapper */}
     </div>
 
     {sharedItem.tags?.length > 0 && (
