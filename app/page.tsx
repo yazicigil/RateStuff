@@ -2228,7 +2228,10 @@ onClick={() => {
                       <button
                         className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
                         aria-label="share"
-                        onClick={() => setOpenShare(openShare === i.id ? null : i.id)}
+                       onClick={() => {
+  setOpenShare(openShare === i.id ? null : i.id);
+  setOpenMenu(null);
+}}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -2258,7 +2261,10 @@ onClick={() => {
                     <div className="relative">
                       <button
                         className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-                        onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
+                       onClick={() => {
+  setOpenMenu(openMenu === i.id ? null : i.id);
+  setOpenShare(null);
+}}
                         aria-label="options"
                       >
                         ⋯
