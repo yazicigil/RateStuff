@@ -1003,9 +1003,9 @@ function ItemEditor(props: {
   const violatedItem = findBanned(editDesc);
 
   return (
-    <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5">
+    <div className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full">
       <div className="flex items-start gap-3">
-        <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-200 grid place-items-center">
+        <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
           {it.imageUrl ? (
             <img src={it.imageUrl} loading="lazy" decoding="async" className="w-full h-full object-cover" alt={it.name} />
           ) : (
