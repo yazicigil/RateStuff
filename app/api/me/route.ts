@@ -60,46 +60,59 @@ export async function GET(req: Request) {
     const comments = commentsRes.status === "fulfilled" ? commentsRes.value : [];
     const saved    = savedRes.status === "fulfilled" ? savedRes.value : [];
 
-    // ---- Aggregate ratings + comment.ratings for all relevant itemIds (items I created + saved items) ----
+    // ---- Aggregate ratings + comment.ratings (positive only), de-duplicated per (itemId,userId) by latest timestamp ----
     const idsFromItems = Array.isArray(items) ? items.map((i: any) => i.id).filter(Boolean) : [];
     const idsFromSaved = Array.isArray(saved) ? saved.map((s: any) => s?.item?.id).filter(Boolean) : [];
     const uniqueIds = Array.from(new Set<string>([...idsFromItems, ...idsFromSaved]));
   
-    // default empty maps to avoid undefined checks later
-    const rMap = new Map<string, { sum: number; count: number }>();
-    const cMap = new Map<string, { sum: number; count: number }>();
+    type UserVote = { itemId: string; userId: string; val: number; ts: number };
+    const latestByUser = new Map<string, UserVote>(); // key: `${itemId}::${userId}`
+  
+    function tsOf(d: { createdAt: Date; editedAt?: Date | null }) {
+      const e = (d as any).editedAt as Date | null | undefined;
+      const c = (d as any).createdAt as Date;
+      return e && e.getTime && e.getTime() > 0 ? e.getTime() : c.getTime();
+    }
   
     if (uniqueIds.length) {
-      // Ratings aggregation (all users)
-      const rAgg = await prisma.rating.groupBy({
-        by: ['itemId'],
-        where: { itemId: { in: uniqueIds } },
-        _sum: { value: true },
-        _count: { _all: true },
+      // 1) Pull positive standalone ratings
+      const posRatings = await prisma.rating.findMany({
+        where: { itemId: { in: uniqueIds }, value: { gt: 0 } },
+        select: { itemId: true, userId: true, value: true, createdAt: true, editedAt: true },
       });
-      for (const r of rAgg) {
-        rMap.set(r.itemId, { sum: r._sum.value ?? 0, count: r._count._all ?? 0 });
+      for (const r of posRatings) {
+        const key = `${r.itemId}::${r.userId}`;
+        const cand: UserVote = { itemId: r.itemId, userId: r.userId, val: r.value, ts: tsOf(r) };
+        const cur = latestByUser.get(key);
+        if (!cur || cand.ts > cur.ts) latestByUser.set(key, cand);
       }
   
-      // Comment ratings aggregation (only comments with rating > 0, all users)
-      const cAgg = await prisma.comment.groupBy({
-        by: ['itemId'],
+      // 2) Pull positive comment-embedded ratings
+      const posComments = await prisma.comment.findMany({
         where: { itemId: { in: uniqueIds }, rating: { gt: 0 } },
-        _sum: { rating: true },
-        _count: { _all: true },
+        select: { itemId: true, userId: true, rating: true, createdAt: true, editedAt: true },
       });
-      for (const c of cAgg) {
-        cMap.set(c.itemId, { sum: c._sum.rating ?? 0, count: c._count._all ?? 0 });
+      for (const c of posComments) {
+        const key = `${c.itemId}::${c.userId}`;
+        const cand: UserVote = { itemId: c.itemId, userId: c.userId, val: c.rating, ts: tsOf(c) };
+        const cur = latestByUser.get(key);
+        if (!cur || cand.ts > cur.ts) latestByUser.set(key, cand);
       }
     }
   
+    // 3) Reduce to per-item aggregates
+    const agg = new Map<string, { sum: number; count: number }>();
+    for (const v of latestByUser.values()) {
+      const a = agg.get(v.itemId) ?? { sum: 0, count: 0 };
+      a.sum += v.val;
+      a.count += 1;
+      agg.set(v.itemId, a);
+    }
+  
     function getAggFor(id: string) {
-      const r = rMap.get(id) ?? { sum: 0, count: 0 };
-      const c = cMap.get(id) ?? { sum: 0, count: 0 };
-      const sum = (r.sum || 0) + (c.sum || 0);
-      const count = (r.count || 0) + (c.count || 0);
-      const avgRating = count ? sum / count : null;
-      return { avgRating, count };
+      const a = agg.get(id) ?? { sum: 0, count: 0 };
+      const avgRating = a.count ? a.sum / a.count : null;
+      return { avgRating, count: a.count };
     }
 
     const shapeItem = (i: any) => {
