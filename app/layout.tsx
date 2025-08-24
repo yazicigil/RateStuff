@@ -9,16 +9,33 @@ import { Analytics } from '@vercel/analytics/react';
 const THEME_STORAGE_KEYS = ["rs-theme", "theme", "ratestuff-theme"] as const;
 const THEME_INIT_SCRIPT = `(() => {
   try {
-    // read saved theme from a list of possible keys (first non-empty wins)
     let saved = null;
-    for (const k of ${JSON.stringify(["rs-theme","theme","ratestuff-theme"])}) {
-      const v = localStorage.getItem(k);
-      if (v && typeof v === 'string') { saved = v; break; }
+
+    // 1) Scan localStorage: find any key whose value is "dark" or "light"
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        const v = localStorage.getItem(k);
+        if (v === 'dark' || v === 'light') { saved = v; break; }
+      }
+    } catch {}
+
+    // 2) Check cookie "theme=dark|light"
+    if (!saved && typeof document !== 'undefined') {
+      const m = document.cookie.match(/(?:^|; )theme=(dark|light)(?:;|$)/);
+      if (m) saved = m[1];
     }
+
+    // 3) Fallback to system preference
     const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
     const theme = (saved === 'dark' || saved === 'light') ? saved : (prefersDark ? 'dark' : 'light');
-    const c = document.documentElement.classList;
-    if (theme === 'dark') c.add('dark'); else c.remove('dark');
+
+    const cls = document.documentElement.classList;
+    if (theme === 'dark') cls.add('dark'); else cls.remove('dark');
+
+    // Help UA & form controls render correct colors before hydration
+    try { document.documentElement.style.colorScheme = theme; } catch {}
   } catch {}
 })();`;
 // --- end theme guard ---
