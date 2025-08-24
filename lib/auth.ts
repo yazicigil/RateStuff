@@ -89,18 +89,18 @@ export const authOptions: NextAuthOptions = {
 
         // Fallback: hesap yeni yaratıldıysa (<=120sn) ve bu process'te daha önce yollanmadıysa welcome gönder
         if (u && u.createdAt) {
-          const secondsSinceCreate = (Date.now() - u.createdAt.getTime()) / 1000;
-          const isFresh = secondsSinceCreate <= 120;
-          if (isFresh && !g.__welcomeSent.has(email)) {
-            try {
-              await sendWelcomeEmail(email, session.user?.name ?? undefined);
-              console.log("[auth] welcome email sent in session to", email);
-              g.__welcomeSent.add(email);
-            } catch (e) {
-              console.error("[auth] welcome email error (session):", e);
-              // işaretlemiyoruz ki bir sonraki oturumda tekrar deneyebilsin
-            }
-          }
+         // session callback içinde u çektiğin yerde:
+const secondsSinceCreate = (Date.now() - u.createdAt.getTime()) / 1000;
+const isFresh = secondsSinceCreate <= 86400; // 24 saat
+if (isFresh && !g.__welcomeSent.has(email)) {
+  try {
+    await sendWelcomeEmail(email, session.user?.name ?? undefined);
+    g.__welcomeSent.add(email);
+    console.log("[auth] welcome email sent in session to", email);
+  } catch (e) {
+    console.error("[auth] welcome email error (session):", e);
+  }
+}
         }
       }
 
