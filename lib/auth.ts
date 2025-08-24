@@ -2,6 +2,7 @@
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@/lib/prisma";
+import { sendWelcomeEmail } from "@/lib/email"; // <— eklendi
 
 const GOOGLE_ID = process.env.GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_SECRET = process.env.GOOGLE_SECRET ?? process.env.GOOGLE_CLIENT_SECRET;
@@ -27,6 +28,13 @@ export const authOptions: NextAuthOptions = {
       const email = user.email;
       if (!email) return false;
 
+      // 1) Daha önce var mıydı?
+      const existed = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
+
+      // 2) Upsert
       await prisma.user.upsert({
         where: { email },
         update: {
@@ -40,9 +48,20 @@ export const authOptions: NextAuthOptions = {
         },
       });
 
-      // Promote specific account to admin (centralized)
-      if (email === 'ratestuffnet@gmail.com') {
+      // 3) Admin promote (merkezî)
+      if (email === "ratestuffnet@gmail.com") {
         await prisma.user.update({ where: { email }, data: { isAdmin: true } });
+      }
+
+      // 4) İlk defaysa hoş geldin maili
+      if (!existed) {
+        try {
+          await sendWelcomeEmail(email, user.name ?? undefined);
+          console.log("[auth] welcome email sent to", email);
+        } catch (err) {
+          console.error("[auth] welcome email error:", err);
+          // hataya rağmen login akışını bozma
+        }
       }
 
       return true;
