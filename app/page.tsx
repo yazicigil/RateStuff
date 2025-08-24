@@ -1474,7 +1474,7 @@ if (!already) {
       </svg>
     </button>
     {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
+    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2 items-end">
       <div className="relative">
         <button
           className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
@@ -1491,7 +1491,7 @@ onClick={() => {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+         <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1518,7 +1518,7 @@ onClick={() => {
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+          <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             {amAdmin && (
               <>
                 <button
@@ -2240,7 +2240,7 @@ onClick={() => {
                         </svg>
                       </button>
                       {openShare === i.id && (
-                        <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                       <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
@@ -2270,7 +2270,7 @@ onClick={() => {
                         ⋯
                       </button>
                     {openMenu === i.id && (
-                      <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                     <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
                         {amAdmin && (
                           <>
                             <button
