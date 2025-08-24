@@ -765,7 +765,15 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }
 
   async function report(id: string) {
-    const res = await fetchOrSignin(`/api/items/${id}/report`, { method: 'POST' });
+    const reason = prompt('Rapor sebebi nedir? (kısa bir açıklama yaz)');
+    if (reason === null) return; // iptal
+    const trimmed = reason.trim();
+    if (!trimmed) { alert('Rapor sebebi boş olamaz.'); return; }
+    const res = await fetchOrSignin(`/api/items/${id}/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: trimmed })
+    });
     if (!res) return;
     const j = await res.json().catch(() => null);
     if (j?.ok) alert(`Report alındı (${j.count})`);
