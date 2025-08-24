@@ -1,21 +1,24 @@
   'use client';
   // --- PAYLAŞIM YARDIMCILARI ---
+  
 function buildShareUrl(id: string) {
   return `${window.location.origin}/share/${id}`;
 }
+// en üstte
 async function copyShareLink(id: string) {
   const url = buildShareUrl(id);
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(url);
-      alert('Bağlantı kopyalandı');
     } else {
       const ta = document.createElement('textarea');
       ta.value = url; document.body.appendChild(ta); ta.select();
       document.execCommand('copy'); document.body.removeChild(ta);
-      alert('Bağlantı kopyalandı');
     }
-  } catch {}
+    return true;
+  } catch {
+    return false;
+  }
 }
 async function nativeShare(id: string, name: string) {
   const url = buildShareUrl(id);
@@ -124,6 +127,21 @@ export default function HomePage() {
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [openShare, setOpenShare] = useState<string | null>(null);
+  // state’lerin arasına ekle (openShare’in hemen altı mantıklı)
+const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+
+const handleCopyShare = async (id: string) => {
+  const ok = await copyShareLink(id);
+  if (ok) {
+    setCopiedShareId(id);
+    setTimeout(() => setCopiedShareId(null), 1600);
+  }
+};
+
+// share menü kapanınca “Kopyalandı!” yazısını sıfırla
+useEffect(() => {
+  if (!openShare) setCopiedShareId(null);
+}, [openShare]);
   const [quickRating, setQuickRating] = useState(5);
   const [justAdded, setJustAdded] = useState(false);
   const [pulseQuick, setPulseQuick] = useState(false);
@@ -1104,25 +1122,6 @@ if (!already) {
         max-width: 100% !important;
       }
     }
-    /* === Popover alignment (share/options) === */
-    .rs-pop-wrapper { position: relative; }
-    .rs-pop-menu {
-      position: absolute;
-      inset-inline-end: 0;   /* right in LTR, left in RTL */
-      top: 2.5rem;           /* opens below the button */
-      min-width: 12rem;
-      white-space: nowrap;
-      z-index: 50;
-      max-width: calc(100vw - 1rem);  /* never overflow viewport on mobile */
-    }
-    @media (min-width: 768px) {
-      .rs-pop-menu {
-        top: 2.5rem;         /* keep below button on desktop too (stable) */
-        inset-inline-end: 0;
-      }
-    }
-    /* Buttons must not shrink in narrow columns */
-    .rs-pop-btn { flex-shrink: 0; }
       `}
       </style>
       
@@ -1493,15 +1492,12 @@ if (!already) {
       </svg>
     </button>
     {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2 items-end">
-      <div className="rs-pop-wrapper">
+    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
+      <div className="relative">
         <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0 rs-pop-btn"
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
           aria-label="share"
-          onClick={() => {
-            setOpenShare(openShare === sharedItem.id ? null : sharedItem.id);
-            setOpenMenu(null); // options'ı kapat
-          }}
+          onClick={() => setOpenShare(openShare === sharedItem.id ? null : sharedItem.id)}
         >
           {/* share icon */}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1511,13 +1507,13 @@ if (!already) {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop-menu w-auto rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
-            >
-              Kopyala
-            </button>
+  className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+  onClick={() => handleCopyShare(sharedItem.id)}
+>
+  {copiedShareId === sharedItem.id ? 'Kopyalandı!' : 'Kopyala'}
+</button>
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
@@ -1527,19 +1523,16 @@ if (!already) {
           </div>
         )}
       </div>
-      <div className="rs-pop-wrapper">
+      <div className="relative">
         <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0 rs-pop-btn"
-          onClick={() => {
-            setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id);
-            setOpenShare(null); // share'i kapat
-          }}
+          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+          onClick={() => setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id)}
           aria-label="options"
         >
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop-menu w-auto rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
             {amAdmin && (
               <>
                 <button
@@ -2247,12 +2240,9 @@ if (!already) {
                     {/* Share button + popover */}
                     <div className="relative">
                       <button
-                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/8 shrink-0"
+                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
                         aria-label="share"
-                       onClick={() => {
-  setOpenShare(openShare === i.id ? null : i.id);
-  setOpenMenu(null);
-}}
+                        onClick={() => setOpenShare(openShare === i.id ? null : i.id)}
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                           <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -2261,13 +2251,13 @@ if (!already) {
                         </svg>
                       </button>
                       {openShare === i.id && (
-                       <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
-                          <button
-                            className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-                            onClick={() => { copyShareLink(i.id); setOpenShare(null); }}
-                          >
-                            Kopyala
-                          </button>
+                        <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+                         <button
+  className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+  onClick={() => handleCopyShare(i.id)}
+>
+  {copiedShareId === i.id ? 'Kopyalandı!' : 'Kopyala'}
+</button>
                           <button
                             className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={() => { nativeShare(i.id, i.name); setOpenShare(null); }}
@@ -2281,17 +2271,14 @@ if (!already) {
                     {/* Options button + menu */}
                     <div className="relative">
                       <button
-                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 shrink-0"
-                       onClick={() => {
-  setOpenMenu(openMenu === i.id ? null : i.id);
-  setOpenShare(null);
-}}
+                        className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+                        onClick={() => setOpenMenu(openMenu === i.id ? null : i.id)}
                         aria-label="options"
                       >
                         ⋯
                       </button>
                     {openMenu === i.id && (
-                     <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+                      <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
                         {amAdmin && (
                           <>
                             <button
