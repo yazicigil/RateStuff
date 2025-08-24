@@ -1,7 +1,14 @@
-// app/share/[id]/page.tsx
 import type { Metadata } from "next";
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
+// app/share/[id]/page.tsx
 import { headers } from "next/headers";
 import SeoLD from "@/components/SeoLD";
+
+const SITE_DESC =
+  (process.env.NEXT_PUBLIC_SITE_DESC && process.env.NEXT_PUBLIC_SITE_DESC.trim()) ||
+  "RateStuff: Her şeyi puanla ve yorumla.";
 
 type Props = { params: { id: string } };
 
@@ -86,12 +93,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   // Başlık / açıklama
-  const title = it?.name ? `${it.name} — RateStuff` : "RateStuff";
+  const itemName = typeof it?.name === "string" && it.name.trim() ? it.name.trim() : "Bu içerik";
+  const title = `${itemName} yorumları & puanları | RateStuff`;
+  const hasAvg = typeof it?.avg === "number";
+  const avgTxt = hasAvg ? `ortalama ${Number(it.avg).toFixed(2)} ⭐. ` : "";
   const desc =
-    it?.description ??
-    (typeof it?.avg === "number"
-      ? `Ortalama ${Number(it.avg).toFixed(2)} ⭐`
-      : "RateStuff’ta keşfet");
+    `${itemName} nasıl? ` +
+    `${itemName} yorumları & puanları: ${avgTxt}` +
+    `Gerçek kullanıcı deneyimlerini oku; şimdi sen de yorum yap ve puan ver.`;
 
   // 1) item görselini kullan; absolute yap
   const raw = pickThumb(it);
@@ -157,11 +166,10 @@ export default async function ShareRedirectPage({ params }: Props) {
 
   const itemLD: Record<string, any> = {
     "@context": "https://schema.org",
-    "@type": "CreativeWork",
+    "@type": "Product",
     name: it?.name || "RateStuff içeriği",
     description: it?.description || undefined,
     url: `${base}/share/${params.id}`,
-    mainEntityOfPage: `${base}/share/${params.id}`,
     image: absImg,
   };
   if (ratingValue && ratingCount) {
@@ -171,11 +179,52 @@ export default async function ShareRedirectPage({ params }: Props) {
       ratingCount,
     };
   }
+  // Reviews (if comments array is present and has text/rating)
+  if (Array.isArray(it?.comments) && it.comments.length) {
+    itemLD.review = it.comments
+      .filter((c: any) => typeof c?.text === "string" && c.text.trim())
+      .slice(0, 5)
+      .map((c: any) => {
+        const authorName =
+          (c?.user && (c.user.maskedName || c.user.name)) || "Kullanıcı";
+        const rValue =
+          typeof c?.rating === "number" ? Math.max(0, Math.min(5, c.rating)) : undefined;
+        return {
+          "@type": "Review",
+          author: { "@type": "Person", name: authorName },
+          reviewBody: c.text.trim(),
+          datePublished: c?.createdAt || undefined,
+          reviewRating: rValue != null ? { "@type": "Rating", ratingValue: rValue, bestRating: 5, worstRating: 0 } : undefined,
+        };
+      });
+  }
+
+  const qName = (it?.name && String(it.name).trim()) || "Bu içerik";
+  const q = `${qName} nasıl?`;
+
+  const answerParts: string[] = [];
+  if (ratingValue) {
+    answerParts.push(`${qName} kullanıcıları ortalama ${ratingValue.toFixed(2)} ⭐ verdi${ratingCount ? ` (${ratingCount} oy).` : "."}`);
+  }
+  answerParts.push("Gerçek kullanıcı yorumlarını oku; kendi deneyimini paylaş.");
+
+  const faqLD: Record<string, any> = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: answerParts.join(" ") },
+      },
+    ],
+  };
 
   return (
     <main className="min-h-screen grid place-items-center p-6">
       {/* SEO: JSON-LD for item (server-rendered) */}
       <SeoLD json={itemLD} />
+      <SeoLD json={faqLD} />
 
       {/* Server-rendered preview so crawlers see content */}
       <article className="max-w-[720px] text-center">

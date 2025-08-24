@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   description:
     "RateStuff ile istediğin her şeyi ekle, puanla ve yorumla. Trendleri keşfet, kendi listeni oluştur.",
   applicationName: "RateStuff",
-  alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
     url: SITE_URL,
@@ -64,12 +63,25 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "RateStuff",
+    alternateName: ["Rate Stuff"],
     url: SITE_URL,
     logo: `${SITE_URL}/android-chrome-512x512.png`,
     sameAs: [
       "https://twitter.com/ratestuffnet",
       "https://www.instagram.com/ratestuffnet"
     ],
+  };
+  const websiteLD = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "RateStuff",
+    alternateName: ["Rate Stuff"],
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/?q={search_term_string}`,
+      "query-input": "required name=search_term_string"
+    }
   };
   return (
     <html lang="tr" suppressHydrationWarning>
@@ -80,6 +92,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(orgLD) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLD) }}
         />
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
