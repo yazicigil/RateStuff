@@ -1079,9 +1079,9 @@ if (!already) {
         @media (prefers-reduced-motion: reduce) {
           .animate-slideInFromLeft, .animate-slideInFromRight { animation-duration: .01ms; animation-iteration-count: 1; }
         }
-          .title-wrap {
-  word-break: break-word;
-  overflow-wrap: break-word;
+         .title-wrap {
+  word-break: normal;       /* kelimeyi zorla bölme */
+  overflow-wrap: anywhere;  /* gerekirse uygun yerde böl */
   hyphens: auto;
 }
 @media (min-width: 768px) {
@@ -1130,6 +1130,13 @@ if (!already) {
         max-width: 100% !important;
       }
     }
+      /* Tablet (md) aralığında kartların aşırı daralmasını engelle */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* item kartlarını taşıyan grid kapsayıcısına rs-grid sınıfı ekleyeceğiz */
+  .rs-mobile-edge .rs-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+  }
+}
       `}
       </style>
       
@@ -1478,9 +1485,9 @@ if (!already) {
           {!showQuickAdd && sharedItem && (
   <div
     ref={spotlightRef}
-    className={
-      `scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
-    }
+   className={
+  `scroll-mt-24 relative rounded-2xl border px-4 md:px-6 lg:px-12 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 max-w-full overflow-x-hidden`
+}
   >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
@@ -1674,10 +1681,10 @@ if (!already) {
     width={112}
     height={112}
     decoding="async"
-    loading="eager"
+    loading="eager" 
     // @ts-ignore - experimental
     fetchPriority="high"
-    className="w-28 h-28 object-cover rounded-lg"
+    className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg" 
     style={{ contentVisibility: 'auto' }}
   />
   {sharedItem.edited && (
@@ -2244,7 +2251,7 @@ if (!already) {
 
 
           {/* KART IZGARASI */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 rs-grid">
             {/* + EKLE KARTI (her zaman en başta) */}
             <button
               type="button"
