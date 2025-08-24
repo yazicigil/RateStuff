@@ -1485,9 +1485,9 @@ if (!already) {
           {!showQuickAdd && sharedItem && (
   <div
     ref={spotlightRef}
-   className={
-  `scroll-mt-24 relative rounded-2xl border px-4 md:px-6 lg:px-12 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 max-w-full overflow-x-hidden`
-}
+    className={
+      `scroll-mt-24 relative rounded-2xl border px-4 md:px-6 lg:px-12 py-4 md:py-6 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 max-w-full overflow-x-hidden`
+    }
   >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
@@ -1643,7 +1643,7 @@ if (!already) {
     {(currentIndex >= 0) && (
       <>
         <button
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
           onClick={() => openByDelta(-1)}
           disabled={currentIndex <= 0}
           aria-label="Önceki öğe"
@@ -1654,7 +1654,7 @@ if (!already) {
           </svg>
         </button>
         <button
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
           onClick={() => openByDelta(1)}
           disabled={currentIndex === filteredItems.length - 1}
           aria-label="Sonraki öğe"
@@ -1674,8 +1674,8 @@ if (!already) {
       style={{ willChange: 'transform' }}
     >
       {/* Safe side gutters for arrows */}
-      <div className="px-6 md:px-8 lg:px-12">
-      <div className="flex items-start gap-4 md:gap-5 mt-2">
+      <div className="px-6 md:px-8 lg:px-12 pt-8 md:pt-6 pb-6">
+      <div className="flex items-start gap-5 md:gap-6">
     <div className="flex flex-col items-center shrink-0 w-24 md:w-28">
   <img
     src={sharedItem.imageUrl || '/default-item.svg'}
@@ -1696,14 +1696,14 @@ if (!already) {
 
       <div className="flex-1 min-w-0">
       <h3
-        className="text-base md:text-lg font-semibold leading-snug mt-1 pr-16 md:pr-24 title-wrap md-clamp2"
+        className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2 mb-1.5"
         title={sharedItem.name}
         lang="tr"
       >
         {sharedItem.name}
       </h3>
 
-        <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
+        <p className="text-sm opacity-80 mt-2 break-words">{sharedItem.description}</p>
 
         {sharedItem.createdBy && (
           <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
@@ -1748,7 +1748,7 @@ if (!already) {
     </div>
 
     {sharedItem.tags?.length > 0 && (
-      <div className="mt-2 pt-2 border-t dark:border-gray-800">
+      <div className="mt-3 pt-3 border-t dark:border-gray-800">
         <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
           {sharedItem.tags.slice(0, 10).map((t) => (
             <Tag key={t} label={t} className="ml-0 inline-flex" />
@@ -1757,7 +1757,7 @@ if (!already) {
       </div>
     )}
 
-    {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
+    {sharedItem.comments?.length > 0 && <div className="mt-4 border-t dark:border-gray-800" />}
 
       {sharedItem.comments?.length > 0 && (
   (() => {
