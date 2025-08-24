@@ -1486,7 +1486,7 @@ if (!already) {
   <div
     ref={spotlightRef}
     className={
-      `scroll-mt-24 relative rounded-2xl border px-4 md:px-6 lg:px-12 py-4 md:py-6 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 max-w-full overflow-x-hidden`
+      `scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
     }
   >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
@@ -1643,7 +1643,7 @@ if (!already) {
     {(currentIndex >= 0) && (
       <>
         <button
-          className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
           onClick={() => openByDelta(-1)}
           disabled={currentIndex <= 0}
           aria-label="Önceki öğe"
@@ -1654,7 +1654,7 @@ if (!already) {
           </svg>
         </button>
         <button
-          className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
           onClick={() => openByDelta(1)}
           disabled={currentIndex === filteredItems.length - 1}
           aria-label="Sonraki öğe"
@@ -1673,82 +1673,72 @@ if (!already) {
       className={animArmed ? (navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : '') : ''}
       style={{ willChange: 'transform' }}
     >
-      {/* Safe side gutters for arrows */}
-      <div className="px-6 md:px-8 lg:px-12 pt-8 md:pt-6 pb-6">
-      <div className="flex items-start gap-5 md:gap-6">
-    <div className="flex flex-col items-center shrink-0 w-24 md:w-28">
-  <img
-    src={sharedItem.imageUrl || '/default-item.svg'}
-    alt={sharedItem.name || 'item'}
-    width={112}
-    height={112}
-    decoding="async"
-    loading="eager" 
-    // @ts-ignore - experimental
-    fetchPriority="high"
-    className="w-24 h-24 md:w-28 md:h-28 object-cover rounded-lg"
-    style={{ contentVisibility: 'auto' }}
-  />
-  {sharedItem.edited && (
-    <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
-  )}
-</div>
-
-      <div className="flex-1 min-w-0">
-      <h3
-        className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2 mb-1.5"
-        title={sharedItem.name}
-        lang="tr"
-      >
-        {sharedItem.name}
-      </h3>
-
-        <p className="text-sm opacity-80 mt-2 break-words">{sharedItem.description}</p>
-
-        {sharedItem.createdBy && (
-          <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-            {sharedItem.createdBy.avatarUrl ? (
-              <img
-                src={sharedItem.createdBy.avatarUrl}
-                alt={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-                className="w-5 h-5 rounded-full object-cover"
-                title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-              />
-            ) : (
-              <div
-                className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]"
-                title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-              >
-                {( ((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
-              </div>
-            )}
-            <span>
-              {(sharedItem.createdBy as any)?.verified ? (sharedItem.createdBy.name || 'Anonim') : maskName(sharedItem.createdBy.name)}
-            </span>
-            {(sharedItem.createdBy as any).verified && (
-              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-          </div>
-        )}
-
-        {/* Tek satır: Ortalama yıldızlar + adet (ufak pill) */}
-        <div className="mt-2 flex items-center gap-2 flex-wrap">
-          {/* Ortalama yıldızlar (display only) */}
-          <Stars rating={sharedItem.avgRating ?? sharedItem.avg ?? 0} readOnly />
-         <RatingPill avg={sharedItem.avgRating ?? sharedItem.avg} count={sharedItem.count} />
+      <div className="flex items-start gap-3">
+        <div className="flex flex-col items-center shrink-0 w-28">
+          <img
+            src={sharedItem.imageUrl || '/default-item.svg'}
+            alt={sharedItem.name || 'item'}
+            width={112}
+            height={112}
+            decoding="async"
+            loading="eager" 
+            // @ts-ignore - experimental
+            fetchPriority="high"
+            className="w-28 h-28 object-cover rounded-lg"
+            style={{ contentVisibility: 'auto' }}
+          />
+          {sharedItem.edited && (
+            <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+          )}
         </div>
-
-        
+        <div className="flex-1 min-w-0">
+          <h3
+            className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2"
+            title={sharedItem.name}
+            lang="tr"
+          >
+            {sharedItem.name}
+          </h3>
+          <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
+          {sharedItem.createdBy && (
+            <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+              {sharedItem.createdBy.avatarUrl ? (
+                <img
+                  src={sharedItem.createdBy.avatarUrl}
+                  alt={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+                  className="w-5 h-5 rounded-full object-cover"
+                  title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+                />
+              ) : (
+                <div
+                  className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]"
+                  title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
+                >
+                  {( ((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span>
+                {(sharedItem.createdBy as any)?.verified ? (sharedItem.createdBy.name || 'Anonim') : maskName(sharedItem.createdBy.name)}
+              </span>
+              {(sharedItem.createdBy as any).verified && (
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                  <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                  <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+          )}
+          {/* Tek satır: Ortalama yıldızlar + adet (ufak pill) */}
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            {/* Ortalama yıldızlar (display only) */}
+            <Stars rating={sharedItem.avgRating ?? sharedItem.avg ?? 0} readOnly />
+            <RatingPill avg={sharedItem.avgRating ?? sharedItem.avg} count={sharedItem.count} />
+          </div>
+        </div>
       </div>
-    </div>
-    {/* Close px gutter wrapper */}
-    </div>
 
     {sharedItem.tags?.length > 0 && (
-      <div className="mt-3 pt-3 border-t dark:border-gray-800">
+      <div className="mt-2 pt-2 border-t dark:border-gray-800">
         <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
           {sharedItem.tags.slice(0, 10).map((t) => (
             <Tag key={t} label={t} className="ml-0 inline-flex" />
@@ -1757,7 +1747,7 @@ if (!already) {
       </div>
     )}
 
-    {sharedItem.comments?.length > 0 && <div className="mt-4 border-t dark:border-gray-800" />}
+    {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
 
       {sharedItem.comments?.length > 0 && (
   (() => {
