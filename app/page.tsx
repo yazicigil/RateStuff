@@ -1104,6 +1104,19 @@ if (!already) {
         max-width: 100% !important;
       }
     }
+      /* === Mobile popover fixes for share/options (menus should not squeeze/overlap) === */
+      @media (max-width: 767px) {
+        /* Any popover opened from a button wrapper (.rs-pop) */
+        .rs-pop .rs-pop {
+          right: 0 !important;          /* stick to right edge of its containing card */
+          left: auto !important;
+          top: 2.5rem !important;        /* open below the button */
+          min-width: 12rem;              /* avoid squeezing */
+          white-space: nowrap;           /* keep labels on one line */
+          z-index: 50;                   /* above shadows */
+        }
+        .rs-pop .rs-pop > * { display: block; }
+      }
       `}
       </style>
       
@@ -1491,7 +1504,7 @@ onClick={() => {
           </svg>
         </button>
         {openShare === sharedItem.id && (
-         <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+         <div className="rs-pop absolute right-0 top-10 md:right-10 md:top-0 z-50 w-auto min-w-[11rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
               onClick={() => { copyShareLink(sharedItem.id); setOpenShare(null); }}
@@ -1518,7 +1531,7 @@ onClick={() => {
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-3 md:right-10 top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
+          <div className="rs-pop absolute right-0 top-10 md:right-10 md:top-0 z-50 w-auto min-w-[14rem] whitespace-nowrap rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 text-left">
             {amAdmin && (
               <>
                 <button
