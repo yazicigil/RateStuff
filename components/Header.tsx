@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
@@ -123,6 +124,7 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemePref>('system');
+  const router = useRouter();
 
   // suggestions dropdown open/close control (closes on outside click)
   const [suggOpen, setSuggOpen] = useState(false);
@@ -420,10 +422,12 @@ function currentHashChunk(q: string) {
 
             {me && (
               <>
-                <Link
-                  href="/me"
+                <button
+                  onClick={() => router.push('/me')}
+                  type="button"
                   className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
                   title="Profilim"
+                  aria-label="Profilim"
                 >
                   {me.avatarUrl ? (
                     <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
@@ -436,7 +440,7 @@ function currentHashChunk(q: string) {
                     {me.name ?? 'Ben'}
                     {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
                   </span>
-                </Link>
+                </button>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
@@ -653,10 +657,12 @@ function currentHashChunk(q: string) {
 
           {me && (
             <>
-              <Link
-                href="/me"
+              <button
+                onClick={() => router.push('/me')}
+                type="button"
                 className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
                 title="Profilim"
+                aria-label="Profilim"
               >
                 {me.avatarUrl ? (
                   <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
@@ -669,7 +675,7 @@ function currentHashChunk(q: string) {
                   {me.name ?? 'Ben'}
                   {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
                 </span>
-              </Link>
+              </button>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
