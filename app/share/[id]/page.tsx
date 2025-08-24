@@ -1,7 +1,4 @@
 import type { Metadata } from "next";
-export const metadata: Metadata = {
-  robots: { index: false, follow: true },
-};
 // app/share/[id]/page.tsx
 import { headers } from "next/headers";
 import SeoLD from "@/components/SeoLD";
