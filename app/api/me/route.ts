@@ -60,24 +60,68 @@ export async function GET(req: Request) {
     const comments = commentsRes.status === "fulfilled" ? commentsRes.value : [];
     const saved    = savedRes.status === "fulfilled" ? savedRes.value : [];
 
+    // ---- Aggregate ratings + comment.ratings for all relevant itemIds (items I created + saved items) ----
+    const idsFromItems = Array.isArray(items) ? items.map((i: any) => i.id).filter(Boolean) : [];
+    const idsFromSaved = Array.isArray(saved) ? saved.map((s: any) => s?.item?.id).filter(Boolean) : [];
+    const uniqueIds = Array.from(new Set<string>([...idsFromItems, ...idsFromSaved]));
+  
+    // default empty maps to avoid undefined checks later
+    const rMap = new Map<string, { sum: number; count: number }>();
+    const cMap = new Map<string, { sum: number; count: number }>();
+  
+    if (uniqueIds.length) {
+      // Ratings aggregation (all users)
+      const rAgg = await prisma.rating.groupBy({
+        by: ['itemId'],
+        where: { itemId: { in: uniqueIds } },
+        _sum: { value: true },
+        _count: { _all: true },
+      });
+      for (const r of rAgg) {
+        rMap.set(r.itemId, { sum: r._sum.value ?? 0, count: r._count._all ?? 0 });
+      }
+  
+      // Comment ratings aggregation (only comments with rating > 0, all users)
+      const cAgg = await prisma.comment.groupBy({
+        by: ['itemId'],
+        where: { itemId: { in: uniqueIds }, rating: { gt: 0 } },
+        _sum: { rating: true },
+        _count: { _all: true },
+      });
+      for (const c of cAgg) {
+        cMap.set(c.itemId, { sum: c._sum.rating ?? 0, count: c._count._all ?? 0 });
+      }
+    }
+  
+    function getAggFor(id: string) {
+      const r = rMap.get(id) ?? { sum: 0, count: 0 };
+      const c = cMap.get(id) ?? { sum: 0, count: 0 };
+      const sum = (r.sum || 0) + (c.sum || 0);
+      const count = (r.count || 0) + (c.count || 0);
+      const avgRating = count ? sum / count : null;
+      return { avgRating, count };
+    }
+
     const shapeItem = (i: any) => {
-      const count = i.ratings?.length ?? 0;
-      const avg = count ? i.ratings.reduce((a: number, r: any) => a + r.value, 0) / count : null;
+      const { avgRating, count } = getAggFor(i.id);
       const edited =
         i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
-
+  
       const tags = Array.isArray(i.tags)
         ? i.tags
             .map((t: any) => t?.tag?.name ?? t?.name)
             .filter((x: any) => typeof x === "string" && x.length > 0)
         : undefined;
-
+  
       return {
         id: i.id,
         name: i.name,
         description: i.description,
         imageUrl: i.imageUrl,
-        avg,
+        // keep `avg` for backward-compat; prefer `avgRating` on the client (avg = avgRating)
+        avg: avgRating,
+        avgRating,
+        count,
         edited,
         ...(tags ? { tags } : {}),
       };
