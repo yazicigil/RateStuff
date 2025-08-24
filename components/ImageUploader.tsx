@@ -15,6 +15,49 @@ type Props = {
   className?: string;
 };
 
+// Bazı formatlar (HEIC/HEIF) tarayıcıda decode edilemeyebilir.
+// Bu durumda client-side küçültme atlanır, sunucu optimize eder.
+function canCanvasDecode(type: string) {
+  return /image\/(png|jpe?g|webp|gif|avif)/i.test(type);
+}
+
+async function downscaleIfNeeded(file: File, maxW = 1600): Promise<File> {
+  if (!canCanvasDecode(file.type)) return file;
+
+  const img = document.createElement('img');
+  img.decoding = 'async';
+  img.loading = 'eager';
+  img.src = URL.createObjectURL(file);
+  await new Promise((res, rej) => {
+    img.onload = () => res(null);
+    img.onerror = () => rej(new Error('decode-failed'));
+  });
+
+  const scale = Math.min(1, maxW / (img.naturalWidth || maxW));
+  if (scale === 1) {
+    URL.revokeObjectURL(img.src);
+    return file;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round((img.naturalWidth || maxW) * scale);
+  canvas.height = Math.round((img.naturalHeight || maxW) * scale);
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  const blob = await new Promise<Blob>((res, rej) =>
+    canvas.toBlob(
+      (b) => (b ? res(b) : rej(new Error('toBlob-failed'))),
+      'image/jpeg',
+      0.82
+    )
+  );
+
+  URL.revokeObjectURL(img.src);
+  const name = file.name.replace(/\.\w+$/, '') + '.jpg';
+  return new File([blob], name, { type: 'image/jpeg' });
+}
+
 export default function ImageUploader({
   name,
   value,
@@ -46,8 +89,17 @@ export default function ImageUploader({
       return;
     }
 
+    // İstemci tarafı downscale (opsiyonel hızlandırma)
+    let toSend = file;
+    try {
+      toSend = await downscaleIfNeeded(file, 1600);
+    } catch {
+      // sessizce geç: sunucu optimize edecek
+      toSend = file;
+    }
+
     const fd = new FormData();
-    fd.append('file', file);
+    fd.append('file', toSend);
 
     setUploading(true);
     try {
@@ -83,6 +135,8 @@ export default function ImageUploader({
             src={url}
             alt="preview"
             className="w-16 h-16 rounded object-cover border dark:border-gray-700"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-16 h-16 rounded border dark:border-gray-700 grid place-items-center text-xs opacity-60">
