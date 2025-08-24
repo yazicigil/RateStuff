@@ -420,23 +420,22 @@ function currentHashChunk(q: string) {
 
             {me && (
               <>
-                <Link href="/me" legacyBehavior>
-                  <a
-                    className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
-                    title="Profilim"
-                  >
-                    {me.avatarUrl ? (
-                      <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                        {(me.name ?? 'U')[0]?.toUpperCase()}
-                      </div>
-                    )}
-                    <span className="hidden sm:flex items-center gap-1">
-                      {me.name ?? 'Ben'}
-                      {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                    </span>
-                  </a>
+                <Link
+                  href="/me"
+                  className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
+                  title="Profilim"
+                >
+                  {me.avatarUrl ? (
+                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+                      {(me.name ?? 'U')[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span className="hidden sm:flex items-center gap-1">
+                    {me.name ?? 'Ben'}
+                    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+                  </span>
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
@@ -654,23 +653,22 @@ function currentHashChunk(q: string) {
 
           {me && (
             <>
-              <Link href="/me" legacyBehavior>
-                <a
-                  className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
-                  title="Profilim"
-                >
-                  {me.avatarUrl ? (
-                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                      {(me.name ?? 'U')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden sm:flex items-center gap-1">
-                    {me.name ?? 'Ben'}
-                    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                  </span>
-                </a>
+              <Link
+                href="/me"
+                className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
+                title="Profilim"
+              >
+                {me.avatarUrl ? (
+                  <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+                    {(me.name ?? 'U')[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden sm:flex items-center gap-1">
+                  {me.name ?? 'Ben'}
+                  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+                </span>
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
