@@ -5,6 +5,24 @@ import type { Metadata } from "next";
 import Providers from "@/components/Providers";
 import { Analytics } from '@vercel/analytics/react';
 
+// --- Theme: pre-hydration guard (prevents light flash / resets on refresh) ---
+const THEME_STORAGE_KEYS = ["rs-theme", "theme", "ratestuff-theme"] as const;
+const THEME_INIT_SCRIPT = `(() => {
+  try {
+    // read saved theme from a list of possible keys (first non-empty wins)
+    let saved = null;
+    for (const k of ${JSON.stringify(["rs-theme","theme","ratestuff-theme"])}) {
+      const v = localStorage.getItem(k);
+      if (v && typeof v === 'string') { saved = v; break; }
+    }
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = (saved === 'dark' || saved === 'light') ? saved : (prefersDark ? 'dark' : 'light');
+    const c = document.documentElement.classList;
+    if (theme === 'dark') c.add('dark'); else c.remove('dark');
+  } catch {}
+})();`;
+// --- end theme guard ---
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
@@ -86,6 +104,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" suppressHydrationWarning>
       <head>
+        {/* Theme pre-hydration guard */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         {/* Google AdSense */}
       <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6558549333507218"
      crossOrigin="anonymous"></script>
