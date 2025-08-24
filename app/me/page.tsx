@@ -58,6 +58,7 @@ type MyItem = {
   avg: number | null;
   /** Ana sayfadaki mantıkla uyum için opsiyonel alan */
   avgRating?: number | null;
+  count?: number; // toplam değerlendirme adedi
   edited?: boolean;
   tags?: string[]; // saved filtre + kartlarda gösterim
 };
@@ -715,6 +716,7 @@ export default function MePage() {
                                   <span className="tabular-nums">
                                     {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
                                   </span>
+                                  <span className="opacity-60 tabular-nums">({it.count ?? 0})</span>
                                 </span>
                               </div>
 
@@ -1028,6 +1030,7 @@ function ItemEditor(props: {
               <span className="tabular-nums">
                 {(() => { const a = getAvg(it); return a != null ? Number(a).toFixed(2) : '—'; })()}
               </span>
+              <span className="opacity-60 tabular-nums">({it.count ?? 0})</span>
             </span>
 
             {it.edited && (
