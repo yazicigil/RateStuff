@@ -133,20 +133,6 @@ export default function Header({ controls }: { controls?: Controls }) {
   // Keyboard navigation for suggestions
   const [activeIdx, setActiveIdx] = useState<number>(-1);
   const suggListRef = useRef<HTMLUListElement|null>(null);
-  // hashtag composing (keeps text out of the input; renders as a pill)
-  const [compActive, setCompActive] = useState(false);
-  const [compTag, setCompTag] = useState<string>('');
-  // Local mirror for selected tag pills (keeps pills visible even if parent doesn't pass selectedTags)
-  // components/Header.tsx, Header() içinde
-const [localPills, setLocalPills] = useState<string[]>([]);
-const parentPills = Array.isArray(controls?.selectedTags) ? controls!.selectedTags! : [];
-const renderPills = Array.from(new Set<string>([...parentPills, ...localPills]));
-
-useEffect(() => {
-  if (Array.isArray(controls?.selectedTags)) {
-    setLocalPills(prev => Array.from(new Set([...prev, ...controls!.selectedTags!])));
-  }
-}, [controls?.selectedTags]);
 
   // keep local open state in sync with external showSuggestions (don't force-close)
   useEffect(() => {
@@ -187,108 +173,6 @@ useEffect(() => {
   }, [activeIdx]);
   // Shared search input keydown handler for suggestions navigation
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    // START a composing tag with '#'
-   if (e.key === '#') {
-  e.preventDefault();
-  setCompActive(true);
-  setCompTag((t) => t || '');
-  setSuggOpen(false); // hashtag modunda dropdown açma
-  return;
-}
-
-    // If we are composing a tag, swallow characters and build the pill
-    if (compActive) {
-      const allowed = /^[a-z0-9ğüşöçı\-\._]$/i;
-     if (e.key.length === 1 && allowed.test(e.key)) {
-  e.preventDefault();
-  setCompTag((t) => (t + e.key).toLowerCase());
-  setSuggOpen(false); // hashtag modunda dropdown kapalı
-  return;
-}
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-        setCompTag((t) => {
-          const next = t.slice(0, -1);
-          if (next.length === 0) setCompActive(false);
-          return next;
-        });
-        return;
-      }
-      // COMMIT current composing tag and keep typing another immediately with comma
-      if (e.key === ',') {
-        e.preventDefault();
-        const tag = normalizeTag(compTag);
-        if (tag) {
-          controls?.onClickTagMatch?.(tag);
-          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-        }
-        // continue composing a new tag (empty pill stays visible)
-        setCompTag('');
-        setCompActive(true);
-        setSuggOpen(false);
-        setActiveIdx(-1);
-        return;
-      }
-      // COMMIT and switch to free-text with SPACE (adds a space to input)
-      if (e.key === ' ') {
-        const tag = normalizeTag(compTag);
-        if (tag) {
-          controls?.onClickTagMatch?.(tag);
-          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-        }
-        setCompActive(false);
-        setCompTag('');
-        setSuggOpen(false); // do not show results on space
-        return; // do not preventDefault so space goes into the input
-      }
-      // COMMIT and run search with ENTER (do not clear q)
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const tag = normalizeTag(compTag);
-        if (tag) {
-          controls?.onClickTagMatch?.(tag);
-          setLocalPills((prev) => (prev.includes(tag) ? prev : [...prev, tag]));
-        }
-        setCompActive(false);
-        setCompTag('');
-        controls?.onCommit?.();
-        return;
-      }
-      // ESC cancels composing
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setCompActive(false);
-        setCompTag('');
-        setSuggOpen(false);
-        return;
-      }
-      // Let arrows/tab/home/end behave normally
-    }
-
-    // If not composing and caret is at the start of the input, Backspace should remove the last pill
-    if (!compActive && e.key === 'Backspace') {
-      const el = e.currentTarget as HTMLInputElement;
-      const selStart = (el.selectionStart ?? 0);
-      const selEnd = (el.selectionEnd ?? 0);
-      const atStart = selStart === 0 && selEnd === 0;
-      // When input is empty or caret is at the very start, delete the last pill
-      if (atStart || (controls?.q ?? '') === '') {
-        const pills = renderPills;
-        if (pills.length > 0) {
-          e.preventDefault();
-          const last = pills[pills.length - 1];
-          if (controls?.onClickTagRemove) {
-            controls.onClickTagRemove(last); // remove from parent filters
-          }
-          // always update local pills for instant UI feedback
-          setLocalPills(prev => prev.filter(x => x !== last));
-          // keep suggestions state as-is; focus remains in input
-          return;
-        }
-      }
-    }
-
-    // Suggestions keyboard navigation (when not composing)
     const len = controls?.suggestions?.length ?? 0;
     if (!len) {
       if (e.key === 'Enter') { e.preventDefault(); controls?.onCommit?.(); }
@@ -363,20 +247,6 @@ useEffect(() => {
       </>
     );
   };
-// Tag helpers
-// components/Header.tsx
-function normalizeTag(s: string) {
-  return (s || '')
-    .toLowerCase()
-    .replace(/#/g, '')          // <<< tüm # karakterlerini at
-    .replace(/\s+/g, '')
-    .replace(/[^a-z0-9ğüşöçı\-_.]/g, '');
-}
-function currentHashChunk(q: string) {
-  const parts = (q || '').split(',');
-  const last = (parts[parts.length - 1] || '').trim();
-  return last.startsWith('#') ? last : '';
-}
   return (
     <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
@@ -486,54 +356,20 @@ function currentHashChunk(q: string) {
           <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
             <div className="relative flex-1" ref={suggWrapRefDesktop}>
               {/* Faux input container: pills + text input */}
-              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/40 dark:bg-gray-900/30 backdrop-blur-sm border-white/60 dark:border-white/10 dark:text-gray-100">
-                {/* Selected tag pills (left-aligned) */}
-                {renderPills.map((t) => (
-                  <span
-                    key={'sel-' + t}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
-                    title={`#${t}`}
-                  >
-                    <span className="opacity-70">#</span>
-                    <span>{t}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-  if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
-  else setLocalPills(prev => prev.filter(x => x !== t));
-  // filtre değişikliğini hemen uygula
-  controls?.onCommit?.();
-}}
-                      className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
-                      aria-label={`#${t} filtresini kaldır`}
-                      title={`#${t} filtresini kaldır`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-                {/* Composing hashtag pill (until Enter/Comma) */}
-                {compActive && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
-                    <span className="opacity-70">#</span>
-                    <span className="truncate max-w-[10rem]">{compTag || '\u00A0'}</span>
-                  </span>
-                )}
+              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm border-gray-300 dark:border-gray-700 dark:text-gray-100">
                 {/* Real input */}
-               <input
-  onFocus={() => { /* focus'ta açma */ }}
-  value={controls.q}
-  onChange={(e) => {
-    const v = e.target.value;
-    controls.onQ(v);
-    // sadece hashtag HARİCİ metin yazarken aç
-    if (!compActive && v.trim().length > 0) setSuggOpen(true);
-    else if (!compActive) setSuggOpen(false);
-  }}
-  onKeyDown={handleSearchKeyDown}
-  placeholder="ara ( / )"
-  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
-/>
+                <input
+                  onFocus={() => { /* focus'ta açma */ }}
+                  value={controls.q}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    controls.onQ(v);
+                    setSuggOpen(v.trim().length > 0);
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="ara ( / )"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                />
               </div>
               {!!controls.q && (
                 <button
@@ -553,68 +389,46 @@ function currentHashChunk(q: string) {
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                   {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags) || compActive || (controls?.q || '').includes('#')) && (
-  (() => {
-    const pool = controls.tagMatches || [];
-    const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
-    // prefer composing text as needle; else derive from query
-    const chunk = currentHashChunk(controls?.q || '');
-    const typedNeedle = normalizeTag(chunk);
-    const needle = compActive ? normalizeTag(compTag) : typedNeedle;
-    const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
-    const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
-    // search pool = union of tagMatches + trending (homepage source parity)
-    const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
-    let filtered: string[] = [];
-    if (needle) {
-      filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash) {
-      // only `#` typed: show trending if present, else fall back to pool
-      filtered = (trendingSrc.length ? trendingSrc : searchPool).slice(0, 5);
-    } else {
-      filtered = searchPool.slice(0, 5);
-    }
-    // limit to max 5 tags always in this section
-    filtered = filtered.slice(0, 5);
-    const show = filtered.length > 0 || isOnlyHash || !!needle;
-    if (!show) return null;
-    return (
-      <>
-        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
-          İlgili Etiketler
-        </div>
-        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-          {filtered.map((t, i) => {
-            const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
-            const trendingClasses = isTrending
-              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
-              : '';
-            return (
-              <button
-                key={t + i}
-                type="button"
-                onClick={() => {
-                  setSuggOpen(false);
-                  controls.onClickTagMatch?.(t);
-                  setLocalPills((prev) => (prev.includes(t) ? prev : [...prev, t]));
-                }}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
-                title={`#${t}`}
-              >
-                <span className="opacity-70">#</span>
-                <span className="truncate max-w-[10rem]">{t}</span>
-              </button>
-            );
-          })}
-          {filtered.length === 0 && needle && (
-            <span className="text-xs opacity-70 px-2 py-1">#{needle}</span>
-          )}
-        </div>
-        <div className="h-px bg-gray-100 dark:bg-gray-800" />
-      </>
-    );
-  })()
-)}
+                   {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags)) && (
+                    (() => {
+                      const pool = controls.tagMatches || [];
+                      const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
+                      const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
+                      const filtered = searchPool.slice(0, 5);
+                      if (filtered.length === 0) return null;
+                      return (
+                        <>
+                          <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                            İlgili Etiketler
+                          </div>
+                          <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+                            {filtered.map((t, i) => {
+                              const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
+                              const trendingClasses = isTrending
+                                ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                                : '';
+                              return (
+                                <button
+                                  key={t + i}
+                                  type="button"
+                                  onClick={() => {
+                                    setSuggOpen(false);
+                                    controls.onClickTagMatch?.(t);
+                                  }}
+                                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                                  title={`#${t}`}
+                                >
+                                  <span className="opacity-70">#</span>
+                                  <span className="truncate max-w-[10rem]">{t}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="h-px bg-gray-100 dark:bg-gray-800" />
+                        </>
+                      );
+                    })()
+                  )}
                     <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
                       İlgili Sonuçlar
                     </div>
@@ -745,51 +559,19 @@ function currentHashChunk(q: string) {
         {controls && (
           <div className="md:hidden flex items-center gap-2">
             <div className="relative flex-1" ref={suggWrapRefMobile}>
-              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/40 dark:bg-gray-900/30 backdrop-blur-sm border-white/60 dark:border-white/10 dark:text-gray-100">
-                {renderPills.map((t) => (
-                  <span
-                    key={'m-sel-' + t}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200"
-                    title={`#${t}`}
-                  >
-                    <span className="opacity-70">#</span>
-                    <span>{t}</span>
-                    <button
-                      type="button"
-                     onClick={() => {
-  if (controls?.onClickTagRemove) controls.onClickTagRemove(t);
-  else setLocalPills(prev => prev.filter(x => x !== t));
-  // filtre değişikliğini hemen uygula
-  controls?.onCommit?.();
-}}
-                      className="ml-0.5 -mr-0.5 px-1 hover:opacity-80"
-                      aria-label={`#${t} filtresini kaldır`}
-                      title={`#${t} filtresini kaldır`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-                {compActive && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs border border-gray-300 text-gray-700 bg-transparent dark:border-gray-700 dark:text-gray-200">
-                    <span className="opacity-70">#</span>
-                    <span className="truncate max-w-[10rem]">{compTag || '\u00A0'}</span>
-                  </span>
-                )}
+              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm border-gray-300 dark:border-gray-700 dark:text-gray-100">
                 <input
-  onFocus={() => { /* focus'ta açma */ }}
-  value={controls.q}
-  onChange={(e) => {
-    const v = e.target.value;
-    controls.onQ(v);
-    // sadece hashtag HARİCİ metin yazarken aç
-    if (!compActive && v.trim().length > 0) setSuggOpen(true);
-    else if (!compActive) setSuggOpen(false);
-  }}
-  onKeyDown={handleSearchKeyDown}
-  placeholder="ara ( / )"
-  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
-/>
+                  onFocus={() => { /* focus'ta açma */ }}
+                  value={controls.q}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    controls.onQ(v);
+                    setSuggOpen(v.trim().length > 0);
+                  }}
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="ara ( / )"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                />
               </div>
               {!!controls.q && (
                 <button
@@ -809,65 +591,46 @@ function currentHashChunk(q: string) {
                   aria-label="İlgili Sonuçlar"
                 >
                   <div className="px-3 py-2 space-y-1">
-                    {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags) || compActive || (controls?.q || '').includes('#')) && (
-  (() => {
-    const pool = controls.tagMatches || [];
-    const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
-    // prefer composing text as needle; else derive from query
-    const chunk = currentHashChunk(controls?.q || '');
-    const typedNeedle = normalizeTag(chunk);
-    const needle = compActive ? normalizeTag(compTag) : typedNeedle;
-    const onlyHashInQ = ((controls?.q || '').trim().split(',').pop() || '').trim() === '#';
-    const isOnlyHash = compActive ? (compTag === '') : onlyHashInQ;
-    const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
-    let filtered: string[] = [];
-    if (needle) {
-      filtered = searchPool.filter(t => t.toLowerCase().includes(needle));
-    } else if (isOnlyHash) {
-      filtered = (trendingSrc.length ? trendingSrc : searchPool).slice(0, 5);
-    } else {
-      filtered = searchPool.slice(0, 5);
-    }
-    filtered = filtered.slice(0, 5);
-    const show = filtered.length > 0 || isOnlyHash || !!needle;
-    if (!show) return null;
-    return (
-      <>
-        <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
-          İlgili Etiketler
-        </div>
-        <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
-          {filtered.map((t, i) => {
-            const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
-            const trendingClasses = isTrending
-              ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
-              : '';
-            return (
-              <button
-                key={t + i}
-                type="button"
-                onClick={() => {
-                  setSuggOpen(false);
-                  controls.onClickTagMatch?.(t);
-                  setLocalPills((prev) => (prev.includes(t) ? prev : [...prev, t]));
-                }}
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
-                title={`#${t}`}
-              >
-                <span className="opacity-70">#</span>
-                <span className="truncate max-w-[10rem]">{t}</span>
-              </button>
-            );
-          })}
-          {filtered.length === 0 && needle && (
-            <span className="text-xs opacity-70 px-2 py-1">#{needle}</span>
-          )}
-        </div>
-        <div className="h-px bg-gray-100 dark:bg-gray-800" />
-      </>
-    );
-  })()
-)}
+                    {(Array.isArray(controls?.tagMatches) || Array.isArray(controls?.trendingTags)) && (
+                      (() => {
+                        const pool = controls.tagMatches || [];
+                        const trendingSrc = Array.isArray(controls?.trendingTags) ? controls!.trendingTags! : [];
+                        const searchPool = Array.from(new Set<string>([...pool, ...trendingSrc]));
+                        const filtered = searchPool.slice(0, 5);
+                        if (filtered.length === 0) return null;
+                        return (
+                          <>
+                            <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
+                              İlgili Etiketler
+                            </div>
+                            <div className="flex items-center gap-1.5 overflow-x-auto whitespace-nowrap pb-1 -mb-1 pr-1">
+                              {filtered.map((t, i) => {
+                                const isTrending = Array.isArray(controls?.trendingTags) && controls!.trendingTags!.includes(t);
+                                const trendingClasses = isTrending
+                                  ? 'bg-purple-100 border-purple-300 text-purple-900 dark:bg-purple-900/30 dark:border-purple-700 dark:text-purple-100'
+                                  : '';
+                                return (
+                                  <button
+                                    key={t + i}
+                                    type="button"
+                                    onClick={() => {
+                                      setSuggOpen(false);
+                                      controls.onClickTagMatch?.(t);
+                                    }}
+                                    className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs border bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-800/70 ${trendingClasses}`}
+                                    title={`#${t}`}
+                                  >
+                                    <span className="opacity-70">#</span>
+                                    <span className="truncate max-w-[10rem]">{t}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div className="h-px bg-gray-100 dark:bg-gray-800" />
+                          </>
+                        );
+                      })()
+                    )}
                     <div className="text-[11px] font-medium tracking-wide text-gray-500 dark:text-gray-400">
                       İlgili Sonuçlar
                     </div>
