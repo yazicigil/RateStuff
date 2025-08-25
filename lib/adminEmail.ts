@@ -1,7 +1,26 @@
 // lib/adminEmail.ts
 // Admin e-postaları için somut gönderici: önce RESEND, sonra SMTP (Nodemailer)
 
-const FROM = process.env.MAIL_FROM || 'RateStuff <admin@ratestuff.net>';
+// Parse MAIL_FROM reliably (supports "Name <addr>" and plain address)
+function parseFrom(raw?: string) {
+  const s = (raw || '').trim();
+  // Match optional name and <address>
+  const m = s.match(/^"?([^"<]*)"?\s*<\s*([^>]+)\s*>$/);
+  if (m) {
+    const name = (m[1] || '').trim() || undefined;
+    const address = (m[2] || '').trim();
+    return { name, address };
+  }
+  // Fallback: plain address (strip quotes/brackets)
+  const address = s.replace(/^['"<\s]+|['">\s]+$/g, '');
+  return { name: undefined as string | undefined, address };
+}
+
+const RAW_FROM = process.env.MAIL_FROM || 'RateStuff <admin@ratestuff.net>';
+const FROM_PARSED = parseFrom(RAW_FROM);
+const FROM_DISPLAY = FROM_PARSED.name
+  ? `${FROM_PARSED.name} <${FROM_PARSED.address}>`
+  : FROM_PARSED.address;
 
 export async function sendAdminEmail(to: string, subject: string, html: string) {
   // 1) RESEND (Edge ve Node'da çalışır)
@@ -12,10 +31,10 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
       // @ts-ignore
       const { Resend } = await import('resend');
       const resend = new Resend(resendKey);
-      const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
+      const { data, error } = await resend.emails.send({ from: FROM_DISPLAY, to, subject, html });
 if (error) throw error;
 if (process.env.MAIL_DEBUG === '1') {
-  console.log('[adminEmail][resend] ok', { from: FROM, to });
+  console.log('[adminEmail][resend] ok', { from: FROM_DISPLAY, to });
 }
 return data;
     } catch (e: unknown) {
@@ -48,9 +67,16 @@ return data;
       // bağlantı doğrulaması
       await transporter.verify();
 
-      const info = await transporter.sendMail({ from: FROM, to, subject, html });
+      const info = await transporter.sendMail({
+  from: { name: FROM_PARSED.name, address: FROM_PARSED.address },
+  to,
+  subject,
+  html,
+  // Ensure clean SMTP envelope (MAIL FROM / RCPT TO)
+  envelope: { from: FROM_PARSED.address, to },
+});
       if (process.env.MAIL_DEBUG === '1') {
-        console.log('[adminEmail][smtp] ok', { host: process.env.SMTP_HOST, port, from: FROM, to });
+        console.log('[adminEmail][smtp] ok', { host: process.env.SMTP_HOST, port, from: FROM_PARSED.address, to });
       }
       return info;
    } catch (e: unknown) {
@@ -59,7 +85,7 @@ return data;
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
     user: process.env.SMTP_USER,
-    from: FROM,
+    from: FROM_PARSED.address,
     msg,
   });
   throw e;
