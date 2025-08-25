@@ -52,6 +52,7 @@ export async function GET(req: Request) {
               createdAt: true,
               ratings: { select: { value: true } },
               tags: { include: { tag: true } },
+              createdBy: { select: { id: true, name: true, avatarUrl: true } },
             },
           },
         },
@@ -140,6 +141,15 @@ export async function GET(req: Request) {
         count,
         edited,
         ...(tags ? { tags } : {}),
+        ...(i?.createdBy ? {
+          createdBy: {
+            id: i.createdBy.id,
+            name: i.createdBy.name ?? null,
+            avatarUrl: i.createdBy.avatarUrl ?? null,
+          },
+          createdByName: i.createdBy.name ?? null,
+          createdByAvatarUrl: i.createdBy.avatarUrl ?? null,
+        } : {}),
       };
     };
 
