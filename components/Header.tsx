@@ -320,29 +320,12 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
+                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
                   title="Çıkış yap"
                   aria-label="Çıkış yap"
                   type="button"
                 >
-                  {/* logout icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="w-5 h-5 text-red-600 dark:text-red-500"
-                    aria-hidden="true"
-                  >
-                    {/* Box (app window) outline */}
-                    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" />
-                    {/* Arrow to the RIGHT */}
-                    <path d="M14 16l4-4-4-4" fill="none" stroke="currentColor" />
-                    <line x1="8" y1="12" x2="20" y2="12" stroke="currentColor" />
-                  </svg>
+                  Çıkış
                 </button>
               </>
             )}
@@ -524,28 +507,12 @@ export default function Header({ controls }: { controls?: Controls }) {
               </button>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
+                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
                 title="Çıkış yap"
                 aria-label="Çıkış yap"
                 type="button"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-5 h-5 text-red-600 dark:text-red-500"
-                  aria-hidden="true"
-                >
-                  {/* Box (app window) outline */}
-                  <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" />
-                  {/* Arrow to the RIGHT */}
-                  <path d="M14 16l4-4-4-4" fill="none" stroke="currentColor" />
-                  <line x1="8" y1="12" x2="20" y2="12" stroke="currentColor" />
-                </svg>
+                Çıkış
               </button>
             </>
           )}
