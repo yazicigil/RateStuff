@@ -33,6 +33,7 @@ async function nativeShare(id: string, name: string) {
 import SeoLD from "@/components/SeoLD";
 
 import Head from 'next/head';
+import ScrollToTop from "@/components/ScrollToTop";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -2956,6 +2957,7 @@ if (!already) {
               </div>
             </div>
           )}
+          <ScrollToTop />
         </section>
       </main>
     </div>
