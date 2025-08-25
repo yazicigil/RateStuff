@@ -262,12 +262,12 @@ export default function Header({ controls }: { controls?: Controls }) {
           </Link>
           {/* Mobil sağ blok */}
           <div className="flex items-center gap-2 md:hidden">
-            <div className="relative">
+            <div className="relative h-9">
               <select
                 value={theme}
                 onChange={(e) => changeTheme(e.target.value as ThemePref)}
                 title="Tema"
-                className="border rounded-xl pl-2 pr-8 py-2 text-sm bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 appearance-none"
+                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
               >
                 <option value="light">🌞 Light</option>
                 <option value="dark">🌙 Dark</option>
@@ -283,7 +283,7 @@ export default function Header({ controls }: { controls?: Controls }) {
             {!loading && !me && (
               <button
                 onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
-                className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
+                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
                 title="Google ile giriş"
                 type="button"
               >
@@ -302,7 +302,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                 <button
                   onClick={() => router.push('/me')}
                   type="button"
-                  className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
+                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
                   title="Profilim"
                   aria-label="Profilim"
                 >
@@ -320,12 +320,12 @@ export default function Header({ controls }: { controls?: Controls }) {
                 </button>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="p-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
                   title="Çıkış yap"
                   aria-label="Çıkış yap"
                   type="button"
                 >
-                  {/* power/logout icon */}
+                  {/* logout icon */}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -337,13 +337,11 @@ export default function Header({ controls }: { controls?: Controls }) {
                     className="w-5 h-5 text-red-600 dark:text-red-500"
                     aria-hidden="true"
                   >
-                    {/* Door outline */}
-                    <rect x="3" y="3" width="8" height="18" rx="2.5" ry="2.5" fill="none" stroke="currentColor" />
-                    {/* Doorknob (small solid dot) */}
-                    <circle cx="9" cy="12" r="1" fill="currentColor" />
-                    {/* Arrow pointing RIGHT */}
-                    <line x1="13" y1="12" x2="21" y2="12" stroke="currentColor" />
-                    <polyline points="18 9 21 12 18 15" fill="none" stroke="currentColor" />
+                    {/* Box (app window) outline */}
+                    <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" />
+                    {/* Arrow to the RIGHT */}
+                    <path d="M14 16l4-4-4-4" fill="none" stroke="currentColor" />
+                    <line x1="8" y1="12" x2="20" y2="12" stroke="currentColor" />
                   </svg>
                 </button>
               </>
@@ -356,7 +354,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
             <div className="relative flex-1" ref={suggWrapRefDesktop}>
               {/* Faux input container: pills + text input */}
-              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm border-gray-300 dark:border-gray-700 dark:text-gray-100">
+              <div className="w-full h-9 border border-gray-300 dark:border-gray-700 rounded-xl px-3 text-sm flex items-center gap-2 bg-white/15 dark:bg-gray-900/20 backdrop-blur-sm focus-within:ring-2 focus-within:ring-black/10 dark:focus-within:ring-white/10">
                 {/* Real input */}
                 <input
                   onFocus={() => { /* focus'ta açma */ }}
@@ -368,7 +366,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   }}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
                 />
               </div>
               {!!controls.q && (
@@ -467,13 +465,13 @@ export default function Header({ controls }: { controls?: Controls }) {
         )}
 
         {/* Desktop sağ: tema + auth */}
-        <nav className="hidden md:flex ml-auto items-center gap-2">
-          <div className="relative">
+        <nav className="hidden md:flex ml-auto items-center gap-2.5">
+          <div className="relative h-9">
             <select
               value={theme}
               onChange={(e) => changeTheme(e.target.value as ThemePref)}
               title="Tema"
-              className="border rounded-xl pl-2 pr-8 py-2 text-sm bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 appearance-none"
+              className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
             >
               <option value="light">🌞 Light</option>
               <option value="dark">🌙 Dark</option>
@@ -489,7 +487,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           {!loading && !me && (
             <button
               onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
-              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 flex items-center gap-2"
+              className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
               title="Google ile giriş"
               type="button"
             >
@@ -508,7 +506,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               <button
                 onClick={() => router.push('/me')}
                 type="button"
-                className="flex items-center gap-2 px-2 py-1 rounded-xl border text-sm dark:border-gray-700 pointer-events-auto"
+                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
                 title="Profilim"
                 aria-label="Profilim"
               >
@@ -526,7 +524,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               </button>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="p-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
                 title="Çıkış yap"
                 aria-label="Çıkış yap"
                 type="button"
@@ -542,13 +540,11 @@ export default function Header({ controls }: { controls?: Controls }) {
                   className="w-5 h-5 text-red-600 dark:text-red-500"
                   aria-hidden="true"
                 >
-                  {/* Door outline */}
-                  <rect x="3" y="3" width="8" height="18" rx="2.5" ry="2.5" fill="none" stroke="currentColor" />
-                  {/* Doorknob (small solid dot) */}
-                  <circle cx="9" cy="12" r="1" fill="currentColor" />
-                  {/* Arrow pointing RIGHT */}
-                  <line x1="13" y1="12" x2="21" y2="12" stroke="currentColor" />
-                  <polyline points="18 9 21 12 18 15" fill="none" stroke="currentColor" />
+                  {/* Box (app window) outline */}
+                  <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" fill="none" stroke="currentColor" />
+                  {/* Arrow to the RIGHT */}
+                  <path d="M14 16l4-4-4-4" fill="none" stroke="currentColor" />
+                  <line x1="8" y1="12" x2="20" y2="12" stroke="currentColor" />
                 </svg>
               </button>
             </>
@@ -559,7 +555,7 @@ export default function Header({ controls }: { controls?: Controls }) {
         {controls && (
           <div className="md:hidden flex items-center gap-2">
             <div className="relative flex-1" ref={suggWrapRefMobile}>
-              <div className="w-full border rounded-xl px-2 py-1.5 text-sm flex flex-wrap items-center gap-1 bg-white/20 dark:bg-gray-900/20 backdrop-blur-sm border-gray-300 dark:border-gray-700 dark:text-gray-100">
+              <div className="w-full h-9 border border-gray-300 dark:border-gray-700 rounded-xl px-3 text-sm flex items-center gap-2 bg-white/15 dark:bg-gray-900/20 backdrop-blur-sm focus-within:ring-2 focus-within:ring-black/10 dark:focus-within:ring-white/10">
                 <input
                   onFocus={() => { /* focus'ta açma */ }}
                   value={controls.q}
@@ -570,7 +566,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   }}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-1 py-1 text-base md:text-sm dark:text-gray-100 dark:placeholder-gray-400"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
                 />
               </div>
               {!!controls.q && (

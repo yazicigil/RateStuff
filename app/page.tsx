@@ -369,7 +369,12 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       }
 
       const [itemsRes, tagsRes, trendRes] = await Promise.all([
-        fetchItemsRes(`/api/items?${qs.toString()}`, '/api/items'),
+        (qCommitted.trim().length > 0
+          ? fetch(`/api/items?${qs.toString()}`, { cache: 'no-store' })
+              .then((r) => r.json())
+              .catch(() => ({}))
+          : fetchItemsRes(`/api/items?${qs.toString()}`, '/api/items')
+        ),
         fetch('/api/tags', { cache: 'no-store' })
           .then((r) => r.json())
           .catch(() => ({})),
