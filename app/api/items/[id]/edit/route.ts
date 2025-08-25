@@ -13,6 +13,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const body = await req.json();
 
+    const tagsArray = Array.isArray(body.tags) ? body.tags as string[] : undefined;
+    const tagsCsv = body.tagsCsv !== undefined ? String(body.tagsCsv) : undefined;
+
     // Başlık düzenlemek YOK
     const description =
       body.description !== undefined ? String(body.description).trim() : undefined;
@@ -21,8 +24,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const rawImage = body.imageUrl;
     const nextImageUrl =
       rawImage === undefined ? undefined : rawImage === "" ? null : String(rawImage);
-
-    const tagsCsv = body.tagsCsv !== undefined ? String(body.tagsCsv) : undefined;
 
     // Basit validasyon
     if (typeof description === "string" && description.length > 500) {
@@ -65,12 +66,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       }
 
       // Tagler
-      if (tagsCsv !== undefined) {
+      if (tagsArray !== undefined || tagsCsv !== undefined) {
+        const rawNames: string[] = tagsArray !== undefined
+          ? tagsArray
+          : (tagsCsv || "").split(",");
+
         const tagNames = Array.from(
           new Set(
-            tagsCsv
-              .split(",")
-              .map((s) => s.trim().toLowerCase())
+            rawNames
+              .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : ""))
               .filter(Boolean)
           )
         ).slice(0, 12);
@@ -105,7 +109,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     });
 
     // === DB update OK → Eski blob’u temizle (sadece değiştiyse) ===
-    if (nextImageUrl !== undefined && prev.imageUrl !== nextImageUrl) {
+    if (nextImageUrl !== undefined && prev.imageUrl !== nextImageUrl && prev.imageUrl) {
       await deleteBlobIfVercel(prev.imageUrl);
     }
 
