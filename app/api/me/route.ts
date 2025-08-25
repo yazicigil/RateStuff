@@ -119,6 +119,20 @@ export async function GET(req: Request) {
       return { avgRating, count: a.count };
     }
 
+    function maskName(name: string | null | undefined): string | null {
+      if (!name) return null;
+      const parts = String(name).split(" ").filter(Boolean);
+      return parts
+        .map((p, idx) => {
+          if (!p.length) return "";
+          if (idx === 0) {
+            return p[0] + (p.length > 1 ? "*" : "");
+          }
+          return p[0] + "*".repeat(Math.max(1, p.length - 1));
+        })
+        .join(" ");
+    }
+
     const shapeItem = (i: any) => {
       const { avgRating, count } = getAggFor(i.id);
       const edited =
@@ -144,10 +158,10 @@ export async function GET(req: Request) {
         ...(i?.createdBy ? {
           createdBy: {
             id: i.createdBy.id,
-            name: i.createdBy.name ?? null,
+            name: maskName(i.createdBy.name) ?? null,
             avatarUrl: i.createdBy.avatarUrl ?? null,
           },
-          createdByName: i.createdBy.name ?? null,
+          createdByName: maskName(i.createdBy.name) ?? null,
           createdByAvatarUrl: i.createdBy.avatarUrl ?? null,
         } : {}),
       };
