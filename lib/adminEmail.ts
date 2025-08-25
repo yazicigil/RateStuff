@@ -13,8 +13,11 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
       const { Resend } = await import('resend');
       const resend = new Resend(resendKey);
       const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
-      if (error) throw error;
-      return data;
+if (error) throw error;
+if (process.env.MAIL_DEBUG === '1') {
+  console.log('[adminEmail][resend] ok', { from: FROM, to });
+}
+return data;
     } catch (e: unknown) {
       console.error('[adminEmail][resend] failed', e);
       // fallback to SMTP
@@ -38,6 +41,8 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
         tls: {
           minVersion: 'TLSv1.2',
         },
+              logger: process.env.MAIL_DEBUG === '1',
+      debug: process.env.MAIL_DEBUG === '1',
       });
 
       // bağlantı doğrulaması
@@ -48,16 +53,17 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
         console.log('[adminEmail][smtp] ok', { host: process.env.SMTP_HOST, port, from: FROM, to });
       }
       return info;
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      console.error('[adminEmail][smtp] failed', {
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        user: process.env.SMTP_USER,
-        msg,
-      });
-      throw e;
-    }
+   } catch (e: unknown) {
+  const msg = e instanceof Error ? e.message : String(e);
+  console.error('[adminEmail][smtp] failed', {
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    user: process.env.SMTP_USER,
+    from: FROM,
+    msg,
+  });
+  throw e;
+}
   }
 
   throw new Error('No email transport configured: set RESEND_API_KEY or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS');
