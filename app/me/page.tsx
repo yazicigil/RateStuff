@@ -105,13 +105,15 @@ const findBanned = (text: string | null | undefined): string | null => {
 /** — Ortalama okuma helper’ı: ana sayfadaki gibi avgRating ?? avg — */
 const getAvg = (x: { avg?: number | null; avgRating?: number | null } | null | undefined) =>
   (x as any)?.avgRating ?? (x as any)?.avg ?? null;
-// "kahve, #film tags\n  oyun" -> ["kahve","film","oyun"]
+// "iki kelime, tek etiket" -> ["iki kelime","tek etiket"]
 function parseTagsInput(input: string): string[] {
   return Array.from(new Set(
     (input || "")
-      .split(/[,#\n\s]+/)
-      .map(s => s.trim().toLowerCase())
+      .split(",")                      // sadece virgülle ayır
+      .map(s => s.trim())               // baş/son boşlukları kırp
       .filter(Boolean)
+      .map(s => s.replace(/^#\s*/, "")) // baştaki # (ve olası boşluk) kaldır
+      .map(s => s.toLowerCase())
   ));
 }
 export default function MePage() {
@@ -1173,7 +1175,7 @@ function ItemEditor(props: {
     className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
   />
   <div className="mt-1 text-[11px] opacity-60">
-    Virgülle ayırabilir veya başına # koyabilirsin. Kaydedince #’ler otomatik temizlenir.
+    Virgülle ayırabilirsin.
   </div>
 </div>
               <div>
