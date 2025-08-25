@@ -480,7 +480,7 @@ const body: any = {
           </button>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-12 w-auto dark:invert hover:opacity-90 transition" />
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-9 w-auto dark:invert hover:opacity-90 transition" />
             </Link>
           </div>
         </div>
