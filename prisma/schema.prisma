@@ -91,10 +91,11 @@ model ItemTag {
 }
 
 model Report {
-  id        String   @id @default(cuid())
-  itemId    String
-  userId    String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  itemId     String
+  userId     String
+  reportdesc String
+  createdAt  DateTime @default(now())
 
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
