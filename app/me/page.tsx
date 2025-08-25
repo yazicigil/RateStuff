@@ -105,7 +105,15 @@ const findBanned = (text: string | null | undefined): string | null => {
 /** — Ortalama okuma helper’ı: ana sayfadaki gibi avgRating ?? avg — */
 const getAvg = (x: { avg?: number | null; avgRating?: number | null } | null | undefined) =>
   (x as any)?.avgRating ?? (x as any)?.avg ?? null;
-
+// "kahve, #film tags\n  oyun" -> ["kahve","film","oyun"]
+function parseTagsInput(input: string): string[] {
+  return Array.from(new Set(
+    (input || "")
+      .split(/[,#\n\s]+/)
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean)
+  ));
+}
 export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -122,7 +130,7 @@ export default function MePage() {
   const [editingItem, setEditingItem] = useState<string|null>(null);
   const [editDesc, setEditDesc] = useState("");
   const [editImg,  setEditImg]  = useState<string|null>(null);
-
+  const [editTags, setEditTags] = useState<string>(""); // ← EKLE
   // Profil foto düzenleme
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [avatarTemp, setAvatarTemp] = useState<string | null>(null);
@@ -268,8 +276,12 @@ export default function MePage() {
   }, [items, itemsSelected]);
 
   async function saveItem(id: string) {
-    const body: any = { description: editDesc, imageUrl: editImg ?? null };
-    const r = await fetch(`/api/items/${id}/edit`, {
+const body: any = {
+   description: editDesc,
+   imageUrl: editImg ?? null,
+   tags: parseTagsInput(editTags),
+ };
+     const r = await fetch(`/api/items/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -933,17 +945,21 @@ export default function MePage() {
                             if (id === it.id) {
                               setEditDesc(it.description || "");
                               setEditImg(it.imageUrl ?? null);
+                              setEditTags((it.tags || []).join(", "));
                             }
                           }}
                           editDesc={editDesc}
                           setEditDesc={setEditDesc}
                           editImg={editImg}
                           setEditImg={setEditImg}
+                          
                           onSave={() => saveItem(it.id)}
                           onDelete={deleteItem}
                           myComment={myC}
                           onRateMyComment={(commentId, itemId, value) => changeMyCommentRating(commentId, itemId, value)}
                           trending={trending}
+                          editTags={editTags}
+setEditTags={setEditTags}
                         />
                       );
                     })}
@@ -1080,6 +1096,7 @@ function Box({ children }:{children:any}) {
 /* — Editor kartı (ImageUploader entegre) — */
 function ItemEditor(props: {
   it: MyItem;
+  editTags: string; setEditTags: (s:string)=>void;
   editingItem: string|null; setEditingItem: (id:string|null)=>void;
   editDesc: string; setEditDesc: (s:string)=>void;
   editImg: string|null; setEditImg: (s:string|null)=>void;
@@ -1089,10 +1106,7 @@ function ItemEditor(props: {
   onRateMyComment?: (commentId: string, itemId: string, value: number) => Promise<void> | void;
   trending: string[];
 }) {
-  const {
-    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete,
-    myComment, onRateMyComment, trending
-  } = props;
+  const { it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, editTags, setEditTags, onSave, onDelete, myComment, onRateMyComment, trending } = props;
   const isEditing = editingItem === it.id;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const confirmDelTimerRef = useRef<number | null>(null);
@@ -1149,7 +1163,19 @@ function ItemEditor(props: {
                   Bu metin yasaklı kelime içeriyor: “{violatedItem}”. Lütfen düzelt.
                 </div>
               )}
-
+<div>
+  <div className="text-sm font-medium mb-1">Etiketler</div>
+  <input
+    type="text"
+    value={editTags}
+    onChange={(e)=> setEditTags(e.target.value)}
+    placeholder="#kahve, #film veya kahve film"
+    className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
+  />
+  <div className="mt-1 text-[11px] opacity-60">
+    Virgülle ayırabilir veya başına # koyabilirsin. Kaydedince #’ler otomatik temizlenir.
+  </div>
+</div>
               <div>
                 <div className="text-sm font-medium mb-1">Görsel</div>
                 <ImageUploader value={editImg ?? null} onChange={setEditImg} />
@@ -1198,6 +1224,7 @@ function ItemEditor(props: {
                     setEditingItem(it.id);
                     setEditDesc(it.description || "");
                     setEditImg(it.imageUrl ?? null);
+                    setEditTags((it.tags || []).join(", "));
                   }}
                   title="Düzenle"
                   aria-label="Düzenle"
