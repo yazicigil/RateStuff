@@ -35,7 +35,7 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
       const transporter = nodemailer.createTransport({
         host,
         port,
-        secure: port === 465, // 465=SMTPS
+        secure: port === 587, // 465=SMTPS
         auth: { user, pass },
       });
       const info = await transporter.sendMail({ from: FROM, to, subject, html });
