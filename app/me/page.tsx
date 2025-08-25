@@ -107,6 +107,17 @@ const findBanned = (text: string | null | undefined): string | null => {
 const getAvg = (x: { avg?: number | null; avgRating?: number | null } | null | undefined) =>
   (x as any)?.avgRating ?? (x as any)?.avg ?? null;
 
+/** — Etiket parser — boşluk/virgül ayırır, trim + uniq + max 20 — */
+const parseTags = (s: string): string[] => {
+  const arr = String(s || "")
+    .split(/[,\s]+/g)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const uniq: string[] = [];
+  for (const t of arr) if (!uniq.includes(t)) uniq.push(t);
+  return uniq.slice(0, 20);
+};
+
 export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
@@ -123,6 +134,7 @@ export default function MePage() {
   const [editingItem, setEditingItem] = useState<string|null>(null);
   const [editDesc, setEditDesc] = useState("");
   const [editImg,  setEditImg]  = useState<string|null>(null);
+  const [editTags, setEditTags] = useState<string>("");
 
   // Profil foto düzenleme
   const [editingAvatar, setEditingAvatar] = useState(false);
@@ -269,7 +281,7 @@ export default function MePage() {
   }, [items, itemsSelected]);
 
   async function saveItem(id: string) {
-    const body: any = { description: editDesc, imageUrl: editImg ?? null };
+    const body: any = { description: editDesc, imageUrl: editImg ?? null, tags: parseTags(editTags) };
     const r = await fetch(`/api/items/${id}/edit`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -934,12 +946,15 @@ export default function MePage() {
                             if (id === it.id) {
                               setEditDesc(it.description || "");
                               setEditImg(it.imageUrl ?? null);
+                              setEditTags(Array.isArray(it.tags) ? it.tags.join(", ") : "");
                             }
                           }}
                           editDesc={editDesc}
                           setEditDesc={setEditDesc}
                           editImg={editImg}
                           setEditImg={setEditImg}
+                          editTags={editTags}
+                          setEditTags={setEditTags}
                           onSave={() => saveItem(it.id)}
                           onDelete={deleteItem}
                           myComment={myC}
@@ -1084,6 +1099,7 @@ function ItemEditor(props: {
   editingItem: string|null; setEditingItem: (id:string|null)=>void;
   editDesc: string; setEditDesc: (s:string)=>void;
   editImg: string|null; setEditImg: (s:string|null)=>void;
+  editTags: string; setEditTags: (s:string)=>void;
   onSave: ()=>Promise<void>|void;
   onDelete: (id: string) => Promise<void> | void;
   myComment?: MyComment | null;
@@ -1091,7 +1107,7 @@ function ItemEditor(props: {
   trending: string[];
 }) {
   const {
-    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete,
+    it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, editTags, setEditTags, onSave, onDelete,
     myComment, onRateMyComment, trending
   } = props;
   const isEditing = editingItem === it.id;
@@ -1151,7 +1167,43 @@ function ItemEditor(props: {
                 </div>
               )}
 
-              <div>
+              {/* Etiketler */}
+              <div className="mt-3">
+                <div className="text-sm font-medium mb-1">Etiketler</div>
+                <input
+                  type="text"
+                  value={editTags}
+                  onChange={(e)=>setEditTags(e.target.value)}
+                  placeholder="ör. kahve, üçüncü dalga, espresso"
+                  className="w-full border rounded-lg px-2 py-1.5 text-sm dark:bg-gray-800 dark:border-gray-700"
+                />
+                {parseTags(editTags).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {parseTags(editTags).map(t => {
+                      const isTrend = trending.includes(t);
+                      return (
+                        <span
+                          key={t}
+                          className={
+                            'px-2 py-0.5 rounded-full text-xs border ' +
+                            (isTrend
+                              ? 'bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700'
+                              : 'bg-white dark:bg-gray-800 dark:border-gray-700')
+                          }
+                          title={isTrend ? 'Trend' : undefined}
+                        >
+                          #{t}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="mt-1 text-[11px] opacity-60">
+                  Virgül veya boşlukla ayır. En fazla 20 etiket.
+                </div>
+              </div>
+
+              <div className="mt-3">
                 <div className="text-sm font-medium mb-1">Görsel</div>
                 <ImageUploader value={editImg ?? null} onChange={setEditImg} />
               </div>
