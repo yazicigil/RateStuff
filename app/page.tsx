@@ -1264,10 +1264,10 @@ if (!already) {
               <div className="flex gap-2 mt-2">
                 <button
                   type="button"
-                  className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                     order === 'new'
-                      ? 'border-gray-400 dark:border-gray-500'
-                      : ''
+                      ? 'bg-gray-900 text-white border border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow'
+                      : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={() => setOrder('new')}
                   aria-pressed={order === 'new'}
@@ -1276,10 +1276,10 @@ if (!already) {
                 </button>
                 <button
                   type="button"
-                  className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${
+                  className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
                     order === 'top'
-                      ? 'border-gray-400 dark:border-gray-500'
-                      : ''
+                      ? 'bg-gray-900 text-white border border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow'
+                      : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                   onClick={() => setOrder('top')}
                   aria-pressed={order === 'top'}
