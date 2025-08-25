@@ -56,18 +56,6 @@ export const authOptions: NextAuthOptions = {
         await prisma.user.update({ where: { email }, data: { isAdmin: true } });
       }
 
-      // 4) İlk defaysa hoş geldin maili
-      if (!existed) {
-        try {
-          await sendWelcomeEmail(email, user.name ?? undefined);
-          console.log("[auth] welcome email sent in signIn to", email);
-          g.__welcomeSent.add(email);
-        } catch (err) {
-          console.error("[auth] welcome email error (signIn):", err);
-          // hataya rağmen login akışını bozma
-        }
-      }
-
       return true;
     },
 
@@ -86,25 +74,29 @@ export const authOptions: NextAuthOptions = {
           (session.user as any).avatarUrl = u.avatarUrl ?? null;
           (session.user as any).isAdmin = u.isAdmin;
         }
-
-        // Fallback: hesap yeni yaratıldıysa (<=120sn) ve bu process'te daha önce yollanmadıysa welcome gönder
-        if (u && u.createdAt) {
-         // session callback içinde u çektiğin yerde:
-const secondsSinceCreate = (Date.now() - u.createdAt.getTime()) / 1000;
-const isFresh = secondsSinceCreate <= 86400; // 24 saat
-if (isFresh && !g.__welcomeSent.has(email)) {
-  try {
-    await sendWelcomeEmail(email, session.user?.name ?? undefined);
-    g.__welcomeSent.add(email);
-    console.log("[auth] welcome email sent in session to", email);
-  } catch (e) {
-    console.error("[auth] welcome email error (session):", e);
-  }
-}
-        }
       }
 
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      try {
+        const u = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { email: true, name: true, welcomeEmailSentAt: true },
+        });
+        const email = u?.email ?? user.email;
+        if (!email) return;
+        if (u?.welcomeEmailSentAt) return;
+        await sendWelcomeEmail(email, (u?.name ?? user.name) ?? undefined);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { welcomeEmailSentAt: new Date() },
+        });
+      } catch (err) {
+        console.error("[auth] events.createUser welcome failed:", err);
+      }
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

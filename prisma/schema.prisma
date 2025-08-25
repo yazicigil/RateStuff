@@ -17,6 +17,7 @@ model User {
   avatarUrl  String?
   createdAt  DateTime @default(now())
   isAdmin    Boolean  @default(false)
+  welcomeEmailSentAt DateTime?
 
   items        Item[]
   ratings      Rating[]

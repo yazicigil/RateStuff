@@ -61,6 +61,16 @@ type MyItem = {
   count?: number; // toplam değerlendirme adedi
   edited?: boolean;
   tags?: string[]; // saved filtre + kartlarda gösterim
+  // Ekleyen kişi bilgisi (opsiyonel)
+  createdBy?: {
+    id: string;
+    name?: string | null;
+    maskedName?: string | null;
+    avatarUrl?: string | null;
+  } | null;
+  // Eski payloadlar için sade alanlar (fallback)
+  createdByName?: string | null;
+  createdByAvatarUrl?: string | null;
 };
 type MyRating  = { id: string; itemId: string; itemName: string; value: number };
 type MyComment = {
@@ -147,6 +157,8 @@ export default function MePage() {
 
   // Kaydedilenler filtre (çoklu tag seçimi)
   const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
+  // Eklediklerim filtre (çoklu tag seçimi)
+  const [itemsSelected, setItemsSelected] = useState<Set<string>>(new Set());
   // Saved: two-step remove confirmation
   const [confirmRemoveSaved, setConfirmRemoveSaved] = useState<string | null>(null);
 
@@ -228,6 +240,12 @@ export default function MePage() {
     return Array.from(s).sort();
   }, [saved]);
 
+  // Eklediklerim (items) içinde mevcut etiketler
+  const itemsTags = useMemo(() => {
+    const s = new Set<string>();
+    for (const it of items) (it.tags || []).forEach(t => s.add(t));
+    return Array.from(s).sort();
+  }, [items]);
 
 
   const filteredSaved = useMemo(() => {
@@ -238,6 +256,16 @@ export default function MePage() {
       return true;
     });
   }, [saved, savedSelected]);
+
+  // Eklediklerim filtresi
+  const filteredItems = useMemo(() => {
+    if (itemsSelected.size === 0) return items;
+    return items.filter(it => {
+      const tags = new Set(it.tags || []);
+      for (const t of itemsSelected) if (!tags.has(t)) return false;
+      return true;
+    });
+  }, [items, itemsSelected]);
 
   async function saveItem(id: string) {
     const body: any = { description: editDesc, imageUrl: editImg ?? null };
@@ -765,6 +793,36 @@ export default function MePage() {
                               </div>
                             )}
 
+                            {/* Ekleyen kişi */}
+                            {(() => {
+                              const by = it.createdBy || null;
+                              const avatar = by?.avatarUrl ?? it.createdByAvatarUrl ?? null;
+                              const displayName = by?.maskedName ?? by?.name ?? it.createdByName ?? null;
+                              if (!avatar && !displayName) return null;
+                              return (
+                                <div className="mt-2 flex items-center gap-2 text-xs">
+                                  <span className="opacity-60">Ekleyen:</span>
+                                  <span className="inline-flex items-center gap-2">
+                                    <span className="inline-grid place-items-center w-5 h-5 rounded-full overflow-hidden bg-gray-200 text-[10px] font-semibold">
+                                      {avatar ? (
+                                        <img src={avatar} alt={displayName ?? 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span className="text-white">
+                                          {(displayName || 'A')
+                                            .split(' ')
+                                            .filter(Boolean)
+                                            .slice(0, 2)
+                                            .map(s => (s[0] || '').toUpperCase())
+                                            .join('') || 'A'}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <span className="truncate max-w-[12rem]">{displayName || 'Anonim'}</span>
+                                  </span>
+                                </div>
+                              );
+                            })()}
+
                             {it.edited && (
                               <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
                                 düzenlendi
@@ -803,46 +861,94 @@ export default function MePage() {
                   </Link>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Quick Add card (always first) */}
-                  <Link
-                    href="/#quick-add"
-                    prefetch={false}
-                    className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-44 transition"
-                    aria-label="Hızlı ekle"
-                    title="Hızlı ekle"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-4xl leading-none">+</span>
-                      <span className="text-sm font-medium">Ekle</span>
+                <>
+                  {/* Etiket filtresi (sadece items içinde etiket varsa görünür) */}
+                  {itemsTags.length > 0 && (
+                    <div className="mb-3 flex flex-wrap gap-2">
+                      <button
+                        className={`px-2 py-1 rounded-full border text-xs ${
+                          itemsSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                        }`}
+                        onClick={() => setItemsSelected(new Set())}
+                        onDoubleClick={() => setItemsSelected(new Set())}
+                      >
+                        Hepsi
+                      </button>
+                      {itemsTags.map(t => {
+                        const isSel = itemsSelected.has(t);
+                        const isTrend = trending.includes(t);
+                        const base = 'px-2 py-1 rounded-full border text-xs';
+                        const className = isSel
+                          ? (isTrend
+                              ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
+                              : `${base} bg-black text-white border-black`)
+                          : (isTrend
+                              ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                              : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
+                        return (
+                          <button
+                            key={t}
+                            className={className}
+                            onClick={() =>
+                              setItemsSelected(prev => {
+                                const next = new Set(prev);
+                                if (next.has(t)) next.delete(t); else next.add(t);
+                                return next;
+                              })
+                            }
+                            onDoubleClick={() => setItemsSelected(new Set())}
+                            title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                          >
+                            #{t}
+                          </button>
+                        );
+                      })}
                     </div>
-                  </Link>
-                  {items.map(it => {
-                    const myC = comments.find(c => c.itemId === it.id) ?? null;
-                    return (
-                      <ItemEditor
-                        key={it.id}
-                        it={it}
-                        editingItem={editingItem}
-                        setEditingItem={(id) => {
-                          setEditingItem(id);
-                          if (id === it.id) {
-                            setEditDesc(it.description || "");
-                            setEditImg(it.imageUrl ?? null);
-                          }
-                        }}
-                        editDesc={editDesc}
-                        setEditDesc={setEditDesc}
-                        editImg={editImg}
-                        setEditImg={setEditImg}
-                        onSave={() => saveItem(it.id)}
-                        onDelete={deleteItem}
-                        myComment={myC}
-                        onRateMyComment={(commentId, itemId, value) => changeMyCommentRating(commentId, itemId, value)}
-                      />
-                    );
-                  })}
-                </div>
+                  )}
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {/* Quick Add card (always first) */}
+                    <Link
+                      href="/#quick-add"
+                      prefetch={false}
+                      className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-44 transition"
+                      aria-label="Hızlı ekle"
+                      title="Hızlı ekle"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-4xl leading-none">+</span>
+                        <span className="text-sm font-medium">Ekle</span>
+                      </div>
+                    </Link>
+
+                    {filteredItems.map(it => {
+                      const myC = comments.find(c => c.itemId === it.id) ?? null;
+                      return (
+                        <ItemEditor
+                          key={it.id}
+                          it={it}
+                          editingItem={editingItem}
+                          setEditingItem={(id) => {
+                            setEditingItem(id);
+                            if (id === it.id) {
+                              setEditDesc(it.description || "");
+                              setEditImg(it.imageUrl ?? null);
+                            }
+                          }}
+                          editDesc={editDesc}
+                          setEditDesc={setEditDesc}
+                          editImg={editImg}
+                          setEditImg={setEditImg}
+                          onSave={() => saveItem(it.id)}
+                          onDelete={deleteItem}
+                          myComment={myC}
+                          onRateMyComment={(commentId, itemId, value) => changeMyCommentRating(commentId, itemId, value)}
+                          trending={trending}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </section>
@@ -981,10 +1087,11 @@ function ItemEditor(props: {
   onDelete: (id: string) => Promise<void> | void;
   myComment?: MyComment | null;
   onRateMyComment?: (commentId: string, itemId: string, value: number) => Promise<void> | void;
+  trending: string[];
 }) {
   const {
     it, editingItem, setEditingItem, editDesc, setEditDesc, editImg, setEditImg, onSave, onDelete,
-    myComment, onRateMyComment
+    myComment, onRateMyComment, trending
   } = props;
   const isEditing = editingItem === it.id;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1063,6 +1170,27 @@ function ItemEditor(props: {
           ) : (
             <>
               <p className="text-sm opacity-80 mt-1">{it.description}</p>
+              {!!(it.tags && it.tags.length) && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {it.tags.slice(0, 10).map(t => {
+                    const isTrend = trending.includes(t);
+                    return (
+                      <span
+                        key={t}
+                        className={
+                          "px-2 py-0.5 rounded-full text-xs border " +
+                          (isTrend
+                            ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
+                            : "bg-white dark:bg-gray-800 dark:border-gray-700")
+                        }
+                        title={isTrend ? "Trend" : undefined}
+                      >
+                        #{t}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               <div className="mt-2 flex gap-2">
                 <button
                   className="px-3 py-1.5 rounded-lg border text-sm flex items-center gap-2"
