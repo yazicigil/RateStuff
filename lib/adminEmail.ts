@@ -1,45 +1,49 @@
 // lib/adminEmail.ts
-// Admin bildirimlerini göndermek için küçük yardımcı.
-// Mevcut altyapını bozmamak için birkaç yaygın yolu dener.
+// Admin e-postaları için somut gönderici: önce RESEND, sonra SMTP (Nodemailer)
+
+const FROM = process.env.MAIL_FROM || 'RateStuff <admin@ratestuff.net>';
 
 export async function sendAdminEmail(to: string, subject: string, html: string) {
-  // Projede generic bir gönderici tanımlıysa önce onu dene
-  try {
-    // @ts-ignore
-    if (typeof (global as any).sendGenericEmail === 'function') {
+  // 1) RESEND (Edge ve Node'da çalışır)
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    try {
+      // dynamic import — build-time dependency zorunlu değil
       // @ts-ignore
-      return await (global as any).sendGenericEmail({ to, subject, html });
+      const { Resend } = await import('resend');
+      const resend = new Resend(resendKey);
+      const { data, error } = await resend.emails.send({ from: FROM, to, subject, html });
+      if (error) throw error;
+      return data;
+    } catch (e) {
+      console.error('[adminEmail][resend] failed', e);
+      // fallback to SMTP
     }
-  } catch {}
+  }
 
-  // Resend client globali varsa (projede init edilmiş olabilir)
-  try {
-    // @ts-ignore
-    if (typeof resend !== 'undefined' && resend?.emails?.send) {
+  // 2) SMTP (Nodemailer) — yalnızca Node runtime
+  const host = process.env.SMTP_HOST;
+  const portStr = process.env.SMTP_PORT;
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+
+  if (host && portStr && user && pass) {
+    try {
       // @ts-ignore
-      return await resend.emails.send({
-        from: 'RateStuff <admin@ratestuff.net>',
-        to,
-        subject,
-        html,
+      const nodemailer = await import('nodemailer');
+      const port = parseInt(portStr as string, 10) || 587;
+      const transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465, // 465=SMTPS
+        auth: { user, pass },
       });
+      const info = await transporter.sendMail({ from: FROM, to, subject, html });
+      return info;
+    } catch (e) {
+      console.error('[adminEmail][smtp] failed', e);
     }
-  } catch {}
+  }
 
-  // Nodemailer transporter globali varsa
-  try {
-    // @ts-ignore
-    if (typeof transporter !== 'undefined' && transporter?.sendMail) {
-      // @ts-ignore
-      return await transporter.sendMail({
-        from: 'RateStuff <admin@ratestuff.net>',
-        to,
-        subject,
-        html,
-      });
-    }
-  } catch {}
-
-  // Hiçbiri yoksa çağıranı bozma diye net bir hata fırlat
-  throw new Error('No email transport configured for admin emails');
+  throw new Error('No email transport configured: set RESEND_API_KEY or SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS');
 }

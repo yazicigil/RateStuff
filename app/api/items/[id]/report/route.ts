@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { sendAdminEmail } from "@/lib/adminEmail";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: Request, { params }: { params: { id: string } }) {
   try {
     const user = await getSessionUser();
@@ -47,7 +50,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           <p><strong>Sebep:</strong><br/>${escapeHtml(reason)}</p>
           <p style="color:#666"><small>Toplam rapor: ${count}</small></p>
         </div>`;
-      await sendAdminEmail("reports@ratestuff.net", `Rapor: ${item.name || item.id}`, html);
+      await sendAdminEmail(process.env.REPORTS_INBOX || 'reports@ratestuff.net', `Rapor: ${item.name || item.id}`, html);
     } catch (e) {
       console.error("[report email]", e);
     }
