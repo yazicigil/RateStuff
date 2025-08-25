@@ -18,7 +18,7 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
     if (typeof resend !== 'undefined' && resend?.emails?.send) {
       // @ts-ignore
       return await resend.emails.send({
-        from: 'Reports <reports@ratestuff.net>',
+        from: 'Admin <admin@ratestuff.net>',
         to,
         subject,
         html,
@@ -32,7 +32,7 @@ export async function sendAdminEmail(to: string, subject: string, html: string) 
     if (typeof transporter !== 'undefined' && transporter?.sendMail) {
       // @ts-ignore
       return await transporter.sendMail({
-        from: 'Reports <reports@ratestuff.net>',
+        from: 'Admin <admin@ratestuff.net>',
         to,
         subject,
         html,

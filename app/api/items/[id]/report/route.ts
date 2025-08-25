@@ -47,7 +47,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           <p><strong>Sebep:</strong><br/>${escapeHtml(reason)}</p>
           <p style="color:#666"><small>Toplam rapor: ${count}</small></p>
         </div>`;
-      await sendAdminEmail("admin@ratestuff.net", `Rapor: ${item.name || item.id}`, html);
+      await sendAdminEmail("reports@ratestuff.net", `Rapor: ${item.name || item.id}`, html);
     } catch (e) {
       console.error("[report email]", e);
     }
