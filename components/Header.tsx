@@ -396,7 +396,7 @@ function currentHashChunk(q: string) {
               value={theme}
               onChange={(e) => changeTheme(e.target.value as ThemePref)}
               title="Tema"
-              className="border rounded-xl px-2 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+              className="border rounded-xl px-2 py-2 text-sm bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 appearance-none"
             >
               <option value="light">🌞 Light</option>
               <option value="dark">🌙 Dark</option>
@@ -443,11 +443,31 @@ function currentHashChunk(q: string) {
                 </button>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+                  className="p-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                   title="Çıkış yap"
+                  aria-label="Çıkış yap"
                   type="button"
                 >
-                  Çıkış
+                  {/* power/logout icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-5 h-5"
+                    aria-hidden="true"
+                  >
+                    {/* Door frame */}
+                    <rect x="3" y="3" width="8" height="18" rx="1" ry="1" />
+                    {/* Doorknob */}
+                    <circle cx="9" cy="12" r="1" />
+                    {/* Arrow going OUT to the right */}
+                    <line x1="13" y1="12" x2="21" y2="12" />
+                    <polyline points="18 9 21 12 18 15" />
+                  </svg>
                 </button>
               </>
             )}
@@ -631,7 +651,7 @@ function currentHashChunk(q: string) {
             value={theme}
             onChange={(e) => changeTheme(e.target.value as ThemePref)}
             title="Tema"
-            className="border rounded-xl px-2 py-2 text-sm dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+            className="border rounded-xl px-2 py-2 text-sm bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 appearance-none"
           >
             <option value="light">🌞 Light</option>
             <option value="dark">🌙 Dark</option>
@@ -678,11 +698,30 @@ function currentHashChunk(q: string) {
               </button>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
-                className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+                className="p-2 rounded-xl border text-sm dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 title="Çıkış yap"
+                aria-label="Çıkış yap"
                 type="button"
               >
-                Çıkış
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-5 h-5"
+                  aria-hidden="true"
+                >
+                  {/* Door frame */}
+                  <rect x="3" y="3" width="8" height="18" rx="1" ry="1" />
+                  {/* Doorknob */}
+                  <circle cx="9" cy="12" r="1" />
+                  {/* Arrow going OUT to the right */}
+                  <line x1="13" y1="12" x2="21" y2="12" />
+                  <polyline points="18 9 21 12 18 15" />
+                </svg>
               </button>
             </>
           )}
