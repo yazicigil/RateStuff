@@ -23,7 +23,10 @@ export async function GET(req: Request) {
       prisma.item.findMany({
         where: { createdById: me.id },
         orderBy: { createdAt: "desc" },
-        include: { ratings: { select: { value: true } } },
+        include: {
+          ratings: { select: { value: true } },
+          tags: { include: { tag: true } },
+        },
       }),
       prisma.rating.findMany({
         where: { userId: me.id },
