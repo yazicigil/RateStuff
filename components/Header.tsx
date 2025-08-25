@@ -340,6 +340,8 @@ export default function Header({ controls }: { controls?: Controls }) {
               <div className="w-full h-9 border border-gray-300 dark:border-gray-700 rounded-xl px-3 text-sm flex items-center gap-2 bg-white/15 dark:bg-gray-900/20 backdrop-blur-sm focus-within:ring-2 focus-within:ring-black/10 dark:focus-within:ring-white/10">
                 {/* Real input */}
                 <input
+                  type="search"
+                  inputMode="search"
                   onFocus={() => { /* focus'ta açma */ }}
                   value={controls.q}
                   onChange={(e) => {
@@ -349,7 +351,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   }}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
                 />
               </div>
               {!!controls.q && (
@@ -524,6 +526,8 @@ export default function Header({ controls }: { controls?: Controls }) {
             <div className="relative flex-1" ref={suggWrapRefMobile}>
               <div className="w-full h-9 border border-gray-300 dark:border-gray-700 rounded-xl px-3 text-sm flex items-center gap-2 bg-white/15 dark:bg-gray-900/20 backdrop-blur-sm focus-within:ring-2 focus-within:ring-black/10 dark:focus-within:ring-white/10">
                 <input
+                  type="search"
+                  inputMode="search"
                   onFocus={() => { /* focus'ta açma */ }}
                   value={controls.q}
                   onChange={(e) => {
@@ -533,7 +537,7 @@ export default function Header({ controls }: { controls?: Controls }) {
                   }}
                   onKeyDown={handleSearchKeyDown}
                   placeholder="ara ( / )"
-                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
+                  className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
                 />
               </div>
               {!!controls.q && (

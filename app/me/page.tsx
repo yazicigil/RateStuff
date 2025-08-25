@@ -2,6 +2,7 @@
 import React from "react";
 
 import Link from "next/link";
+import ScrollToTop from "@/components/ScrollToTop";
 import { useEffect, useMemo, useState } from "react";
 import { useCallback, useRef } from "react";
 import { signOut } from "next-auth/react";
@@ -453,7 +454,7 @@ const body: any = {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 overflow-x-hidden">
       {/* Header */}
-      <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
+      <header className="fixed top-0 inset-x-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
         <div className="relative max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-3">
           <div className="flex items-center gap-2 flex-1">
             <Link
@@ -485,7 +486,7 @@ const body: any = {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 pt-16 py-6 space-y-6">
         {/* ÜSTTE: Profil kartı */}
         <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
           <div className="relative">
@@ -1029,6 +1030,7 @@ setEditTags={setEditTags}
           animation: fadeSlideIn 220ms ease-out both;
         }
       `}</style>
+      <ScrollToTop />
     </div>
   );
 }
@@ -1400,5 +1402,6 @@ function CommentRow({
         </div>
       </div>
     </div>
+    
   );
 }
