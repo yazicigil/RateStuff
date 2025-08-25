@@ -1,6 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = false;
 export const fetchCache = 'force-no-store';
 
 import React from "react";
