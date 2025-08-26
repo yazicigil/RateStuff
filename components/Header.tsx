@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
+import NotificationsDropdown from '@/components/notifications/Dropdown';
 
 type Me = { id: string; name: string | null; avatarUrl?: string | null; isAdmin?: boolean };
 
@@ -30,6 +31,71 @@ type Controls = {
 };
 
 const USE_CURRENTCOLOR = false;
+
+function ProfileDropdown({ me }: { me: Me }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto touch-manipulation"
+        title="Hesabım"
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        {me.avatarUrl ? (
+          <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+        ) : (
+          <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+            {(me.name ?? 'U')[0]?.toUpperCase()}
+          </div>
+        )}
+        <span className="hidden sm:flex items-center gap-1">
+          {me.name ?? 'Ben'}
+          {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+        </span>
+        <svg width="12" height="12" viewBox="0 0 24 24" className="opacity-70"><polyline fill="none" stroke="currentColor" strokeWidth="2" points="6 9 12 15 18 9" /></svg>
+      </button>
+
+      {open && (
+        <div
+          role="menu"
+          className="absolute right-0 mt-2 w-48 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 z-[80]"
+        >
+          <Link
+            href="/me"
+            prefetch
+            role="menuitem"
+            className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => setOpen(false)}
+          >
+            Profilim
+          </Link>
+          <button
+            role="menuitem"
+            className="block w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+            onClick={() => { setOpen(false); signOut({ callbackUrl: '/' }); }}
+            type="button"
+          >
+            Çıkış
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[])=>void }) {
   const [open, setOpen] = useState(false);
@@ -303,37 +369,9 @@ export default function Header({ controls }: { controls?: Controls }) {
             )}
 
             {me && (
-              <>
-                <Link
-                  href="/me"
-                  prefetch
-                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto touch-manipulation"
-                  title="Profilim"
-                  aria-label="Profilim"
-                >
-                  {me.avatarUrl ? (
-                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                      {(me.name ?? 'U')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden sm:flex items-center gap-1">
-                    {me.name ?? 'Ben'}
-                    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                  </span>
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
-                  title="Çıkış yap"
-                  aria-label="Çıkış yap"
-                  type="button"
-                >
-                  Çıkış
-                </button>
-              </>
+              <ProfileDropdown me={me} />
             )}
+            <NotificationsDropdown />
           </div>
         </div>
 
@@ -492,37 +530,9 @@ export default function Header({ controls }: { controls?: Controls }) {
           )}
 
           {me && (
-            <>
-              <Link
-                href="/me"
-                prefetch
-                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto touch-manipulation"
-                title="Profilim"
-                aria-label="Profilim"
-              >
-                {me.avatarUrl ? (
-                  <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                    {(me.name ?? 'U')[0]?.toUpperCase()}
-                  </div>
-                )}
-                <span className="hidden sm:flex items-center gap-1">
-                  {me.name ?? 'Ben'}
-                  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                </span>
-              </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
-                title="Çıkış yap"
-                aria-label="Çıkış yap"
-                type="button"
-              >
-                Çıkış
-              </button>
-            </>
+            <ProfileDropdown me={me} />
           )}
+          <NotificationsDropdown />
         </nav>
 
         {/* Mobil: arama + sıralama ikinci satır */}
