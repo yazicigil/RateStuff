@@ -371,7 +371,7 @@ export default function Header({ controls }: { controls?: Controls }) {
             {me && (
               <ProfileDropdown me={me} />
             )}
-            <NotificationsDropdown />
+            {me && <NotificationsDropdown />}
           </div>
         </div>
 
@@ -532,7 +532,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           {me && (
             <ProfileDropdown me={me} />
           )}
-          <NotificationsDropdown />
+          {me && <NotificationsDropdown />}
         </nav>
 
         {/* Mobil: arama + sıralama ikinci satır */}
