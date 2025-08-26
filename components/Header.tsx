@@ -226,6 +226,10 @@ export default function Header({ controls }: { controls?: Controls }) {
     setTheme(initial);
     applyTheme(initial);
   }, []);
+  // Prefetch profile page to make first click instant
+  useEffect(() => {
+    router.prefetch('/me');
+  }, [router]);
   function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
 
   const logoClass = USE_CURRENTCOLOR
@@ -450,7 +454,7 @@ export default function Header({ controls }: { controls?: Controls }) {
         )}
 
         {/* Desktop sağ: tema + auth */}
-        <nav className="hidden md:flex ml-auto items-center gap-2.5">
+        <nav className="hidden md:flex ml-auto items-center gap-2.5 relative z-50">
           <div className="relative h-9">
             <select
               value={theme}
