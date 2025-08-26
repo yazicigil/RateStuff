@@ -232,11 +232,6 @@ export default function Header({ controls }: { controls?: Controls }) {
   }, [router]);
   function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
 
-  // Helper to ensure taps always navigate to profile
-  const goProfile = (e?: React.MouseEvent | React.TouchEvent) => {
-    if (e) e.preventDefault();
-    router.push('/me');
-  };
 
   const logoClass = USE_CURRENTCOLOR
     ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
@@ -309,27 +304,25 @@ export default function Header({ controls }: { controls?: Controls }) {
 
             {me && (
               <>
-<Link
-  href="/me"
-  prefetch
-  onClick={goProfile}
-  onTouchEnd={goProfile}
-  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
-  title="Profilim"
-  aria-label="Profilim"
->
-  {me.avatarUrl ? (
-    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-  ) : (
-    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-      {(me.name ?? 'U')[0]?.toUpperCase()}
-    </div>
-  )}
-  <span className="hidden sm:flex items-center gap-1">
-    {me.name ?? 'Ben'}
-    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-  </span>
-</Link>
+                <Link
+                  href="/me"
+                  prefetch
+                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto touch-manipulation"
+                  title="Profilim"
+                  aria-label="Profilim"
+                >
+                  {me.avatarUrl ? (
+                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+                      {(me.name ?? 'U')[0]?.toUpperCase()}
+                    </div>
+                  )}
+                  <span className="hidden sm:flex items-center gap-1">
+                    {me.name ?? 'Ben'}
+                    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+                  </span>
+                </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
@@ -379,7 +372,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               )}
               {suggOpen && (
                 <div
-                  className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
+                  className="absolute left-0 right-0 top-full mt-2 z-30 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
                   aria-label="İlgili Sonuçlar"
                 >
@@ -501,26 +494,24 @@ export default function Header({ controls }: { controls?: Controls }) {
           {me && (
             <>
               <Link
-  href="/me"
-  prefetch
-  onClick={goProfile}
-  onTouchEnd={goProfile}
-  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
-  title="Profilim"
-  aria-label="Profilim"
->
-  {me.avatarUrl ? (
-    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-  ) : (
-    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-      {(me.name ?? 'U')[0]?.toUpperCase()}
-    </div>
-  )}
-  <span className="hidden sm:flex items-center gap-1">
-    {me.name ?? 'Ben'}
-    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-  </span>
-</Link>
+                href="/me"
+                prefetch
+                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto touch-manipulation"
+                title="Profilim"
+                aria-label="Profilim"
+              >
+                {me.avatarUrl ? (
+                  <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+                    {(me.name ?? 'U')[0]?.toUpperCase()}
+                  </div>
+                )}
+                <span className="hidden sm:flex items-center gap-1">
+                  {me.name ?? 'Ben'}
+                  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+                </span>
+              </Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
@@ -567,7 +558,7 @@ export default function Header({ controls }: { controls?: Controls }) {
               )}
               {suggOpen && (
                 <div
-                  className="absolute left-0 right-0 top-full mt-2 z-40 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
+                  className="absolute left-0 right-0 top-full mt-2 z-30 overflow-hidden rounded-2xl border bg-white/95 dark:bg-gray-900/95 dark:border-gray-800 shadow-xl ring-1 ring-black/5 dark:ring-white/5 backdrop-blur"
                   role="listbox"
                   aria-label="İlgili Sonuçlar"
                 >
@@ -649,6 +640,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           </div>
         )}
       </div>
+      <Link href="/me" prefetch className="sr-only" aria-hidden="true" tabIndex={-1} />
     </header>
   );
 }
