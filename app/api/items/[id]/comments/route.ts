@@ -64,24 +64,33 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     // Bildirim: kendi item'ine yorum geldi (sahip farklıysa)
     try {
-      const itemForNotify = await prisma.item.findUnique({
-        where: { id: created.itemId },
-        select: { id: true, name: true, createdById: true, imageUrl: true },
-      });
+  const itemForNotify = await prisma.item.findUnique({
+    where: { id: created.itemId },
+    select: { id: true, name: true, createdById: true, imageUrl: true },
+  });
 
-      if (itemForNotify?.createdById && itemForNotify.createdById !== me.id) {
-        await templates.commentOnOwnItem({
-          ownerId: itemForNotify.createdById,
-          actorName: created.user?.name ?? "Bir kullanıcı",
-          itemTitle: itemForNotify.name,
-          commentText: created.text ?? "",
-          itemId: itemForNotify.id,
-          thumb: itemForNotify.imageUrl ?? undefined,
-        });
-      }
-    } catch (_) {
-      // Bildirim hatası uygulamayı düşürmesin; sessizce yutuyoruz
-    }
+  // debug log (Next.js server log)
+  console.log("[notify-debug]", {
+    itemId: itemForNotify?.id,
+    ownerId: itemForNotify?.createdById,
+    actorId: me.id,
+    sameOwner: itemForNotify?.createdById === me.id,
+  });
+
+  // GEÇİCİ: owner aynıysa da yaz (test için)
+  if (itemForNotify?.createdById) {
+    await templates.commentOnOwnItem({
+      ownerId: itemForNotify.createdById,
+      actorName: created.user?.name ?? "Bir kullanıcı",
+      itemTitle: itemForNotify.name,
+      commentText: created.text ?? "",
+      itemId: itemForNotify.id,
+      thumb: itemForNotify.imageUrl ?? undefined,
+    });
+  }
+} catch (err) {
+  console.error("[notify-error]", err);
+}
 
     return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
   } catch (e: any) {
