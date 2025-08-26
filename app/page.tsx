@@ -151,10 +151,10 @@ export default function HomePage() {
   // Reusable mobile bottom-sheet used for Share / Options
   function MobileSheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
     return (
-      <div className="rs-pop fixed inset-0 z-[100]">
-        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="rs-pop fixed inset-0 z-[9999] pointer-events-none">
+        <div className="absolute inset-0 bg-black/40 pointer-events-auto" onClick={onClose} />
         <div
-          className="absolute inset-x-0 bottom-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl max-h-[75vh] overflow-auto"
+          className="absolute inset-x-0 bottom-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl max-h-[75vh] overflow-auto pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
           role="dialog"
           aria-modal="true"
@@ -200,7 +200,7 @@ export default function HomePage() {
           </button>
           <button
             className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
-            onClick={() => { nativeShare(item.id, item.name); setOpenShare(null); }}
+            onClick={() => { setOpenShare(null); nativeShare(item.id, item.name); }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -557,6 +557,17 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     }
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
+  }, []);
+  // Close share/options with Escape
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpenShare(null);
+        setOpenMenu(null);
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
   // URL'den ?item=... yakala ve spotlight için hazırla
   useEffect(() => {
@@ -1756,7 +1767,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           isMobile ? (
             renderShareMenuMobile(sharedItem)
           ) : (
-            <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+            <div className="rs-pop absolute right-10 top-0 z-[9999] w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
               <button
                 className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
                 onClick={() => handleCopyShare(sharedItem.id)}
@@ -1775,7 +1786,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
               </button>
               <button
                 className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-                onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
+                onClick={() => { setOpenShare(null); nativeShare(sharedItem.id, sharedItem.name); }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
                   <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -1803,7 +1814,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           isMobile ? (
             renderOptionsMenuMobile(sharedItem)
           ) : (
-            <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+            <div className="rs-pop absolute right-10 top-0 z-[9999] w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
               {amAdmin && (
                 <>
                   <button
