@@ -299,25 +299,25 @@ export default function Header({ controls }: { controls?: Controls }) {
 
             {me && (
               <>
-                <button
-                  onClick={() => router.push('/me')}
-                  type="button"
-                  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
-                  title="Profilim"
-                  aria-label="Profilim"
-                >
-                  {me.avatarUrl ? (
-                    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                      {(me.name ?? 'U')[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <span className="hidden sm:flex items-center gap-1">
-                    {me.name ?? 'Ben'}
-                    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                  </span>
-                </button>
+<Link
+  href="/me"
+  prefetch
+  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
+  title="Profilim"
+  aria-label="Profilim"
+>
+  {me.avatarUrl ? (
+    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+  ) : (
+    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+      {(me.name ?? 'U')[0]?.toUpperCase()}
+    </div>
+  )}
+  <span className="hidden sm:flex items-center gap-1">
+    {me.name ?? 'Ben'}
+    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+  </span>
+</Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
                   className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
@@ -488,25 +488,25 @@ export default function Header({ controls }: { controls?: Controls }) {
 
           {me && (
             <>
-              <button
-                onClick={() => router.push('/me')}
-                type="button"
-                className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
-                title="Profilim"
-                aria-label="Profilim"
-              >
-                {me.avatarUrl ? (
-                  <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
-                    {(me.name ?? 'U')[0]?.toUpperCase()}
-                  </div>
-                )}
-                <span className="hidden sm:flex items-center gap-1">
-                  {me.name ?? 'Ben'}
-                  {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
-                </span>
-              </button>
+              <Link
+  href="/me"
+  prefetch
+  className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
+  title="Profilim"
+  aria-label="Profilim"
+>
+  {me.avatarUrl ? (
+    <img src={me.avatarUrl} alt="me" className="w-6 h-6 rounded-full object-cover" />
+  ) : (
+    <div className="w-6 h-6 rounded-full bg-gray-200 grid place-items-center text-xs text-gray-700">
+      {(me.name ?? 'U')[0]?.toUpperCase()}
+    </div>
+  )}
+  <span className="hidden sm:flex items-center gap-1">
+    {me.name ?? 'Ben'}
+    {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+  </span>
+</Link>
               <button
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
