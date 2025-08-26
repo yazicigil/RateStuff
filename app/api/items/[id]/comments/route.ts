@@ -62,35 +62,29 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const score = 0; // yeni yorumda oy yok
     const myVote = 0;
 
-    // Bildirim: kendi item'ine yorum geldi (sahip farklıysa)
+    // Bildirim: kendi item'ine yorum geldi (sahip farklıysa) — Doğrudan Prisma insert
     try {
-  const itemForNotify = await prisma.item.findUnique({
-    where: { id: created.itemId },
-    select: { id: true, name: true, createdById: true, imageUrl: true },
-  });
-
-  // debug log (Next.js server log)
-  console.log("[notify-debug]", {
-    itemId: itemForNotify?.id,
-    ownerId: itemForNotify?.createdById,
-    actorId: me.id,
-    sameOwner: itemForNotify?.createdById === me.id,
-  });
-
-  // GEÇİCİ: owner aynıysa da yaz (test için)
-  if (itemForNotify?.createdById) {
-    await templates.commentOnOwnItem({
-      ownerId: itemForNotify.createdById,
-      actorName: created.user?.name ?? "Bir kullanıcı",
-      itemTitle: itemForNotify.name,
-      commentText: created.text ?? "",
-      itemId: itemForNotify.id,
-      thumb: itemForNotify.imageUrl ?? undefined,
-    });
-  }
-} catch (err) {
-  console.error("[notify-error]", err);
-}
+      const itemOwner = await prisma.item.findUnique({
+        where: { id: created.itemId },
+        select: { id: true, name: true, createdById: true, imageUrl: true },
+      });
+    
+      if (itemOwner?.createdById && itemOwner.createdById !== me.id) {
+        await prisma.notification.create({
+          data: {
+            userId: itemOwner.createdById,
+            type: "COMMENT_ON_OWN_ITEM" as any, // enum cast
+            title: `${created.user?.name ?? "Bir kullanıcı"} yorum yaptı`,
+            body: `“${(created.text ?? "").slice(0, 80)}” • ${itemOwner.name}`,
+            link: `/items/${itemOwner.id}`,
+            image: itemOwner.imageUrl ?? undefined,
+            eventKey: `cmt:${created.id}:${Date.now()}`, // uniq
+          },
+        });
+      }
+    } catch (err) {
+      console.error("[notify-fail:A]", err);
+    }
 
     return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
   } catch (e: any) {
