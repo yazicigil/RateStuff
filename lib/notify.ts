@@ -78,7 +78,7 @@ export const templates = {
       type: "COMMENT_ON_OWN_ITEM",
       title: `${args.actorName} yorum yaptı`,
       body: `“${args.commentText.slice(0, 80)}” • ${args.itemTitle}`,
-      link: `/items/${args.itemId}`,
+      link: `/share/${args.itemId}`,
       image: args.thumb,
       eventKey: `cmt:${args.itemId}:${args.actorName}:${args.commentText.slice(0,40)}`,
       data: { itemId: args.itemId },

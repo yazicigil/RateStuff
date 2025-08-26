@@ -43,7 +43,21 @@ export default function NotificationsDropdown() {
 
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
             {items.map(n => (
-              <li key={n.id} className="flex gap-2 p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded">
+              <li
+                key={n.id}
+                className="flex gap-2 p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded cursor-pointer"
+                onClick={() => {
+                  if (n.link) window.location.href = n.link;
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === " ") && n.link) {
+                    e.preventDefault();
+                    window.location.href = n.link;
+                  }
+                }}
+              >
                 {n.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={n.image} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
@@ -54,11 +68,13 @@ export default function NotificationsDropdown() {
                   <div className="text-sm font-medium truncate">{n.title}</div>
                   <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
                   <div className="mt-1 flex items-center gap-2">
-                    {n.link && (
-                      <a href={n.link} className="text-xs underline">Git</a>
-                    )}
                     {!n.readAt && (
-                      <button className="text-xs underline" onClick={() => markRead([n.id])}>Okundu</button>
+                      <button
+                        className="text-xs underline"
+                        onClick={(e) => { e.stopPropagation(); markRead([n.id]); }}
+                      >
+                        Okundu
+                      </button>
                     )}
                   </div>
                 </div>

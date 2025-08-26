@@ -6,6 +6,7 @@ import { containsBannedWord } from "@/lib/bannedWords";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+export const runtime = "nodejs";
 
 // POST: create a new comment for an existing item (rating required, text optional)
 export async function POST(req: Request, { params }: { params: { id: string } }) {
@@ -57,6 +58,32 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
       },
     });
+
+    // Bildirim: item sahibine haber ver (sahip farklıysa)
+    try {
+      const itemOwner = await prisma.item.findUnique({
+        where: { id: created.itemId },
+        select: { id: true, name: true, createdById: true, imageUrl: true },
+      });
+
+      if (itemOwner?.createdById && itemOwner.createdById !== me.id) {
+        const stars = created.rating ?? rating ?? 0;
+        await prisma.notification.create({
+          data: {
+            userId: itemOwner.createdById,
+            type: "COMMENT_ON_OWN_ITEM" as any,
+            title: `${created.user?.name ?? "Bir kullanıcı"} ${stars}★ verdi ve yorum yaptı`,
+            body: `“${(created.text ?? "").slice(0, 80)}” • ${itemOwner.name}`,
+            link: `/share/${itemOwner.id}`,
+            image: itemOwner.imageUrl ?? undefined,
+            eventKey: `cmt:${created.id}:${Date.now()}`, // benzersiz
+            data: { itemId: itemOwner.id, rating: stars },
+          },
+        });
+      }
+    } catch (err) {
+      console.error("[notify:comment-insert-fail]", err);
+    }
 
     const score = 0; // yeni yorumda oy yok
     const myVote = 0;
