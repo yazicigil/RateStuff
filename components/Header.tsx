@@ -334,8 +334,8 @@ export default function Header({ controls }: { controls?: Controls }) {
 
         {/* Desktop: arama + sıralama ortada */}
         {controls && (
-          <div className="hidden md:flex mx-auto items-center gap-2 w-full max-w-xl">
-            <div className="relative flex-1" ref={suggWrapRefDesktop}>
+          <div className="hidden md:flex mx-auto items-center gap-2 w-full min-w-0 md:max-w-[28rem] lg:max-w-[36rem] xl:max-w-[42rem]">
+            <div className="relative flex-1 min-w-0" ref={suggWrapRefDesktop}>
               {/* Faux input container: pills + text input */}
               <div className="w-full h-9 border border-gray-300 dark:border-gray-700 rounded-xl px-3 text-sm flex items-center gap-2 bg-white/15 dark:bg-gray-900/20 backdrop-blur-sm focus-within:ring-2 focus-within:ring-black/10 dark:focus-within:ring-white/10">
                 {/* Real input */}

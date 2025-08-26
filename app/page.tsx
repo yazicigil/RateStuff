@@ -1196,6 +1196,29 @@ if (!already) {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
   }
 }
+  /* ---- Quick Add transparent input backgrounds (iOS/Safari safe) ---- */
+.rs-quickadd input:not([type="hidden"]),
+.rs-quickadd textarea{
+  background-color: transparent !important;
+  -webkit-appearance: none;
+  appearance: none;
+  background-clip: padding-box;
+  -webkit-background-clip: padding-box;
+  caret-color: currentColor;
+}
+
+/* WebKit autofill overlay’ini şeffaf boya */
+.rs-quickadd input:-webkit-autofill,
+.rs-quickadd input:-webkit-autofill:hover,
+.rs-quickadd input:-webkit-autofill:focus,
+.rs-quickadd textarea:-webkit-autofill,
+.rs-quickadd textarea:-webkit-autofill:hover,
+.rs-quickadd textarea:-webkit-autofill:focus{
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: inherit;
+  transition: background-color 9999s ease-out 0s;
+}
       `}
       </style>
       
@@ -1343,7 +1366,7 @@ if (!already) {
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
-  <div ref={quickAddRef} className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col">
+  <div ref={quickAddRef} className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col rs-quickadd">
     {/* CLOSE (X) */}
     <button
       className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
@@ -1411,15 +1434,13 @@ if (!already) {
                 name="name"
                 value={quickName}
                 onChange={(e) => setQuickName(e.target.value)}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none ${hasBannedName ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'}`}
-                placeholder="adı *"
+                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}                placeholder="adı *"
                 required
               />
               {hasBannedName && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
               <input
                 name="desc"
-                className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-                placeholder="kısa açıklama (opsiyonel)"
+className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"                placeholder="kısa açıklama (opsiyonel)"
               />
               <div className="flex-1 min-w-[200px]">
                 <div className={`border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}>
@@ -1474,7 +1495,7 @@ if (!already) {
                 name="comment"
                 value={quickComment}
                 onChange={(e) => setQuickComment(e.target.value)}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100'}`}
+                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
                 placeholder="yorum (opsiyonel)"
               />
               {hasBannedComment && <span className="text-xs text-red-600">Yorumda yasaklı kelime var.</span>}
