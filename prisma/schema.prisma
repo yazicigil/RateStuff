@@ -131,3 +131,43 @@ model CommentVote {
   @@index([commentId])
   @@index([userId])
 }
+enum NotificationType {
+  COMMENT_ON_OWN_ITEM
+  RATING_ON_OWN_ITEM
+  TAG_PEER_NEW_ITEM
+  REPORT_OPENED
+  REPORT_UPDATED
+  REPORT_RESOLVED
+  MILESTONE_REACHED
+  COMMENT_UPVOTED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  image     String?
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  eventKey  String?          @unique
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model NotificationPreference {
+  id                 String  @id @default(cuid())
+  userId             String  @unique
+  emailEnabled       Boolean @default(false)
+  pushEnabled        Boolean @default(false)
+  commentOnOwnItem   Boolean @default(true)
+  ratingOnOwnItem    Boolean @default(true)
+  tagPeerNewItem     Boolean @default(true)
+  reportEvents       Boolean @default(true)
+  milestones         Boolean @default(true)
+  commentUpvoted     Boolean @default(true)
+  emailDigest        String  @default("none")
+}

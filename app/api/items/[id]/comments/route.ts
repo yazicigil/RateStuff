@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { containsBannedWord } from "@/lib/bannedWords";
+import { templates } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -60,6 +61,27 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const score = 0; // yeni yorumda oy yok
     const myVote = 0;
+
+    // Bildirim: kendi item'ine yorum geldi (sahip farklıysa)
+    try {
+      const itemForNotify = await prisma.item.findUnique({
+        where: { id: created.itemId },
+        select: { id: true, name: true, createdById: true, imageUrl: true },
+      });
+
+      if (itemForNotify?.createdById && itemForNotify.createdById !== me.id) {
+        await templates.commentOnOwnItem({
+          ownerId: itemForNotify.createdById,
+          actorName: created.user?.name ?? "Bir kullanıcı",
+          itemTitle: itemForNotify.name,
+          commentText: created.text ?? "",
+          itemId: itemForNotify.id,
+          thumb: itemForNotify.imageUrl ?? undefined,
+        });
+      }
+    } catch (_) {
+      // Bildirim hatası uygulamayı düşürmesin; sessizce yutuyoruz
+    }
 
     return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
   } catch (e: any) {
