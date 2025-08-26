@@ -232,6 +232,12 @@ export default function Header({ controls }: { controls?: Controls }) {
   }, [router]);
   function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
 
+  // Helper to ensure taps always navigate to profile
+  const goProfile = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) e.preventDefault();
+    router.push('/me');
+  };
+
   const logoClass = USE_CURRENTCOLOR
     ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
     : 'h-14 w-auto dark:invert';
@@ -306,6 +312,8 @@ export default function Header({ controls }: { controls?: Controls }) {
 <Link
   href="/me"
   prefetch
+  onClick={goProfile}
+  onTouchEnd={goProfile}
   className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
   title="Profilim"
   aria-label="Profilim"
@@ -495,6 +503,8 @@ export default function Header({ controls }: { controls?: Controls }) {
               <Link
   href="/me"
   prefetch
+  onClick={goProfile}
+  onTouchEnd={goProfile}
   className="h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 pointer-events-auto"
   title="Profilim"
   aria-label="Profilim"
