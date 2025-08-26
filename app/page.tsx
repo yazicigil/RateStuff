@@ -130,6 +130,154 @@ export default function HomePage() {
   const [openShare, setOpenShare] = useState<string | null>(null);
   // state’lerin arasına ekle (openShare’in hemen altı mantıklı)
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+
+  // --- Mobile detection for full-screen popovers ---
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 640px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // Lock body scroll when mobile sheets are open
+  useEffect(() => {
+    if (!isMobile) return;
+    const opened = Boolean(openShare || openMenu);
+    const prev = document.body.style.overflow;
+    if (opened) document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isMobile, openShare, openMenu]);
+  // Reusable mobile bottom-sheet used for Share / Options
+  function MobileSheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+    return (
+      <div className="rs-pop fixed inset-0 z-[100]">
+        <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+        <div
+          className="absolute inset-x-0 bottom-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl max-h-[75vh] overflow-auto"
+          onClick={(e) => e.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
+            <div className="text-sm font-semibold">{title}</div>
+            <button
+              className="w-8 h-8 grid place-items-center rounded-lg border border-gray-200 dark:border-gray-800"
+              aria-label="Kapat"
+              onClick={onClose}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-2">{children}</div>
+        </div>
+      </div>
+    );
+  }
+
+  // SHARE menu (common for spotlight + grid)
+  function renderShareMenuMobile(item: ItemVM) {
+    return (
+      <MobileSheet title="Paylaş" onClose={() => setOpenShare(null)}>
+        <div className="space-y-2">
+          <button
+            className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => handleCopyShare(item.id)}
+          >
+            {copiedShareId === item.id ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            )}
+            <span>{copiedShareId === item.id ? 'Kopyalandı!' : 'Kopyala'}</span>
+          </button>
+          <button
+            className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => { nativeShare(item.id, item.name); setOpenShare(null); }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>Daha fazla seçenek</span>
+          </button>
+        </div>
+      </MobileSheet>
+    );
+  }
+
+  // OPTIONS menu (common for spotlight + grid)
+  function renderOptionsMenuMobile(item: ItemVM) {
+    const isSaved = savedIds.has(item.id);
+    return (
+      <MobileSheet title="Seçenekler" onClose={() => setOpenMenu(null)}>
+        <div className="space-y-2">
+          {amAdmin && (
+            <button
+              className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-red-200 text-red-600 dark:border-red-900/40 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={() => { setOpenMenu(null); deleteItem(item.id); }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="5" y="7" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+                <path d="M9 10v4M15 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M3 7h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <path d="M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="2" />
+              </svg>
+              <span>Kaldır</span>
+            </button>
+          )}
+          <button
+            className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => { setOpenMenu(null); toggleSave(item.id); }}
+          >
+            {isSaved ? (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a2 2 0 0 1 2-2Z" fill="currentColor" />
+                </svg>
+                <span>Kaydedilenlerden Kaldır</span>
+              </>
+            ) : (
+              <>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
+                </svg>
+                <span>Kaydet</span>
+              </>
+            )}
+          </button>
+          <button
+            className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => { setOpenMenu(null); report(item.id); }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 21V5a2 2 0 0 1 2-2h7l-1 4h6l-1 4h-6l1 4h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span>Report</span>
+          </button>
+          <button
+            className="w-full text-left px-4 py-3 rounded-xl text-sm flex items-center gap-2 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => { setOpenMenu(null); showInList(item.id); }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
+              <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
+              <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
+            </svg>
+            <span>Listede göster</span>
+          </button>
+        </div>
+      </MobileSheet>
+    );
+  }
   // REPORT UI state
   const [reportOpen, setReportOpen] = useState(false);
   const [reportTargetId, setReportTargetId] = useState<string | null>(null);
@@ -1605,35 +1753,39 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           </svg>
         </button>
         {openShare === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => handleCopyShare(sharedItem.id)}
-            >
-              {copiedShareId === sharedItem.id ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          isMobile ? (
+            renderShareMenuMobile(sharedItem)
+          ) : (
+            <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                onClick={() => handleCopyShare(sharedItem.id)}
+              >
+                {copiedShareId === sharedItem.id ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                )}
+                <span>{copiedShareId === sharedItem.id ? 'Kopyalandı!' : 'Kopyala'}</span>
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+                onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              )}
-              <span>{copiedShareId === sharedItem.id ? 'Kopyalandı!' : 'Kopyala'}</span>
-            </button>
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              <span>Daha fazla seçenek</span>
-            </button>
-          </div>
+                <span>Daha fazla seçenek</span>
+              </button>
+            </div>
+          )
         )}
       </div>
       <div className="relative">
@@ -1648,75 +1800,73 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           ⋯
         </button>
         {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-            {amAdmin && (
-              <>
-                <button
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  onClick={() => { setOpenMenu(null); deleteItem(sharedItem.id); }}
-                >
-                  {/* Trash icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="5" y="7" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M9 10v4M15 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M3 7h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                  <span>Kaldır</span>
-                </button>
-                <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
-              </>
-            )}
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${
-                savedIds.has(sharedItem.id)
-                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-              onClick={() => { setOpenMenu(null); toggleSave(sharedItem.id); }}
-            >
-              {savedIds.has(sharedItem.id) ? (
+          isMobile ? (
+            renderOptionsMenuMobile(sharedItem)
+          ) : (
+            <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
+              {amAdmin && (
                 <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a2 2 0 0 1 2-2Z" fill="currentColor"/>
-                  </svg>
-                  <span>Kaydedilenlerden Kaldır</span>
-                </>
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  <span>Kaydet</span>
+                  <button
+                    className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                    onClick={() => { setOpenMenu(null); deleteItem(sharedItem.id); }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="5" y="7" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
+                      <path d="M9 10v4M15 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M3 7h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="2"/>
+                    </svg>
+                    <span>Kaldır</span>
+                  </button>
+                  <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
                 </>
               )}
-            </button>
-          {/* GRID/LIST ITEM MENUS */}
-          {/* Remove any leftover placeholder comments related to previous grid patches */}
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-             onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
-            >
-              {/* Flag icon */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M6 21V5a2 2 0 0 1 2-2h7l-1 4h6l-1 4h-6l1 4h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>Report</span>
-            </button>
-         
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => { setOpenMenu(null); showInList(sharedItem.id); }}
-            >
-              {/* List icon */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
-                <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
-                <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
-              </svg>
-              <span>Listede göster</span>
-            </button>
-          </div>
+              <button
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${
+                  savedIds.has(sharedItem.id)
+                    ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
+                    : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                }`}
+                onClick={() => { setOpenMenu(null); toggleSave(sharedItem.id); }}
+              >
+                {savedIds.has(sharedItem.id) ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+                      <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a 2 2 0 0 1 2-2Z" fill="currentColor"/>
+                    </svg>
+                    <span>Kaydedilenlerden Kaldır</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    <span>Kaydet</span>
+                  </>
+                )}
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M6 21V5a2 2 0 0 1 2-2h7l-1 4h6l-1 4h-6l1 4h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>Report</span>
+              </button>
+              <button
+                className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                onClick={() => { setOpenMenu(null); showInList(sharedItem.id); }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
+                  <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
+                  <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
+                </svg>
+                <span>Listede göster</span>
+              </button>
+            </div>
+          )
         )}
       </div>
     </div>
