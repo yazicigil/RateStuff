@@ -88,7 +88,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             link: `/share/${itemOwner.id}`,
             image: itemOwner.imageUrl ?? undefined,
             eventKey: `cmt:${created.id}:${Date.now()}`, // benzersiz
-            data: { itemId: itemOwner.id, rating: stars },
+            data: { itemId: itemOwner.id, rating: stars, actorMaskedName: displayName },
           },
         });
       }

@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
-import { useNotifications } from "@/lib/useNotifications";
+import { useNotifications, type Notif } from "@/lib/useNotifications";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const { items, unreadCount, hasMore, loading, load, refresh, markRead, markAll, status, setStatus } =
-    useNotifications("all", 20);
+    useNotifications("all", 5);
+  const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
 
   return (
     <div className="relative">
@@ -41,12 +43,26 @@ export default function NotificationsDropdown() {
               >Tümü</button>
             </div>
             <div className="flex items-center gap-2">
+              <button
+                className="text-xs underline"
+                onClick={async () => {
+                  await markAll();
+                  // mevcut listeyi görünümden temizle
+                  setHiddenIds((prev) => {
+                    const next = new Set(prev);
+                    for (const it of items) next.add(it.id);
+                    return next;
+                  });
+                }}
+              >
+                Bildirimleri temizle
+              </button>
               <button className="text-xs underline" onClick={() => refresh()}>Yenile</button>
             </div>
           </div>
 
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {items.map(n => (
+            {visibleItems.map((n: Notif) => (
               <li
                 key={n.id}
                 className="flex gap-2 p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded cursor-pointer"
@@ -85,7 +101,7 @@ export default function NotificationsDropdown() {
                 onClick={() => load()}
               >Daha fazla</button>
             )}
-            {!items.length && !loading && <div className="text-center text-sm py-4 text-neutral-500">Bildirim yok</div>}
+            {!visibleItems.length && !loading && <div className="text-center text-sm py-4 text-neutral-500">Bildirim yok</div>}
           </div>
         </div>
       )}
