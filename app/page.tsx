@@ -89,6 +89,7 @@ type ItemVM = {
   count: number;
   myRating?: number | null;
   edited?: boolean;
+  suspended?: boolean;
   createdBy?: { id: string; name: string; avatarUrl?: string | null; verified?: boolean } | null;
   comments: {
     id: string;
@@ -1589,9 +1590,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           {!showQuickAdd && sharedItem && (
   <div
     ref={spotlightRef}
-    className={
-      `scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150`
-    }
+    className={`scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 ${(sharedItem as any)?.suspended ? 'opacity-60 grayscale' : ''}`}
   >
     {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
       <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
@@ -1797,6 +1796,14 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
           )}
         </div>
         <div className="flex-1 min-w-0">
+          {(sharedItem as any)?.suspended && (
+  <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
+    </svg>
+    Askıda — yalnızca sen görüyorsun
+  </div>
+)}
           <h3
             className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2"
             title={sharedItem.name}
@@ -2399,7 +2406,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                   key={i.id}
                   ref={(el) => { itemRefs.current[i.id] = el; }}
                   className={
-                    `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ` +
+                    `relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${(i as any)?.suspended ? 'opacity-60 grayscale' : ''}` +
                     (highlightId === i.id ? 'ring-2 ring-emerald-400' : '')
                   }
                 >
@@ -2579,6 +2586,14 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                       </div>
 
                       <div className="flex-1 min-w-0">
+                        {(sharedItem as any)?.suspended && (
+  <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
+    </svg>
+    Askıda — yalnızca sen görüyorsun
+  </div>
+)}
                         <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
                           <button
                             type="button"

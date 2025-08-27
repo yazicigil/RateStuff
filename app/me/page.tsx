@@ -748,7 +748,13 @@ const body: any = {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     {filteredSaved.map(it => (
-                      <div key={it.id} className="rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full">
+                      <div
+                        key={it.id}
+                        className={
+                          "rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full" +
+                          `${(it as any)?.suspended ? ' opacity-60 grayscale' : ''}`
+                        }
+                      >
                         <div className="flex items-start gap-3">
                           <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
                             {it.imageUrl ? (
@@ -795,6 +801,15 @@ const body: any = {
                                 </span>
                               </button>
                             </div>
+                            {/* Suspended badge */}
+                            {(it as any)?.suspended && (
+                              <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                Askıda — yalnızca sen görüyorsun
+                              </div>
+                            )}
                             <p className="text-sm opacity-80 mt-1 line-clamp-3 break-words">{it.description}</p>
 
                             {!!(it.tags && it.tags.length) && (
