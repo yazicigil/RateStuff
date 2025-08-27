@@ -169,7 +169,11 @@ export default function NotificationsDropdown() {
               {visibleItems.map((n: Notif) => (
                 <li
                   key={n.id}
-                  className={`flex group gap-2 p-2 rounded cursor-pointer border-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+                  className={`flex group gap-2 p-2 rounded cursor-pointer border-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${
+                    n.type?.startsWith("REPORT")
+                      ? "bg-red-50/60 dark:bg-red-900/25"
+                      : (!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800")
+                  }`}
                   onClick={() => {
                     if (n.link) window.location.href = n.link;
                   }}
@@ -187,7 +191,7 @@ export default function NotificationsDropdown() {
                     <img
                       src={n.image}
                       alt=""
-                      className={`${n.type?.startsWith("MILESTONE_") ? "w-16 h-16" : "w-14 h-14"} rounded object-cover transition-transform duration-150 group-hover:scale-[1.02]`}
+                      className="w-14 h-14 rounded object-cover transition-transform duration-150 group-hover:scale-[1.02]"
                       loading="lazy"
                     />
                   ) : (

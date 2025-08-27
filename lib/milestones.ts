@@ -49,7 +49,7 @@ export async function milestone_ownerItemReviews(prisma: PrismaClient, itemId: s
     data: {
       userId: item.createdById,
       type: "MILESTONE_REACHED" as any,
-      title: `Tebrikler! “${badgeTitle("owner_item_reviews", hit)}” unvanını kazandın`,
+      title: `Tebrikler! “${badgeTitle("owner_item_reviews", hit)}” başarımını kazandın`,
       body: `“${item.name}” ${hit} değerlendirmeye ulaştı. Harika gidiyorsun!`,
       link: `/share/${item.id}`,
       image: badgeImage("owner_item_reviews", hit),
@@ -69,7 +69,7 @@ export async function milestone_userItemsShared(prisma: PrismaClient, ownerId: s
     data: {
       userId: ownerId,
       type: "MILESTONE_REACHED" as any,
-      title: `Tebrikler! “${badgeTitle("user_items_shared", hit)}” unvanını kazandın`,
+      title: `Tebrikler! “${badgeTitle("user_items_shared", hit)}” başarımını kazandın`,
       body: `${hit} farklı item ekledin. Katkın büyüyor 👏`,
       link: "/me#tab=items",
       image: badgeImage("user_items_shared", hit),
@@ -94,7 +94,7 @@ export async function milestone_userReviewsGiven(prisma: PrismaClient, userId: s
     data: {
       userId,
       type: "MILESTONE_REACHED" as any,
-      title: `Tebrikler! “${badgeTitle("user_reviews_given", hit)}” unvanını kazandın`,
+      title: `Tebrikler! “${badgeTitle("user_reviews_given", hit)}” başarımını kazandın`,
       body: `${hit} farklı değerlendirme bıraktın. Süpersin!`,
       link: null,
       image: badgeImage("user_reviews_given", hit),

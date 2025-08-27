@@ -21,7 +21,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // Ensure item exists (for email/context)
     const item = await prisma.item.findUnique({
       where: { id: itemId },
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, createdById: true },
     });
     if (!item) return NextResponse.json({ ok: false, error: "Item not found" }, { status: 404 });
 
@@ -39,6 +39,43 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     });
 
     const count = await prisma.report.count({ where: { itemId } });
+
+    // Notifications: single report + threshold (10)
+    try {
+      if (item?.createdById && item.createdById !== user.id) {
+        // Single report notification
+        await prisma.notification.create({
+          data: {
+            userId: item.createdById,
+            type: "ITEM_REPORTED" as any,
+            title: "Gönderiniz report aldı",
+            body: `Sebep: ${reason || "belirtilmedi"} • Toplam: ${count}`,
+            link: `/share/${item.id}`,
+            image: "/badges/report-flag.svg",
+            eventKey: `irep:${item.id}:${Date.now()}`,
+            data: { itemId: item.id, reason: reason || null, total: count },
+          },
+        });
+
+        // Threshold at 10 reports
+        if (count === 10) {
+          await prisma.notification.create({
+            data: {
+              userId: item.createdById,
+              type: "REPORT_THRESHOLD" as any,
+              title: "Gönderiniz kaldırılabilir — 10 report oldu",
+              body: "Topluluk kurallarına uymuyor olabilir. İçeriği gözden geçirmenizi öneririz.",
+              link: `/share/${item.id}`,
+              image: "/badges/report-warning.svg",
+              eventKey: `irep10:${item.id}`,
+              data: { itemId: item.id, total: count, threshold: 10 },
+            },
+          });
+        }
+      }
+    } catch (e) {
+      console.error("[notify:item-report]", e);
+    }
 
     // Fire-and-forget admin email (best-effort)
     try {
