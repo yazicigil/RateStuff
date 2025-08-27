@@ -50,7 +50,7 @@ export async function milestone_ownerItemReviews(prisma: PrismaClient, itemId: s
       userId: item.createdById,
       type: "MILESTONE_REACHED" as any,
       title: `Tebrikler! “${badgeTitle("owner_item_reviews", hit)}” unvanını kazandın`,
-      body: `“${item.name}” ${hit} yoruma ulaştı. Harika gidiyorsun!`,
+      body: `“${item.name}” ${hit} değerlendirmeye ulaştı. Harika gidiyorsun!`,
       link: `/share/${item.id}`,
       image: badgeImage("owner_item_reviews", hit),
       eventKey,
