@@ -169,7 +169,7 @@ export default function NotificationsDropdown() {
               {visibleItems.map((n: Notif) => (
                 <li
                   key={n.id}
-                  className={`flex group gap-2 p-2 rounded cursor-pointer border border-transparent transition-colors duration-150 hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+                  className={`flex group gap-2 p-2 rounded cursor-pointer border-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
                   onClick={() => {
                     if (n.link) window.location.href = n.link;
                   }}
