@@ -100,7 +100,7 @@ export default function UserExplorer() {
     setDeleteErr(null);
     setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/admin/users/${actUser.id}/delete`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/users/${actUser.id}/delete`, { method: "POST" });
       let j: any = null;
       try {
         const ct = res.headers.get("content-type") || "";
@@ -167,12 +167,12 @@ export default function UserExplorer() {
         </div>
 
         {/* Sağ: seçilen kullanıcının activity'si */}
-        <div className="rounded-xl border p-3">
+        <div className="rounded-xl border p-3 max-h-96 overflow-y-auto">
           {!actUser && <div className="text-sm opacity-70">Bir kullanıcı seç.</div>}
           {loadingAct && <div className="text-sm opacity-70">Detaylar yükleniyor…</div>}
           {actUser && !loadingAct && (
             <>
-              <div className="flex items-center justify-between gap-3 mb-3">
+              <div className="flex items-center justify-between gap-3 mb-3 sticky top-0 bg-white dark:bg-neutral-900 z-10 py-2">
                 <div className="flex items-center gap-3">
                   <img src={avatarFor(actUser)} alt="" className="w-10 h-10 rounded-full object-cover" />
                   <div>
@@ -180,12 +180,22 @@ export default function UserExplorer() {
                     {actUser.email && <div className="text-xs opacity-70">{actUser.email}</div>}
                   </div>
                 </div>
-                <button onClick={() => setShowSend(true)}
-                        className="inline-flex items-center gap-1 h-8 px-3 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                        title="Bildirim gönder">
-                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2Z" fill="currentColor"/></svg>
-                  <span className="text-sm">Bildirim</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setShowSend(true)}
+                          className="inline-flex items-center gap-1 h-8 px-3 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                          title="Bildirim gönder">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2Z" fill="currentColor"/></svg>
+                    <span className="text-sm">Bildirim</span>
+                  </button>
+                  <button
+                    onClick={() => setShowDelete(true)}
+                    className="inline-flex items-center gap-1 h-8 px-3 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
+                    title="Kullanıcıyı sil"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7Zm3-3h6l1 2H8l1-2Zm2 5v9m4-9v9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                    <span className="text-sm">Sil</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid gap-4">
@@ -298,16 +308,6 @@ export default function UserExplorer() {
                 </div>
               )}
 
-              {actUser && (
-                <div className="mt-3">
-                  <button
-                    onClick={() => setShowDelete(true)}
-                    className="text-xs px-3 h-8 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30"
-                  >
-                    Kullanıcıyı Sil
-                  </button>
-                </div>
-              )}
 
               {showDelete && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center">
