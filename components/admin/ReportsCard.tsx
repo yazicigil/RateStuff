@@ -30,6 +30,9 @@ export default function ReportsCard() {
     return items.filter((it) => it.name.toLowerCase().includes(s));
   }, [q, items]);
 
+  const tallList = filtered.length > 6; // 6+ item varsa kaydır, yoksa kısa kalsın
+  const tallDetails = active && details.reports && details.reports.length > 6; // detay çoksa kaydır
+
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -97,7 +100,7 @@ export default function ReportsCard() {
             <div className="text-sm opacity-70 mb-2">Arama ile eşleşen sonuç yok.</div>
           )}
 
-          <div className="max-h-96 overflow-y-auto pr-1">
+          <div className={`${tallList ? 'max-h-96 overflow-y-auto pr-1' : ''}`}>
             <ul className="divide-y divide-red-200/70 dark:divide-red-900/40">
               {filtered.map(it => (
                 <li key={it.id}
@@ -118,7 +121,9 @@ export default function ReportsCard() {
                       )}
                     </div>
                   </div>
-                  <button className="text-xs px-2 h-7 rounded-md border">Detay</button>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 opacity-60 ml-auto">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 111.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
                 </li>
               ))}
             </ul>
@@ -126,7 +131,7 @@ export default function ReportsCard() {
         </div>
 
         {/* Right side: details */}
-        <div className="w-1/2 max-h-96 overflow-y-auto rounded-xl border bg-white dark:bg-neutral-900 p-3">
+        <div className={`w-1/2 rounded-xl border bg-white dark:bg-neutral-900 p-3 ${tallDetails ? 'max-h-96 overflow-y-auto' : ''}`}>
           {active ? (
             <>
               {loadingDetails && <div className="text-sm opacity-70">Detaylar yükleniyor…</div>}
@@ -148,8 +153,15 @@ export default function ReportsCard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <a href={`/share/${details.item.id}`} target="_blank"
-                         className="text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                      <a
+                        href={`/share/${details.item.id}`}
+                        target="_blank"
+                        className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                          <path d="M12.293 2.293a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L14 5.414V9a1 1 0 11-2 0V3a1 1 0 011-1h.707l-1.414 1.414 1-1.121z"/>
+                          <path d="M5 4a3 3 0 00-3 3v7a3 3 0 003 3h7a3 3 0 003-3v-3a1 1 0 10-2 0v3a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 100-2H5z"/>
+                        </svg>
                         Gönderiye git
                       </a>
                       <button
@@ -165,9 +177,23 @@ export default function ReportsCard() {
                             setItems(prev => prev.map(it => it.id === id ? { ...it, suspendedAt: suspended ? null : new Date().toISOString() } : it));
                           }
                         }}
-                        className={`text-xs px-2 h-7 rounded-md border ${details.item?.suspendedAt ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
+                        className={`inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-300 dark:focus:ring-neutral-700 ${details.item?.suspendedAt ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
                       >
-                        {details.item?.suspendedAt ? 'Geri Aç' : 'Askıya Al'}
+                        {details.item?.suspendedAt ? (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path d="M2 10a8 8 0 1116 0 8 8 0 01-16 0zm6-3a1 1 0 012 0v6a1 1 0 11-2 0V7zm4 0a1 1 0 112 0v6a1 1 0 11-2 0V7z" />
+                            </svg>
+                            Geri Aç
+                          </>
+                        ) : (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                              <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm-1 5.5a1 1 0 011.555-.832l4 2.5a1 1 0 010 1.664l-4 2.5A1 1 0 019 12.5v-5z" />
+                            </svg>
+                            Askıya Al
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

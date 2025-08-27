@@ -181,11 +181,12 @@ export default function UserExplorer() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={() => setShowSend(true)}
-                          className="inline-flex items-center gap-1 h-8 px-3 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                          title="Bildirim gönder">
+                  <button
+                    onClick={() => setShowSend(true)}
+                    className="inline-flex items-center gap-1 h-8 px-3 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                    title="Bildirim gönder"
+                  >
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Zm6-6v-5a6 6 0 0 0-5-5.91V4a1 1 0 1 0-2 0v1.09A6 6 0 0 0 6 11v5l-2 2v1h16v-1l-2-2Z" fill="currentColor"/></svg>
-                    <span className="text-sm">Bildirim</span>
                   </button>
                   <button
                     onClick={() => setShowDelete(true)}
@@ -193,7 +194,6 @@ export default function UserExplorer() {
                     title="Kullanıcıyı sil"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12l-1 13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7Zm3-3h6l1 2H8l1-2Zm2 5v9m4-9v9" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
-                    <span className="text-sm">Sil</span>
                   </button>
                 </div>
               </div>
@@ -206,18 +206,18 @@ export default function UserExplorer() {
                     {activity!.items.map(it => (
                       <li
                         key={it.id}
-                        className={`flex items-center gap-3 rounded-lg border p-2 ${
+                        className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-lg border p-2 ${
                           (it._count?.reports ?? 0) >= 10
                             ? 'border-red-300 bg-red-50/60 dark:border-red-900/40 dark:bg-red-900/20'
                             : ''
                         }`}
                       >
                         {it.imageUrl
-                          ? <img src={it.imageUrl} className="w-14 h-14 rounded object-cover" alt="" />
-                          : <div className="w-14 h-14 rounded bg-neutral-200 dark:bg-neutral-800" />
+                          ? <img src={it.imageUrl} className="w-14 h-14 rounded object-cover flex-shrink-0" alt="" />
+                          : <div className="w-14 h-14 rounded bg-neutral-200 dark:bg-neutral-800 flex-shrink-0" />
                         }
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium truncate">{it.name}</div>
+                          <div className="font-medium break-words">{it.name}</div>
                           <div className="text-xs opacity-60">
                             {new Date(it.createdAt).toLocaleString()}
                             {typeof it._count?.reports === 'number' && (
@@ -225,34 +225,42 @@ export default function UserExplorer() {
                             )}
                           </div>
                         </div>
-                        <a
-                          href={`/share/${it.id}`}
-                          target="_blank"
-                          className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
-                        >
-                          Gönderiye git
-                        </a>
-                        {(it as any).suspendedAt ? (
-                          <button
-                            onClick={async () => {
-                              await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
-                              openUser(actUser.id);
-                            }}
-                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
+                        <div className="flex flex-row gap-2 items-center sm:ml-auto">
+                          <a
+                            href={`/share/${it.id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
                           >
-                            Askıdan Al
-                          </button>
-                        ) : (
-                          <button
-                            onClick={async () => {
-                              await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
-                              openUser(actUser.id);
-                            }}
-                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
-                          >
-                            Askıya Al
-                          </button>
-                        )}
+                            Gönderiye git
+                          </a>
+                          {(it as any).suspendedAt ? (
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
+                                openUser(actUser.id);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
+                            >
+                              Geri çek
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
+                                openUser(actUser.id);
+                              }}
+                              className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+                            >
+                              Askıya Al
+                            </button>
+                          )}
+                        </div>
                       </li>
                     ))}
                     {!activity!.items.length && <li className="text-sm opacity-70">Paylaşım yok.</li>}
