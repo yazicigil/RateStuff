@@ -470,16 +470,9 @@ const body: any = {
             </Link>
             <span className="text-lg font-semibold">Profil</span>
           </div>
-          {me && <NotificationsDropdown />}
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="ml-auto h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 text-sm hover:bg-red-50 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
-            aria-label="Çıkış yap"
-            title="Çıkış yap"
-          >
-            Çıkış
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {me && <NotificationsDropdown />}
+          </div>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
               <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-11 w-auto dark:invert hover:opacity-90 transition" />
@@ -490,7 +483,7 @@ const body: any = {
 
       <main className="max-w-6xl mx-auto px-4 pt-16 py-6 space-y-6">
         {/* ÜSTTE: Profil kartı */}
-        <section className="rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
+        <section className="relative rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
           <div className="relative">
             {me?.avatarUrl ? (
               <img src={me.avatarUrl} alt="me" loading="lazy" decoding="async" className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-300 dark:ring-violet-700" />
@@ -646,6 +639,19 @@ const body: any = {
               {(me as any)?.isAdmin && <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />}
             </div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
+            <div className="absolute top-4 right-4">
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                aria-label="Çıkış yap"
+                title="Çıkış yap"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h6a1.5 1.5 0 011.5 1.5V8h-2V5H5v10h5v-3h2v3.5a1.5 1.5 0 01-1.5 1.5h-6A1.5 1.5 0 013 15.5v-11zM14.793 7.793a1 1 0 011.414 0L19 10.586l-2.793 2.793a1 1 0 01-1.414-1.414L15.586 11H9v-2h6.586l-1.793-1.793a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
         </section>
 
