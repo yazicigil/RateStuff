@@ -97,18 +97,31 @@ export default function UserExplorer() {
 
   async function deleteUser() {
     if (!actUser) return;
-    setDeleteErr(null); setDeleteLoading(true);
-    const res = await fetch(`/api/admin/users/${actUser.id}/delete`, { method: "DELETE" });
-    const j = await res.json();
-    setDeleteLoading(false);
-    if (res.ok && j.ok) {
-      setShowDelete(false);
-      setActive(null);
-      setActivity(null);
-      // refresh list
-      search();
-    } else {
-      setDeleteErr(j.error || "Hata");
+    setDeleteErr(null);
+    setDeleteLoading(true);
+    try {
+      const res = await fetch(`/api/admin/users/${actUser.id}/delete`, { method: "DELETE" });
+      let j: any = null;
+      try {
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) j = await res.json();
+      } catch (_) {}
+
+      if (res.ok && (j?.ok ?? true)) {
+        // Başarılı: modal kapat, seçimi temizle, listeden kaldır
+        setShowDelete(false);
+        setActivity(null);
+        setActive(null);
+        setUsers(prev => prev.filter(u => u.id !== actUser.id));
+        // Listeyi tazele (opsiyonel, güvence için)
+        search();
+      } else {
+        setDeleteErr(j?.error || `Hata: ${res.status}`);
+      }
+    } catch (e: any) {
+      setDeleteErr(e?.message || "Hata");
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
