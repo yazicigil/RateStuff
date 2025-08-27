@@ -15,6 +15,7 @@ export async function GET(_: Request, { params }: { params: { itemId: string } }
         createdById: true,
         createdBy: { select: { id: true, name: true, email: true } },
         _count: { select: { comments: true } },
+        suspendedAt: true,
       },
     });
     if (!baseItem) return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 type ReportedItem = {
   id: string; name: string; imageUrl: string|null;
+  suspendedAt: string | null;
   _count: { reports: number };
 };
 type Report = {
@@ -19,7 +20,7 @@ export default function ReportsCard() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string|null>(null);
   const [active, setActive] = useState<string|null>(null);
-  const [details, setDetails] = useState<{ item?: { id: string; name: string; imageUrl?: string | null; createdBy?: { id: string; name: string | null; email: string | null } | null; _count?: { comments: number } }; reports: Report[] }>({ reports: [] });
+  const [details, setDetails] = useState<{ item?: { id: string; name: string; imageUrl?: string | null; suspendedAt?: string | null; createdBy?: { id: string; name: string | null; email: string | null } | null; _count?: { comments: number } }; reports: Report[] }>({ reports: [] });
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
@@ -60,7 +61,9 @@ export default function ReportsCard() {
       <ul className="divide-y divide-red-200/70 dark:divide-red-900/40">
         {items.map(it => (
           <li key={it.id}
-              className="py-2 flex gap-3 items-center cursor-pointer hover:bg-white/40 dark:hover:bg-white/5 rounded-lg px-2"
+              className={`py-2 flex gap-3 items-center cursor-pointer rounded-lg px-2 hover:bg-white/40 dark:hover:bg-white/5 ${
+                (it._count?.reports ?? 0) >= 10 ? 'border border-red-300 bg-red-50/60 dark:border-red-900/40 dark:bg-red-900/20' : ''
+              }`}
               onClick={() => openDetails(it.id)}>
             {/* görsel */}
             {it.imageUrl
@@ -69,7 +72,12 @@ export default function ReportsCard() {
             }
             <div className="flex-1 min-w-0">
               <div className="font-medium">{it.name}</div>
-              <div className="text-xs opacity-70">{it._count.reports} report</div>
+              <div className="text-xs opacity-70 flex items-center gap-2">
+                <span>{it._count.reports} report</span>
+                {it.suspendedAt && (
+                  <span className="inline-flex items-center px-2 h-5 rounded border border-amber-300/60 bg-amber-100 text-amber-800 dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-200">Askıda</span>
+                )}
+              </div>
             </div>
             <button className="text-xs px-2 h-7 rounded-md border">Detay</button>
           </li>
@@ -84,7 +92,12 @@ export default function ReportsCard() {
             <>
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <div className="font-semibold">{details.item.name}</div>
+                  <div className="font-semibold flex items-center gap-2">
+                    {details.item.name}
+                    {details.item.suspendedAt && (
+                      <span className="inline-flex items-center px-2 h-5 rounded border border-amber-300/60 bg-amber-100 text-amber-800 dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-200 text-xs">Askıda</span>
+                    )}
+                  </div>
                   <div className="text-xs opacity-70">
                     {details.item.createdBy?.name || details.item.createdBy?.email || "Bilinmiyor"}
                     {typeof details.item._count?.comments === "number" && (
@@ -94,10 +107,29 @@ export default function ReportsCard() {
                     )}
                   </div>
                 </div>
-                <a href={`/share/${details.item.id}`} target="_blank"
-                   className="text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                  Gönderiye git
-                </a>
+                <div className="flex items-center gap-2">
+                  <a href={`/share/${details.item.id}`} target="_blank"
+                     className="text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                    Gönderiye git
+                  </a>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!details.item) return;
+                      const id = details.item.id;
+                      const suspended = !!details.item.suspendedAt;
+                      const url = suspended ? `/api/admin/items/${id}/unsuspend` : `/api/admin/items/${id}/suspend`;
+                      const res = await fetch(url, { method: 'POST' });
+                      if (res.ok) {
+                        setDetails(d => d.item ? ({ ...d, item: { ...d.item, suspendedAt: suspended ? null : new Date().toISOString() } }) : d);
+                        setItems(prev => prev.map(it => it.id === id ? { ...it, suspendedAt: suspended ? null : new Date().toISOString() } : it));
+                      }
+                    }}
+                    className={`text-xs px-2 h-7 rounded-md border ${details.item?.suspendedAt ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
+                  >
+                    {details.item?.suspendedAt ? 'Geri Aç' : 'Askıya Al'}
+                  </button>
+                </div>
               </div>
               <ul className="space-y-2">
                 {details.reports.map(r => (
