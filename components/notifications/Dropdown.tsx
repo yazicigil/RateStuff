@@ -127,13 +127,13 @@ export default function NotificationsDropdown() {
             aria-label="Bildirimler"
             ref={panelRef}
             style={{ position: "fixed", top: pos.top, right: pos.right }}
-            className="w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl p-2 z-[60] relative"
+            className="w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl pb-2 pt-0 z-[60] relative"
           >
             {/* Scroll shadows */}
             {shadowTop && (
               <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/10 to-transparent dark:from-white/10" />
             )}
-            <div className="sticky top-0 z-20 bg-white dark:bg-neutral-900 px-1 py-1">
+            <div className="sticky top-0 z-20 bg-white dark:bg-neutral-900 px-2 pt-2 pb-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
