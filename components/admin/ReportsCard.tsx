@@ -6,8 +6,12 @@ type ReportedItem = {
   _count: { reports: number };
 };
 type Report = {
-  id: string; reason: string|null; createdAt: string;
-  user: { id: string; name: string|null; email: string|null };
+  id: string;
+  createdAt: string;
+  // API returns all fields; reason may be `reason` or another field name.
+  // We'll keep it loose and access safely at render time.
+  user: { id: string; name: string | null; email: string | null };
+  [key: string]: any;
 };
 
 export default function ReportsCard() {
@@ -15,7 +19,7 @@ export default function ReportsCard() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string|null>(null);
   const [active, setActive] = useState<string|null>(null);
-  const [details, setDetails] = useState<{ item?: any; reports: Report[] }>({ reports: [] });
+  const [details, setDetails] = useState<{ item?: { id: string; name: string; imageUrl?: string | null; createdBy?: { id: string; name: string | null; email: string | null } | null; _count?: { comments: number } }; reports: Report[] }>({ reports: [] });
   const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
@@ -30,6 +34,12 @@ export default function ReportsCard() {
   }, []);
 
   async function openDetails(itemId: string) {
+    if (active === itemId) {
+      // toggle close
+      setActive(null);
+      setDetails({ reports: [] });
+      return;
+    }
     setActive(itemId);
     setLoadingDetails(true);
     const res = await fetch(`/api/admin/reports/${itemId}`, { cache: "no-store" });
@@ -73,7 +83,17 @@ export default function ReportsCard() {
           {!!details.item && (
             <>
               <div className="flex items-center justify-between mb-2">
-                <div className="font-semibold">{details.item.name}</div>
+                <div>
+                  <div className="font-semibold">{details.item.name}</div>
+                  <div className="text-xs opacity-70">
+                    {details.item.createdBy?.name || details.item.createdBy?.email || "Bilinmiyor"}
+                    {typeof details.item._count?.comments === "number" && (
+                      <>
+                        {" \u2022 "}{details.item._count.comments} yorum
+                      </>
+                    )}
+                  </div>
+                </div>
                 <a href={`/share/${details.item.id}`} target="_blank"
                    className="text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
                   Gönderiye git
@@ -86,7 +106,10 @@ export default function ReportsCard() {
                       <div className="font-medium">{r.user.name || r.user.email || r.user.id}</div>
                       <time className="text-xs opacity-70">{new Date(r.createdAt).toLocaleString()}</time>
                     </div>
-                    {r.reason && <div className="mt-1 text-sm">{r.reason}</div>}
+                    {(() => {
+                      const reason = r.reason ?? r.description ?? r.note ?? r.details ?? null;
+                      return reason ? <div className="mt-1 text-sm">{String(reason)}</div> : null;
+                    })()}
                   </li>
                 ))}
               </ul>

@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
+import ImageUploader from "@/components/ImageUploader";
 
 export default function BroadcastNotification() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState<string | null>(null);
   const [link, setLink] = useState("");
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<string|null>(null);
@@ -21,7 +22,7 @@ export default function BroadcastNotification() {
     setLoading(false);
     if (res.ok && j.ok) {
       setMsg(`Gönderildi (${j.created})`);
-      setTitle(""); setBody(""); setImage(""); setLink("");
+      setTitle(""); setBody(""); setImage(null); setLink("");
     } else {
       setErr(j.error || "Hata");
     }
@@ -40,8 +41,13 @@ export default function BroadcastNotification() {
         <textarea className="border rounded-lg px-3 py-2 bg-transparent"
                   placeholder="Açıklama (body)" rows={3}
                   value={body} onChange={e=>setBody(e.target.value)} />
-        <input className="border rounded-lg px-3 py-2 bg-transparent"
-               placeholder="Görsel URL (opsiyonel)" value={image} onChange={e=>setImage(e.target.value)} />
+        <div>
+          <div className="text-xs mb-1 opacity-70">Görsel (opsiyonel)</div>
+          <ImageUploader
+            value={image}
+            onChange={setImage}
+          />
+        </div>
         <input className="border rounded-lg px-3 py-2 bg-transparent"
                placeholder="Tıklanınca gidilecek link (opsiyonel, örn: /share/abc)"
                value={link} onChange={e=>setLink(e.target.value)} />
