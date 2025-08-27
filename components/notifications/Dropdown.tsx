@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
 
 export default function NotificationsDropdown() {
@@ -33,6 +34,17 @@ export default function NotificationsDropdown() {
   }
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+
+  function positionPanel() {
+    if (!btnRef.current) return;
+    const r = btnRef.current.getBoundingClientRect();
+    const top = Math.round(r.bottom + 8); // 8px offset
+    const right = Math.round(Math.max(8, window.innerWidth - r.right)); // at least 8px from edge
+    setPos({ top, right });
+  }
+
   const panelRef = useRef<HTMLDivElement>(null);
   const [shadowTop, setShadowTop] = useState(false);
   const [shadowBottom, setShadowBottom] = useState(false);
@@ -55,23 +67,36 @@ export default function NotificationsDropdown() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
+      const t = event.target as Node;
+      const inButton = dropdownRef.current?.contains(t);
+      const inPanel = panelRef.current?.contains(t);
+      if (!inButton && !inPanel) setOpen(false);
     }
     if (open) {
       document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    positionPanel();
+    const onResize = () => positionPanel();
+    const onScroll = () => positionPanel();
+    window.addEventListener("resize", onResize, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [open]);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        ref={btnRef}
         aria-label="Bildirimler"
         aria-expanded={open}
         aria-controls="notif-panel"
@@ -95,110 +120,114 @@ export default function NotificationsDropdown() {
         )}
       </button>
 
-      {open && (
-        <div
-          id="notif-panel"
-          aria-label="Bildirimler"
-          ref={panelRef}
-          className="absolute right-0 mt-2 w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl p-2 z-[60] relative"
-        >
-          {/* Scroll shadows */}
-          {shadowTop && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/10 to-transparent dark:from-white/10" />
-          )}
-          {shadowBottom && (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/10 to-transparent dark:from-white/10" />
-          )}
-          <div className="sticky top-0 z-10 bg-transparent px-1 py-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <span>Bildirimler</span>
-                {unreadCount > 0 && (
-                  <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
-                )}
+      {open && typeof window !== "undefined" &&
+        createPortal(
+          <div
+            id="notif-panel"
+            aria-label="Bildirimler"
+            ref={panelRef}
+            style={{ position: "fixed", top: pos.top, right: pos.right }}
+            className="w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl p-2 z-[60] relative"
+          >
+            {/* Scroll shadows */}
+            {shadowTop && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/10 to-transparent dark:from-white/10" />
+            )}
+            {shadowBottom && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/10 to-transparent dark:from-white/10" />
+            )}
+            <div className="sticky top-0 z-10 bg-transparent px-1 py-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <span>Bildirimler</span>
+                  {unreadCount > 0 && (
+                    <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                    onClick={async () => {
+                      await fetch("/api/notifications/read-all?mode=delete", { method: "POST" });
+                      setHiddenIds((prev) => {
+                        const next = new Set(prev);
+                        for (const it of items) next.add(it.id);
+                        return next;
+                      });
+                      refresh();
+                    }}
+                  >
+                    Bildirimleri temizle
+                  </button>
+                  <button className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800" onClick={() => refresh()}>Yenile</button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                  onClick={async () => {
-                    await fetch("/api/notifications/read-all?mode=delete", { method: "POST" });
-                    setHiddenIds((prev) => {
-                      const next = new Set(prev);
-                      for (const it of items) next.add(it.id);
-                      return next;
-                    });
-                    refresh();
+              <div className="mt-1 h-px bg-neutral-200 dark:bg-neutral-800" />
+            </div>
+
+            <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+              {visibleItems.map((n: Notif) => (
+                <li
+                  key={n.id}
+                  className={`flex group gap-2 p-2 rounded cursor-pointer border border-transparent transition-colors duration-150 hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+                  onClick={() => {
+                    if (n.link) window.location.href = n.link;
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && n.link) {
+                      e.preventDefault();
+                      window.location.href = n.link;
+                    }
                   }}
                 >
-                  Bildirimleri temizle
-                </button>
-                <button className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800" onClick={() => refresh()}>Yenile</button>
-              </div>
-            </div>
-            <div className="mt-1 h-px bg-neutral-200 dark:bg-neutral-800" />
-          </div>
+                  {n.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={n.image} alt="" className="w-14 h-14 rounded object-cover transition-transform duration-150 group-hover:scale-[1.02]" loading="lazy" />
+                  ) : (
+                    <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium whitespace-normal break-words leading-snug">
+                      {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.actorMaskedName && n.data?.rating ? (
+                        <>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+                            {n.data.actorMaskedName}
+                          </span>
+                          <span className="ml-1 whitespace-nowrap">{n.data.rating}★ verdi ve yorum yaptı</span>
+                        </>
+                      ) : (
+                        n.title
+                      )}
+                    </div>
+                    <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
+                    <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{relativeTime(n.createdAt)}</div>
+                  </div>
+                  {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
+                </li>
+              ))}
+            </ul>
 
-          <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {visibleItems.map((n: Notif) => (
-              <li
-                key={n.id}
-                className={`flex group gap-2 p-2 rounded cursor-pointer border border-transparent transition-colors duration-150 hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
-                onClick={() => {
-                  if (n.link) window.location.href = n.link;
-                }}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if ((e.key === "Enter" || e.key === " ") && n.link) {
-                    e.preventDefault();
-                    window.location.href = n.link;
-                  }
-                }}
-              >
-                {n.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={n.image} alt="" className="w-14 h-14 rounded object-cover ring-1 ring-neutral-200 dark:ring-neutral-700 transition-transform duration-150 group-hover:scale-[1.02]" loading="lazy" />
-                ) : (
-                  <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium whitespace-normal break-words leading-snug">
-  {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.actorMaskedName && n.data?.rating ? (
-    <>
-      <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
-        {n.data.actorMaskedName}
-      </span>
-      <span className="ml-1 whitespace-nowrap">{n.data.rating}★ verdi ve yorum yaptı</span>
-    </>
-  ) : (
-    n.title
-  )}
-</div>
-                  <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
-                  <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{relativeTime(n.createdAt)}</div>
+            <div className="p-2">
+              {hasMore && (
+                <button
+                  className="w-full text-sm py-2 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  disabled={loading}
+                  onClick={() => load()}
+                >{loading ? "Yükleniyor..." : "Daha fazla"}</button>
+              )}
+              {!visibleItems.length && !loading && (
+                <div className="text-center text-sm py-8 text-neutral-500">
+                  <svg width="28" height="28" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Z"/><path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/></svg>
+                  Bildirim yok
                 </div>
-                {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
-              </li>
-            ))}
-          </ul>
-
-          <div className="p-2">
-            {hasMore && (
-              <button
-                className="w-full text-sm py-2 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                disabled={loading}
-                onClick={() => load()}
-              >{loading ? "Yükleniyor..." : "Daha fazla"}</button>
-            )}
-            {!visibleItems.length && !loading && (
-              <div className="text-center text-sm py-8 text-neutral-500">
-                <svg width="28" height="28" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Z"/><path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/></svg>
-                Bildirim yok
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      }
     </div>
   );
 }
