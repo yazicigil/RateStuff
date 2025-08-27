@@ -14,7 +14,7 @@ type UserLite = {
 
 type Activity = {
   user: UserLite;
-  items: { id: string; name: string; imageUrl?: string | null; createdAt: string; _count?: { reports: number } }[];
+  items: { id: string; name: string; imageUrl?: string | null; createdAt: string; suspendedAt?: string | null; _count?: { reports: number } }[];
   comments: { id: string; createdAt: string; text?: string | null; stars?: number | null; item?: { id: string; name: string } | null }[];
 };
 
@@ -59,6 +59,14 @@ export default function UserExplorer() {
   async function openUser(userId: string) {
     if (active === userId) { setActive(null); setActivity(null); return; } // toggle
     setActive(userId);
+    setLoadingAct(true);
+    const res = await fetch(`/api/admin/users/${userId}/activity`, { cache: "no-store" });
+    const j = await res.json();
+    setLoadingAct(false);
+    if (res.ok && j.ok) setActivity(j as Activity);
+  }
+
+  async function reloadActivity(userId: string) {
     setLoadingAct(true);
     const res = await fetch(`/api/admin/users/${userId}/activity`, { cache: "no-store" });
     const j = await res.json();
@@ -204,9 +212,9 @@ export default function UserExplorer() {
                   <div className="text-sm font-medium mb-2">Paylaştığı Gönderiler</div>
                   <ul className="space-y-2">
                     {activity!.items.map(it => (
-                      <li
-                        key={it.id}
-                        className={`flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-lg border p-2 ${
+                     <li
+  key={it.id}
+  className={`relative flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 rounded-lg border p-2 pr-24 pb-10 ${
                           (it._count?.reports ?? 0) >= 10
                             ? 'border-red-300 bg-red-50/60 dark:border-red-900/40 dark:bg-red-900/20'
                             : ''
@@ -225,42 +233,57 @@ export default function UserExplorer() {
                             )}
                           </div>
                         </div>
-                        <div className="flex flex-row gap-2 items-center sm:ml-auto">
-                          <a
-                            href={`/share/${it.id}`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
-                          >
-                            Gönderiye git
-                          </a>
-                          {(it as any).suspendedAt ? (
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
-                                openUser(actUser.id);
-                              }}
-                              className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
-                            >
-                              Geri çek
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
-                                openUser(actUser.id);
-                              }}
-                              className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
-                            >
-                              Askıya Al
-                            </button>
-                          )}
-                        </div>
+                       <div className="absolute right-2 bottom-2 flex gap-2">
+  <a
+    href={`/share/${it.id}`}
+    target="_blank"
+    className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+  >
+    Git
+  </a>
+
+  {it.suspendedAt ? (
+    <button
+      type="button"
+      onClick={async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const res = await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
+        if (res.ok) {
+          setActivity(prev => prev ? ({
+            ...prev,
+            items: prev.items.map(x => x.id === it.id ? { ...x, suspendedAt: null } : x)
+          }) : prev);
+        } else if (actUser) {
+          await reloadActivity(actUser.id);
+        }
+      }}
+      className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
+    >
+      Geri Aç
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const res = await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
+        if (res.ok) {
+          setActivity(prev => prev ? ({
+            ...prev,
+            items: prev.items.map(x => x.id === it.id ? { ...x, suspendedAt: new Date().toISOString() } : x)
+          }) : prev);
+        } else if (actUser) {
+          await reloadActivity(actUser.id);
+        }
+      }}
+      className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+    >
+      Askıya Al
+    </button>
+  )}
+</div>
                       </li>
                     ))}
                     {!activity!.items.length && <li className="text-sm opacity-70">Paylaşım yok.</li>}
