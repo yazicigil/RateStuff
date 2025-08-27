@@ -81,12 +81,14 @@ function shapeItem(i: any, meId?: string | null) {
     })(),
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
     reportCount: i.reportCount ?? 0,
+    suspended: Boolean(i.suspendedAt),
   };
 }
 
 export async function GET(req: Request) {
   try {
     const me = await getSessionUser().catch(() => null);
+    const isAdmin = !!me?.isAdmin;
     const url = new URL(req.url);
     const id = url.searchParams.get('id');
     const q = (url.searchParams.get('q') || '').trim();
@@ -107,15 +109,45 @@ export async function GET(req: Request) {
     if (id) {
       const item = await prisma.item.findUnique({ where: { id }, include });
       if (!item) return NextResponse.json([]);
+
+      const isOwner = me && item.createdById && me.id === item.createdById;
+      if (item.suspendedAt && !isOwner && !isAdmin) {
+        // Askıdaki item: yalnızca sahibi veya admin görebilir
+        return NextResponse.json([]);
+      }
+
       return NextResponse.json([shapeItem(item, me?.id || null)]);
     }
 
-    const where: any = {};
-    if (q) {
-      where.OR = [
-        { name: { contains: q, mode: 'insensitive' } },
-        { description: { contains: q, mode: 'insensitive' } },
-      ];
+    const searchCond = q
+      ? {
+          OR: [
+            { name: { contains: q, mode: 'insensitive' } },
+            { description: { contains: q, mode: 'insensitive' } },
+          ],
+        }
+      : {};
+
+    let where: any = {};
+    if (isAdmin) {
+      // Admin her şeyi görür
+      where = { ...searchCond };
+    } else if (me?.id) {
+      // Normal kullanıcı: herkese açık aktif item'lar + kendi askıdakileri
+      where = {
+        AND: [
+          searchCond,
+          {
+            OR: [
+              { suspendedAt: null },
+              { AND: [{ suspendedAt: { not: null } }, { createdById: me.id }] },
+            ],
+          },
+        ],
+      };
+    } else {
+      // Misafir: sadece aktif item'lar
+      where = { AND: [searchCond, { suspendedAt: null }] };
     }
 
     const items = await prisma.item.findMany({

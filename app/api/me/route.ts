@@ -43,13 +43,7 @@ export async function GET(req: Request) {
         orderBy: { createdAt: "desc" },
         include: {
           item: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              imageUrl: true,
-              editedAt: true,
-              createdAt: true,
+            include: {
               ratings: { select: { value: true } },
               tags: { include: { tag: true } },
               createdBy: { select: { id: true, name: true, avatarUrl: true } },
@@ -137,18 +131,19 @@ export async function GET(req: Request) {
       const { avgRating, count } = getAggFor(i.id);
       const edited =
         i.editedAt && i.createdAt && i.editedAt.getTime() > i.createdAt.getTime() + 1000;
-  
+
       const tags = Array.isArray(i.tags)
         ? i.tags
             .map((t: any) => t?.tag?.name ?? t?.name)
             .filter((x: any) => typeof x === "string" && x.length > 0)
         : undefined;
-  
+
       return {
         id: i.id,
         name: i.name,
         description: i.description,
         imageUrl: i.imageUrl,
+        suspended: Boolean(i.suspendedAt),
         // keep `avg` for backward-compat; prefer `avgRating` on the client (avg = avgRating)
         avg: avgRating,
         avgRating,

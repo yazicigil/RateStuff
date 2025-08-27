@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // app/share/[id]/page.tsx
 import { headers } from "next/headers";
 import SeoLD from "@/components/SeoLD";
+import SuspendedNotice from "@/components/SuspendedNotice";
 
 const SITE_DESC =
   (process.env.NEXT_PUBLIC_SITE_DESC && process.env.NEXT_PUBLIC_SITE_DESC.trim()) ||
@@ -139,6 +140,8 @@ export default async function ShareRedirectPage({ params }: Props) {
 
   // Fetch item on the server so we render meaningful HTML (better for SEO & for bots that don't execute JS reliably)
   const it = await getItemMeta(params.id, base);
+  const notFound = !it;
+  const isSuspended = notFound || !!it?.suspended;
 
   // Bot tespiti: User-Agent'i server tarafında al ve bilinen crawler imzalarını yakala
   const h = headers();
@@ -223,45 +226,53 @@ export default async function ShareRedirectPage({ params }: Props) {
       <SeoLD json={itemLD} />
       <SeoLD json={faqLD} />
 
-      {/* Server-rendered preview so crawlers see content */}
-      <article className="max-w-[720px] text-center">
-        <h1 className="text-xl font-semibold mb-2">{it?.name || "RateStuff içeriği"}</h1>
-        {it?.description ? (
-          <p className="text-sm opacity-80 mb-3 line-clamp-3">{it.description}</p>
-        ) : null}
-        {absImg ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={absImg}
-            alt={it?.name || "Görsel"}
-            className="mx-auto rounded border border-black/10 mb-4 max-h-64 object-contain"
-            loading="eager"
-          />
-        ) : null}
-        {ratingValue ? (
-          <div className="text-sm opacity-80 mb-2">Ortalama: {ratingValue.toFixed(2)} ⭐{ratingCount ? ` · ${ratingCount} oy` : ""}</div>
-        ) : null}
-        <div className="text-sm opacity-70">
-          RateStuff’a yönlendiriliyor…{" "}
-          <a href={href} className="underline">
-            git
-          </a>
+      {isSuspended ? (
+        <div className="max-w-[720px] text-center">
+          <SuspendedNotice />
         </div>
-      </article>
-
-      {/* Client-side redirect only for human users; bots stay on this server-rendered page */}
-      {!isBot && (
+      ) : (
         <>
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `setTimeout(function(){try{location.replace(${JSON.stringify(
-                href
-              )})}catch(e){location.href=${JSON.stringify(href)}}},150);`,
-            }}
-          />
-          <noscript>
-            <meta httpEquiv="refresh" content={`1; url=${href}`} />
-          </noscript>
+          {/* Server-rendered preview so crawlers see content */}
+          <article className="max-w-[720px] text-center">
+            <h1 className="text-xl font-semibold mb-2">{it?.name || "RateStuff içeriği"}</h1>
+            {it?.description ? (
+              <p className="text-sm opacity-80 mb-3 line-clamp-3">{it.description}</p>
+            ) : null}
+            {absImg ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={absImg}
+                alt={it?.name || "Görsel"}
+                className="mx-auto rounded border border-black/10 mb-4 max-h-64 object-contain"
+                loading="eager"
+              />
+            ) : null}
+            {ratingValue ? (
+              <div className="text-sm opacity-80 mb-2">Ortalama: {ratingValue.toFixed(2)} ⭐{ratingCount ? ` · ${ratingCount} oy` : ""}</div>
+            ) : null}
+            <div className="text-sm opacity-70">
+              RateStuff’a yönlendiriliyor…{" "}
+              <a href={href} className="underline">
+                git
+              </a>
+            </div>
+          </article>
+
+          {/* Client-side redirect only for human users; bots stay on this server-rendered page */}
+          {!isBot && (
+            <>
+              <script
+                dangerouslySetInnerHTML={{
+                  __html: `setTimeout(function(){try{location.replace(${JSON.stringify(
+                    href
+                  )})}catch(e){location.href=${JSON.stringify(href)}}},150);`,
+                }}
+              />
+              <noscript>
+                <meta httpEquiv="refresh" content={`1; url=${href}`} />
+              </noscript>
+            </>
+          )}
         </>
       )}
     </main>
