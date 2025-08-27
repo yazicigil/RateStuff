@@ -33,6 +33,25 @@ export default function NotificationsDropdown() {
   }
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [shadowTop, setShadowTop] = useState(false);
+  const [shadowBottom, setShadowBottom] = useState(false);
+
+  useEffect(() => {
+    const el = panelRef.current;
+    if (!el || !open) return;
+
+    const onScroll = () => {
+      const st = el.scrollTop;
+      const max = el.scrollHeight - el.clientHeight;
+      setShadowTop(st > 0);
+      setShadowBottom(st < max - 1);
+    };
+
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [open]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -77,7 +96,19 @@ export default function NotificationsDropdown() {
       </button>
 
       {open && (
-        <div id="notif-panel" aria-label="Bildirimler" className="absolute right-0 mt-2 w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/80 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-xl p-2 z-[60]">
+        <div
+          id="notif-panel"
+          aria-label="Bildirimler"
+          ref={panelRef}
+          className="absolute right-0 mt-2 w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl p-2 z-[60] relative"
+        >
+          {/* Scroll shadows */}
+          {shadowTop && (
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/10 to-transparent dark:from-white/10" />
+          )}
+          {shadowBottom && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/10 to-transparent dark:from-white/10" />
+          )}
           <div className="sticky top-0 z-10 bg-transparent px-1 py-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-medium">
@@ -111,7 +142,7 @@ export default function NotificationsDropdown() {
             {visibleItems.map((n: Notif) => (
               <li
                 key={n.id}
-                className={`flex gap-2 p-2 rounded cursor-pointer border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
+                className={`flex group gap-2 p-2 rounded cursor-pointer border border-transparent transition-colors duration-150 hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
                 onClick={() => {
                   if (n.link) window.location.href = n.link;
                 }}
@@ -126,12 +157,12 @@ export default function NotificationsDropdown() {
               >
                 {n.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={n.image} alt="" className="w-10 h-10 rounded object-cover" loading="lazy" />
+                  <img src={n.image} alt="" className="w-10 h-10 rounded object-cover ring-1 ring-neutral-200 dark:ring-neutral-700 transition-transform duration-150 group-hover:scale-[1.02]" loading="lazy" />
                 ) : (
                   <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">
+                  <div className="text-sm font-medium whitespace-normal break-words leading-snug">
   {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.actorMaskedName && n.data?.rating ? (
     <>
       <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
@@ -157,9 +188,14 @@ export default function NotificationsDropdown() {
                 className="w-full text-sm py-2 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
                 disabled={loading}
                 onClick={() => load()}
-              >Daha fazla</button>
+              >{loading ? "Yükleniyor..." : "Daha fazla"}</button>
             )}
-            {!visibleItems.length && !loading && <div className="text-center text-sm py-4 text-neutral-500">Bildirim yok</div>}
+            {!visibleItems.length && !loading && (
+              <div className="text-center text-sm py-8 text-neutral-500">
+                <svg width="28" height="28" viewBox="0 0 24 24" className="mx-auto mb-2 opacity-60" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22a2 2 0 0 0 2-2H10a2 2 0 0 0 2 2Z"/><path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1l-2-2Z"/></svg>
+                Bildirim yok
+              </div>
+            )}
           </div>
         </div>
       )}
