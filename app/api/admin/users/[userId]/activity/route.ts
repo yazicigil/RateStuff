@@ -17,7 +17,13 @@ export async function GET(_: Request, { params }: { params: { userId: string } }
     // Paylaştığı item’lar
     const items = await prisma.item.findMany({
       where: { createdById: userId },
-      select: { id: true, name: true, imageUrl: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        createdAt: true,
+        _count: { select: { reports: true } },
+      },
       orderBy: { createdAt: "desc" },
       take: 100,
     });

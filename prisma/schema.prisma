@@ -142,6 +142,7 @@ enum NotificationType {
   MILESTONE_REACHED
   COMMENT_UPVOTED
   ADMIN_BROADCAST
+  ADMIN_DIRECT
 }
 
 model Notification {
