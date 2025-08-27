@@ -62,7 +62,7 @@ export async function notifyTagPeers(prisma: PrismaClient, itemId: string) {
     title: `${tagLabel} etiketiyle yeni gönderi paylaşıldı`,
     body: `“${item.name ?? "Yeni içerik"}” ilgini çekebilir.`,
     link: `/share/${item.id}`,
-    image: item.imageUrl || undefined,
+    image: item.imageUrl || "/badges/tag.svg",
     eventKey: `tagpeer:${uid}:${item.id}`,
     data: {
       itemId: item.id,
