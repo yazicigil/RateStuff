@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { containsBannedWord } from "@/lib/bannedWords";
+import { milestone_ownerItemReviews, milestone_userReviewsGiven } from "@/lib/milestones";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -87,6 +88,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     const score = 0; // yeni yorumda oy yok
     const myVote = 0;
+
+    // Milestones: yorum sonrası tetikler
+    try {
+      await milestone_ownerItemReviews(prisma, created.itemId);
+      await milestone_userReviewsGiven(prisma, me.id);
+    } catch (err) {
+      console.error("[milestone:comment]", err);
+    }
 
     return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
   } catch (e: any) {

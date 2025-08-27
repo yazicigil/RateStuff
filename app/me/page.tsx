@@ -10,6 +10,7 @@ import ImageUploader from "@/components/ImageUploader";
 import { useSession } from "next-auth/react";
 import RatingPill from '@/components/RatingPill';
 import Stars from "@/components/Stars";
+import NotificationsDropdown from "@/components/notifications/Dropdown";
 
 
 // Banned words (supports either default export or named `bannedWords`)
@@ -469,6 +470,7 @@ const body: any = {
             </Link>
             <span className="text-lg font-semibold">Profil</span>
           </div>
+          {me && <NotificationsDropdown />}
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
@@ -480,7 +482,7 @@ const body: any = {
           </button>
           <div className="absolute left-1/2 -translate-x-1/2">
             <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-9 w-auto dark:invert hover:opacity-90 transition" />
+              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-11 w-auto dark:invert hover:opacity-90 transition" />
             </Link>
           </div>
         </div>

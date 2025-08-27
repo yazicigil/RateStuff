@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { maskName } from '@/lib/mask';
 import { containsBannedWord } from '@/lib/bannedWords';
+import { milestone_userItemsShared } from "@/lib/milestones";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -191,6 +192,8 @@ export async function POST(req: Request) {
 
       return item.id;
     });
+    // Milestones: yeni item sonrası
+    await milestone_userItemsShared(prisma, me.id);
 
     return NextResponse.json({ ok: true, id: newId }, { status: 201 });
   } catch (e: any) {
