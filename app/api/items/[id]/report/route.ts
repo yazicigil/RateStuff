@@ -43,26 +43,31 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     // Notifications: single report + threshold (10)
     try {
       if (item?.createdById && item.createdById !== user.id) {
-        // Single report notification
-        await prisma.notification.create({
-          data: {
-            userId: item.createdById,
-            type: "ITEM_REPORTED" as any,
-            title: "Gönderiniz report aldı",
-            body: `Sebep: ${reason || "belirtilmedi"} • Toplam: ${count}`,
-            link: `/share/${item.id}`,
-            image: "/badges/report-flag.svg",
-            eventKey: `irep:${item.id}:${Date.now()}`,
-            data: { itemId: item.id, reason: reason || null, total: count },
-          },
-        });
+        // respect user report notification preference (default true)
+        const pref = await prisma.notificationPreference.findUnique({ where: { userId: item.createdById } });
+        const allow = !pref || pref.reportEvents;
 
-        // Threshold at 10 reports
-        if (count === 10) {
+        if (allow) {
           await prisma.notification.create({
             data: {
               userId: item.createdById,
-              type: "REPORT_THRESHOLD" as any,
+              type: "REPORT_OPENED" as any,
+              title: "Gönderiniz report aldı",
+              body: `Sebep: ${reason || "belirtilmedi"} • Toplam: ${count}`,
+              link: `/share/${item.id}`,
+              image: "/badges/report-flag.svg",
+              eventKey: `irep:${item.id}:${Date.now()}`,
+              data: { itemId: item.id, reason: reason || null, total: count },
+            },
+          });
+        }
+
+        // Threshold at 10 reports
+        if (count === 10 && allow) {
+          await prisma.notification.create({
+            data: {
+              userId: item.createdById,
+              type: "REPORT_UPDATED" as any,
               title: "Gönderiniz kaldırılabilir — 10 report oldu",
               body: "Topluluk kurallarına uymuyor olabilir. İçeriği gözden geçirmenizi öneririz.",
               link: `/share/${item.id}`,
