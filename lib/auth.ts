@@ -37,16 +37,17 @@ export const authOptions: NextAuthOptions = {
         select: { id: true },
       });
 
-      // 2) Upsert
+      // 2) Upsert (avatarUrl only first time)
       await prisma.user.upsert({
         where: { email },
         update: {
+          // Mevcut kullanıcıda avatarUrl'i PROVIDER'dan ASLA güncellemiyoruz (kullanıcının yüklediği avatar korunur)
           name: user.name ?? undefined,
-          avatarUrl: (user.image as string | undefined) ?? undefined,
         },
         create: {
           email,
           name: user.name ?? null,
+          // Yeni kullanıcı için ilk ve son kez provider fotoğrafını seed et
           avatarUrl: (user.image as string | undefined) ?? null,
         },
       });
