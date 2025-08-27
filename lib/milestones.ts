@@ -71,7 +71,7 @@ export async function milestone_userItemsShared(prisma: PrismaClient, ownerId: s
       type: "MILESTONE_REACHED" as any,
       title: `Tebrikler! “${badgeTitle("user_items_shared", hit)}” unvanını kazandın`,
       body: `${hit} farklı item ekledin. Katkın büyüyor 👏`,
-      link: null,
+      link: "/me#tab=items",
       image: badgeImage("user_items_shared", hit),
       eventKey,
       data: { kind: "user_items_shared", level: hit, badgeTitle: badgeTitle("user_items_shared", hit) },

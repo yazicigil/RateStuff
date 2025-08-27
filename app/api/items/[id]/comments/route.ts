@@ -5,6 +5,15 @@ import { getSessionUser } from "@/lib/auth";
 import { containsBannedWord } from "@/lib/bannedWords";
 import { milestone_ownerItemReviews, milestone_userReviewsGiven } from "@/lib/milestones";
 
+function maskName(input?: string | null): string {
+  const name = (input || "Bir kullanıcı").trim();
+  if (!name) return "Bir kullanıcı";
+  return name
+    .split(/\s+/)
+    .map((part) => (part.length > 0 ? part[0] + "*".repeat(Math.max(0, part.length - 1)) : part))
+    .join(" ");
+}
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const runtime = "nodejs";
@@ -69,11 +78,12 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
       if (itemOwner?.createdById && itemOwner.createdById !== me.id) {
         const stars = created.rating ?? rating ?? 0;
+        const displayName = maskName(created.user?.name);
         await prisma.notification.create({
           data: {
             userId: itemOwner.createdById,
             type: "COMMENT_ON_OWN_ITEM" as any,
-            title: `${created.user?.name ?? "Bir kullanıcı"} ${stars}★ verdi ve yorum yaptı`,
+            title: `${displayName} ${stars}★ verdi ve yorum yaptı`,
             body: `“${(created.text ?? "").slice(0, 80)}” • ${itemOwner.name}`,
             link: `/share/${itemOwner.id}`,
             image: itemOwner.imageUrl ?? undefined,
