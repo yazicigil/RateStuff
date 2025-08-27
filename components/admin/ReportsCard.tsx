@@ -107,7 +107,7 @@ export default function ReportsCard() {
                       <time className="text-xs opacity-70">{new Date(r.createdAt).toLocaleString()}</time>
                     </div>
                     {(() => {
-                      const reason = r.reason ?? r.description ?? r.note ?? r.details ?? null;
+                      const reason = r.reportdesc ?? r.reason ?? r.description ?? r.note ?? r.details ?? null;
                       return reason ? <div className="mt-1 text-sm">{String(reason)}</div> : null;
                     })()}
                   </li>
