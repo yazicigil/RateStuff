@@ -157,7 +157,7 @@ export default function NotificationsDropdown() {
               >
                 {n.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={n.image} alt="" className="w-10 h-10 rounded object-cover ring-1 ring-neutral-200 dark:ring-neutral-700 transition-transform duration-150 group-hover:scale-[1.02]" loading="lazy" />
+                  <img src={n.image} alt="" className="w-14 h-14 rounded object-cover ring-1 ring-neutral-200 dark:ring-neutral-700 transition-transform duration-150 group-hover:scale-[1.02]" loading="lazy" />
                 ) : (
                   <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
                 )}
