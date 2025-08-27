@@ -85,7 +85,18 @@ export default function NotificationsDropdown() {
                   <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">{n.title}</div>
+                  <div className="text-sm font-medium truncate">
+  {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.actorMaskedName && n.data?.rating ? (
+    <>
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+        {n.data.actorMaskedName}
+      </span>
+      <span className="ml-1 whitespace-nowrap">{n.data.rating}★ verdi ve yorum yaptı</span>
+    </>
+  ) : (
+    n.title
+  )}
+</div>
                   <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
                 </div>
                 {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
