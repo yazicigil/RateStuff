@@ -9,7 +9,7 @@ export async function GET() {
     const items = await prisma.item.findMany({
       where: { reports: { some: {} } },
       select: {
-        id: true, name: true, imageUrl: true, createdAt: true,
+        id: true, name: true, imageUrl: true, createdAt: true, suspendedAt: true,
         _count: { select: { reports: true } },
       },
       orderBy: [{ reports: { _count: "desc" } }, { createdAt: "desc" }],
