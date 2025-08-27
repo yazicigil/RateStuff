@@ -1,15 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
      viewBox="0 0 24 24" role="img" aria-label="Report warning">
-  <!-- Arka şekil: kırmızı tonlu üçgen, şeffaf zemin -->
   <polygon points="12,3 21,19 3,19"
-           fill="#fef2f2"          <!-- red-50 -->
-           stroke="#ef4444"        <!-- red-500 -->
-           stroke-width="1.8"
+           fill="#fee2e2"
+           stroke="#ef4444"
+           stroke-width="2"
            stroke-linejoin="round"/>
-  <!-- Ünlem işareti -->
-  <path d="M12 9v5.2"
+  <line x1="12" y1="9" x2="12" y2="14.2"
         stroke="#ef4444"
-        stroke-width="1.8"
+        stroke-width="2"
         stroke-linecap="round"/>
-  <circle cx="12" cy="17.2" r="1.15" fill="#ef4444"/>
+  <circle cx="12" cy="17.2" r="1.2" fill="#ef4444"/>
 </svg>
