@@ -581,6 +581,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
 
   async function addItem(form: FormData) {
     setAdding(true);
+    setQuickFormError(null);
     try {
       const payload = {
         name: String(form.get('name') || ''),
@@ -604,10 +605,20 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 2000);
         return true;
-      } else {
-        alert('Hata: ' + (j?.error || res.status));
-        return false;
-      }
+     } else {
+   const err = String(j?.error || '');
+   const isDuplicate =
+     res.status === 409 ||
+     /P2002/.test(err) ||
+     /Unique constraint/i.test(err) ||
+     (/unique/i.test(err) && /name/i.test(err));
+   if (isDuplicate) {
+     setQuickFormError('Aynı isimli gönderi daha önce paylaşılmış. Lütfen farklı bir ad deneyin veya mevcut gönderiyi puanlayın/yorum yapın.');
+     return false;
+   }
+   setQuickFormError('Bir hata oluştu. Lütfen tekrar deneyin.');
+   return false;
+}
     } finally { setAdding(false); }
   }
 
@@ -1003,6 +1014,7 @@ if (!already) {
   };
 
   const quickFormRef = useRef<HTMLFormElement>(null);
+  const [quickFormError, setQuickFormError] = useState<string | null>(null);
   const quickValid = quickName.trim().length > 0 && quickTags.length > 0 && newRating > 0;
   const hasBannedName = containsBannedWord(quickName);
   const hasBannedComment = containsBannedWord(quickComment);
@@ -1403,6 +1415,7 @@ if (!already) {
       className="relative rounded-2xl border p-4 shadow-sm bg-transparent dark:bg-transparent border-emerald-200 dark:border-emerald-900/40 space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
+        setQuickFormError(null);
         if (quickBlocked) { alert('Yasaklı kelime içeriyor. Lütfen düzelt.'); return; }
         const fd = new FormData(e.currentTarget);
         const nameVal = String(fd.get('name') || '').trim();
@@ -1426,6 +1439,14 @@ if (!already) {
                 </div>
               </div>
             )}
+            {quickFormError && (
+  <div className="mb-3 inline-flex items-start gap-2 px-3 py-2 rounded-xl border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40">
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3l9 18H3L12 3zm0 12v-4m0 6h.01" fill="currentColor"/>
+    </svg>
+    <span className="text-sm">{quickFormError}</span>
+  </div>
+)}
 
             {/* 1. satır: Ad + Kısa açıklama + Etiketler */}
             <div className="flex flex-wrap items-center gap-2">
@@ -1433,8 +1454,11 @@ if (!already) {
                 ref={quickNameRef}
                 name="name"
                 value={quickName}
-                onChange={(e) => setQuickName(e.target.value)}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}                placeholder="adı *"
+                onChange={(e) => {
+  setQuickName(e.target.value);
+   if (quickFormError) setQuickFormError(null);
+ }}
+                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName || quickFormError ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}                placeholder="adı *"
                 required
               />
               {hasBannedName && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
