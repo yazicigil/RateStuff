@@ -141,6 +141,7 @@ enum NotificationType {
   REPORT_RESOLVED
   MILESTONE_REACHED
   COMMENT_UPVOTED
+  ADMIN_BROADCAST
 }
 
 model Notification {

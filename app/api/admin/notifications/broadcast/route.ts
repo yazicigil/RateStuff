@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     // İleride enum’a ADMIN_BROADCAST ekleriz.
     const rows = users.map(u => ({
       userId: u.id,
-      type: "MILESTONE_REACHED" as any, // TODO: enum'a 'ADMIN_BROADCAST' ekle
+      type: "ADMIN_BROADCAST" as any, // TODO: enum'a 'ADMIN_BROADCAST' ekle
       title,
       body,
       image: image || null,
