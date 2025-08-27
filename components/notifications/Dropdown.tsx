@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
 
 export default function NotificationsDropdown() {
@@ -9,10 +9,53 @@ export default function NotificationsDropdown() {
     useNotifications("all", 5);
   const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
 
+  function relativeTime(iso: string) {
+    try {
+      const d = new Date(iso);
+      const diff = Date.now() - d.getTime();
+      const sec = Math.round(diff / 1000);
+      const units: [Intl.RelativeTimeFormatUnit, number][] = [
+        ["year", 60 * 60 * 24 * 365],
+        ["month", 60 * 60 * 24 * 30],
+        ["week", 60 * 60 * 24 * 7],
+        ["day", 60 * 60 * 24],
+        ["hour", 60 * 60],
+        ["minute", 60],
+      ];
+      const rtf = new Intl.RelativeTimeFormat("tr", { numeric: "auto" });
+      for (const [unit, inSec] of units) {
+        if (Math.abs(sec) >= inSec) return rtf.format(-Math.round(sec / inSec), unit);
+      }
+      return "şimdi";
+    } catch {
+      return "";
+    }
+  }
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         aria-label="Bildirimler"
+        aria-expanded={open}
+        aria-controls="notif-panel"
         className="relative h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
         onClick={() => { 
           setOpen((o) => !o); 
@@ -22,7 +65,7 @@ export default function NotificationsDropdown() {
           } 
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden focusable="false" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden focusable="false" fill={open ? "currentColor" : "none"} stroke={open ? "none" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 22c1.1 0 2-.9 2-2H10a2 2 0 0 0 2 2Z" />
           <path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" />
         </svg>
@@ -34,38 +77,41 @@ export default function NotificationsDropdown() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-[360px] max-h-[70vh] overflow-auto rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg p-2 z-[60]">
-          <div className="flex items-center justify-between px-1 py-1">
-            <div className="flex gap-1 text-xs">
-              <button
-                className={`px-2 py-1 rounded ${status==="all"?"bg-neutral-200 dark:bg-neutral-800":""}`}
-                onClick={() => setStatus("all")}
-              >Tümü</button>
+        <div id="notif-panel" aria-label="Bildirimler" className="absolute right-0 mt-2 w-[380px] max-h-[70vh] overflow-auto rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/90 dark:bg-neutral-900/80 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md shadow-xl p-2 z-[60]">
+          <div className="sticky top-0 z-10 bg-transparent px-1 py-1">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <span>Bildirimler</span>
+                {unreadCount > 0 && (
+                  <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  onClick={async () => {
+                    await fetch("/api/notifications/read-all?mode=delete", { method: "POST" });
+                    setHiddenIds((prev) => {
+                      const next = new Set(prev);
+                      for (const it of items) next.add(it.id);
+                      return next;
+                    });
+                    refresh();
+                  }}
+                >
+                  Bildirimleri temizle
+                </button>
+                <button className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800" onClick={() => refresh()}>Yenile</button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="text-xs underline"
-                onClick={async () => {
-                  await markAll();
-                  // mevcut listeyi görünümden temizle
-                  setHiddenIds((prev) => {
-                    const next = new Set(prev);
-                    for (const it of items) next.add(it.id);
-                    return next;
-                  });
-                }}
-              >
-                Bildirimleri temizle
-              </button>
-              <button className="text-xs underline" onClick={() => refresh()}>Yenile</button>
-            </div>
+            <div className="mt-1 h-px bg-neutral-200 dark:bg-neutral-800" />
           </div>
 
           <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
             {visibleItems.map((n: Notif) => (
               <li
                 key={n.id}
-                className="flex gap-2 p-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 rounded cursor-pointer"
+                className={`flex gap-2 p-2 rounded cursor-pointer border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800 focus:outline-none focus:ring-2 focus:ring-black/5 dark:focus:ring-white/10 ${!n.readAt ? "bg-blue-50/40 dark:bg-blue-900/20" : "hover:bg-neutral-50 dark:hover:bg-neutral-800"}`}
                 onClick={() => {
                   if (n.link) window.location.href = n.link;
                 }}
@@ -98,6 +144,7 @@ export default function NotificationsDropdown() {
   )}
 </div>
                   <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
+                  <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{relativeTime(n.createdAt)}</div>
                 </div>
                 {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
               </li>
