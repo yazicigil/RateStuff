@@ -133,10 +133,7 @@ export default function NotificationsDropdown() {
             {shadowTop && (
               <div className="pointer-events-none absolute inset-x-0 top-0 h-4 bg-gradient-to-b from-black/10 to-transparent dark:from-white/10" />
             )}
-            {shadowBottom && (
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-black/10 to-transparent dark:from-white/10" />
-            )}
-            <div className="sticky top-0 z-10 bg-transparent px-1 py-1">
+            <div className="sticky top-0 z-20 bg-white dark:bg-neutral-900 px-1 py-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
@@ -195,7 +192,7 @@ export default function NotificationsDropdown() {
                       loading="lazy"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded bg-neutral-200 dark:bg-neutral-800" />
+                    <div className="w-14 h-14 rounded bg-neutral-200 dark:bg-neutral-800" />
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium whitespace-normal break-words leading-snug">
