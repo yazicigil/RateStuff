@@ -38,7 +38,7 @@ export async function POST(_req: Request, { params }: { params: { itemId: string
             title: "Gönderiniz askıya alındı",
             body: `“${item.name}” adlı gönderiniz çoklu rapor nedeniyle askıya alındı.`,
             link: `/share/${item.id}`,
-            image: "/badges/report-flag.svg",          // elindeki kırmızı flag SVG
+            image: "/badges/report-warning.svg",          // elindeki kırmızı flag SVG
             eventKey: `item_suspended:${item.id}`,     // duplicate önleme
             data: { itemId: item.id, reason: "reports_threshold" },
           },

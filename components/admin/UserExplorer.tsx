@@ -167,20 +167,20 @@ export default function UserExplorer() {
         </div>
 
         {/* Sağ: seçilen kullanıcının activity'si */}
-        <div className="rounded-xl border p-3 max-h-96 overflow-y-auto">
+        <div className="rounded-xl border px-3 pb-3 max-h-96 overflow-y-auto">
           {!actUser && <div className="text-sm opacity-70">Bir kullanıcı seç.</div>}
           {loadingAct && <div className="text-sm opacity-70">Detaylar yükleniyor…</div>}
           {actUser && !loadingAct && (
             <>
-              <div className="flex items-center justify-between gap-3 mb-3 sticky top-0 bg-white dark:bg-neutral-900 z-10 py-2">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-wrap md:flex-nowrap items-start md:items-center justify-between gap-2 md:gap-3 mb-3 sticky -top-px -mx-3 px-3 bg-white/95 dark:bg-neutral-900/95 supports-[backdrop-filter]:backdrop-blur z-10 py-2 border-b border-neutral-200 dark:border-neutral-800">
+                <div className="flex items-center gap-3 min-w-0">
                   <img src={avatarFor(actUser)} alt="" className="w-10 h-10 rounded-full object-cover" />
-                  <div>
-                    <div className="font-medium">{actUser.name || actUser.email || actUser.id}</div>
-                    {actUser.email && <div className="text-xs opacity-70">{actUser.email}</div>}
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{actUser.name || actUser.email || actUser.id}</div>
+                    {actUser.email && <div className="text-xs opacity-70 truncate">{actUser.email}</div>}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <button onClick={() => setShowSend(true)}
                           className="inline-flex items-center gap-1 h-8 px-3 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800"
                           title="Bildirim gönder">
@@ -225,7 +225,34 @@ export default function UserExplorer() {
                             )}
                           </div>
                         </div>
-                        <a href={`/share/${it.id}`} target="_blank" className="text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">Gönderiye git</a>
+                        <a
+                          href={`/share/${it.id}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+                        >
+                          Gönderiye git
+                        </a>
+                        {(it as any).suspendedAt ? (
+                          <button
+                            onClick={async () => {
+                              await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
+                              openUser(actUser.id);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
+                          >
+                            Askıdan Al
+                          </button>
+                        ) : (
+                          <button
+                            onClick={async () => {
+                              await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
+                              openUser(actUser.id);
+                            }}
+                            className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+                          >
+                            Askıya Al
+                          </button>
+                        )}
                       </li>
                     ))}
                     {!activity!.items.length && <li className="text-sm opacity-70">Paylaşım yok.</li>}
@@ -237,17 +264,23 @@ export default function UserExplorer() {
                   <div className="text-sm font-medium mb-2">Yorum / Puanlar</div>
                   <ul className="space-y-2">
                     {activity!.comments.map(c => (
-                      <li key={c.id} className="rounded-lg border p-2">
+                      <li key={c.id} className="rounded-lg border p-3 hover:bg-neutral-50/60 dark:hover:bg-neutral-800/40 transition">
                         <div className="flex items-center justify-between">
                           <div className="font-medium">{c.item?.name || "—"}</div>
                           <div className="text-xs opacity-60">{new Date(c.createdAt).toLocaleString()}</div>
                         </div>
                         {c.stars != null && (
-                          <div className="text-xs opacity-80 mt-1">⭐ {c.stars}</div>
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200 mt-1">
+                            ⭐ <span>{c.stars}</span>
+                          </span>
                         )}
                         {c.text && <div className="mt-1 text-sm">{c.text}</div>}
                         {c.item?.id && (
-                          <a href={`/share/${c.item.id}`} target="_blank" className="mt-2 inline-block text-xs px-2 h-7 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                          <a
+                            href={`/share/${c.item.id}`}
+                            target="_blank"
+                            className="mt-2 inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+                          >
                             Gönderiye git
                           </a>
                         )}

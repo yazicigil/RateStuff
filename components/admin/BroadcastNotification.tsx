@@ -29,7 +29,7 @@ export default function BroadcastNotification() {
   }
 
   return (
-    <div className="rounded-2xl border p-4 bg-white dark:bg-neutral-900">
+    <div className="rounded-2xl border p-4 bg-white dark:bg-neutral-900 max-w-md w-full">
       <h3 className="text-base font-semibold mb-3">Tüm Kullanıcılara Bildirim Gönder</h3>
 
       {msg && <div className="mb-3 text-sm text-emerald-600">{msg}</div>}
