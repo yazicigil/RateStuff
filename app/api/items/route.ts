@@ -4,6 +4,7 @@ import { getSessionUser } from '@/lib/auth';
 import { maskName } from '@/lib/mask';
 import { containsBannedWord } from '@/lib/bannedWords';
 import { milestone_userItemsShared } from "@/lib/milestones";
+import { notifyTagPeers } from "@/lib/tagPeers";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -194,6 +195,11 @@ export async function POST(req: Request) {
     });
     // Milestones: yeni item sonrası
     await milestone_userItemsShared(prisma, me.id);
+    try {
+      await notifyTagPeers(prisma, newId);
+    } catch (e) {
+      console.error('[notify:tag-peers]', e);
+    }
 
     return NextResponse.json({ ok: true, id: newId }, { status: 201 });
   } catch (e: any) {
