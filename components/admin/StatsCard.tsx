@@ -148,7 +148,12 @@ function StatsCard() {
                   setStart(newStart);
                   setEnd(newEnd);
                 }}
-                className="px-2 py-1 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                aria-pressed={(end === todayYMD()) && (start === addDaysYMD(todayYMD(), -(p.days - 1))) }
+                className={
+                  ((end === todayYMD()) && (start === addDaysYMD(todayYMD(), -(p.days - 1))))
+                    ? "px-2 py-1 text-xs font-medium bg-neutral-900 text-white dark:bg-white dark:text-black"
+                    : "px-2 py-1 text-xs hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                }
               >
                 {p.label}
               </button>
@@ -181,17 +186,17 @@ function StatsCard() {
       </div>
 
       {/* Totals */}
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
         <Tile label="Toplam Kullanıcı" value={t.users} />
         <Tile label="Toplam Gönderi" value={t.items} />
         <Tile label="Toplam Yorum" value={t.comments} />
         <Tile label="Toplam Rapor" value={t.reports} />
         <Tile label="Askıdaki Gönderi" value={t.suspendedItems} danger />
-        <Tile label={`Aktif Kullanıcı (${data.range.days}g)`} value={t.activeUsers} hint={`${data.range.start} → ${data.range.end}`} />
       </div>
 
       {/* Görünen serilerin toplamları */}
-      <div className="grid gap-3 md:grid-cols-3 mt-4">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4 mt-4">
+        <Tile label={`Aktif Kullanıcı (${data.range.days}g)`} value={data.windowTotals.activeUsers} hint={`${data.range.start} → ${data.range.end}`} />
         {showSignups && (
           <Tile label={`Kayıt (${data.range.days}g)`} value={seriesTotals.signups} hint={`${data.range.start} → ${data.range.end}`} />
         )}
