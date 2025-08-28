@@ -7,6 +7,7 @@ import UserExplorer from "@/components/admin/UserExplorer";
 import ReportsCard from "@/components/admin/ReportsCard";
 import SuspendedItemsCard from "@/components/admin/SuspendedItemsCard";
 import AllItemsCard from "@/components/admin/AllItemsCard";
+import NotificationsLab from "@/components/admin/NotificationsLab";
 
 export type AdminTab = null | "users" | "reports" | "suspended" | "allItems";
 
@@ -42,3 +43,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+<NotificationsLab />

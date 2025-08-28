@@ -183,3 +183,11 @@ model Presence {
   @@index([lastSeen])
   @@index([userId])
 }
+model NotificationTemplate {
+  id        String            @id @default(cuid())
+  type      NotificationType  @unique
+  title     String
+  body      String
+  image     String?
+  updatedAt DateTime          @updatedAt
+}
