@@ -174,3 +174,9 @@ model NotificationPreference {
   commentUpvoted     Boolean @default(true)
   emailDigest        String  @default("none")
 }
+model Presence {
+  id        String   @id @default(cuid())
+  userId    String?  // giriş yapmış kullanıcı varsa
+  lastSeen  DateTime @updatedAt
+  createdAt DateTime @default(now())
+}

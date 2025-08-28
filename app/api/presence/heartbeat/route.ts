@@ -25,14 +25,12 @@ export async function POST(req: Request) {
     // auth yoksa sorun değil, anonim sayarız
   }
 
-  // Upsert by anon_id
-  await prisma.$executeRawUnsafe(
-    `insert into presence_sessions (anon_id, user_id, user_agent, last_seen)
-     values ($1, $2, $3, now())
-     on conflict (anon_id)
-     do update set user_id = excluded.user_id, user_agent = excluded.user_agent, last_seen = now()`,
-    anonId, userId, ua
-  );
+  // Upsert by presence.id = anon cookie
+  await prisma.presence.upsert({
+    where: { id: anonId },
+    create: { id: anonId, userId: userId || null },
+    update: { userId: userId || null }, // lastSeen is @updatedAt
+  });
 
   const res = NextResponse.json({ ok: true });
   // Cookie’yi 7 gün sakla
