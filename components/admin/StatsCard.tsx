@@ -227,7 +227,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
       </div>
 
       {/* Totals */}
-      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-6">
         {/* Online (anlık) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
           <div className="flex items-center gap-2 text-xs opacity-70">
