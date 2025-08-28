@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
 
 type UserLite = {
@@ -55,6 +55,16 @@ export default function UserExplorer() {
     search();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // canlı arama (debounce)
+  const didMount = useRef(false);
+  useEffect(() => {
+    if (!didMount.current) { didMount.current = true; return; }
+    const h = setTimeout(() => {
+      search();
+    }, 300);
+    return () => clearTimeout(h);
+  }, [q]);
 
   async function openUser(userId: string) {
     if (active === userId) { setActive(null); setActivity(null); return; } // toggle
@@ -225,7 +235,15 @@ export default function UserExplorer() {
                           : <div className="w-14 h-14 rounded bg-neutral-200 dark:bg-neutral-800 flex-shrink-0" />
                         }
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium break-words">{it.name}</div>
+                          <div className="font-medium break-words flex items-center gap-2 flex-wrap">
+                            <span className="break-words">{it.name}</span>
+                            {!!it.suspendedAt && (
+                              <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                Askıda
+                              </span>
+                            )}
+                          </div>
                           <div className="text-xs opacity-60">
                             {new Date(it.createdAt).toLocaleString()}
                             {typeof it._count?.reports === 'number' && (
@@ -242,7 +260,7 @@ export default function UserExplorer() {
     Git
   </a>
 
-  {it.suspendedAt ? (
+  {!!it.suspendedAt ? (
     <button
       type="button"
       onClick={async (e) => {
@@ -306,15 +324,38 @@ export default function UserExplorer() {
                           </span>
                         )}
                         {c.text && <div className="mt-1 text-sm">{c.text}</div>}
-                        {c.item?.id && (
-                          <a
-                            href={`/share/${c.item.id}`}
-                            target="_blank"
-                            className="mt-2 inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+                        <div className="mt-2 flex items-center gap-2">
+                          {c.item?.id && (
+                            <a
+                              href={`/share/${c.item.id}`}
+                              target="_blank"
+                              className="inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border bg-neutral-100 hover:bg-neutral-200 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 transition"
+                            >
+                              Gönderiye git
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (!confirm('Bu yorumu silmek istediğine emin misin?')) return;
+                              const res = await fetch(`/api/admin/comments/${c.id}/delete`, { method: 'POST' });
+                              if (res.ok) {
+                                setActivity(prev => prev ? ({
+                                  ...prev,
+                                  comments: prev.comments.filter(x => x.id !== c.id)
+                                }) : prev);
+                              }
+                            }}
+                            className="inline-flex items-center justify-center text-xs h-8 w-8 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
+                            title="Yorumu sil"
                           >
-                            Gönderiye git
-                          </a>
-                        )}
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+                              <path d="M9 3h6l1 2h4a1 1 0 110 2h-1l-1 13a2 2 0 01-2 2H7a2 2 0 01-2-2L4 7H3a1 1 0 110-2h4l1-2zm1 6a1 1 0 00-1 1v7a1 1 0 002 0V10a1 1 0 00-1-1zm4 0a1 1 0 00-1 1v7a1 1 0 002 0V10a1 1 0 00-1-1z" />
+                            </svg>
+                          </button>
+                        </div>
                       </li>
                     ))}
                     {!activity!.comments.length && <li className="text-sm opacity-70">Yorum/puan yok.</li>}
