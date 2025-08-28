@@ -3,6 +3,7 @@ import BroadcastNotification from "@/components/admin/BroadcastNotification";
 import ReportsCard from "@/components/admin/ReportsCard";
 import UserExplorer from "@/components/admin/UserExplorer";
 import StatsCard from "@/components/admin/StatsCard";
+import SuspendedItemsCard from "@/components/admin/SuspendedItemsCard";
 
 
 export default async function AdminPage() {
@@ -30,6 +31,7 @@ export default async function AdminPage() {
         {/* Top row: UserExplorer & Reports side-by-side */}
         <UserExplorer />
         <ReportsCard />
+        <SuspendedItemsCard />
 
         {/* Bottom row: Broadcast full width, left-aligned narrow column */}
         <div className="md:col-span-2 flex">
