@@ -216,9 +216,9 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
         {/* Toplam Gönderi (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
           <div className="flex items-center gap-1.5 text-xs opacity-70">
-            {/* post icon */}
+            {/* quill icon */}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4h12v2H6V7Zm0 4h12v2H6v-2Zm0 4h8v2H6v-2Z"/>
+              <path d="M20.5 2.5c-3.59 0-7.28 1.9-9.9 4.52L4 13.62V20h6.38l6.6-6.6C18.6 10.78 20.5 6.09 20.5 2.5zM6 18v-2l5-5 2 2-5 5H6z"/>
             </svg>
             <span>Toplam Gönderi</span>
           </div>
@@ -268,9 +268,9 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
           }`}
         >
           <div className="flex items-center gap-1.5 text-xs">
-            {/* pause badge icon */}
+            {/* pause icon */}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-2 6h2v8H10V8Zm4 0h2v8h-2V8Z"/>
+              <path d="M9 5h2v14H9V5Zm4 0h2v14h-2V5Z"/>
             </svg>
             <span>Askıdaki Gönderi</span>
           </div>
