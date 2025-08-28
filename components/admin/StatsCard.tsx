@@ -163,9 +163,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
     // path="/refresh.json"        // B seçeneği
   />
 
-  <div className="ml-auto text-xs opacity-60">
-    Güncelleme: {new Date(data.asOf).toLocaleString()}
-  </div>
+
 
           <div className="ml-auto text-xs opacity-60">Güncelleme: {new Date(data.asOf).toLocaleString()}</div>
         </div>
