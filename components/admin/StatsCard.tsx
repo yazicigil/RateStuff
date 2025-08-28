@@ -1,6 +1,8 @@
 // components/admin/StatsCard.tsx
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import AnimatedRefresh from "@/components/common/AnimatedRefresh";
+import refreshAnim from "@/assets/animations/refresh.json";
 
 export type StatsTabs = "users" | "reports" | "suspended" | "allItems";
 interface Props {
@@ -149,26 +151,28 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
       <div className="flex flex-col gap-3 mb-3">
         <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold">Genel İstatistikler</h3>
-          <button
-            type="button"
-            onClick={load}
-            className="h-4 w-4 opacity-70 hover:opacity-100 transition flex items-center justify-center text-gray-500 dark:text-gray-400"
-            aria-label="Refresh statistics"
-          >
-            <span
-              aria-hidden
-              className="h-4 w-4 inline-block"
-              style={{
-                WebkitMaskImage: "url(/refresh.svg)",
-                maskImage: "url(/refresh.svg)",
-                WebkitMaskRepeat: "no-repeat",
-                maskRepeat: "no-repeat",
-                WebkitMaskSize: "contain",
-                maskSize: "contain",
-                backgroundColor: "currentColor",
-              }}
-            />
-          </button>
+          import AnimatedRefresh from "@/components/common/AnimatedRefresh";
+// A) JSON import:
+import refreshAnim from "@/assets/animations/refresh.json";
+
+// ...
+
+<div className="flex items-center gap-2">
+  <h3 className="text-base font-semibold">Genel İstatistikler</h3>
+
+  {/* Eski mask icon yerine: */}
+  <AnimatedRefresh
+    onClick={load}
+    className="ml-1"
+    size={16}
+    animationData={refreshAnim}   // A seçeneği
+    // path="/refresh.json"        // B seçeneği
+  />
+
+  <div className="ml-auto text-xs opacity-60">
+    Güncelleme: {new Date(data.asOf).toLocaleString()}
+  </div>
+</div>
           <div className="ml-auto text-xs opacity-60">Güncelleme: {new Date(data.asOf).toLocaleString()}</div>
         </div>
 
