@@ -2,6 +2,8 @@ import { isAdmin } from "@/lib/admin";
 import BroadcastNotification from "@/components/admin/BroadcastNotification";
 import ReportsCard from "@/components/admin/ReportsCard";
 import UserExplorer from "@/components/admin/UserExplorer";
+import StatsCard from "@/components/admin/StatsCard";
+
 
 export default async function AdminPage() {
   const ok = await isAdmin();
@@ -20,7 +22,9 @@ export default async function AdminPage() {
           Yönetim araçları
         </div>
       </div>
-
+ <div className="mb-6">
+      <StatsCard />
+    </div>
       {/* Content grid */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Top row: UserExplorer & Reports side-by-side */}

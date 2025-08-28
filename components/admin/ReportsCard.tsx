@@ -116,7 +116,7 @@ export default function ReportsCard() {
                     <div className="font-medium">{it.name}</div>
                     <div className="text-xs opacity-70 flex items-center gap-2">
                       <span>{it._count.reports} report</span>
-                      {it.suspendedAt && (
+                      {!!it.suspendedAt && (
                         <span className="inline-flex items-center px-2 h-5 rounded border border-amber-300/60 bg-amber-100 text-amber-800 dark:border-amber-900/60 dark:bg-amber-900/30 dark:text-amber-200">Askıda</span>
                       )}
                     </div>
@@ -170,11 +170,21 @@ export default function ReportsCard() {
                           if (!details.item) return;
                           const id = details.item.id;
                           const suspended = !!details.item.suspendedAt;
+                          const nextSusp = suspended ? null : new Date().toISOString();
+
+                          // 1) Optimistic update: update details + left list immediately
+                          setDetails((d) => (d.item ? ({ ...d, item: { ...d.item, suspendedAt: nextSusp } }) : d));
+                          const prevItems = items; // keep reference for potential revert
+                          setItems((prev) => prev.map((it) => (it.id === id ? { ...it, suspendedAt: nextSusp } : it)));
+
+                          // 2) Hit API
                           const url = suspended ? `/api/admin/items/${id}/unsuspend` : `/api/admin/items/${id}/suspend`;
                           const res = await fetch(url, { method: 'POST' });
-                          if (res.ok) {
-                            setDetails(d => d.item ? ({ ...d, item: { ...d.item, suspendedAt: suspended ? null : new Date().toISOString() } }) : d);
-                            setItems(prev => prev.map(it => it.id === id ? { ...it, suspendedAt: suspended ? null : new Date().toISOString() } : it));
+
+                          // 3) Revert on failure
+                          if (!res.ok) {
+                            setDetails((d) => (d.item ? ({ ...d, item: { ...d.item, suspendedAt: suspended ? new Date().toISOString() : null } }) : d));
+                            setItems(prevItems);
                           }
                         }}
                         className={`inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-300 dark:focus:ring-neutral-700 ${details.item?.suspendedAt ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}
