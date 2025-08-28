@@ -2,7 +2,7 @@ import { isAdmin } from "@/lib/admin";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import NotificationsLab from "@/components/admin/NotificationsLab";
 import Link from "next/link";
-import AnimatedLab from "@/components/common/AnimatedLab";
+import LabHeaderButton from "@/components/admin/LabHeaderButton";
 
 export default async function AdminPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const ok = await isAdmin();
@@ -20,15 +20,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: { [ke
           <h1 className="text-xl font-semibold tracking-tight">Admin Dashboard</h1>
         </div>
 
-        {/* Bildirim Laboratuvarı toggle button */}
-        <Link
-          href={toggleHref}
-          className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
-          aria-pressed={showingLab}
-        >
-          <AnimatedLab playing={showingLab} />
-          <span className="hidden sm:inline">Bildirim Laboratuvarı</span>
-        </Link>
+        <LabHeaderButton showingLab={showingLab} toggleHref={toggleHref} />
       </div>
 
       {showingLab ? (
