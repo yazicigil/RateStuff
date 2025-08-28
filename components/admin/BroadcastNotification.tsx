@@ -44,7 +44,7 @@ export default function BroadcastNotification() {
   return (
     <div className="rounded-2xl border p-4 bg-green-50 dark:bg-green-900/20 border-green-300 max-w-md w-full">
       <h3 className="flex items-center gap-2 text-base font-semibold mb-3 text-green-700 dark:text-green-300">
-        <span className="w-5 h-5 text-green-600 dark:text-green-400"><Bell /></span>
+        <span className="w-5 h-5 text-green-600 dark:text-green-400 inline-flex items-center justify-center"><Bell /></span>
         Tüm Kullanıcılara Bildirim Gönder
       </h3>
 
