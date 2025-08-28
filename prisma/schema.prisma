@@ -176,7 +176,11 @@ model NotificationPreference {
 }
 model Presence {
   id        String   @id @default(cuid())
-  userId    String?  // giriş yapmış kullanıcı varsa
-  lastSeen  DateTime @updatedAt
-  createdAt DateTime @default(now())
+  userId    String?  // login olmayanlar için null olabilir
+  lastSeen  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([lastSeen])
+  @@index([userId])
 }
