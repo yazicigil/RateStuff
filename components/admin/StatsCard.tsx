@@ -62,6 +62,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
 
   const [data, setData] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [online, setOnline] = useState<{ total: number; authed: number } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -86,6 +87,20 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
     return () => { if (tRef.current) window.clearTimeout(tRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [start, end]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadPresence = async () => {
+      try {
+        const r = await fetch("/api/presence/counters", { cache: "no-store" });
+        const j = await r.json();
+        if (mounted && r.ok && j.ok) setOnline({ total: j.total, authed: j.authed });
+      } catch {}
+    };
+    loadPresence();
+    const id = setInterval(loadPresence, 10000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
 
   const seriesTotals = useMemo(() => {
     if (!data) return { signups: 0, items: 0, comments: 0 };
@@ -213,6 +228,21 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
 
       {/* Totals */}
       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+        {/* Online (anlık) */}
+        <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
+          <div className="flex items-center gap-2 text-xs opacity-70">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span>Online (Anlık)</span>
+          </div>
+          <div className="text-2xl font-semibold flex items-baseline gap-2">
+            {online ? online.total : "—"}
+            <span className="text-[11px] font-normal opacity-70 flex items-center gap-1">
+              <span className="inline-block h-2 w-2 rounded-full bg-purple-500" />
+              {online ? `${online.authed} girişli` : "…"}
+            </span>
+          </div>
+        </div>
+
         {/* Toplam Kullanıcı (clickable) */}
         <button
           onClick={() => onOpenTab("users")}

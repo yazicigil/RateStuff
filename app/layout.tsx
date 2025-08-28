@@ -139,6 +139,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen antialiased">
         <Providers>{children}</Providers>
           <Analytics />
+        <Script id="presence-heartbeat" strategy="afterInteractive">
+          {`(function(){
+            var hit=function(){try{fetch('/api/presence/heartbeat',{method:'POST'});}catch(e){}}
+            ;hit();
+            var id=setInterval(hit,15000);
+            document.addEventListener('visibilitychange',function(){ if(!document.hidden) hit(); });
+          })();`}
+        </Script>
       </body>
     </html>
   );
