@@ -1,3 +1,4 @@
+// No changes to this file as the instructions pertain to the Prisma schema file, not this route.ts file.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 

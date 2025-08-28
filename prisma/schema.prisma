@@ -177,7 +177,7 @@ model NotificationPreference {
 model Presence {
   id        String   @id @default(cuid())
   userId    String?
-  lastSeen  DateTime @default(now())
+  lastSeen  DateTime @default(now()) @updatedAt
   createdAt DateTime @default(now())
 
   @@index([lastSeen])
