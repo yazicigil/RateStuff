@@ -40,6 +40,17 @@ async function getItemMeta(id: string, base: string) {
   }
 }
 
+async function getViewer(base: string) {
+  try {
+    const res = await fetch(`${base}/api/me`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const j = await res.json().catch(() => null);
+    return j?.user || j || null; // /api/me {user:{id,...}} veya direkt {id,...}
+  } catch {
+    return null;
+  }
+}
+
 // Olası görsel anahtarlarını tek yerden kontrol et
 function pickThumb(it: any): string | null {
   const keys = [
@@ -141,7 +152,14 @@ export default async function ShareRedirectPage({ params }: Props) {
   // Fetch item on the server so we render meaningful HTML (better for SEO & for bots that don't execute JS reliably)
   const it = await getItemMeta(params.id, base);
   const notFound = !it;
-  const isSuspended = notFound || !!it?.suspended;
+
+  // Viewer (me) – owner ise suspended ekrana düşmesin
+  const me = await getViewer(base);
+  const viewerId: string | null = (me?.id as string) || null;
+  const createdById: string | null = (it?.createdById as string) || (it?.createdBy?.id as string) || null;
+  const isOwner = !!(viewerId && createdById && viewerId === createdById);
+
+  const isSuspendedForViewer = notFound || (!!it?.suspended && !isOwner);
 
   // Bot tespiti: User-Agent'i server tarafında al ve bilinen crawler imzalarını yakala
   const h = headers();
@@ -226,7 +244,7 @@ export default async function ShareRedirectPage({ params }: Props) {
       <SeoLD json={itemLD} />
       <SeoLD json={faqLD} />
 
-      {isSuspended ? (
+      {isSuspendedForViewer ? (
         <div className="max-w-[720px] text-center">
           <SuspendedNotice />
         </div>
