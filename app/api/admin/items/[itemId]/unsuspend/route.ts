@@ -29,7 +29,7 @@ export async function POST(_req: Request, { params }: { params: { itemId: string
           body: `“${item.name}” adlı gönderiniz tekrar yayına alındı.`,
           link: `/share/${item.id}`,
           image: "/badges/upvote.svg",
-          eventKey: `item_unsuspended:${item.id}`,
+          eventKey: `item_unsuspended:${item.id}:${Date.now()}`,
           data: { itemId: item.id },
         },
       });
