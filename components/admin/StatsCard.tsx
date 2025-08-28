@@ -151,14 +151,8 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
       <div className="flex flex-col gap-3 mb-3">
         <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold">Genel İstatistikler</h3>
-          import AnimatedRefresh from "@/components/common/AnimatedRefresh";
-// A) JSON import:
-import refreshAnim from "@/assets/animations/refresh.json";
 
-// ...
 
-<div className="flex items-center gap-2">
-  <h3 className="text-base font-semibold">Genel İstatistikler</h3>
 
   {/* Eski mask icon yerine: */}
   <AnimatedRefresh
@@ -172,7 +166,7 @@ import refreshAnim from "@/assets/animations/refresh.json";
   <div className="ml-auto text-xs opacity-60">
     Güncelleme: {new Date(data.asOf).toLocaleString()}
   </div>
-</div>
+
           <div className="ml-auto text-xs opacity-60">Güncelleme: {new Date(data.asOf).toLocaleString()}</div>
         </div>
 
