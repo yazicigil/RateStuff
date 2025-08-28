@@ -2,6 +2,12 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+export type StatsTabs = "users" | "reports" | "suspended";
+interface Props {
+  activeTab: StatsTabs | null;
+  onOpenTab: (t: StatsTabs) => void;
+}
+
 type DayBucket = { date: string; count: number };
 
 type Stats = {
@@ -46,7 +52,7 @@ function addDaysYMD(ymd: string, delta: number) {
   return `${y}-${m}-${day}`;
 }
 
-function StatsCard() {
+function StatsCard({ activeTab, onOpenTab }: Props) {
   // Filtreler
   const [start, setStart] = useState(addDaysYMD(todayYMD(), -13)); // varsayılan 14 gün
   const [end, setEnd] = useState(todayYMD());
@@ -187,11 +193,42 @@ function StatsCard() {
 
       {/* Totals */}
       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <Tile label="Toplam Kullanıcı" value={t.users} />
-        <Tile label="Toplam Gönderi" value={t.items} />
-        <Tile label="Toplam Yorum" value={t.comments} />
-        <Tile label="Toplam Rapor" value={t.reports} />
-        <Tile label="Askıdaki Gönderi" value={t.suspendedItems} danger />
+        <button
+          onClick={() => onOpenTab("users")}
+          aria-pressed={activeTab === "users"}
+          className={`text-left rounded-xl border p-3 ${activeTab === "users" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+        >
+          <div className="text-xs opacity-70">Toplam Kullanıcı</div>
+          <div className="text-2xl font-semibold">{t.users}</div>
+        </button>
+
+        <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
+          <div className="text-xs opacity-70">Toplam Gönderi</div>
+          <div className="text-2xl font-semibold">{t.items}</div>
+        </div>
+
+        <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
+          <div className="text-xs opacity-70">Toplam Yorum</div>
+          <div className="text-2xl font-semibold">{t.comments}</div>
+        </div>
+
+        <button
+          onClick={() => onOpenTab("reports")}
+          aria-pressed={activeTab === "reports"}
+          className={`text-left rounded-xl border p-3 ${activeTab === "reports" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+        >
+          <div className="text-xs opacity-70">Toplam Rapor</div>
+          <div className="text-2xl font-semibold">{t.reports}</div>
+        </button>
+
+        <button
+          onClick={() => onOpenTab("suspended")}
+          aria-pressed={activeTab === "suspended"}
+          className={`text-left rounded-xl border p-3 ${activeTab === "suspended" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+        >
+          <div className="text-xs opacity-70">Askıdaki Gönderi</div>
+          <div className="text-2xl font-semibold">{t.suspendedItems}</div>
+        </button>
       </div>
 
       {/* Görünen serilerin toplamları */}
