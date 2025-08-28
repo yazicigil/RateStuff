@@ -193,40 +193,87 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
 
       {/* Totals */}
       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-5">
+        {/* Toplam Kullanıcı (clickable) */}
         <button
           onClick={() => onOpenTab("users")}
           aria-pressed={activeTab === "users"}
-          className={`text-left rounded-xl border p-3 ${activeTab === "users" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+          className={`text-left rounded-xl border p-3 transition ${
+            activeTab === "users"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-black"
+              : "bg-white dark:bg-neutral-900"
+          }`}
         >
-          <div className="text-xs opacity-70">Toplam Kullanıcı</div>
+          <div className="flex items-center gap-1.5 text-xs opacity-70">
+            {/* user icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5Zm0 2c-4.418 0-8 2.239-8 5v1h16v-1c0-2.761-3.582-5-8-5z"/>
+            </svg>
+            <span>Toplam Kullanıcı</span>
+          </div>
           <div className="text-2xl font-semibold">{t.users}</div>
         </button>
 
+        {/* Toplam Gönderi (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
-          <div className="text-xs opacity-70">Toplam Gönderi</div>
+          <div className="flex items-center gap-1.5 text-xs opacity-70">
+            {/* post icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M4 3h16a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Zm2 4h12v2H6V7Zm0 4h12v2H6v-2Zm0 4h8v2H6v-2Z"/>
+            </svg>
+            <span>Toplam Gönderi</span>
+          </div>
           <div className="text-2xl font-semibold">{t.items}</div>
         </div>
 
+        {/* Toplam Yorum (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
-          <div className="text-xs opacity-70">Toplam Yorum</div>
+          <div className="flex items-center gap-1.5 text-xs opacity-70">
+            {/* comment icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M20 2H4a2 2 0 0 0-2 2v14l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z"/>
+            </svg>
+            <span>Toplam Yorum</span>
+          </div>
           <div className="text-2xl font-semibold">{t.comments}</div>
         </div>
 
+        {/* Toplam Rapor (clickable, red highlight) */}
         <button
           onClick={() => onOpenTab("reports")}
           aria-pressed={activeTab === "reports"}
-          className={`text-left rounded-xl border p-3 ${activeTab === "reports" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+          className={`text-left rounded-xl border p-3 transition ${
+            activeTab === "reports"
+              ? "bg-red-600 text-white dark:bg-red-500"
+              : "bg-red-50/70 border-red-200/70 text-red-800 dark:bg-red-900/20 dark:border-red-900/40 dark:text-red-200"
+          }`}
         >
-          <div className="text-xs opacity-70">Toplam Rapor</div>
+          <div className="flex items-center gap-1.5 text-xs">
+            {/* alert/triangle icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M12 3 1 21h22L12 3Zm1 14h-2v2h2v-2Zm0-8h-2v6h2V9Z"/>
+            </svg>
+            <span>Toplam Rapor</span>
+          </div>
           <div className="text-2xl font-semibold">{t.reports}</div>
         </button>
 
+        {/* Askıdaki Gönderi (clickable, amber highlight) */}
         <button
           onClick={() => onOpenTab("suspended")}
           aria-pressed={activeTab === "suspended"}
-          className={`text-left rounded-xl border p-3 ${activeTab === "suspended" ? "bg-neutral-900 text-white dark:bg-white dark:text-black" : "bg-white dark:bg-neutral-900"}`}
+          className={`text-left rounded-xl border p-3 transition ${
+            activeTab === "suspended"
+              ? "bg-amber-500 text-black dark:text-black"
+              : "bg-amber-50/70 border-amber-200/70 text-amber-800 dark:bg-amber-900/20 dark:border-amber-900/40 dark:text-amber-200"
+          }`}
         >
-          <div className="text-xs opacity-70">Askıdaki Gönderi</div>
+          <div className="flex items-center gap-1.5 text-xs">
+            {/* pause badge icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+              <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-2 6h2v8H10V8Zm4 0h2v8h-2V8Z"/>
+            </svg>
+            <span>Askıdaki Gönderi</span>
+          </div>
           <div className="text-2xl font-semibold">{t.suspendedItems}</div>
         </button>
       </div>
