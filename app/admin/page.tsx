@@ -31,12 +31,13 @@ export default async function AdminPage() {
         {/* Top row: UserExplorer & Reports side-by-side */}
         <UserExplorer />
         <ReportsCard />
-        <SuspendedItemsCard />
+        
 
         {/* Bottom row: Broadcast full width, left-aligned narrow column */}
         <div className="md:col-span-2 flex">
           <div className="w-full md:w-1/3">
             <BroadcastNotification />
+            <SuspendedItemsCard />
           </div>
         </div>
       </div>
