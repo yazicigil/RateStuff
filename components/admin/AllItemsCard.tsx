@@ -18,6 +18,7 @@ export default function AllItemsCard() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [showId, setShowId] = useState(true);
 
   async function load(opts?: { append?: boolean; cursor?: string | null }) {
     const params = new URLSearchParams();
@@ -68,7 +69,7 @@ export default function AllItemsCard() {
         <div className="text-xs opacity-60">{items.length} kayıt</div>
       </div>
 
-      <div className="mb-3 grid grid-cols-[1fr_auto] gap-2">
+      <div className="mb-3 grid grid-cols-[1fr_auto_auto] gap-2">
         <input
           className="border rounded-md px-3 py-2 bg-transparent"
           placeholder="İsim / Kullanıcı ara..."
@@ -78,18 +79,24 @@ export default function AllItemsCard() {
         <button onClick={() => load()} className="px-3 rounded-md border text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800">
           Yenile
         </button>
+        <label className="flex items-center gap-2 text-xs opacity-80 select-none">
+          <input type="checkbox" className="accent-current" checked={showId} onChange={(e)=>setShowId(e.target.checked)} />
+          ID sütunu
+        </label>
       </div>
 
       <div className="relative overflow-auto rounded-xl border divide-y">
-        <div className="grid grid-cols-[180px_1fr_auto] gap-3 px-3 py-2 text-[11px] font-medium opacity-70 sticky top-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur">
-          <div>Item ID</div>
+        <div className={`grid ${showId ? 'grid-cols-[180px_1fr_auto]' : 'grid-cols-[1fr_auto]'} gap-3 px-3 py-2 text-[11px] font-medium opacity-70 sticky top-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur`}>
+          {showId && <div>Item ID</div>}
           <div>Başlık &amp; Sahip • Yorum/Report</div>
           <div className="text-right">Aksiyon</div>
         </div>
 
         {items.map(it => (
-          <div key={it.id} className="grid grid-cols-[180px_1fr_auto] gap-3 px-3 py-3 items-center">
-            <div className="font-mono text-[11px] truncate" title={it.id}>{it.id}</div>
+          <div key={it.id} className={`grid ${showId ? 'grid-cols-[180px_1fr_auto]' : 'grid-cols-[1fr_auto]'} gap-3 px-3 py-3 items-center`}>
+            {showId && (
+              <div className="font-mono text-[11px] truncate" title={it.id}>{it.id}</div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-3 min-w-0">
                 <img src={it.imageUrl || "/badges/tag.svg"} alt="" className="h-10 w-10 rounded object-cover border" />
