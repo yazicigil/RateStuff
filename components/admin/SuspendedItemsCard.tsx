@@ -56,7 +56,7 @@ export default function SuspendedItemsCard() {
   };
 
   return (
-    <div className="rounded-2xl border bg-white dark:bg-neutral-900 p-4 h-[520px] flex flex-col">
+    <div className="rounded-2xl border border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900/30 p-4 max-h-[520px] flex flex-col">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-base font-semibold">Askıdaki Gönderiler</h3>
         <div className="text-xs opacity-60">{items.length} kayıt</div>
@@ -73,7 +73,7 @@ export default function SuspendedItemsCard() {
       </div>
 
       {/* List */}
-      <div className="relative flex-1 overflow-auto rounded-xl border">
+      <div className="relative overflow-auto rounded-xl border flex-1">
         {loading ? (
           <div className="p-4 text-sm opacity-60">Yükleniyor…</div>
         ) : items.length === 0 ? (

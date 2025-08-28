@@ -216,10 +216,8 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
         {/* Toplam Gönderi (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
           <div className="flex items-center gap-1.5 text-xs opacity-70">
-            {/* quill icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M20.5 2.5c-3.59 0-7.28 1.9-9.9 4.52L4 13.62V20h6.38l6.6-6.6C18.6 10.78 20.5 6.09 20.5 2.5zM6 18v-2l5-5 2 2-5 5H6z"/>
-            </svg>
+            {/* quill icon replaced with img */}
+            <img src="/quill.svg" alt="" className="h-4 w-4" />
             <span>Toplam Gönderi</span>
           </div>
           <div className="text-2xl font-semibold">{t.items}</div>
@@ -268,10 +266,8 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
           }`}
         >
           <div className="flex items-center gap-1.5 text-xs">
-            {/* pause icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-              <path d="M9 5h2v14H9V5Zm4 0h2v14h-2V5Z"/>
-            </svg>
+            {/* pause icon replaced with img */}
+            <img src="/pause.svg" alt="" className="h-4 w-4" />
             <span>Askıdaki Gönderi</span>
           </div>
           <div className="text-2xl font-semibold">{t.suspendedItems}</div>
