@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 // app/share/[id]/page.tsx
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import SeoLD from "@/components/SeoLD";
 import SuspendedNotice from "@/components/SuspendedNotice";
 
@@ -42,7 +42,15 @@ async function getItemMeta(id: string, base: string) {
 
 async function getViewer(base: string) {
   try {
-    const res = await fetch(`${base}/api/me`, { cache: "no-store" });
+    const ck = cookies().toString();
+    const ua = headers().get("user-agent") || "";
+    const res = await fetch(`${base}/api/me`, {
+      cache: "no-store",
+      headers: {
+        cookie: ck,
+        "user-agent": ua,
+      },
+    });
     if (!res.ok) return null;
     const j = await res.json().catch(() => null);
     return j?.user || j || null; // /api/me {user:{id,...}} veya direkt {id,...}
@@ -159,7 +167,8 @@ export default async function ShareRedirectPage({ params }: Props) {
   const createdById: string | null = (it?.createdById as string) || (it?.createdBy?.id as string) || null;
   const isOwner = !!(viewerId && createdById && viewerId === createdById);
 
-  const isSuspendedForViewer = notFound || (!!it?.suspended && !isOwner);
+  const isSuspended = !!(it?.suspendedAt || it?.suspended);
+  const isSuspendedForViewer = notFound || (isSuspended && !isOwner);
 
   // Bot tespiti: User-Agent'i server tarafında al ve bilinen crawler imzalarını yakala
   const h = headers();
