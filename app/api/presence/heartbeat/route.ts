@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -26,12 +28,11 @@ export async function POST(req: Request) {
   }
 
   // Upsert by presence.id = anon cookie
-  await prisma.presence.upsert({
-    where: { id: anonId },
-    create: { id: anonId, userId: userId || null },
-    update: { userId: userId || null }, // lastSeen is @updatedAt
-  });
-
+await prisma.presence.upsert({
+  where: { id: anonId },
+  create: { id: anonId, userId: userId || null, lastSeen: new Date(), createdAt: new Date() },
+  update: { userId: userId || null, lastSeen: new Date() },
+});
   const res = NextResponse.json({ ok: true });
   // Cookie’yi 7 gün sakla
   res.cookies.set(COOKIE, anonId, { httpOnly: true, sameSite: "lax", maxAge: 60 * 60 * 24 * 7, path: "/" });
