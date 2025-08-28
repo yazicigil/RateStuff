@@ -147,7 +147,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
     <div className="rounded-2xl border p-4 bg-white dark:bg-neutral-900">
       {/* Header + Filters */}
       <div className="flex flex-col gap-3 mb-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
           <h3 className="text-base font-semibold">Genel İstatistikler</h3>
           <button
             type="button"
@@ -169,7 +169,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
               }}
             />
           </button>
-          <div className="text-xs opacity-60">Güncelleme: {new Date(data.asOf).toLocaleString()}</div>
+          <div className="ml-auto text-xs opacity-60">Güncelleme: {new Date(data.asOf).toLocaleString()}</div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
