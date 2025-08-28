@@ -259,48 +259,38 @@ export default function UserExplorer() {
   >
     Git
   </a>
-
-  {!!it.suspendedAt ? (
-    <button
-      type="button"
-      onClick={async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const res = await fetch(`/api/admin/items/${it.id}/unsuspend`, { method: "POST" });
-        if (res.ok) {
-          setActivity(prev => prev ? ({
-            ...prev,
-            items: prev.items.map(x => x.id === it.id ? { ...x, suspendedAt: null } : x)
-          }) : prev);
-        } else if (actUser) {
-          await reloadActivity(actUser.id);
-        }
-      }}
-      className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 transition"
-    >
-      Geri Aç
-    </button>
-  ) : (
-    <button
-      type="button"
-      onClick={async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const res = await fetch(`/api/admin/items/${it.id}/suspend`, { method: "POST" });
-        if (res.ok) {
-          setActivity(prev => prev ? ({
-            ...prev,
-            items: prev.items.map(x => x.id === it.id ? { ...x, suspendedAt: new Date().toISOString() } : x)
-          }) : prev);
-        } else if (actUser) {
-          await reloadActivity(actUser.id);
-        }
-      }}
-      className="inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition"
-    >
-      Askıya Al
-    </button>
-  )}
+  <button
+    type="button"
+    onClick={async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const suspended = !!it.suspendedAt;
+      const url = suspended
+        ? `/api/admin/items/${it.id}/unsuspend`
+        : `/api/admin/items/${it.id}/suspend`;
+      const res = await fetch(url, { method: 'POST' });
+      if (res.ok) {
+        // ReportsCard ile birebir: optimistic update
+        setActivity(prev => prev ? ({
+          ...prev,
+          items: prev.items.map(x =>
+            x.id === it.id
+              ? { ...x, suspendedAt: suspended ? null : new Date().toISOString() }
+              : x
+          )
+        }) : prev);
+      } else if (actUser) {
+        await reloadActivity(actUser.id);
+      }
+    }}
+    className={`inline-flex items-center gap-1 text-[11px] h-7 px-2 rounded-md border transition ${
+      it.suspendedAt
+        ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+        : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'
+    }`}
+  >
+    {it.suspendedAt ? 'Geri Aç' : 'Askıya Al'}
+  </button>
 </div>
                       </li>
                     ))}
