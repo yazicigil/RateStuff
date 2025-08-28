@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
-import Bell from "@/components/notifications/Bell";
 
 export default function BroadcastNotification() {
   const [title, setTitle] = useState("");
@@ -44,7 +43,9 @@ export default function BroadcastNotification() {
   return (
     <div className="rounded-2xl border p-4 bg-green-50 dark:bg-green-900/20 border-green-300 max-w-md w-full">
       <h3 className="flex items-center gap-2 text-base font-semibold mb-3 text-green-700 dark:text-green-300">
-        <span className="w-5 h-5 text-green-600 dark:text-green-400 inline-flex items-center justify-center"><Bell /></span>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-5 h-5 text-green-600 dark:text-green-400">
+          <path d="M12 2a7 7 0 00-7 7v3.586l-.707.707A1 1 0 005 15h14a1 1 0 00.707-1.707L19 12.586V9a7 7 0 00-7-7zm0 20a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
+        </svg>
         Tüm Kullanıcılara Bildirim Gönder
       </h3>
 
