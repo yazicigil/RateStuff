@@ -216,8 +216,20 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
         {/* Toplam Gönderi (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
           <div className="flex items-center gap-1.5 text-xs opacity-70">
-            {/* quill icon replaced with img */}
-            <img src="/quill.svg" alt="" className="h-4 w-4" />
+            {/* quill icon colorized via mask */}
+            <span
+              aria-hidden
+              className="h-4 w-4 inline-block align-[-2px]"
+              style={{
+                WebkitMaskImage: "url(/quill.svg)",
+                maskImage: "url(/quill.svg)",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                backgroundColor: "currentColor",
+              }}
+            />
             <span>Toplam Gönderi</span>
           </div>
           <div className="text-2xl font-semibold">{t.items}</div>
@@ -266,8 +278,20 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
           }`}
         >
           <div className="flex items-center gap-1.5 text-xs">
-            {/* pause icon replaced with img */}
-            <img src="/pause.svg" alt="" className="h-4 w-4" />
+            {/* pause icon colorized via mask */}
+            <span
+              aria-hidden
+              className="h-4 w-4 inline-block align-[-2px]"
+              style={{
+                WebkitMaskImage: "url(/pause.svg)",
+                maskImage: "url(/pause.svg)",
+                WebkitMaskRepeat: "no-repeat",
+                maskRepeat: "no-repeat",
+                WebkitMaskSize: "contain",
+                maskSize: "contain",
+                backgroundColor: "currentColor",
+              }}
+            />
             <span>Askıdaki Gönderi</span>
           </div>
           <div className="text-2xl font-semibold">{t.suspendedItems}</div>

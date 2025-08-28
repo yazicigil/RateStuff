@@ -164,27 +164,30 @@ export default function ReportsCard() {
                         </svg>
                         Gönderiye git
                       </a>
-                      <button
+                    <button
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (!details.item) return;
                           const id = details.item.id;
                           const suspended = !!details.item.suspendedAt;
-                          const nextSusp = suspended ? null : new Date().toISOString();
-
-                          // 1) Optimistic update: update details + left list immediately
-                          setDetails((d) => (d.item ? ({ ...d, item: { ...d.item, suspendedAt: nextSusp } }) : d));
-                          const prevItems = items; // keep reference for potential revert
-                          setItems((prev) => prev.map((it) => (it.id === id ? { ...it, suspendedAt: nextSusp } : it)));
-
-                          // 2) Hit API
                           const url = suspended ? `/api/admin/items/${id}/unsuspend` : `/api/admin/items/${id}/suspend`;
+
                           const res = await fetch(url, { method: 'POST' });
 
-                          // 3) Revert on failure
-                          if (!res.ok) {
-                            setDetails((d) => (d.item ? ({ ...d, item: { ...d.item, suspendedAt: suspended ? new Date().toISOString() : null } }) : d));
-                            setItems(prevItems);
+                          if (res.ok) {
+                            // Success: update details + left list state to reflect new suspendedAt
+                            const nextSusp = suspended ? null : new Date().toISOString();
+                            setDetails((d) => (d.item ? ({ ...d, item: { ...d.item, suspendedAt: nextSusp } }) : d));
+                            setItems((prev) => prev.map((it) => (it.id === id ? { ...it, suspendedAt: nextSusp } : it)));
+                          } else {
+                            // Failure: hard-refresh the details from API to ensure UI consistency
+                            try {
+                              const r = await fetch(`/api/admin/reports/${id}`, { cache: 'no-store' });
+                              if (r.ok) {
+                                const j = await r.json();
+                                setDetails({ item: j.item, reports: j.reports });
+                              }
+                            } catch (_) {}
                           }
                         }}
                         className={`inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-300 dark:focus:ring-neutral-700 ${details.item?.suspendedAt ? 'border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20'}`}

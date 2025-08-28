@@ -15,6 +15,7 @@ export default function SuspendedItemsCard() {
   const [items, setItems] = useState<ItemLite[]>([]);
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -42,17 +43,27 @@ export default function SuspendedItemsCard() {
 
   const onToggle = async (it: ItemLite) => {
     const suspended = !!it.suspendedAt;
-    const url = suspended ? `/api/admin/items/${it.id}/unsuspend` : `/api/admin/items/${it.id}/suspend`;
-    // optimistic
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, suspendedAt: suspended ? null : new Date().toISOString() } : x));
+    const url = suspended
+      ? `/api/admin/items/${it.id}/unsuspend`
+      : `/api/admin/items/${it.id}/suspend`;
+
+    setBusyId(it.id);
     const res = await fetch(url, { method: "POST" });
-    if (!res.ok) {
-      // revert
-      setItems(prev => prev.map(x => x.id === it.id ? { ...x, suspendedAt: suspended ? new Date().toISOString() : null } : x));
-    } else if (suspended) {
-      // Unsuspend edildiğinde listeden çıkar (yalın UX)
-      setItems(prev => prev.filter(x => x.id !== it.id));
+
+    if (res.ok) {
+      if (suspended) {
+        // Unsuspend: bu liste sadece askıdakileri gösteriyor; item'i listeden kaldır
+        setItems(prev => prev.filter(x => x.id !== it.id));
+      } else {
+        // Suspend: listede zaten var; sadece suspendedAt'i güncelle
+        const nowIso = new Date().toISOString();
+        setItems(prev => prev.map(x => (x.id === it.id ? { ...x, suspendedAt: nowIso } : x)));
+      }
+    } else {
+      // Başarısızlıkta listeyi tazele
+      try { await load(); } catch (_) {}
     }
+    setBusyId(null);
   };
 
   return (
@@ -119,8 +130,9 @@ export default function SuspendedItemsCard() {
                     </a>
                     <button
                       type="button"
+                      disabled={busyId === it.id}
                       onClick={() => onToggle(it)}
-                      className={`inline-flex items-center text-[11px] h-7 px-2 rounded-md border transition ${
+                      className={`inline-flex items-center text-[11px] h-7 px-2 rounded-md border transition disabled:opacity-50 disabled:cursor-not-allowed ${
                         it.suspendedAt
                           ? "border-emerald-500 text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
                           : "border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20"
