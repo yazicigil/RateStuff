@@ -22,6 +22,7 @@ export async function GET(_: Request, { params }: { params: { userId: string } }
         name: true,
         imageUrl: true,
         createdAt: true,
+        suspendedAt: true,
         _count: { select: { reports: true } },
       },
       orderBy: { createdAt: "desc" },
