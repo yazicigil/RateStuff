@@ -17,12 +17,16 @@ export default function LabHeaderButton({
   toggleHref: string;
 }) {
   const [hover, setHover] = useState(false);
+  const [replay, setReplay] = useState(0);
   const active = showingLab;
 
   return (
     <Link
       href={toggleHref}
-      onMouseEnter={() => setHover(true)}
+      onMouseEnter={() => {
+        setHover(true);
+        setReplay((n) => n + 1);
+      }}
       onMouseLeave={() => setHover(false)}
       aria-pressed={active}
       className={[
@@ -32,7 +36,7 @@ export default function LabHeaderButton({
           : "text-purple-700 border-purple-300 hover:bg-purple-50 dark:text-purple-300 dark:border-purple-500/40 dark:hover:bg-purple-900/20",
       ].join(" ")}
     >
-      <AnimatedLab playing={hover || active} white={active} />
+      <AnimatedLab playing={hover || active} white={active} size={24} replayNonce={replay} />
       <span className="hidden sm:inline">Bildirim Laboratuvarı</span>
     </Link>
   );

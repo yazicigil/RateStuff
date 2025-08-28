@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
 import animationData from "@/assets/animations/lab.json";
 
-export default function AnimatedLab({ playing, size = 16, white }: { playing?: boolean; size?: number; white?: boolean }) {
+export default function AnimatedLab({ playing, size = 16, white, replayNonce }: { playing?: boolean; size?: number; white?: boolean; replayNonce?: number }) {
   const lottieRef = useRef<LottieRefCurrentProps>(null);
 
   useEffect(() => {
@@ -13,6 +13,12 @@ export default function AnimatedLab({ playing, size = 16, white }: { playing?: b
       lottieRef.current?.stop();
     }
   }, [playing]);
+
+  useEffect(() => {
+    if (replayNonce !== undefined) {
+      lottieRef.current?.goToAndPlay(0, true);
+    }
+  }, [replayNonce]);
 
   return (
     <Lottie
