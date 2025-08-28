@@ -6,8 +6,9 @@ import BroadcastNotification from "@/components/admin/BroadcastNotification";
 import UserExplorer from "@/components/admin/UserExplorer";
 import ReportsCard from "@/components/admin/ReportsCard";
 import SuspendedItemsCard from "@/components/admin/SuspendedItemsCard";
+import AllItemsCard from "@/components/admin/AllItemsCard";
 
-export type AdminTab = null | "users" | "reports" | "suspended";
+export type AdminTab = null | "users" | "reports" | "suspended" | "allItems";
 
 export default function AdminDashboard() {
   const [active, setActive] = useState<AdminTab>(null);
@@ -29,9 +30,10 @@ export default function AdminDashboard() {
             {active === "users" && <UserExplorer />}
             {active === "reports" && <ReportsCard />}
             {active === "suspended" && <SuspendedItemsCard />}
+            {active === "allItems" && <AllItemsCard />}
             {!active && (
               <div className="text-sm opacity-60 border rounded-2xl p-6">
-                Bir görünüm seçmek için yukarıdaki istatistik kartından bir kutuya tıkla: <b>Toplam Kullanıcı</b>, <b>Toplam Rapor</b> veya <b>Askıdaki Gönderi</b>.
+                Bir görünüm seçmek için yukarıdaki istatistik kartından bir kutuya tıkla: <b>Toplam Kullanıcı</b>, <b>Toplam Rapor</b>, <b>Askıdaki Gönderi</b> veya <b>Toplam Gönderi</b>.
               </div>
             )}
           </div>

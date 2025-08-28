@@ -2,7 +2,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export type StatsTabs = "users" | "reports" | "suspended";
+export type StatsTabs = "users" | "reports" | "suspended" | "allItems";
 interface Props {
   activeTab: StatsTabs | null;
   onOpenTab: (t: StatsTabs) => void;
@@ -213,8 +213,16 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
           <div className="text-2xl font-semibold">{t.users}</div>
         </button>
 
-        {/* Toplam Gönderi (static) */}
-        <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
+        {/* Toplam Gönderi (clickable -> allItems) */}
+        <button
+          onClick={() => onOpenTab("allItems")}
+          aria-pressed={activeTab === "allItems"}
+          className={`text-left rounded-xl border p-3 transition ${
+            activeTab === "allItems"
+              ? "bg-neutral-900 text-white dark:bg-white dark:text-black"
+              : "bg-white dark:bg-neutral-900"
+          }`}
+        >
           <div className="flex items-center gap-1.5 text-xs opacity-70">
             {/* quill icon colorized via mask */}
             <span
@@ -233,7 +241,7 @@ function StatsCard({ activeTab, onOpenTab }: Props) {
             <span>Toplam Gönderi</span>
           </div>
           <div className="text-2xl font-semibold">{t.items}</div>
-        </div>
+        </button>
 
         {/* Toplam Yorum (static) */}
         <div className="rounded-xl border p-3 bg-white dark:bg-neutral-900">
