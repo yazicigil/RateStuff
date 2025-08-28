@@ -2,6 +2,7 @@ import { isAdmin } from "@/lib/admin";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import NotificationsLab from "@/components/admin/NotificationsLab";
 import Link from "next/link";
+import AnimatedLab from "@/components/common/AnimatedLab";
 
 export default async function AdminPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
   const ok = await isAdmin();
@@ -25,10 +26,7 @@ export default async function AdminPage({ searchParams }: { searchParams?: { [ke
           className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900 transition"
           aria-pressed={showingLab}
         >
-          {/* Bell icon inline, theme-aware via currentColor */}
-          <svg width="16" height="16" viewBox="0 0 24 24" className={"" + (showingLab ? " text-emerald-600" : " text-neutral-600 dark:text-neutral-300") }>
-            <path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5-6.71V3a2 2 0 0 0-4 0v1.29A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/>
-          </svg>
+          <AnimatedLab playing={showingLab} />
           <span className="hidden sm:inline">Bildirim Laboratuvarı</span>
         </Link>
       </div>
