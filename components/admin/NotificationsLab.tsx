@@ -69,9 +69,9 @@ export default function NotificationsLab() {
   }
 
   return (
-    <div className="rounded-2xl border p-4 bg-emerald-50/50 dark:bg-emerald-950/20">
+    <div className="rounded-2xl border p-4 bg-purple-50/50 dark:bg-purple-950/20">
       <div className="flex items-center gap-3 mb-3">
-        <svg width="18" height="18" viewBox="0 0 24 24" className="text-emerald-600 dark:text-emerald-400"><path d="M12 22c4.97 0 9-4.03 9-9S16.97 4 12 4 3 8.03 3 13c0 2.09.72 4.01 1.93 5.53L4 22l3.72-.95A8.94 8.94 0 0 0 12 22z" fill="currentColor"/></svg>
+        <img src="/assets/icons/lab.svg" alt="Lab Icon" className="w-5 h-5 text-purple-600 dark:text-purple-400" />
         <h3 className="text-base font-semibold">Bildirim Laboratuvarı</h3>
         <div className="ml-auto text-xs opacity-60">{loading ? "Yükleniyor…" : `${templates.length} tip`}</div>
       </div>
