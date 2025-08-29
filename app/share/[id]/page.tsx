@@ -112,8 +112,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Başlık / açıklama
   const itemName = typeof it?.name === "string" && it.name.trim() ? it.name.trim() : "Bu içerik";
   const title = `${itemName} yorumları & puanları | RateStuff`;
-  const hasAvg = typeof it?.avg === "number";
-  const avgTxt = hasAvg ? ` ${Number(it.avg).toFixed(2)} ⭐. ` : "";
+  // Ratings: keep a strict numeric aggregate and a UI-friendly alias
+  const ratingValueRaw = typeof it?.avg === "number" ? Number(it.avg) : NaN;
+  const ratingCount =
+    typeof it?.ratingCount === "number"
+      ? it.ratingCount
+      : Array.isArray(it?.ratings)
+      ? it.ratings.length
+      : 0;
+  const hasAggregate = Number.isFinite(ratingValueRaw) && ratingCount > 0;
+  const ratingValue = hasAggregate ? ratingValueRaw : undefined; // used later in UI text
+  const avgTxt = hasAggregate ? ` ${ratingValueRaw.toFixed(2)} ⭐. ` : "";
   const desc =
     `${itemName} nasıl? ` +
     `${itemName} puanı ${avgTxt}` +
@@ -183,13 +192,16 @@ export default async function ShareRedirectPage({ params }: Props) {
       : `${base}${rawImg.startsWith("/") ? "" : "/"}${rawImg}`
     : undefined;
 
-  const ratingValue = typeof it?.avg === "number" ? Number(it.avg) : undefined;
+  // Ratings: keep a strict numeric aggregate and a UI-friendly alias
+  const ratingValueRaw = typeof it?.avg === "number" ? Number(it.avg) : NaN;
   const ratingCount =
     typeof it?.ratingCount === "number"
       ? it.ratingCount
       : Array.isArray(it?.ratings)
       ? it.ratings.length
-      : undefined;
+      : 0;
+  const hasAggregate = Number.isFinite(ratingValueRaw) && ratingCount > 0;
+  const ratingValue = hasAggregate ? ratingValueRaw : undefined; // used later in UI text
 
   const itemLD: Record<string, any> = {
     "@context": "https://schema.org",
@@ -199,31 +211,35 @@ export default async function ShareRedirectPage({ params }: Props) {
     url: `${base}/share/${params.id}`,
     image: absImg,
   };
-  if (ratingValue && ratingCount) {
+  if (hasAggregate) {
     itemLD.aggregateRating = {
       "@type": "AggregateRating",
-      ratingValue: Number(ratingValue.toFixed(2)),
+      ratingValue: Number(ratingValueRaw.toFixed(2)),
       ratingCount,
+      bestRating: 5,
+      worstRating: 1,
     };
   }
-  // Reviews (if comments array is present and has text/rating)
-  if (Array.isArray(it?.comments) && it.comments.length) {
-    itemLD.review = it.comments
-      .filter((c: any) => typeof c?.text === "string" && c.text.trim())
+  // Reviews: only include if we also output AggregateRating, and only for comments with a valid rating 1..5
+  if (hasAggregate && Array.isArray(it?.comments) && it.comments.length) {
+    const reviews = it.comments
+      .filter((c: any) =>
+        typeof c?.text === "string" && c.text.trim() && typeof c?.rating === "number" && c.rating >= 1 && c.rating <= 5
+      )
       .slice(0, 5)
       .map((c: any) => {
-        const authorName =
-          (c?.user && (c.user.maskedName || c.user.name)) || "Kullanıcı";
-        const rValue =
-          typeof c?.rating === "number" ? Math.max(0, Math.min(5, c.rating)) : undefined;
+        const authorName = (c?.user && (c.user.maskedName || c.user.name)) || "Kullanıcı";
         return {
           "@type": "Review",
           author: { "@type": "Person", name: authorName },
           reviewBody: c.text.trim(),
-          datePublished: c?.createdAt || undefined,
-          reviewRating: rValue != null ? { "@type": "Rating", ratingValue: rValue, bestRating: 5, worstRating: 0 } : undefined,
+          datePublished: c?.createdAt ? new Date(c.createdAt).toISOString() : undefined,
+          reviewRating: { "@type": "Rating", ratingValue: c.rating, bestRating: 5, worstRating: 1 },
         };
       });
+    if (reviews.length) {
+      itemLD.review = reviews;
+    }
   }
 
   const qName = (it?.name && String(it.name).trim()) || "Bu içerik";
