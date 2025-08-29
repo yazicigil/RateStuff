@@ -112,17 +112,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Başlık / açıklama
   const itemName = typeof it?.name === "string" && it.name.trim() ? it.name.trim() : "Bu içerik";
   const title = `${itemName} yorumları & puanları | RateStuff`;
-  // Ratings: keep a strict numeric aggregate and a UI-friendly alias
-  const ratingValueRaw = typeof it?.avg === "number" ? Number(it.avg) : NaN;
-  const ratingCount =
-    typeof it?.ratingCount === "number"
-      ? it.ratingCount
-      : Array.isArray(it?.ratings)
-      ? it.ratings.length
-      : 0;
-  const hasAggregate = Number.isFinite(ratingValueRaw) && ratingCount > 0;
-  const ratingValue = hasAggregate ? ratingValueRaw : undefined; // used later in UI text
-  const avgTxt = hasAggregate ? ` ${ratingValueRaw.toFixed(2)} ⭐. ` : "";
+  // Ratings derived strictly from comments.rating (1..5)
+  const ratedCommentsMeta = Array.isArray(it?.comments)
+    ? it.comments.filter((c: any) => typeof c?.rating === "number" && c.rating >= 1 && c.rating <= 5)
+    : [];
+  const ratingCountMeta = ratedCommentsMeta.length;
+  const ratingValueRawMeta = ratingCountMeta > 0
+    ? ratedCommentsMeta.reduce((s: number, c: any) => s + c.rating, 0) / ratingCountMeta
+    : NaN;
+  const hasAggregateMeta = Number.isFinite(ratingValueRawMeta) && ratingCountMeta > 0;
+  const ratingValueMeta = hasAggregateMeta ? ratingValueRawMeta : undefined; // used later in text
+  const avgTxt = hasAggregateMeta ? ` ${ratingValueRawMeta.toFixed(2)} ⭐. ` : "";
   const desc =
     `${itemName} nasıl? ` +
     `${itemName} puanı ${avgTxt}` +
@@ -192,14 +192,14 @@ export default async function ShareRedirectPage({ params }: Props) {
       : `${base}${rawImg.startsWith("/") ? "" : "/"}${rawImg}`
     : undefined;
 
-  // Ratings: keep a strict numeric aggregate and a UI-friendly alias
-  const ratingValueRaw = typeof it?.avg === "number" ? Number(it.avg) : NaN;
-  const ratingCount =
-    typeof it?.ratingCount === "number"
-      ? it.ratingCount
-      : Array.isArray(it?.ratings)
-      ? it.ratings.length
-      : 0;
+  // Ratings derived strictly from comments.rating (1..5)
+  const ratedComments = Array.isArray(it?.comments)
+    ? it.comments.filter((c: any) => typeof c?.rating === "number" && c.rating >= 1 && c.rating <= 5)
+    : [];
+  const ratingCount = ratedComments.length;
+  const ratingValueRaw = ratingCount > 0
+    ? ratedComments.reduce((s: number, c: any) => s + c.rating, 0) / ratingCount
+    : NaN;
   const hasAggregate = Number.isFinite(ratingValueRaw) && ratingCount > 0;
   const ratingValue = hasAggregate ? ratingValueRaw : undefined; // used later in UI text
 
