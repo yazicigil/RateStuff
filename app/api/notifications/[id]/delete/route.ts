@@ -1,30 +1,37 @@
+// app/api/notifications/[id]/delete/route.ts
 import { NextResponse } from "next/server";
-import { headers, cookies } from "next/headers";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-async function requireUser() {
-  // Projedeki /api/me ile aynı kimlik doğrulama yolu
-  const hdrs = headers();
-  const base = hdrs.get("x-forwarded-host")
-    ? `${hdrs.get("x-forwarded-proto") || "https"}://${hdrs.get("x-forwarded-host")}`
-    : `${hdrs.get("x-forwarded-proto") || "http"}://${hdrs.get("host")}`;
+function cookieHeader() {
+  // Tüm çerezleri "name=value; name2=value2" formatına çevir
+  const all = cookies().getAll();
+  return all.map(c => `${c.name}=${c.value}`).join("; ");
+}
 
-  const res = await fetch(`${base}/api/me`, {
-    headers: { cookie: cookies().toString() },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  const me = await res.json();
-  if (!me?.id) return null;
-  return me as { id: string; isAdmin?: boolean };
+async function requireUser(req: Request) {
+  try {
+    const meUrl = new URL("/api/me", req.url);
+    const res = await fetch(meUrl, {
+      headers: { cookie: cookieHeader() },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const me = await res.json();
+    if (!me?.id) return null;
+    return me as { id: string; isAdmin?: boolean };
+  } catch (e) {
+    console.error("requireUser failed", e);
+    return null;
+  }
 }
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const me = await requireUser();
+    const me = await requireUser(req);
     if (!me) {
       return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
     }
@@ -34,7 +41,6 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
     }
 
-    // Sadece sahibinin silmesine izin ver
     const deleted = await prisma.notification.deleteMany({
       where: { id, userId: me.id },
     });
