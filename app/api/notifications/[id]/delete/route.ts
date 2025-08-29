@@ -1,14 +1,9 @@
-
-
 import { NextResponse } from "next/server";
 import { headers, cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-// NOTE: Next.js dinamik segmentler köşeli parantez ile çalışır: [id]
-// Bu dosyayı /app/api/notifications/[id]/delete/route.ts yoluna taşırsan route aktif olur.
-
 async function requireUser() {
-  // /api/me kullanarak kimlik doğrulama (mevcut projeyle uyumlu)
+  // Projedeki /api/me ile aynı kimlik doğrulama yolu
   const hdrs = headers();
   const base = hdrs.get("x-forwarded-host")
     ? `${hdrs.get("x-forwarded-proto") || "https"}://${hdrs.get("x-forwarded-host")}`
@@ -39,13 +34,12 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "missing id" }, { status: 400 });
     }
 
-    // Sadece bildirimin sahibinin silmesine izin ver.
+    // Sadece sahibinin silmesine izin ver
     const deleted = await prisma.notification.deleteMany({
       where: { id, userId: me.id },
     });
 
     if (deleted.count === 0) {
-      // Bildirim bulunamadı veya size ait değil
       return NextResponse.json({ ok: false, error: "not_found_or_forbidden" }, { status: 404 });
     }
 
@@ -55,5 +49,3 @@ export async function POST(
     return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 }
-
-export const runtime = "edge";
