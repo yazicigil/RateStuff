@@ -10,6 +10,16 @@ export default function NotificationsDropdown() {
     useNotifications("all", 5);
   const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
 
+  async function deleteNotification(id: string) {
+    try {
+      const res = await fetch(`/api/notifications/${id}/delete`, { method: "POST" });
+      if (!res.ok) throw new Error("delete-failed");
+      setHiddenIds((prev) => new Set(prev).add(id));
+    } catch (e) {
+      console.error("Failed to delete notification", e);
+    }
+  }
+
   function relativeTime(iso: string) {
     try {
       const d = new Date(iso);
@@ -181,6 +191,10 @@ export default function NotificationsDropdown() {
                       e.preventDefault();
                       window.location.href = n.link;
                     }
+                    if (e.key === "Delete" || e.key === "Backspace") {
+                      e.preventDefault();
+                      deleteNotification(n.id);
+                    }
                   }}
                 >
                   {n.image ? (
@@ -211,6 +225,23 @@ export default function NotificationsDropdown() {
                     <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{relativeTime(n.createdAt)}</div>
                   </div>
                   {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
+                  <button
+                    className="self-start ml-2 mt-1 p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-500 hover:text-red-600"
+                    aria-label="Bildirimi sil"
+                    title="Bildirimi sil"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteNotification(n.id);
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
                 </li>
               ))}
             </ul>
