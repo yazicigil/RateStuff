@@ -16,6 +16,10 @@ function isiOS() {
   // iPadOS 13+ pretends to be Mac; check touch points
   return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && (navigator as any).maxTouchPoints > 1);
 }
+function isMobile() {
+  const ua = window.navigator.userAgent || '';
+  return /Mobi|Android|iPhone|iPad|iPod/.test(ua);
+}
 function cooledDown(days = 7) {
   try {
     const t = localStorage.getItem(DISMISS_KEY);
@@ -46,6 +50,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!isMobile()) return;
     if (isStandalone()) return;           // already installed
     if (!cooledDown(7)) return;           // recently dismissed
   
