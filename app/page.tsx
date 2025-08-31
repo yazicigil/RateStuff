@@ -175,6 +175,23 @@ useEffect(() => {
   const [quickTagInput, setQuickTagInput] = useState('');
   const [quickComment, setQuickComment] = useState('');
   const [quickTagError, setQuickTagError] = useState<string | null>(null);
+  // Quick-add: tag suggestions (trending when empty, filtered allTags when typing)
+  const [showQuickTagSug, setShowQuickTagSug] = useState(false);
+  const quickTagSuggestions = useMemo(() => {
+    const already = new Set(quickTags.map(normalizeTag));
+    const input = normalizeTag(quickTagInput);
+    const pool = input ? allTags : trending;
+    const list = (pool || [])
+      .map(String)
+      .map(normalizeTag)
+      .filter(Boolean)
+      .filter(t => !already.has(t))
+      .filter(t => (input ? t.includes(input) : true));
+    // de-duplicate while preserving order
+    const dedup: string[] = [];
+    for (const t of list) if (!dedup.includes(t)) dedup.push(t);
+    return dedup.slice(0, 10);
+  }, [quickTagInput, quickTags, trending, allTags]);
   // Kaydedilmiş item ID’leri
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [newImage, setNewImage] = useState<string | null>(null);
@@ -1468,7 +1485,13 @@ if (!already) {
 className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"                placeholder="kısa açıklama (opsiyonel)"
               />
               <div className="flex-1 min-w-[200px]">
-                <div className={`border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}>
+                <div className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
+                     onFocus={() => setShowQuickTagSug(true)}
+                     onBlur={(e) => {
+                       // Close suggestions a tick later so click can register
+                       setTimeout(() => setShowQuickTagSug(false), 120);
+                     }}
+                >
                   {quickTags.map(t => (
                     <span
                       key={t}
@@ -1478,7 +1501,10 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                       <button
                         type="button"
                         className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                        onClick={() => setQuickTags(prev => prev.filter(x => x !== t))}
+                        onClick={() => {
+                          setQuickTags(prev => prev.filter(x => x !== t));
+                          setShowQuickTagSug(true);
+                        }}
                         aria-label={`#${t} etiketini kaldır`}
                       >
                         ×
@@ -1487,20 +1513,55 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                   ))}
                   <input
                     value={quickTagInput}
-                    onChange={e => setQuickTagInput(e.target.value)}
+                    onChange={e => {
+                      setQuickTagInput(e.target.value);
+                      setShowQuickTagSug(true);
+                    }}
                     onKeyDown={e => {
                       if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
                         e.preventDefault();
                         addTagsFromInput();
+                        setShowQuickTagSug(false);
                       } else if (e.key === 'Enter' || e.key === ',') {
                         e.preventDefault(); // stop adding beyond 3
+                      } else if (e.key === 'Escape') {
+                        setShowQuickTagSug(false);
                       }
                     }}
-                    onBlur={() => addTagsFromInput()}
+                    onFocus={() => setShowQuickTagSug(true)}
+                    onBlur={() => {/* handled on wrapper */}}
+                    onInput={() => setShowQuickTagSug(true)}
+                    onClick={() => setShowQuickTagSug(true)}
                     placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
                     className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                     disabled={quickTags.length >= 3}
                   />
+                  {showQuickTagSug && quickTagSuggestions.length > 0 && quickTags.length < 3 && (
+                    <div className="absolute left-0 top-[calc(100%+6px)] z-30 w-full max-h-52 overflow-auto rounded-xl border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
+                      <div className="p-2 text-[11px] opacity-60">
+                        {quickTagInput.trim() ? 'Öneriler' : 'Trend etiketler'}
+                      </div>
+                      <ul className="py-1">
+                        {quickTagSuggestions.map((t) => (
+                          <li key={t}>
+                            <button
+                              type="button"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => {
+                                if (quickTags.length >= 3) return;
+                                setQuickTags(prev => Array.from(new Set([...prev, t])).slice(0,3));
+                                setQuickTagInput('');
+                                setShowQuickTagSug(false);
+                              }}
+                            >
+                              #{t}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 {(hasBannedTag || quickTagError) && (
                   <span className="text-xs text-red-600">Etiketlerde yasaklı kelime var.</span>
