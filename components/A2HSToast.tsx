@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 type Props = {
   onInstallClick?: () => void;   // Android için .prompt() tetiklenecek
@@ -8,7 +8,6 @@ type Props = {
 };
 
 export default function A2HSToast({ onInstallClick, platform, onClose }: Props) {
-  const [showSteps, setShowSteps] = useState(false);
   return (
     <div className="fixed left-1/2 -translate-x-1/2 bottom-4 z-[1000] max-w-[560px] w-[calc(100%-1.5rem)]">
       <div className="rounded-2xl border bg-white/85 dark:bg-zinc-900/85 backdrop-blur p-3 shadow-lg flex items-start gap-3">
@@ -21,57 +20,35 @@ export default function A2HSToast({ onInstallClick, platform, onClose }: Props) 
             <div className="opacity-80">Hızlı erişim için uygulama gibi kullan.</div>
           ) : (
             <div className="opacity-90">
-              <div>Safari’de <span className="font-medium">Paylaş</span> → <span className="font-medium">Ana Ekrana Ekle</span> de.</div>
-              <button
-                type="button"
-                onClick={() => setShowSteps((s) => !s)}
-                className="mt-2 inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
-                aria-expanded={showSteps}
-              >
-                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Adım adım
-              </button>
-              {showSteps && (
-                <div className="a2hs-accordion a2hs-accordion-enter a2hs-accordion-enter-active">
-                  <ol className="mt-2 space-y-1.5 text-[13px]">
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px]">1</span>
-                      <span className="inline-flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          {/* iOS Share icon (square with up-arrow) */}
-                          <path d="M12 3v10" />
-                          <path d="M8.5 6.5L12 3l3.5 3.5" className="a2hs-share-arrow" />
-                          <rect x="5" y="10" width="14" height="11" rx="2" />
-                        </svg>
-                        Alttaki <span className="font-medium">Paylaş</span> simgesine dokun.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px]">2</span>
-                      <span className="inline-flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          {/* Plus in rounded square icon */}
-                          <rect x="4" y="4" width="16" height="16" rx="3" />
-                          <path d="M12 8v8M8 12h8" className="a2hs-plus" />
-                        </svg>
-                        Listeyi aşağı kaydırıp <span className="font-medium">Ana Ekrana Ekle</span>’ye dokun.
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="mt-[2px] inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px]">3</span>
-                      <span className="inline-flex items-center gap-2">
-                        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          {/* Check icon */}
-                          <path d="M20 6L9 17l-5-5" className="a2hs-check" />
-                        </svg>
-                        İsim onayla, <span className="font-medium">Ekle</span> de.
-                      </span>
-                    </li>
-                  </ol>
-                </div>
-              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="opacity-90">Daha iyi bir deneyim için ana ekrana ekle:</span>
+                {/* Share icon */}
+                <span className="inline-flex items-center gap-1">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3v10" />
+                    <path d="M8.5 6.5L12 3l3.5 3.5" className="a2hs-share-arrow" />
+                    <rect x="5" y="10" width="14" height="11" rx="2" />
+                  </svg>
+                  <span className="font-medium">Paylaş</span>
+                </span>
+                <span>→</span>
+                {/* Add to Home icon */}
+                <span className="inline-flex items-center gap-1">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="4" y="4" width="16" height="16" rx="3" />
+                    <path d="M12 8v8M8 12h8" className="a2hs-plus" />
+                  </svg>
+                  <span className="font-medium">Ana Ekrana Ekle</span>
+                </span>
+                <span>→</span>
+                {/* Confirm icon */}
+                <span className="inline-flex items-center gap-1">
+                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" className="a2hs-check" />
+                  </svg>
+                  <span className="font-medium">Onayla</span>
+                </span>
+              </div>
             </div>
           )}
           <div className="mt-2 flex gap-2">
@@ -96,9 +73,10 @@ export default function A2HSToast({ onInstallClick, platform, onClose }: Props) 
           50% { transform: scale(1.06); opacity: 1; }
           100% { transform: scale(1); opacity: 0.9; }
         }
-        @keyframes a2hs-draw {
+        @keyframes a2hs-draw-loop {
           0% { stroke-dasharray: 0 100; }
-          100% { stroke-dasharray: 100 0; }
+          50% { stroke-dasharray: 100 0; }
+          100% { stroke-dasharray: 0 100; }
         }
         .a2hs-share-arrow {
           animation: a2hs-bounce 1.4s ease-in-out infinite;
@@ -109,8 +87,7 @@ export default function A2HSToast({ onInstallClick, platform, onClose }: Props) 
           transform-origin: center;
         }
         .a2hs-check {
-          stroke-dasharray: 100 0;
-          animation: a2hs-draw 700ms ease forwards;
+          animation: a2hs-draw-loop 1200ms ease-in-out infinite;
         }
         .a2hs-accordion {
           transition: opacity 220ms ease, transform 220ms ease;
