@@ -1466,31 +1466,57 @@ if (!already) {
   </div>
 )}
 
-            {/* 1. satır: Ad + Kısa açıklama + Etiketler */}
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                ref={quickNameRef}
-                name="name"
-                value={quickName}
-                onChange={(e) => {
-  setQuickName(e.target.value);
-   if (quickFormError) setQuickFormError(null);
- }}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName || quickFormError ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}                placeholder="adı *"
-                required
-              />
-              {hasBannedName && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
-              <input
-                name="desc"
-className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"                placeholder="kısa açıklama (opsiyonel)"
-              />
-              <div className="flex-1 min-w-[200px]">
-                <div className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
-                     onFocus={() => setShowQuickTagSug(true)}
-                     onBlur={(e) => {
-                       // Close suggestions a tick later so click can register
-                       setTimeout(() => setShowQuickTagSug(false), 120);
-                     }}
+            {/* FORM GRID LAYOUT (polish) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              {/* Ad */}
+              <div className="space-y-1">
+                <label htmlFor="qa-name" className="text-sm font-medium flex items-center gap-2">
+                  <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">✎</span>
+                  Ad <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="qa-name"
+                  ref={quickNameRef}
+                  name="name"
+                  value={quickName}
+                  onChange={(e) => {
+                    setQuickName(e.target.value);
+                    if (quickFormError) setQuickFormError(null);
+                  }}
+                  className={`border rounded-xl px-3 py-2 text-sm w-full focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName || quickFormError ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+                  placeholder="adı *"
+                  required
+                />
+                {hasBannedName && (
+                  <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>
+                )}
+              </div>
+
+              {/* Kısa açıklama */}
+              <div className="space-y-1">
+                <label htmlFor="qa-desc" className="text-sm font-medium flex items-center gap-2">
+                  <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">ℹ︎</span>
+                  Kısa açıklama <span className="opacity-60">(opsiyonel)</span>
+                </label>
+                <input
+                  id="qa-desc"
+                  name="desc"
+                  className="border rounded-xl px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
+                  placeholder="kısa açıklama (opsiyonel)"
+                />
+              </div>
+
+              {/* Etiketler */}
+              <div className="space-y-1">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">#</span>
+                  Etiketler <span className="text-red-500">*</span>
+                  <span className="ml-1 text-xs opacity-60">en fazla 3</span>
+                </label>
+                <div
+                  className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
+                  onFocus={() => setShowQuickTagSug(true)}
+                  onBlur={() => { setTimeout(() => setShowQuickTagSug(false), 120); }}
                 >
                   {quickTags.map(t => (
                     <span
@@ -1501,10 +1527,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                       <button
                         type="button"
                         className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                        onClick={() => {
-                          setQuickTags(prev => prev.filter(x => x !== t));
-                          setShowQuickTagSug(true);
-                        }}
+                        onClick={() => { setQuickTags(prev => prev.filter(x => x !== t)); setShowQuickTagSug(true); }}
                         aria-label={`#${t} etiketini kaldır`}
                       >
                         ×
@@ -1513,29 +1536,27 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                   ))}
                   <input
                     value={quickTagInput}
-                    onChange={e => {
-                      setQuickTagInput(e.target.value);
-                      setShowQuickTagSug(true);
-                    }}
+                    onChange={e => { setQuickTagInput(e.target.value); setShowQuickTagSug(true); }}
                     onKeyDown={e => {
                       if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
                         e.preventDefault();
                         addTagsFromInput();
                         setShowQuickTagSug(false);
                       } else if (e.key === 'Enter' || e.key === ',') {
-                        e.preventDefault(); // stop adding beyond 3
+                        e.preventDefault();
                       } else if (e.key === 'Escape') {
                         setShowQuickTagSug(false);
                       }
                     }}
                     onFocus={() => setShowQuickTagSug(true)}
-                    onBlur={() => {/* handled on wrapper */}}
+                    onBlur={() => { /* handled on wrapper */ }}
                     onInput={() => setShowQuickTagSug(true)}
                     onClick={() => setShowQuickTagSug(true)}
                     placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
                     className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                     disabled={quickTags.length >= 3}
                   />
+
                   {showQuickTagSug && quickTagSuggestions.length > 0 && quickTags.length < 3 && (
                     <div className="absolute left-0 top-[calc(100%+6px)] z-30 w-full max-h-52 overflow-auto rounded-xl border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
                       <div className="p-2 text-[11px] opacity-60">
@@ -1568,80 +1589,98 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                 )}
                 <input type="hidden" name="tags" value={quickTags.join(',')} />
               </div>
-            </div>
 
-            {/* 2. satır: Yıldız seçimi + Yorum */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                <Stars value={newRating} onRate={(n) => setNewRating(n)} />
-              </div>
-              <input type="hidden" name="rating" value={newRating} />
-              <input
-                name="comment"
-                value={quickComment}
-                onChange={(e) => setQuickComment(e.target.value)}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
-                placeholder="yorum (opsiyonel)"
-              />
-              {hasBannedComment && <span className="text-xs text-red-600">Yorumda yasaklı kelime var.</span>}
-            </div>
-
-            {/* 3. satır: Resim ekle */}
-            <div>
-              <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
-              <ImageUploader value={newImage} onChange={setNewImage} />
-              <input type="hidden" name="imageUrl" value={newImage ?? ''} />
-            </div>
-
-            {/* 4. satır: Gönder */}
-            <div className="flex items-center gap-3 justify-end pt-1">
-              {!myId ? (
-                <>
-                  <button
-                    disabled
-                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 text-white opacity-60 cursor-not-allowed"
-                    title="Önce giriş yapmalısın"
-                  >
-                    Ekle
-                  </button>
-                  <span className="text-sm opacity-80">
-                    eklemek için{' '}
-                    <button
-                      type="button"
-                      className="underline hover:opacity-100"
-                      onClick={() => {
-                        try {
-                          const back = encodeURIComponent(window.location.href);
-                          window.location.href = `/api/auth/signin?callbackUrl=${back}`;
-                        } catch {
-                          window.location.href = '/api/auth/signin';
-                        }
-                      }}
-                    >
-                      giriş yap
-                    </button>
-                  </span>
-                </>
-              ) : (
-                <button
-                  disabled={adding || quickBlocked || !quickValid}
-                  title={quickBlocked ? 'Yasaklı kelime içeriyor' : undefined}
-                  className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                >
-                  {adding ? (
-                    <span className="inline-flex items-center gap-2">
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
-                        <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      </svg>
-                      Ekleniyor…
-                    </span>
-                  ) : (
-                    'Ekle'
+              {/* Puan + Yorum */}
+              <div className="space-y-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">★</span>
+                    Puanın <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Stars value={newRating} onRate={(n) => setNewRating(n)} />
+                    <span className="text-xs opacity-60">{newRating ? `${newRating}/5` : ''}</span>
+                  </div>
+                  <input type="hidden" name="rating" value={newRating} />
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="qa-comment" className="text-sm font-medium flex items-center gap-2">
+                    <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">💬</span>
+                    Yorum <span className="opacity-60">(opsiyonel)</span>
+                  </label>
+                  <input
+                    id="qa-comment"
+                    name="comment"
+                    value={quickComment}
+                    onChange={(e) => setQuickComment(e.target.value)}
+                    className={`border rounded-xl px-3 py-2 text-sm w-full focus:outline-none bg-transparent dark:bg-transparent ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+                    placeholder="yorum (opsiyonel)"
+                  />
+                  {hasBannedComment && (
+                    <span className="text-xs text-red-600">Yorumda yasaklı kelime var.</span>
                   )}
-                </button>
-              )}
+                </div>
+              </div>
+
+              {/* Resim */}
+              <div className="md:col-span-2 space-y-1">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <span className="inline-flex w-5 h-5 items-center justify-center rounded border border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-200">🖼</span>
+                  Resim ekle <span className="opacity-60">(opsiyonel)</span>
+                </label>
+                <ImageUploader value={newImage} onChange={setNewImage} />
+                <input type="hidden" name="imageUrl" value={newImage ?? ''} />
+              </div>
+
+              {/* Gönder */}
+              <div className="md:col-span-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/40 flex items-center gap-3 justify-end">
+                {!myId ? (
+                  <>
+                    <button
+                      disabled
+                      className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 text-white opacity-60 cursor-not-allowed"
+                      title="Önce giriş yapmalısın"
+                    >
+                      Ekle
+                    </button>
+                    <span className="text-sm opacity-80">
+                      eklemek için{' '}
+                      <button
+                        type="button"
+                        className="underline hover:opacity-100"
+                        onClick={() => {
+                          try {
+                            const back = encodeURIComponent(window.location.href);
+                            window.location.href = `/api/auth/signin?callbackUrl=${back}`;
+                          } catch {
+                            window.location.href = '/api/auth/signin';
+                          }
+                        }}
+                      >
+                        giriş yap
+                      </button>
+                    </span>
+                  </>
+                ) : (
+                  <button
+                    disabled={adding || quickBlocked || !quickValid}
+                    title={quickBlocked ? 'Yasaklı kelime içeriyor' : undefined}
+                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  >
+                    {adding ? (
+                      <span className="inline-flex items-center gap-2">
+                        <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
+                          <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                        </svg>
+                        Ekleniyor…
+                      </span>
+                    ) : (
+                      'Ekle'
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
     </form>
   </div>
@@ -1715,7 +1754,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
                 <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
-              <span>Daha fazla seçenek</span>
+              <span>Paylaş</span>
             </button>
           </div>
         )}
@@ -2526,7 +2565,7 @@ className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outlin
     <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
   </svg>
-  <span>Daha fazla seçenek</span>
+  <span>Paylaş</span>
 </button>
                         </div>
                       )}
