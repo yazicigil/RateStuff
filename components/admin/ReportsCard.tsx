@@ -23,6 +23,8 @@ export default function ReportsCard() {
   const [details, setDetails] = useState<{ item?: { id: string; name: string; imageUrl?: string | null; suspendedAt?: string | null; createdBy?: { id: string; name: string | null; email: string | null } | null; _count?: { comments: number } }; reports: Report[] }>({ reports: [] });
   const [loadingDetails, setLoadingDetails] = useState(false);
 
+  const [clearing, setClearing] = useState(false);
+
   const [q, setQ] = useState("");
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -164,7 +166,41 @@ export default function ReportsCard() {
                         </svg>
                         Gönderiye git
                       </a>
-                    <button
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!details.item) return;
+                          if (!confirm("Bu gönderinin TÜM raporlarını sıfırlamak istiyor musun?")) return;
+                          try {
+                            setClearing(true);
+                            const res = await fetch(`/api/admin/reports/${details.item.id}`, { method: 'DELETE' });
+                            setClearing(false);
+                            if (res.ok) {
+                              // Remove this item from the left list (since it no longer has reports)
+                              const id = details.item.id;
+                              setItems((prev) => prev.filter((it) => it.id !== id));
+                              // Reset details panel
+                              setActive(null);
+                              setDetails({ reports: [] });
+                            } else {
+                              const j = await res.json().catch(() => ({}));
+                              alert(j?.error || 'Raporlar silinemedi.');
+                            }
+                          } catch (err) {
+                            setClearing(false);
+                            alert('Bir hata oluştu.');
+                          }
+                        }}
+                        disabled={clearing}
+                        className={`inline-flex items-center gap-1 text-xs h-8 px-3 rounded-md border transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-neutral-300 dark:focus:ring-neutral-700 ${clearing ? 'opacity-60 cursor-not-allowed' : 'border-red-500 text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                        title="Bu gönderiye ait tüm raporları temizle"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                          <path fillRule="evenodd" d="M9 2a7 7 0 100 14A7 7 0 009 2zM6.707 6.293a1 1 0 010 1.414L8.586 9l-1.88 1.293a1 1 0 101.17 1.632L9.5 10.5l1.624 1.425a1 1 0 001.352-1.47L10.414 9l2.061-1.293a1 1 0 10-1.17-1.632L9.5 7.5 7.876 6.075a1 1 0 00-1.17 1.632L8.586 9 6.707 7.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                        Raporları Sıfırla
+                      </button>
+                      <button
                         onClick={async (e) => {
                           e.stopPropagation();
                           if (!details.item) return;

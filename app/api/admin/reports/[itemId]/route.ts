@@ -44,3 +44,21 @@ export async function GET(_: Request, { params }: { params: { itemId: string } }
     return NextResponse.json({ ok: false, error: e?.message ?? "error" }, { status });
   }
 }
+
+export async function DELETE(_: Request, { params }: { params: { itemId: string } }) {
+  try {
+    await requireAdmin();
+    const itemId = params.itemId;
+    if (!itemId) {
+      return NextResponse.json({ ok: false, error: "missing_itemId" }, { status: 400 });
+    }
+
+    // Delete all reports for this item
+    const result = await prisma.report.deleteMany({ where: { itemId } });
+
+    return NextResponse.json({ ok: true, deleted: result.count });
+  } catch (e: any) {
+    const status = e?.status ?? 500;
+    return NextResponse.json({ ok: false, error: e?.message ?? "error" }, { status });
+  }
+}
