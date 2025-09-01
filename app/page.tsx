@@ -1428,9 +1428,7 @@ if (!already) {
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {/* Sıralama başlığı — kartların hemen üstünde */}
-          <h2 className="text-lg font-semibold mb-2">
-            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
-          </h2>
+         
           {!showQuickAdd && sharedItem && (
   <div
     ref={spotlightRef}
@@ -2242,6 +2240,9 @@ if (!already) {
                 <div className="text-sm font-medium">Ekle</div>
               </div>
             </button>
+             <h2 className="text-lg font-semibold mb-2">
+            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
+          </h2>
             {filteredItems.map((i) => {
               const isSaved = savedIds.has(i.id);
               return (

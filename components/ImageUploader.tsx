@@ -143,7 +143,7 @@ export default function ImageUploader({
       {name ? <input type="hidden" name={name} value={url ?? ''} /> : null}
 
       <div
-        className={`relative flex items-center gap-3 rounded-xl p-3 border transition-colors ${dragOver ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20' : 'border-dashed border-gray-300 dark:border-gray-700'}`}
+        className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 rounded-xl p-3 border transition-colors min-w-0 ${dragOver ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20' : 'border-dashed border-gray-300 dark:border-gray-700'}`}
         onDragEnter={(e) => { prevent(e); setDragOver(true); }}
         onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
         onDragLeave={(e) => { prevent(e); setDragOver(false); }}
@@ -157,29 +157,31 @@ export default function ImageUploader({
           </div>
         )}
         {/* Preview */}
-        {url ? (
-          <img
-            src={url}
-            alt="preview"
-            className="w-24 h-24 md:w-28 md:h-28 rounded object-cover border dark:border-gray-700"
-            loading="lazy"
-            decoding="async"
-          />
-        ) : (
-          <img
-            src="/default-item.svg"
-            alt="default item"
-            className="w-24 h-24 md:w-28 md:h-28 rounded object-contain border dark:border-gray-700 opacity-70"
-            loading="lazy"
-            decoding="async"
-          />
-        )}
+        <div className="shrink-0">
+          {url ? (
+            <img
+              src={url}
+              alt="preview"
+              className="w-24 h-24 md:w-28 md:h-28 rounded object-cover border dark:border-gray-700"
+              loading="lazy"
+              decoding="async"
+            />
+          ) : (
+            <img
+              src="/default-item.svg"
+              alt="default item"
+              className="w-24 h-24 md:w-28 md:h-28 rounded object-contain border dark:border-gray-700 opacity-70"
+              loading="lazy"
+              decoding="async"
+            />
+          )}
+        </div>
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap flex-1 min-w-0">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 shrink-0"
             disabled={uploading}
           >
             {uploading ? 'Yükleniyor…' : 'Dosya seç'}
@@ -187,14 +189,14 @@ export default function ImageUploader({
           {url && (
             <button
               type="button"
-              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
+              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 shrink-0"
               onClick={clearImage}
               disabled={uploading}
             >
               Kaldır
             </button>
           )}
-          <span className="text-xs opacity-60 hidden md:inline">veya sürükleyip bırak</span>
+          <span className="text-xs opacity-60 hidden md:inline whitespace-nowrap">veya sürükleyip bırak</span>
         </div>
       </div>
 
