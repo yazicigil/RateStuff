@@ -31,6 +31,7 @@ async function nativeShare(id: string, name: string) {
   } catch {}
 }
 import SeoLD from "@/components/SeoLD";
+import QuickAddCard from '@/components/QuickAddCard';
 
 import Head from 'next/head';
 import ScrollToTop from "@/components/ScrollToTop";
@@ -1401,255 +1402,32 @@ if (!already) {
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
-  <div ref={quickAddRef} className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col rs-quickadd">
-    {/* CLOSE (X) */}
-    <button
-      className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
-      onClick={() => {
-        setShowQuickAdd(false);
-        // URL'de #quick-add varsa temizle
-        try {
-          if (window.location.hash === '#quick-add') {
-            const url = new URL(window.location.href);
-            url.hash = '';
-            window.history.replaceState({}, '', url.toString());
-          }
-        } catch {}
-      }}
-      aria-label="Hızlı ekle panelini kapat"
-      title="Kapat"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    </button>
-
-    <div className="mb-2">
-      <h3 className="text-base md:text-lg font-semibold">Hızlı ekle</h3>
-      <p className="text-xs opacity-70">En fazla 3 etiket ekleyebilirsin</p>
-      {/* SEO: JSON-LD */}
-      <SeoLD json={websiteLD} />
-      <SeoLD json={orgLD} />
-      {itemLD && <SeoLD json={itemLD} />}
-    </div>
-
-    <form
-      ref={quickFormRef}
-      className="relative rounded-2xl border p-4 shadow-sm bg-transparent dark:bg-transparent border-emerald-200 dark:border-emerald-900/40 space-y-3"
-      onSubmit={async (e) => {
-        e.preventDefault();
-        setQuickFormError(null);
-        if (quickBlocked) { alert('Yasaklı kelime içeriyor. Lütfen düzelt.'); return; }
-        const fd = new FormData(e.currentTarget);
-        const nameVal = String(fd.get('name') || '').trim();
-        if (!nameVal) { alert('Ad gerekli'); return; }
-        if (quickTags.length === 0) { alert('En az bir etiket eklemelisin'); return; }
-        if (!newRating || newRating < 1) { alert('Puan seçmelisin'); return; }
-        const ok = await addItem(fd);
-        if (ok) {
-          quickFormRef.current?.reset();
-          setQuickName(''); setNewRating(0); setNewImage(null);
-          setQuickTags([]); setQuickTagInput('');
-          setShowQuickAdd(false);
+  <QuickAddCard
+    open
+    variant="rich"
+    trending={trending}
+    allTags={allTags}
+    onClose={() => {
+      setShowQuickAdd(false);
+      try {
+        if (window.location.hash === '#quick-add') {
+          const url = new URL(window.location.href);
+          url.hash = '';
+          window.history.replaceState({}, '', url.toString());
         }
-      }}
-    >
-            {justAdded && (
-              <div className="pointer-events-none absolute inset-0 flex items-start justify-center">
-                <div className="mt-2 inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm opacity-0 animate-[fadeInOut_1.6s_ease]">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <span className="text-sm font-medium">Eklendi</span>
-                </div>
-              </div>
-            )}
-            {quickFormError && (
-  <div className="mb-3 inline-flex items-start gap-2 px-3 py-2 rounded-xl border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-200 dark:border-red-900/40">
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3l9 18H3L12 3zm0 12v-4m0 6h.01" fill="currentColor"/>
-    </svg>
-    <span className="text-sm">{quickFormError}</span>
-  </div>
-)}
-
-            {/* 1. satır: Ad + Kısa açıklama + Etiketler */}
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                ref={quickNameRef}
-                name="name"
-                value={quickName}
-                onChange={(e) => {
-  setQuickName(e.target.value);
-   if (quickFormError) setQuickFormError(null);
- }}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[160px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedName || quickFormError ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}                placeholder="adı *"
-                required
-              />
-              {hasBannedName && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
-              <input
-                name="desc"
-className="border rounded-xl px-3 py-2 text-sm flex-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"                placeholder="kısa açıklama (opsiyonel)"
-              />
-              <div className="flex-1 min-w-[200px]">
-                <div className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${hasBannedTag ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
-                     onFocus={() => setShowQuickTagSug(true)}
-                     onBlur={(e) => {
-                       // Close suggestions a tick later so click can register
-                       setTimeout(() => setShowQuickTagSug(false), 120);
-                     }}
-                >
-                  {quickTags.map(t => (
-                    <span
-                      key={t}
-                      className={(trending.includes(t) ? 'bg-violet-600 text-white border-violet-600' : 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600') + ' inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border'}
-                    >
-                      #{t}
-                      <button
-                        type="button"
-                        className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                        onClick={() => {
-                          setQuickTags(prev => prev.filter(x => x !== t));
-                          setShowQuickTagSug(true);
-                        }}
-                        aria-label={`#${t} etiketini kaldır`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    value={quickTagInput}
-                    onChange={e => {
-                      setQuickTagInput(e.target.value);
-                      setShowQuickTagSug(true);
-                    }}
-                    onKeyDown={e => {
-                      if ((e.key === 'Enter' || e.key === ',') && quickTags.length < 3) {
-                        e.preventDefault();
-                        addTagsFromInput();
-                        setShowQuickTagSug(false);
-                      } else if (e.key === 'Enter' || e.key === ',') {
-                        e.preventDefault(); // stop adding beyond 3
-                      } else if (e.key === 'Escape') {
-                        setShowQuickTagSug(false);
-                      }
-                    }}
-                    onFocus={() => setShowQuickTagSug(true)}
-                    onBlur={() => {/* handled on wrapper */}}
-                    onInput={() => setShowQuickTagSug(true)}
-                    onClick={() => setShowQuickTagSug(true)}
-                    placeholder={quickTags.length >= 3 ? 'En fazla 3 etiket' : (quickTags.length ? '' : 'etiketler (virgülle) *')}
-                    className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
-                    disabled={quickTags.length >= 3}
-                  />
-                  {showQuickTagSug && quickTagSuggestions.length > 0 && quickTags.length < 3 && (
-                    <div className="absolute left-0 top-[calc(100%+6px)] z-30 w-full max-h-52 overflow-auto rounded-xl border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
-                      <div className="p-2 text-[11px] opacity-60">
-                        {quickTagInput.trim() ? 'Öneriler' : 'Trend etiketler'}
-                      </div>
-                      <ul className="py-1">
-                        {quickTagSuggestions.map((t) => (
-                          <li key={t}>
-                            <button
-                              type="button"
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => {
-                                if (quickTags.length >= 3) return;
-                                setQuickTags(prev => Array.from(new Set([...prev, t])).slice(0,3));
-                                setQuickTagInput('');
-                                setShowQuickTagSug(false);
-                              }}
-                            >
-                              #{t}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-                {(hasBannedTag || quickTagError) && (
-                  <span className="text-xs text-red-600">Etiketlerde yasaklı kelime var.</span>
-                )}
-                <input type="hidden" name="tags" value={quickTags.join(',')} />
-              </div>
-            </div>
-
-            {/* 2. satır: Yıldız seçimi + Yorum */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                <Stars value={newRating} onRate={(n) => setNewRating(n)} />
-              </div>
-              <input type="hidden" name="rating" value={newRating} />
-              <input
-                name="comment"
-                value={quickComment}
-                onChange={(e) => setQuickComment(e.target.value)}
-                className={`border rounded-xl px-3 py-2 text-sm flex-1 min-w-[220px] focus:outline-none bg-transparent dark:bg-transparent ${hasBannedComment ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
-                placeholder="yorum (opsiyonel)"
-              />
-              {hasBannedComment && <span className="text-xs text-red-600">Yorumda yasaklı kelime var.</span>}
-            </div>
-
-            {/* 3. satır: Resim ekle */}
-            <div>
-              <div className="text-sm font-medium mb-2">Resim ekle (opsiyonel)</div>
-              <ImageUploader value={newImage} onChange={setNewImage} />
-              <input type="hidden" name="imageUrl" value={newImage ?? ''} />
-            </div>
-
-            {/* 4. satır: Gönder */}
-            <div className="flex items-center gap-3 justify-end pt-1">
-              {!myId ? (
-                <>
-                  <button
-                    disabled
-                    className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 text-white opacity-60 cursor-not-allowed"
-                    title="Önce giriş yapmalısın"
-                  >
-                    Ekle
-                  </button>
-                  <span className="text-sm opacity-80">
-                    eklemek için{' '}
-                    <button
-                      type="button"
-                      className="underline hover:opacity-100"
-                      onClick={() => {
-                        try {
-                          const back = encodeURIComponent(window.location.href);
-                          window.location.href = `/api/auth/signin?callbackUrl=${back}`;
-                        } catch {
-                          window.location.href = '/api/auth/signin';
-                        }
-                      }}
-                    >
-                      giriş yap
-                    </button>
-                  </span>
-                </>
-              ) : (
-                <button
-                  disabled={adding || quickBlocked || !quickValid}
-                  title={quickBlocked ? 'Yasaklı kelime içeriyor' : undefined}
-                  className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                >
-                  {adding ? (
-                    <span className="inline-flex items-center gap-2">
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" opacity="0.25"/>
-                        <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                      </svg>
-                      Ekleniyor…
-                    </span>
-                  ) : (
-                    'Ekle'
-                  )}
-                </button>
-              )}
-            </div>
-    </form>
-  </div>
+      } catch {}
+    }}
+    onSubmit={async ({ name, desc, tags, rating, comment, imageUrl }) => {
+      const fd = new FormData();
+      fd.set('name', name);
+      fd.set('desc', desc);
+      fd.set('tags', tags.join(','));
+      fd.set('rating', String(rating));
+      fd.set('comment', comment);
+      fd.set('imageUrl', imageUrl ?? '');
+      return await addItem(fd);
+    }}
+  />
 )}
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
