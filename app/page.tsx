@@ -917,14 +917,15 @@ function smoothScrollIntoView(el: Element) {
     setTimeout(() => setHighlightId(null), 1600);
   }
 
-  // Spotlight kartındaki "Listede göster" davranışı
+  // Spotlight kartındaki "Listede göster" davranışı — spotlight'ı kapatma; sadece listede ilgili karta kaydır + highlight
   function showInList(id: string) {
-    setSharedItem(null);
-    // Eğer filtreler sonucu gizliyorsa kaldır
-    setStarBuckets(new Set());
-    setSelectedTags(new Set());
-    // Küçük bir gecikmeden sonra kaydır
-    setTimeout(() => scrollToItem(id), 100);
+    try {
+      // Görsel kirlilik olmasın diye açık popoverları kapat; spotlight açık kalsın
+      setOpenMenu(null);
+      setOpenShare(null);
+      // Doğrudan griddeki karta kaydır + highlight
+      scrollToItem(id);
+    } catch {}
   }
 
   
@@ -1256,6 +1257,8 @@ if (!already) {
   -webkit-text-fill-color: inherit;
   transition: background-color 9999s ease-out 0s;
 }
+      /* Listede göster → geçici vurgu */
+      .rs-flash { outline: 2px solid rgb(16 185 129 / 0.9); outline-offset: 2px; }
       `}
       </style>
       
@@ -1729,36 +1732,41 @@ if (!already) {
             </button>
            
           {filteredItems.map((i) => (
-            <ItemCard
+            <div
               key={i.id}
-              item={i}
-              saved={savedIds.has(i.id)}
-              amAdmin={amAdmin}
-              myId={myId}
-              onVoteComment={voteOnComment}
-              onItemChanged={load}
-              openShareId={openShare?.scope === 'list' ? openShare.id : null}
-              setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
-              openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
-              setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
-              copiedShareId={copiedShareId}
-              onOpenSpotlight={openSpotlight}
-              onToggleSave={toggleSave}
-              onReport={report}
-              onDelete={deleteItem}
-              onCopyShare={handleCopyShare}
-              onNativeShare={nativeShare}
-              selectedTags={selectedTags}
-              onToggleTag={(t) => {
-                setSelectedTags(prev => {
-                  const next = new Set(prev);
-                  if (next.has(t)) next.delete(t); else next.add(t);
-                  return next;
-                });
-              }}
-              onResetTags={() => setSelectedTags(new Set())}
-              onShowInList={showInList}
-            />
+              ref={(el) => { itemRefs.current[i.id] = el; }}
+              className={highlightId === i.id ? 'rs-flash rounded-2xl' : ''}
+            >
+              <ItemCard
+                item={i}
+                saved={savedIds.has(i.id)}
+                amAdmin={amAdmin}
+                myId={myId}
+                onVoteComment={voteOnComment}
+                onItemChanged={load}
+                openShareId={openShare?.scope === 'list' ? openShare.id : null}
+                setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+                openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+                setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
+                copiedShareId={copiedShareId}
+                onOpenSpotlight={openSpotlight}
+                onToggleSave={toggleSave}
+                onReport={report}
+                onDelete={deleteItem}
+                onCopyShare={handleCopyShare}
+                onNativeShare={nativeShare}
+                selectedTags={selectedTags}
+                onToggleTag={(t) => {
+                  setSelectedTags(prev => {
+                    const next = new Set(prev);
+                    if (next.has(t)) next.delete(t); else next.add(t);
+                    return next;
+                  });
+                }}
+                onResetTags={() => setSelectedTags(new Set())}
+                onShowInList={showInList}
+              />
+            </div>
           ))}
           </div>
            {/* Report Modal UI */}
