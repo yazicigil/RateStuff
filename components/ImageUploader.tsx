@@ -180,16 +180,18 @@ export default function ImageUploader({
 
             {/* METİN sütunu */}
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium break-words">
-                {uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}
+              <div className="text-base font-semibold mb-2">
+                {uploading ? 'Yükleniyor…' : 'Dosya seç veya sürükleyip bırak'}
               </div>
-              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB</div>
-              <div className="mt-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-md border text-xs bg-white/60 dark:bg-gray-800/60 border-gray-300 dark:border-gray-700 mr-2">
-                  Dosya seç
-                </span>
-                <span className="text-xs opacity-60 align-middle">veya sürükleyip bırak</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                className="inline-flex items-center px-3 py-1.5 rounded-md border text-sm font-medium bg-white/70 hover:bg-gray-50 dark:bg-gray-800/70 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600 shadow-sm transition disabled:opacity-50"
+              >
+                Dosya seç
+              </button>
+              <div className="text-xs opacity-60 mt-2">Maksimum boyut: {maxSizeMB}MB</div>
             </div>
           </div>
         </button>
