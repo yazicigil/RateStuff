@@ -52,7 +52,6 @@ export default function ItemCard({
   selectedTags, onToggleTag,
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
-  const savedClass = saved ? 'ring-2 ring-emerald-400' : '';
   const verified = Boolean((i?.createdBy as any)?.verified);
 
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
@@ -70,7 +69,7 @@ export default function ItemCard({
 
   return (
     <div
-      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${savedClass} ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
+      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
     >
       {amAdmin && ((i as any).reportCount ?? 0) > 0 && (
         <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
