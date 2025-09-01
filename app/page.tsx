@@ -1482,6 +1482,10 @@ if (!already) {
                 setEditingCommentRating={setEditingCommentRating}
                 showCount={spotlightShowCount}
                 setShowCount={(fn) => setSpotlightShowCount(typeof fn === 'function' ? fn : (n) => n)}
+                onCommentDone={async () => {
+                  await load();
+                  await refreshShared(sharedItem.id);
+                }}
               />
             </div>
           )}

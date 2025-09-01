@@ -6,6 +6,7 @@ import Stars from '@/components/Stars';
 import RatingPill from '@/components/RatingPill';
 import SharePopover from '@/components/popovers/SharePopover';
 import OptionsPopover from '@/components/popovers/OptionsPopover';
+import CommentBox from '@/components/CommentBox';
 
 export type SpotlightItem = {
   id: string;
@@ -91,6 +92,11 @@ export type SpotlightCardProps = {
 
   showCount: number;                      // spotlightShowCount
   setShowCount: (fn: (n: number) => number) => void;
+
+  /**
+   * Yorum gönderildiğinde üst componentin listeyi/spotlight'ı tazelemesi için
+   */
+  onCommentDone?: () => void;
 };
 
 export default function SpotlightCard(props: SpotlightCardProps) {
@@ -101,7 +107,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
     index, count, onPrev, onNext, animKey, animClass,
     voteOnComment,
     expandedComments, setExpandedComments, truncatedComments, measureTruncation, commentTextRefs,
-    showCount, setShowCount,
+    showCount, setShowCount, onCommentDone,
   } = props;
 
   const avg = (item.avgRating ?? item.avg ?? 0) as number;
@@ -460,6 +466,17 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+        {!my && (
+          <div className="mt-3 pt-3 border-t dark:border-gray-800">
+            <CommentBox
+              itemId={item.id}
+              onDone={() => {
+                try { onCommentDone && onCommentDone(); } catch {}
+              }}
+              initialRating={0}
+            />
           </div>
         )}
       </div>
