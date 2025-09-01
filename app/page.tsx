@@ -1394,6 +1394,11 @@ if (!already) {
         {/* Sağ: listeler */}
         <section className="rs-mobile-edge space-y-4 order-2 md:order-2">
 
+          {/* Sıralama başlığı */}
+          <h2 className="text-lg font-semibold mb-2">
+            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
+          </h2>
+
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
   <div ref={quickAddRef} className="scroll-mt-24 relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col rs-quickadd">
