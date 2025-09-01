@@ -39,6 +39,8 @@ export default function QuickAddCard({
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const leftHoldRef = useRef<number | null>(null);
+  const rightHoldRef = useRef<number | null>(null);
 
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
@@ -102,6 +104,32 @@ export default function QuickAddCard({
     const id = setTimeout(() => setSugDir(null), 240);
     return () => clearTimeout(id);
   }, [sugDir]);
+
+  function pagePrev() {
+    setSugDir('left');
+    setSugPage((p) => p - 1);
+  }
+  function pageNext() {
+    setSugDir('right');
+    setSugPage((p) => p + 1);
+  }
+  function startHold(which: 'left' | 'right') {
+    const ref = which === 'left' ? leftHoldRef : rightHoldRef;
+    if (ref.current) window.clearInterval(ref.current);
+    // first immediate tick
+    which === 'left' ? pagePrev() : pageNext();
+    // then repeat while holding
+    ref.current = window.setInterval(() => {
+      which === 'left' ? pagePrev() : pageNext();
+    }, 220);
+  }
+  function stopHold(which: 'left' | 'right') {
+    const ref = which === 'left' ? leftHoldRef : rightHoldRef;
+    if (ref.current) {
+      window.clearInterval(ref.current);
+      ref.current = null;
+    }
+  }
 
   const blocked =
     containsBannedWord(name) ||
@@ -223,16 +251,24 @@ export default function QuickAddCard({
                     <>
                       <button
                         type="button"
-                        className="shrink-0 w-6 h-6 grid place-items-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { setSugDir('left'); setSugPage((p) => p - 1); }}
+                        className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
+                                   enabled:active:scale-95 enabled:hover:-translate-x-0.5 disabled:opacity-40 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        onMouseDown={(e) => { e.preventDefault(); if (!canPage) return; startHold('left'); }}
+                        onMouseUp={() => stopHold('left')}
+                        onMouseLeave={() => stopHold('left')}
+                        onTouchStart={(e) => { if (!canPage) return; startHold('left'); }}
+                        onTouchEnd={() => stopHold('left')}
+                        onClick={(e) => { e.preventDefault(); if (!canPage) return; pagePrev(); }}
                         disabled={!canPage}
                         aria-label="Önceki öneriler"
-                        title="Önceki"
+                        title="Önceki (←)"
                       >
-                        ‹
+                        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
-                      <div className={`overflow-hidden`}>
+
+                      <div className="relative mx-1 overflow-hidden">
                         <div className={`flex items-center gap-1 ${sugDir === 'left' ? 'sug-anim-left' : ''} ${sugDir === 'right' ? 'sug-anim-right' : ''}`}>
                           {visible.map((t) => (
                             <button
@@ -249,17 +285,39 @@ export default function QuickAddCard({
                             </button>
                           ))}
                         </div>
+                        {/* sayfa göstergesi */}
+                        {canPage && (
+                          <div className="absolute -bottom-4 left-0 right-0 flex justify-center gap-1 pt-1 pointer-events-none">
+                            {Array.from({ length: pageCount }).map((_, i) => {
+                              const idx = ((sugPage % pageCount) + pageCount) % pageCount;
+                              return (
+                                <span
+                                  key={i}
+                                  className={`inline-block w-1.5 h-1.5 rounded-full ${i === idx ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                />
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
+
                       <button
                         type="button"
-                        className="shrink-0 w-6 h-6 grid place-items-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => { setSugDir('right'); setSugPage((p) => p + 1); }}
+                        className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
+                                   enabled:active:scale-95 enabled:hover:translate-x-0.5 disabled:opacity-40 disabled:pointer-events-none focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        onMouseDown={(e) => { e.preventDefault(); if (!canPage) return; startHold('right'); }}
+                        onMouseUp={() => stopHold('right')}
+                        onMouseLeave={() => stopHold('right')}
+                        onTouchStart={(e) => { if (!canPage) return; startHold('right'); }}
+                        onTouchEnd={() => stopHold('right')}
+                        onClick={(e) => { e.preventDefault(); if (!canPage) return; pageNext(); }}
                         disabled={!canPage}
                         aria-label="Sonraki öneriler"
-                        title="Sonraki"
+                        title="Sonraki (→)"
                       >
-                        ›
+                        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </button>
                     </>
                   );
@@ -287,6 +345,16 @@ export default function QuickAddCard({
                 value={tagInput}
                 onChange={(e) => { setTagInput(e.target.value); setShowSug(true); if (error) setError(null); }}
                 onKeyDown={(e) => {
+                  if (e.key === 'ArrowLeft' && suggestions.length > 0) {
+                    e.preventDefault();
+                    pagePrev();
+                    return;
+                  }
+                  if (e.key === 'ArrowRight' && suggestions.length > 0) {
+                    e.preventDefault();
+                    pageNext();
+                    return;
+                  }
                   if ((e.key === 'Enter' || e.key === ',') && tags.length < 3) {
                     e.preventDefault();
                     addTagsFromInput();
@@ -366,6 +434,8 @@ export default function QuickAddCard({
         }
         .sug-anim-left { animation: sugInLeft .22s ease; }
         .sug-anim-right { animation: sugInRight .22s ease; }
+        .rs-sug-nav { will-change: transform; }
+        .rs-quickadd .rs-sug-nav:active { transform: scale(0.97); }
       `}</style>
     </div>
   );
