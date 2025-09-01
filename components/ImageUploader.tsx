@@ -75,6 +75,19 @@ export default function ImageUploader({
   const [err, setErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [dragOver, setDragOver] = useState(false);
+  function prevent(e: React.DragEvent) { e.preventDefault(); e.stopPropagation(); }
+  async function handleDrop(e: React.DragEvent) {
+    prevent(e);
+    setDragOver(false);
+    const dt = e.dataTransfer;
+    if (!dt) return;
+    const file = dt.files?.[0];
+    if (file) {
+      await handleFile(file);
+    }
+  }
+
   async function handleFile(file: File) {
     setErr(null);
     if (!file) return;
@@ -129,7 +142,21 @@ export default function ImageUploader({
       {/* Form submit’i için gizli input (name verilirse) */}
       {name ? <input type="hidden" name={name} value={url ?? ''} /> : null}
 
-      <div className="flex items-center gap-3">
+      <div
+        className={`relative flex items-center gap-3 rounded-xl p-3 border transition-colors ${dragOver ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20' : 'border-dashed border-gray-300 dark:border-gray-700'}`}
+        onDragEnter={(e) => { prevent(e); setDragOver(true); }}
+        onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
+        onDragLeave={(e) => { prevent(e); setDragOver(false); }}
+        onDrop={handleDrop}
+        aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
+      >
+        {/* Drag overlay hint */}
+        {dragOver && (
+          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium opacity-80">
+            Bırak, yükleyelim ✨
+          </div>
+        )}
+        {/* Preview */}
         {url ? (
           <img
             src={url}
@@ -143,7 +170,7 @@ export default function ImageUploader({
             no img
           </div>
         )}
-
+        {/* Actions */}
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -153,7 +180,6 @@ export default function ImageUploader({
           >
             {uploading ? 'Yükleniyor…' : 'Dosya seç'}
           </button>
-
           {url && (
             <button
               type="button"
@@ -164,6 +190,7 @@ export default function ImageUploader({
               Kaldır
             </button>
           )}
+          <span className="text-xs opacity-60 hidden md:inline">veya sürükleyip bırak</span>
         </div>
       </div>
 

@@ -1395,10 +1395,6 @@ if (!already) {
         {/* Sağ: listeler */}
         <section className="rs-mobile-edge space-y-4 order-2 md:order-2">
 
-          {/* Sıralama başlığı */}
-          <h2 className="text-lg font-semibold mb-2">
-            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
-          </h2>
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
@@ -1431,6 +1427,10 @@ if (!already) {
 )}
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
+          {/* Sıralama başlığı — kartların hemen üstünde */}
+          <h2 className="text-lg font-semibold mb-2">
+            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
+          </h2>
           {!showQuickAdd && sharedItem && (
   <div
     ref={spotlightRef}
@@ -1559,7 +1559,6 @@ if (!already) {
               )}
             </button>
           {/* GRID/LIST ITEM MENUS */}
-          {/* Remove any leftover placeholder comments related to previous grid patches */}
             <button
               className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
              onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
