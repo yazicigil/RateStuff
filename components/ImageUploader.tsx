@@ -146,7 +146,7 @@ export default function ImageUploader({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className={`w-full h-32 md:h-40 rounded-xl border transition-colors px-3 py-3 text-left ${
+          className={`w-full h-36 md:h-44 rounded-xl border transition-colors px-3 py-3 text-left ${
             dragOver
               ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
               : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
@@ -164,27 +164,31 @@ export default function ImageUploader({
             </div>
           )}
 
-          <div className="flex items-center gap-3 sm:gap-4">
-            {/* PREVIEW: kutunun içinde, sola yaslı – kare ve kutu yüksekliğiyle aynı */}
-            <div className="shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
-              <img
-                src={url || '/default-item.svg'}
-                alt="preview"
-                className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
+          <div className="flex items-center gap-4">
+            {/* PREVIEW sütunu: kare, kutudan biraz küçük */}
+            <div className="shrink-0">
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-lg overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                <img
+                  src={url || '/default-item.svg'}
+                  alt="Önizleme"
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
             </div>
 
-            {/* Hints */}
-            <div className="min-w-0">
-              <div className="text-sm font-medium truncate">{uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}</div>
-              <div className="text-xs opacity-60">Maksimum boyut: {maxSizeMB}MB</div>
-              <div className="text-xs opacity-60 mt-1">
-                <span className="inline sm:hidden">Dosya seç</span>
-                <span className="hidden sm:inline">Dosya seç</span>
-                <span className="mx-1">veya</span>
-                <span>sürükleyip bırak</span>
+            {/* METİN sütunu */}
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium break-words">
+                {uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}
+              </div>
+              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB</div>
+              <div className="mt-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-md border text-xs bg-white/60 dark:bg-gray-800/60 border-gray-300 dark:border-gray-700 mr-2">
+                  Dosya seç
+                </span>
+                <span className="text-xs opacity-60 align-middle">veya sürükleyip bırak</span>
               </div>
             </div>
           </div>
