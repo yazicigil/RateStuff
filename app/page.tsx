@@ -1696,52 +1696,50 @@ if (!already) {
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
           </h1>
           {loading && (
-            <div className="flex items-center justify-center my-8" aria-live="polite" aria-busy="true">
+            <div className="flex items-center justify-center min-h-[50vh]" aria-live="polite" aria-busy="true">
               <img
                 src="/meteor-rain.gif"
                 alt="Yükleniyor…"
-                className="w-24 h-24 object-contain opacity-80"
+                className="w-28 h-28 object-contain opacity-100"
               />
             </div>
           )}
           <div className="grid md:grid-cols-2 gap-4 rs-grid">
             {/* + EKLE KARTI (her zaman en başta) */}
-            <button
-              type="button"
-            onClick={() => {
-  // varsa açık spotlight'ı kapat
-  setSharedItem(null);
-  setSharedId(null);
-
-  // Mevcut filtrelerden hızlı eklemeyi önceden doldur
-  if (qInput.trim()) setQuickName(qInput.trim());
-  if (selectedTags.size > 0) {
-    setQuickTags(Array.from(selectedTags).slice(0, 3));
-    setQuickTagInput('');
-  }
-  {
-    const stars = Array.from(starBuckets);
-    setNewRating(stars.length === 1 ? stars[0] : 0);
-  }
-
-  setShowQuickAdd(true);
-
-  requestAnimationFrame(() => {
-    const el = quickAddRef.current;
-    if (el) smoothScrollIntoView(el);
-  });
-
-  setTimeout(() => { quickNameRef.current?.focus(); }, 100);
-}}
-              className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
-              aria-label="Yeni öğe ekle"
-              title="Yeni öğe ekle"
-            >
-              <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                <div className="text-4xl leading-none">+</div>
-                <div className="text-sm font-medium">Ekle</div>
-              </div>
-            </button>
+            {!loading && (
+              <button
+                type="button"
+                onClick={() => {
+                  // varsa açık spotlight'ı kapat
+                  setSharedItem(null);
+                  setSharedId(null);
+                  // Mevcut filtrelerden hızlı eklemeyi önceden doldur
+                  if (qInput.trim()) setQuickName(qInput.trim());
+                  if (selectedTags.size > 0) {
+                    setQuickTags(Array.from(selectedTags).slice(0, 3));
+                    setQuickTagInput('');
+                  }
+                  {
+                    const stars = Array.from(starBuckets);
+                    setNewRating(stars.length === 1 ? stars[0] : 0);
+                  }
+                  setShowQuickAdd(true);
+                  requestAnimationFrame(() => {
+                    const el = quickAddRef.current;
+                    if (el) smoothScrollIntoView(el);
+                  });
+                  setTimeout(() => { quickNameRef.current?.focus(); }, 100);
+                }}
+                className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
+                aria-label="Yeni öğe ekle"
+                title="Yeni öğe ekle"
+              >
+                <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                  <div className="text-4xl leading-none">+</div>
+                  <div className="text-sm font-medium">Ekle</div>
+                </div>
+              </button>
+            )}
            
           {filteredItems.map((i) => (
             <div
