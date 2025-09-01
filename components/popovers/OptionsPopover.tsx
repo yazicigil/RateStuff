@@ -7,6 +7,18 @@ import BookmarkIcon from '@/assets/icons/bookmark.svg';
 import ListIcon from '@/assets/icons/list.svg';
 import ReportIcon from '@/assets/icons/report.svg';
 
+// SVG helper: accepts either a React component (SVGR) or a URL module
+function SvgIcon(Icon: any, fallbackPath: string, props: React.SVGProps<SVGSVGElement> & { className?: string }) {
+  if (typeof Icon === 'function') {
+    // SVGR component
+    const Comp = Icon as React.FC<any>;
+    return <Comp {...props} />;
+  }
+  // URL/static import fallback
+  const src = (Icon && (Icon.src || Icon.default)) || fallbackPath;
+  return <img src={src as string} alt="" className={props.className} />;
+}
+
 export type OptionsPopoverProps = {
   open: boolean;
   itemId: string;
@@ -70,7 +82,7 @@ export default function OptionsPopover({
             onClick={() => { onClose(); onDelete(itemId); }}
             role="menuitem"
           >
-            <TrashIcon className="w-[18px] h-[18px] stroke-current fill-none" />
+            {SvgIcon(TrashIcon, '/assets/icons/trash.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
             <span>Kaldır</span>
           </button>
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
@@ -88,12 +100,12 @@ export default function OptionsPopover({
       >
         {isSaved ? (
           <>
-            <BookmarkIcon className="w-[18px] h-[18px] fill-current stroke-current" />
+            {SvgIcon(BookmarkIcon, '/assets/icons/bookmark.svg', { className: 'w-[18px] h-[18px] fill-current stroke-current' })}
             <span>Kaydedilenlerden Kaldır</span>
           </>
         ) : (
           <>
-            <BookmarkIcon className="w-[18px] h-[18px] stroke-current fill-none" />
+            {SvgIcon(BookmarkIcon, '/assets/icons/bookmark.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
             <span>Kaydet</span>
           </>
         )}
@@ -104,7 +116,7 @@ export default function OptionsPopover({
         onClick={() => { onClose(); onReport(itemId); }}
         role="menuitem"
       >
-        <ReportIcon className="w-[18px] h-[18px] stroke-current fill-none" />
+        {SvgIcon(ReportIcon, '/assets/icons/report.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
         <span>Report</span>
       </button>
 
@@ -114,7 +126,7 @@ export default function OptionsPopover({
           onClick={() => { onClose(); onShowInList(itemId); }}
           role="menuitem"
         >
-          <ListIcon className="w-[18px] h-[18px] stroke-current fill-none" />
+          {SvgIcon(ListIcon, '/assets/icons/list.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
           <span>Listede göster</span>
         </button>
       )}

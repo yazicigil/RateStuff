@@ -6,6 +6,18 @@ import ClipboardIcon from '@/assets/icons/clipboard.svg';
 import ClipboardDoneIcon from '@/assets/icons/clipboard_done.svg';
 import ShareIcon from '@/assets/icons/share.svg';
 
+// SVG helper: accepts either a React component (SVGR) or a URL module
+function SvgIcon(Icon: any, fallbackPath: string, props: React.SVGProps<SVGSVGElement> & { className?: string }) {
+  if (typeof Icon === 'function') {
+    // SVGR component
+    const Comp = Icon as React.FC<any>;
+    return <Comp {...props} />;
+  }
+  // URL/static import fallback
+  const src = (Icon && (Icon.src || Icon.default)) || fallbackPath;
+  return <img src={src as string} alt="" className={props.className} />;
+}
+
 export type SharePopoverProps = {
   /** Menü açık mı */
   open: boolean;
@@ -70,11 +82,9 @@ export default function SharePopover({
         onClick={() => onCopy(itemId)}
         role="menuitem"
       >
-        {copiedShareId === itemId ? (
-          <ClipboardDoneIcon className="w-[18px] h-[18px] stroke-current fill-none" />
-        ) : (
-          <ClipboardIcon className="w-[18px] h-[18px] stroke-current fill-none" />
-        )}
+        {copiedShareId === itemId
+          ? SvgIcon(ClipboardDoneIcon, '/assets/icons/clipboard_done.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })
+          : SvgIcon(ClipboardIcon, '/assets/icons/clipboard.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
         <span>{copiedShareId === itemId ? 'Kopyalandı!' : 'Kopyala'}</span>
       </button>
 
@@ -83,7 +93,7 @@ export default function SharePopover({
         onClick={() => { onShare(itemId, itemName); onClose(); }}
         role="menuitem"
       >
-        <ShareIcon className="w-[18px] h-[18px] stroke-current fill-none" />
+        {SvgIcon(ShareIcon, '/assets/icons/share.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
         <span>Paylaş</span>
       </button>
     </div>
