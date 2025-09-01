@@ -6,7 +6,7 @@ import RatingPill from '@/components/RatingPill';
 import SharePopover from '@/components/popovers/SharePopover';
 import OptionsPopover from '@/components/popovers/OptionsPopover';
 import CommentList from '@/components/comments/CommentList';
-import CommentBox from '@/components/CommentBox';
+import CommentBox from '@/components/comments/CommentBox';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
@@ -138,7 +138,17 @@ export default function ItemCard({
               aria-label={`${i.name} spotlight'ı aç`}
               title={`${i.name} spotlight'ı aç`}
             >
-              <img src={i.imageUrl || '/default-item.svg'} alt={i.name || 'item'} className="w-28 h-28 object-cover rounded-lg" />
+              <img
+                src={i.imageUrl || '/default-item.svg'}
+                alt={i.name || 'item'}
+                className="w-28 h-28 object-cover rounded-lg"
+                onError={(e) => {
+                  const t = e.currentTarget as HTMLImageElement;
+                  if (t.src.endsWith('/default-item.svg')) return;
+                  t.onerror = null;
+                  t.src = '/default-item.svg';
+                }}
+              />
             </button>
             {i.edited && (
               <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">

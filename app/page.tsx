@@ -44,7 +44,7 @@ import Stars from '@/components/Stars';
 import Header from '@/components/Header';
 import CollapsibleSection from '@/components/CollapsibleSection';
 import ImageUploader from '@/components/ImageUploader';
-import CommentBox from '@/components/CommentBox';
+import CommentBox from '@/components/comments/CommentBox';
 import { useSession } from 'next-auth/react';
 import { containsBannedWord } from '@/lib/bannedWords';
 import RatingPill from '@/components/RatingPill';

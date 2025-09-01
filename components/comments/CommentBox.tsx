@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
-import Stars from "./Stars";
+import Stars from "../Stars";
 import { containsBannedWord } from "@/lib/bannedWords";
 
 function maskName(s?: string | null) {
@@ -38,14 +38,43 @@ export default function CommentBox({
   const [busy, setBusy] = useState(false);
   const [rating, setRating] = useState<number>(initialRating || 0);
   const [editMode, setEditMode] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const textRef = useRef<HTMLDivElement | null>(null);
   const upVotes = myComment?.upCount ?? (Array.isArray(myComment?.votes) ? myComment!.votes!.filter(v => v?.value === 1).length : 0);
   const downVotes = myComment?.downCount ?? (Array.isArray(myComment?.votes) ? myComment!.votes!.filter(v => v?.value === -1).length : 0);
   const isMac = typeof window !== 'undefined' && /(Mac|iPhone|iPad|Macintosh)/.test(navigator.userAgent || '');
-  const maxLen = 500;
+  const maxLen = 240;
   const hasBanned = containsBannedWord(text);
   const canSend = !busy && rating > 0 && !hasBanned;
   const ratingText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
   const counterId = `cb-count-${itemId}`;
+
+  // Silme onayı 3 sn sonra sıfırlansın
+  if (typeof window !== 'undefined') {
+    // no-op on SSR
+  }
+
+  // onay bekleme süresi (3s)
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const t = setTimeout(() => setConfirmDelete(false), 3000);
+    return () => clearTimeout(t);
+  }, [confirmDelete]);
+
+  useEffect(() => {
+    // Ölç: iki satır klamp ile taşma var mı?
+    const el = textRef.current;
+    if (!el) { setIsTruncated(false); return; }
+    // Ölçümü güvenilir kılmak için bir sonraki frame'de yap
+    const r = requestAnimationFrame(() => {
+      const truncated = el.scrollHeight > (el.clientHeight + 1);
+      setIsTruncated(truncated);
+    });
+    return () => cancelAnimationFrame(r);
+  }, [myComment?.text, editMode, expanded]);
 
   async function updateMyComment() {
     if (!session) {
@@ -88,7 +117,6 @@ export default function CommentBox({
       return;
     }
     if (!myComment) return;
-    if (!confirm('Yorumu silmek istediğine emin misin?')) return;
     setBusy(true);
     try {
       // 1) Primary route
@@ -206,17 +234,32 @@ export default function CommentBox({
                 {typeof myComment.rating === 'number' && myComment.rating > 0 ? (
                   <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{myComment.rating}★</span>
                 ) : null}
-                <span className="ml-auto flex items-center gap-2 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
+              </div>
+              <div className="w-full flex items-start gap-2 min-w-0">
+                <div
+                  ref={textRef}
+                  className={
+                    "flex-1 min-w-0 " +
+                    (!expanded ? "line-clamp-2 " : "")
+                  }
+                >
+                  “{myComment.text}” {myComment.edited && <em className="opacity-60">(düzenlendi)</em>}
+                </div>
+                <span className="flex items-center gap-2 text-[12px] text-emerald-900/80 dark:text-emerald-200/80 shrink-0">
                   <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
                   <span className="tabular-nums leading-none select-none">{upVotes - downVotes}</span>
                   <span aria-label={`Downvotes: ${downVotes}`} title={`Downvotes: ${downVotes}`} className="leading-none select-none">▼</span>
                 </span>
               </div>
-              <div className="w-full flex items-baseline gap-1 min-w-0">
-                <div className="truncate w-full">
-                  “{myComment.text}” {myComment.edited && <em className="opacity-60">(düzenlendi)</em>}
-                </div>
-              </div>
+              {isTruncated && (
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-emerald-700 dark:text-emerald-300 hover:underline"
+                  onClick={() => setExpanded((v) => !v)}
+                >
+                  {expanded ? 'Gizle' : 'Devamını gör'}
+                </button>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-1 ml-2 shrink-0">
@@ -234,15 +277,30 @@ export default function CommentBox({
             </button>
             <button
               type="button"
-              onClick={deleteMyComment}
-              className="w-8 h-8 grid place-items-center rounded-md hover:bg-red-100/60 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400"
-              title="Yorumu sil"
-              aria-label="Yorumu sil"
+              onClick={() => {
+                if (!confirmDelete) { setConfirmDelete(true); return; }
+                deleteMyComment();
+              }}
+              className={
+                "w-8 h-8 grid place-items-center rounded-md transition-colors " +
+                (confirmDelete
+                  ? "bg-red-600 text-white hover:bg-red-700"
+                  : "hover:bg-red-100/60 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400")
+              }
+              title={confirmDelete ? "Silmeyi onayla" : "Yorumu sil"}
+              aria-label={confirmDelete ? "Silmeyi onayla" : "Yorumu sil"}
             >
-              {/* trash icon */}
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7l1-2h4l1 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              {confirmDelete ? (
+                // check icon
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              ) : (
+                // trash icon
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7l1-2h4l1 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
             </button>
           </div>
         </div>

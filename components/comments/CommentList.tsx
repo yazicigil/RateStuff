@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef, useState } from 'react';
 
 export type CommentUser = {
   id?: string | null;
@@ -40,6 +40,9 @@ export interface CommentListProps {
   title?: string;               // default: "Yorumlar"
   emptyText?: string;           // default: "Henüz yorum yok."
 
+  /** Item'a girilmiş toplam yorum sayısı (kendi yorumun + kartta listelenmeyenler dahil) */
+  totalCount?: number;
+
   // Kendi yorumunu listede göstermeyi kapat/aç (default: true = gizle)
   hideMyComment?: boolean;
 }
@@ -64,8 +67,30 @@ export default function CommentList({
   commentTextRefs,
   title = 'Yorumlar',
   emptyText = 'Henüz yorum yok.',
+  totalCount,
   hideMyComment = true,
 }: CommentListProps) {
+
+  // Yerel ölçüm ve state fallback'leri (ItemCard içinde parent state gelmeyebilir)
+  const [localTruncated, setLocalTruncated] = useState<Set<string>>(new Set());
+  const [localExpanded, setLocalExpanded] = useState<Set<string>>(new Set());
+  const localRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const effectiveTruncated = truncatedComments ?? localTruncated;
+  const effectiveExpanded = expandedComments ?? localExpanded;
+  const setEffectiveExpanded =
+    setExpandedComments ?? ((fn: (prev: Set<string>) => Set<string>) => setLocalExpanded(prev => fn(prev)));
+  const measure =
+    measureTruncation ??
+    ((id: string) => {
+      const el = (commentTextRefs?.current?.[id]) ?? localRefs.current[id];
+      if (!el) return;
+      const truncated = el.scrollHeight > (el.clientHeight + 1);
+      setLocalTruncated(prev => {
+        const next = new Set(prev);
+        if (truncated) next.add(id); else next.delete(id);
+        return next;
+      });
+    });
 
   // Kendi yorumun en üstte gözüksün (varsa), kalanlar tarih/score sırasına göre
   const ordered = useMemo(() => {
@@ -82,18 +107,15 @@ export default function CommentList({
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
-    if (!measureTruncation || !commentTextRefs) return;
     for (const c of ordered) {
       if (!c?.id) continue;
-      const el = commentTextRefs.current?.[c.id];
-      if (el) measureTruncation(c.id);
+      measure(c.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ordered?.length]);
 
   function toggleExpand(id: string) {
-    if (!setExpandedComments) return;
-    setExpandedComments(prev => {
+    setEffectiveExpanded(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
@@ -104,7 +126,7 @@ export default function CommentList({
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
         <h4 className="text-sm font-semibold">{title}</h4>
-        <span className="text-xs opacity-70 tabular-nums">{ordered.length}</span>
+        <span className="text-xs opacity-70 tabular-nums">{typeof totalCount === 'number' ? totalCount : ordered.length}</span>
       </div>
 
       {ordered.length === 0 ? (
@@ -116,8 +138,8 @@ export default function CommentList({
             const displayName = maskName(c?.user?.name, verified);
             const score = typeof c.score === 'number' ? c.score : 0;
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
-            const isExpanded = expandedComments?.has(c.id) ?? false;
-            const isTruncated = truncatedComments?.has(c.id) ?? false;
+            const isExpanded = effectiveExpanded?.has(c.id) ?? false;
+            const isTruncated = effectiveTruncated?.has(c.id) ?? false;
 
             return (
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
@@ -158,11 +180,13 @@ export default function CommentList({
                     {/* metin */}
                     <div
                       ref={(el) => {
-                        if (commentTextRefs && c.id) commentTextRefs.current[c.id] = el;
+                        if (!c.id) return;
+                        if (commentTextRefs) commentTextRefs.current[c.id] = el;
+                        localRefs.current[c.id] = el;
                       }}
                       className={
                         'text-sm mt-1 ' +
-                        (!isExpanded ? 'truncate ' : '')
+                        (!isExpanded ? 'line-clamp-2 ' : '')
                       }
                     >
                       {c.text}
@@ -181,25 +205,31 @@ export default function CommentList({
                   </div>
 
                   {/* actions: vote (▲ score ▼) */}
-                  <div className="flex items-center gap-2 ml-2 shrink-0 select-none">
+                  <div className="flex items-center gap-2 ml-2 shrink-0 select-none text-xs">
                     <button
                       type="button"
                       onClick={() => onVote(c.id, myVote === 1 ? 0 : 1)}
-                      className={(myVote === 1
-                        ? 'text-emerald-600'
-                        : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300') + ' leading-none'}
+                      className={
+                        'leading-none w-5 h-5 grid place-items-center rounded-md transition-colors ' +
+                        (myVote === 1
+                          ? 'text-emerald-700 bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-900/30'
+                          : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300')
+                      }
                       aria-label="Beğen (upvote)"
                       title="Beğen (upvote)"
                     >
                       ▲
                     </button>
-                    <span className="tabular-nums w-5 text-center text-gray-600 dark:text-gray-300">{score}</span>
+                    <span className="tabular-nums w-4 text-center text-gray-600 dark:text-gray-300">{score}</span>
                     <button
                       type="button"
                       onClick={() => onVote(c.id, myVote === -1 ? 0 : -1)}
-                      className={(myVote === -1
-                        ? 'text-red-600'
-                        : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300') + ' leading-none'}
+                      className={
+                        'leading-none w-5 h-5 grid place-items-center rounded-md transition-colors ' +
+                        (myVote === -1
+                          ? 'text-red-700 bg-red-100 dark:text-red-300 dark:bg-red-900/30'
+                          : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300')
+                      }
                       aria-label="Beğenme (downvote)"
                       title="Beğenme (downvote)"
                     >
