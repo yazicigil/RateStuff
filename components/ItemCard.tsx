@@ -5,11 +5,14 @@ import Tag from '@/components/Tag';
 import RatingPill from '@/components/RatingPill';
 import SharePopover from '@/components/popovers/SharePopover';
 import OptionsPopover from '@/components/popovers/OptionsPopover';
+import CommentList from '@/components/comments/CommentList';
+import CommentBox from '@/components/CommentBox';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
   saved: boolean;
   amAdmin?: boolean;
+  myId?: string | null;
   // popover states are lifted to page.tsx (tekil id modeli)
   openShareId: string | null;
   setOpenShareId: (id: string | null) => void;
@@ -25,6 +28,9 @@ export interface ItemCardProps {
   onCopyShare: (id: string) => void;
   onNativeShare: (id: string, name: string) => void;
   onShowInList: (id: string) => void;
+  onVoteComment: (commentId: string, nextValue: 1 | 0 | -1) => void;
+  /** Yorum eklendi/silindi/güncellendi gibi durumlarda listeyi tazelemek için */
+  onItemChanged?: () => void;
 
   // tag filter helpers
   selectedTags: Set<string>;
@@ -40,9 +46,9 @@ function maskName(s?: string | null, verified?: boolean) {
 }
 
 export default function ItemCard({
-  item: i, saved, amAdmin,
+  item: i, saved, amAdmin, myId,
   openShareId, setOpenShareId, openMenuId, setOpenMenuId, copiedShareId,
-  onOpenSpotlight, onToggleSave, onReport, onDelete, onCopyShare, onNativeShare,
+  onOpenSpotlight, onToggleSave, onReport, onDelete, onCopyShare, onNativeShare, onVoteComment, onItemChanged,
   selectedTags, onToggleTag,
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
@@ -56,6 +62,11 @@ export default function ItemCard({
     () => maskName(i?.createdBy?.name, verified),
     [i?.createdBy?.name, verified]
   );
+
+  const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
+  const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
+  const otherComments = myId ? allComments.filter((c: any) => c?.user?.id !== myId) : allComments;
+  const showMore = otherComments.length > 3;
 
   return (
     <div
@@ -206,6 +217,41 @@ export default function ItemCard({
             </div>
           </div>
         )}
+
+        {/* Comments (max 3) */}
+        <div className="mt-2 pt-2 border-t dark:border-gray-800">
+          <CommentList
+            itemId={i.id}
+            myId={myId || null}
+            comments={otherComments.slice(0, 3)}
+            onVote={onVoteComment}
+            title="Yorumlar"
+            emptyText={otherComments.length === 0 ? 'Henüz yorum yok.' : undefined}
+          />
+          {showMore && (
+            <div className="mt-2">
+              <button
+                type="button"
+                onClick={() => onOpenSpotlight(i.id)}
+                className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                Tüm yorumları gör
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* CommentBox (always at bottom) */}
+      <div className="mt-3 pt-3 border-t dark:border-gray-800">
+        <CommentBox
+          itemId={i.id}
+          myComment={myComment || undefined}
+          onDone={() => {
+            try { onItemChanged && onItemChanged(); } catch {}
+          }}
+          initialRating={0}
+        />
       </div>
     </div>
   );

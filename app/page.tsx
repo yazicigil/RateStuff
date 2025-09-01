@@ -1729,6 +1729,9 @@ if (!already) {
               item={i}
               saved={savedIds.has(i.id)}
               amAdmin={amAdmin}
+              myId={myId}
+              onVoteComment={voteOnComment}
+              onItemChanged={load}
               openShareId={openShare}
               setOpenShareId={setOpenShare}
               openMenuId={openMenu}
