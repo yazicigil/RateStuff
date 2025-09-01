@@ -1259,6 +1259,14 @@ if (!already) {
 }
       /* Listede göster → geçici vurgu */
       .rs-flash { outline: 2px solid rgb(16 185 129 / 0.9); outline-offset: 2px; }
+
+      @keyframes rs-spin {
+        to { transform: rotate(1turn); }
+      }
+      .rs-spinner {
+        animation: rs-spin 1s linear infinite;
+        will-change: transform;
+      }
       `}
       </style>
       
@@ -1688,8 +1696,11 @@ if (!already) {
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
           </h1>
           {loading && (
-            <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 mb-2">
-              Yükleniyor…
+            <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500 mb-2" aria-live="polite" aria-busy="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" className="rs-spinner" aria-hidden="true">
+                <path d="M12 2l2.5 5.2L20 8l-4 4 .9 5.6L12 15l-4.9 2.6L8 12 4 8l5.5-.8L12 2z" fill="currentColor" opacity="0.35"/>
+              </svg>
+              <span className="sr-only">Yükleniyor…</span>
             </div>
           )}
           <div className="grid md:grid-cols-2 gap-4 rs-grid">
