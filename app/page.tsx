@@ -129,8 +129,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [openShare, setOpenShare] = useState<string | null>(null);
+  const [openMenu, setOpenMenu] = useState<{ scope: 'list' | 'spot'; id: string } | null>(null);
+  const [openShare, setOpenShare] = useState<{ scope: 'list' | 'spot'; id: string } | null>(null);
   // state’lerin arasına ekle (openShare’in hemen altı mantıklı)
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
   // REPORT UI state
@@ -1442,10 +1442,10 @@ if (!already) {
                 myId={myId}
                 saved={savedIds.has(sharedItem.id)}
                 // popovers
-                openShareId={openShare}
-                setOpenShareId={setOpenShare}
-                openMenuId={openMenu}
-                setOpenMenuId={setOpenMenu}
+                openShareId={openShare?.scope === 'spot' ? openShare.id : null}
+                setOpenShareId={(id) => setOpenShare(id ? { scope: 'spot', id } : null)}
+                openMenuId={openMenu?.scope === 'spot' ? openMenu.id : null}
+                setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'spot', id } : null)}
                 copiedShareId={copiedShareId}
                 // actions
                 onClose={closeSpotlight}
@@ -1737,10 +1737,10 @@ if (!already) {
               myId={myId}
               onVoteComment={voteOnComment}
               onItemChanged={load}
-              openShareId={openShare}
-              setOpenShareId={setOpenShare}
-              openMenuId={openMenu}
-              setOpenMenuId={setOpenMenu}
+              openShareId={openShare?.scope === 'list' ? openShare.id : null}
+              setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+              openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+              setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
               copiedShareId={copiedShareId}
               onOpenSpotlight={openSpotlight}
               onToggleSave={toggleSave}
