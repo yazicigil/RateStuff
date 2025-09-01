@@ -1696,11 +1696,12 @@ if (!already) {
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
           </h1>
           {loading && (
-            <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500 mb-2" aria-live="polite" aria-busy="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" className="rs-spinner" aria-hidden="true">
-                <path d="M12 2l2.5 5.2L20 8l-4 4 .9 5.6L12 15l-4.9 2.6L8 12 4 8l5.5-.8L12 2z" fill="currentColor" opacity="0.35"/>
-              </svg>
-              <span className="sr-only">Yükleniyor…</span>
+            <div className="flex items-center justify-center my-8" aria-live="polite" aria-busy="true">
+              <img
+                src="/meteor-rain.gif"
+                alt="Yükleniyor…"
+                className="w-24 h-24 object-contain opacity-80"
+              />
             </div>
           )}
           <div className="grid md:grid-cols-2 gap-4 rs-grid">
