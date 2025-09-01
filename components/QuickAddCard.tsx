@@ -159,7 +159,7 @@ export default function QuickAddCard({
 
       <div className="mb-2">
         <h3 className="text-base md:text-lg font-semibold">Hızlı ekle</h3>
-        <p className="text-xs opacity-70">En fazla <b>3 etiket</b>. Puan ve yorum ekleyerek daha iyi sonuç alırsın.</p>
+        <p className="text-xs opacity-70">En fazla <b>3 etiket</b>. Görsel ekleyerek daha iyi sonuç alırsın.</p>
       </div>
 
       <form ref={formRef} onSubmit={submit} className={wrapClass}>
@@ -188,7 +188,7 @@ export default function QuickAddCard({
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Resim ekle <span className="opacity-60">(opsiyonel)</span></label>
+            <label className="block text-sm font-medium mb-2">Görsel ekle <span className="opacity-60">(opsiyonel)</span></label>
             <ImageUploader value={imageUrl} onChange={setImageUrl} />
           </div>
         </div>

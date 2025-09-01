@@ -152,7 +152,7 @@ export default function ImageUploader({
       >
         {/* Drag overlay hint */}
         {dragOver && (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium opacity-80">
+          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
             Bırak, yükleyelim ✨
           </div>
         )}
@@ -161,14 +161,18 @@ export default function ImageUploader({
           <img
             src={url}
             alt="preview"
-            className="w-16 h-16 rounded object-cover border dark:border-gray-700"
+            className="w-24 h-24 md:w-28 md:h-28 rounded object-cover border dark:border-gray-700"
             loading="lazy"
             decoding="async"
           />
         ) : (
-          <div className="w-16 h-16 rounded border dark:border-gray-700 grid place-items-center text-xs opacity-60">
-            no img
-          </div>
+          <img
+            src="/default-item.svg"
+            alt="default item"
+            className="w-24 h-24 md:w-28 md:h-28 rounded object-contain border dark:border-gray-700 opacity-70"
+            loading="lazy"
+            decoding="async"
+          />
         )}
         {/* Actions */}
         <div className="flex items-center gap-2">
