@@ -206,15 +206,10 @@ export default function CommentBox({
                 {typeof myComment.rating === 'number' && myComment.rating > 0 ? (
                   <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{myComment.rating}★</span>
                 ) : null}
-                <span className="ml-auto flex items-center gap-3 text-[11px] text-emerald-900/80 dark:text-emerald-200/80">
-                  <span className="flex items-center gap-1">
-                    {/* up icon */}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 14l5-5 5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    {upVotes}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    {/* down icon */}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 10l-5 5-5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    {downVotes}
-                  </span>
+                <span className="ml-auto flex items-center gap-2 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
+                  <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
+                  <span className="tabular-nums leading-none select-none">{upVotes - downVotes}</span>
+                  <span aria-label={`Downvotes: ${downVotes}`} title={`Downvotes: ${downVotes}`} className="leading-none select-none">▼</span>
                 </span>
               </div>
               <div className="w-full flex items-baseline gap-1 min-w-0">
