@@ -119,7 +119,7 @@ export default function OptionsPopover({
       >
         {isSaved ? (
           <>
-            <MaskedIcon src={BookmarkSlashIcon} className="w-[18px] h-[18px] text-gray-700 dark:text-white" />
+            <MaskedIcon src={BookmarkSlashIcon} className="w-[18px] h-[18px] text-red-600 dark:text-red-400" />
             <span>Kaydedilenlerden Kaldır</span>
           </>
         ) : (

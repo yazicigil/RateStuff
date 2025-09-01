@@ -191,7 +191,7 @@ export default function ImageUploader({
                     >
                       Dosya seç
                     </span>
-                    <span className="ml-1">veya sürükleyip bırak</span>
+                    <span className="ml-1 text-sm opacity-80">veya sürükleyip bırak</span>
                   </>
                 )}
               </div>
