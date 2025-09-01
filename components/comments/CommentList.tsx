@@ -52,24 +52,6 @@ function maskName(name?: string | null, verified?: boolean) {
   return parts.map(p => (p[0] ?? '').toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
 }
 
-/** basit up/down ikonları */
-function UpIcon({ active }: { active?: boolean }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"
-      className={active ? 'opacity-100' : 'opacity-70'}>
-      <path d="M7 14l5-5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-function DownIcon({ active }: { active?: boolean }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"
-      className={active ? 'opacity-100' : 'opacity-70'}>
-      <path d="M17 10l-5 5-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
 export default function CommentList({
   itemId,
   myId = null,
@@ -128,7 +110,7 @@ export default function CommentList({
       {ordered.length === 0 ? (
         <div className="text-sm opacity-70">{emptyText}</div>
       ) : (
-        <ul className="space-y-2">
+        <ul>
           {ordered.map((c) => {
             const verified = Boolean(c?.user?.verified);
             const displayName = maskName(c?.user?.name, verified);
@@ -138,8 +120,8 @@ export default function CommentList({
             const isTruncated = truncatedComments?.has(c.id) ?? false;
 
             return (
-              <li key={c.id} className="rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-800 p-2">
-                <div className="flex items-start gap-2">
+              <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
+                <div className="flex items-start gap-2 px-1">
                   {/* avatar */}
                   {c.user?.avatarUrl ? (
                     <img
@@ -198,32 +180,31 @@ export default function CommentList({
                     )}
                   </div>
 
-                  {/* actions: vote */}
-                  <div className="flex items-center gap-1 ml-2 shrink-0">
-                    <div className="flex items-center gap-2 text-[12px] text-gray-800 dark:text-gray-200 select-none">
-                      <button
-                        type="button"
-                        onClick={() => onVote(c.id, myVote === 1 ? 0 : 1)}
-                        className={"w-7 h-7 grid place-items-center rounded-md hover:bg-emerald-100/70 dark:hover:bg-emerald-900/30 " + (myVote === 1 ? 'text-emerald-700 dark:text-emerald-300' : 'opacity-80')}
-                        aria-label="Beğen (upvote)"
-                        title="Beğen (upvote)"
-                      >
-                        <UpIcon active={myVote === 1} />
-                      </button>
-
-                      {/* toplam skor ortada */}
-                      <span className="tabular-nums w-6 text-center">{score}</span>
-
-                      <button
-                        type="button"
-                        onClick={() => onVote(c.id, myVote === -1 ? 0 : -1)}
-                        className={"w-7 h-7 grid place-items-center rounded-md hover:bg-red-100/70 dark:hover:bg-red-900/30 " + (myVote === -1 ? 'text-red-600 dark:text-red-400' : 'opacity-80')}
-                        aria-label="Beğenme (downvote)"
-                        title="Beğenme (downvote)"
-                      >
-                        <DownIcon active={myVote === -1} />
-                      </button>
-                    </div>
+                  {/* actions: vote (▲ score ▼) */}
+                  <div className="flex items-center gap-2 ml-2 shrink-0 select-none">
+                    <button
+                      type="button"
+                      onClick={() => onVote(c.id, myVote === 1 ? 0 : 1)}
+                      className={(myVote === 1
+                        ? 'text-emerald-600'
+                        : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300') + ' leading-none'}
+                      aria-label="Beğen (upvote)"
+                      title="Beğen (upvote)"
+                    >
+                      ▲
+                    </button>
+                    <span className="tabular-nums w-5 text-center text-gray-600 dark:text-gray-300">{score}</span>
+                    <button
+                      type="button"
+                      onClick={() => onVote(c.id, myVote === -1 ? 0 : -1)}
+                      className={(myVote === -1
+                        ? 'text-red-600'
+                        : 'text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300') + ' leading-none'}
+                      aria-label="Beğenme (downvote)"
+                      title="Beğenme (downvote)"
+                    >
+                      ▼
+                    </button>
                   </div>
                 </div>
               </li>
