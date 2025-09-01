@@ -1684,9 +1684,9 @@ if (!already) {
 
 
           {/* KART IZGARASI */}
-            <h2 className="text-lg font-semibold mb-2">
+            <h1 className="text-lg font-semibold mb-2">
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
-          </h2>
+          </h1>
           {loading && (
             <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 mb-2">
               Yükleniyor…

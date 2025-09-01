@@ -39,9 +39,6 @@ export default function QuickAddCard({
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const leftHoldRef = useRef<number | null>(null);
-  const rightHoldRef = useRef<number | null>(null);
-  const clickSuppressRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
 
   const [name, setName] = useState('');
   const [desc, setDesc] = useState('');
@@ -121,24 +118,6 @@ export default function QuickAddCard({
     if (idx >= pageCount - 1) return; // no next page
     setSugDir('right');
     setSugPage((p) => p + 1);
-  }
-  function startHold(which: 'left' | 'right') {
-    clickSuppressRef.current[which] = true;
-    const ref = which === 'left' ? leftHoldRef : rightHoldRef;
-    if (ref.current) window.clearInterval(ref.current);
-    // first immediate tick
-    which === 'left' ? pagePrev() : pageNext();
-    // then repeat while holding
-    ref.current = window.setInterval(() => {
-      which === 'left' ? pagePrev() : pageNext();
-    }, 220);
-  }
-  function stopHold(which: 'left' | 'right') {
-    const ref = which === 'left' ? leftHoldRef : rightHoldRef;
-    if (ref.current) {
-      window.clearInterval(ref.current);
-      ref.current = null;
-    }
   }
 
   const blocked =
@@ -267,16 +246,7 @@ export default function QuickAddCard({
                           type="button"
                           className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
                                      enabled:active:scale-95 enabled:hover:-translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          onMouseDown={(e) => { e.preventDefault(); startHold('left'); }}
-                          onMouseUp={() => stopHold('left')}
-                          onMouseLeave={() => stopHold('left')}
-                          onTouchStart={() => { startHold('left'); }}
-                          onTouchEnd={() => stopHold('left')}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (clickSuppressRef.current.left) { clickSuppressRef.current.left = false; return; }
-                            pagePrev();
-                          }}
+                          onClick={(e) => { e.preventDefault(); pagePrev(); }}
                           aria-label="Önceki öneriler"
                           title="Önceki (←)"
                         >
@@ -324,16 +294,7 @@ export default function QuickAddCard({
                           type="button"
                           className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
                                      enabled:active:scale-95 enabled:hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          onMouseDown={(e) => { e.preventDefault(); startHold('right'); }}
-                          onMouseUp={() => stopHold('right')}
-                          onMouseLeave={() => stopHold('right')}
-                          onTouchStart={() => { startHold('right'); }}
-                          onTouchEnd={() => stopHold('right')}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (clickSuppressRef.current.right) { clickSuppressRef.current.right = false; return; }
-                            pageNext();
-                          }}
+                          onClick={(e) => { e.preventDefault(); pageNext(); }}
                           aria-label="Sonraki öneriler"
                           title="Sonraki (→)"
                         >
