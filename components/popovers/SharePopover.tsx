@@ -18,6 +18,24 @@ function SvgIcon(Icon: any, fallbackPath: string, props: React.SVGProps<SVGSVGEl
   return <img src={src as string} alt="" className={props.className} />;
 }
 
+// Masked icon helper for URL-based svgs so we can color via currentColor
+function MaskedIcon({ src, className }: { src: any; className?: string }) {
+  const url = typeof src === 'string' ? src : (src && (src.src || (src as any).default)) || '';
+  const style: React.CSSProperties = {
+    WebkitMaskImage: `url(${url})`,
+    maskImage: `url(${url})`,
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+    backgroundColor: 'currentColor',
+    display: 'inline-block',
+  };
+  return <span aria-hidden className={className} style={style} />;
+}
+
 export type SharePopoverProps = {
   /** Menü açık mı */
   open: boolean;
@@ -82,9 +100,11 @@ export default function SharePopover({
         onClick={() => onCopy(itemId)}
         role="menuitem"
       >
-        {copiedShareId === itemId
-          ? SvgIcon(ClipboardDoneIcon, '/assets/icons/clipboard_done.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })
-          : SvgIcon(ClipboardIcon, '/assets/icons/clipboard.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+        {copiedShareId === itemId ? (
+          <img src={(ClipboardDoneIcon as any).src || (ClipboardDoneIcon as any).default || '/assets/icons/clipboard_done.svg'} alt="" className="w-[18px] h-[18px]" />
+        ) : (
+          <img src={(ClipboardIcon as any).src || (ClipboardIcon as any).default || '/assets/icons/clipboard.svg'} alt="" className="w-[18px] h-[18px]" />
+        )}
         <span>{copiedShareId === itemId ? 'Kopyalandı!' : 'Kopyala'}</span>
       </button>
 
@@ -93,7 +113,7 @@ export default function SharePopover({
         onClick={() => { onShare(itemId, itemName); onClose(); }}
         role="menuitem"
       >
-        {SvgIcon(ShareIcon, '/assets/icons/share.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+        <img src={(ShareIcon as any).src || (ShareIcon as any).default || '/assets/icons/share.svg'} alt="" className="w-[18px] h-[18px]" />
         <span>Paylaş</span>
       </button>
     </div>

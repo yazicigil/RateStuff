@@ -19,6 +19,24 @@ function SvgIcon(Icon: any, fallbackPath: string, props: React.SVGProps<SVGSVGEl
   return <img src={src as string} alt="" className={props.className} />;
 }
 
+// Masked icon helper for URL-based svgs so we can color via currentColor
+function MaskedIcon({ src, className }: { src: any; className?: string }) {
+  const url = typeof src === 'string' ? src : (src && (src.src || (src as any).default)) || '';
+  const style: React.CSSProperties = {
+    WebkitMaskImage: `url(${url})`,
+    maskImage: `url(${url})`,
+    WebkitMaskRepeat: 'no-repeat',
+    maskRepeat: 'no-repeat',
+    WebkitMaskPosition: 'center',
+    maskPosition: 'center',
+    WebkitMaskSize: 'contain',
+    maskSize: 'contain',
+    backgroundColor: 'currentColor',
+    display: 'inline-block',
+  };
+  return <span aria-hidden className={className} style={style} />;
+}
+
 export type OptionsPopoverProps = {
   open: boolean;
   itemId: string;
@@ -82,7 +100,7 @@ export default function OptionsPopover({
             onClick={() => { onClose(); onDelete(itemId); }}
             role="menuitem"
           >
-            {SvgIcon(TrashIcon, '/assets/icons/trash.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+            <MaskedIcon src={TrashIcon} className="w-[18px] h-[18px] text-red-600 dark:text-red-400" />
             <span>Kaldır</span>
           </button>
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
@@ -100,12 +118,12 @@ export default function OptionsPopover({
       >
         {isSaved ? (
           <>
-            {SvgIcon(BookmarkIcon, '/assets/icons/bookmark.svg', { className: 'w-[18px] h-[18px] fill-current stroke-current' })}
+            <MaskedIcon src={BookmarkIcon} className="w-[18px] h-[18px]" />
             <span>Kaydedilenlerden Kaldır</span>
           </>
         ) : (
           <>
-            {SvgIcon(BookmarkIcon, '/assets/icons/bookmark.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+            <img src={(BookmarkIcon as any).src || (BookmarkIcon as any).default || '/assets/icons/bookmark.svg'} alt="" className="w-[18px] h-[18px] opacity-80 dark:opacity-90" />
             <span>Kaydet</span>
           </>
         )}
@@ -116,7 +134,7 @@ export default function OptionsPopover({
         onClick={() => { onClose(); onReport(itemId); }}
         role="menuitem"
       >
-        {SvgIcon(ReportIcon, '/assets/icons/report.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+        <MaskedIcon src={ReportIcon} className="w-[18px] h-[18px] text-red-600 dark:text-red-400" />
         <span>Report</span>
       </button>
 
@@ -126,7 +144,7 @@ export default function OptionsPopover({
           onClick={() => { onClose(); onShowInList(itemId); }}
           role="menuitem"
         >
-          {SvgIcon(ListIcon, '/assets/icons/list.svg', { className: 'w-[18px] h-[18px] stroke-current fill-none' })}
+          <img src={(ListIcon as any).src || (ListIcon as any).default || '/assets/icons/list.svg'} alt="" className="w-[18px] h-[18px]" />
           <span>Listede göster</span>
         </button>
       )}
