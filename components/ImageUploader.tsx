@@ -93,7 +93,7 @@ export default function ImageUploader({
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setErr('Sadece görsel yükleyebilirsiniz');
+      setErr('Sadece görsel yükleyin');
       return;
     }
     const max = maxSizeMB * 1024 * 1024;
@@ -123,10 +123,10 @@ export default function ImageUploader({
         if (isControlled) onChange?.(j.url);
         else setInnerUrl(j.url);
       } else {
-        setErr(j?.error || 'Yükleme başarısız');
+        setErr(j?.error || 'Yükleme hatası');
       }
     } catch (e: any) {
-      setErr(e?.message || 'Yükleme başarısız');
+      setErr(e?.message || 'Yükleme hatası');
     } finally {
       setUploading(false);
     }
@@ -143,65 +143,65 @@ export default function ImageUploader({
       {name ? <input type="hidden" name={name} value={url ?? ''} /> : null}
 
       <div className="relative">
-  <button
-    type="button"
-    onClick={() => fileRef.current?.click()}
-    className={`w-full h-32 md:h-40 rounded-xl border transition-colors px-3 py-3 text-left ${
-      dragOver
-        ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
-        : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
-    }`}
-    onDragEnter={(e) => { prevent(e); setDragOver(true); }}
-    onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
-    onDragLeave={(e) => { prevent(e); setDragOver(false); }}
-    onDrop={handleDrop}
-    aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
-  >
-    {dragOver && (
-      <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
-        Bırak, yükleyelim ✨
-      </div>
-    )}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className={`w-full h-32 md:h-40 rounded-xl border transition-colors px-3 py-3 text-left ${
+            dragOver
+              ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
+              : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
+          }`}
+          onDragEnter={(e) => { prevent(e); setDragOver(true); }}
+          onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
+          onDragLeave={(e) => { prevent(e); setDragOver(false); }}
+          onDrop={handleDrop}
+          aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
+        >
+          {/* Drag overlay hint */}
+          {dragOver && (
+            <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
+              Bırak, yükleyelim ✨
+            </div>
+          )}
 
-    <div className="flex items-center gap-3 sm:gap-4">
-      {/* PREVIEW: kutunun içinde, sola yaslı */}
-      <div className="shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
-        <img
-          src={url || '/default-item.svg'}
-          alt="preview"
-          className="w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* PREVIEW: kutunun içinde, sola yaslı – kare ve kutu yüksekliğiyle aynı */}
+            <div className="shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
+              <img
+                src={url || '/default-item.svg'}
+                alt="preview"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+
+            {/* Hints */}
+            <div className="min-w-0">
+              <div className="text-sm font-medium truncate">{uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}</div>
+              <div className="text-xs opacity-60">Maksimum boyut: {maxSizeMB}MB</div>
+              <div className="text-xs opacity-60 mt-1">
+                <span className="inline sm:hidden">Dosya seç</span>
+                <span className="hidden sm:inline">Dosya seç</span>
+                <span className="mx-1">veya</span>
+                <span>sürükleyip bırak</span>
+              </div>
+            </div>
+          </div>
+        </button>
+
+        {url && (
+          <button
+            type="button"
+            className="mt-2 px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
+            onClick={clearImage}
+            disabled={uploading}
+          >
+            Kaldır
+          </button>
+        )}
       </div>
 
-      {/* Hints */}
-      <div className="min-w-0">
-        <div className="text-sm font-medium truncate">
-          {uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}
-        </div>
-        <div className="text-xs opacity-60">Maksimum boyut: {maxSizeMB}MB</div>
-        <div className="text-xs opacity-60 mt-1">
-          <span className="inline sm:hidden">Dosya seç</span>
-          <span className="hidden sm:inline">Dosya seç</span>
-          <span className="mx-1">veya</span>
-          <span>sürükleyip bırak</span>
-        </div>
-      </div>
-    </div>
-  </button>
-
-  {url && (
-    <button
-      type="button"
-      className="mt-2 px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
-      onClick={clearImage}
-      disabled={uploading}
-    >
-      Kaldır
-    </button>
-  )}
-</div>
       {err && <div className="mt-2 text-xs text-red-600">{err}</div>}
 
       <input
