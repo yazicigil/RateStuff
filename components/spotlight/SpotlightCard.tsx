@@ -34,6 +34,7 @@ export type SpotlightItem = {
 function maskName(s?: string | null) {
   if (!s) return 'Anonim';
   const raw = String(s).trim();
+  if (!raw) return 'Anonim';
   const parts = raw.split(/\s+/).filter(Boolean);
   return parts.map((p) => p.charAt(0).toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
 }
