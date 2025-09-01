@@ -34,6 +34,7 @@ import SeoLD from "@/components/SeoLD";
 import QuickAddCard from '@/components/QuickAddCard';
 
 import Head from 'next/head';
+import SpotlightCard from '@/components/spotlight/SpotlightCard';
 import ScrollToTop from "@/components/ScrollToTop";
 
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -1428,592 +1429,62 @@ if (!already) {
           
           {/* Paylaşımdan gelen tek öğe (spotlight) */}
           {/* Sıralama başlığı — kartların hemen üstünde */}
-         
           {!showQuickAdd && sharedItem && (
-  <div
-    ref={spotlightRef}
-    className={`scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 ${(sharedItem as any)?.suspended ? 'opacity-60 grayscale' : ''}`}
-  >
-    {amAdmin && ((sharedItem as any).reportCount ?? 0) > 0 && (
-      <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
-        <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 18H3L12 3z" fill="currentColor"/></svg>
-        <span className="tabular-nums">{(sharedItem as any).reportCount}</span>
-      </div>
-    )}
-    {/* CLOSE (X) */}
-    <button
-      className="rs-pop absolute top-3 right-3 z-30 w-8 h-8 grid place-items-center rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/30 dark:text-red-300"
-      onClick={closeSpotlight}
-      aria-label="Spotlight kartını kapat"
-      title="Kapat"
-    >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    </button>
-    {/* LEFT TOP: Share + Options */}
-    <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
-      <div className="relative">
-        <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-          aria-label="share"
-          onClick={() => {
-  setOpenShare(openShare === sharedItem.id ? null : sharedItem.id);
-  setOpenMenu(null); // options'ı kapat
-}}
-        >
-          {/* share icon */}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </button>
-        {openShare === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-44 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => handleCopyShare(sharedItem.id)}
-            >
-              {copiedShareId === sharedItem.id ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="9" y="9" width="10" height="10" rx="2" stroke="currentColor" strokeWidth="2"/>
-                  <path d="M5 15V7a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="2"/>
-                </svg>
-              )}
-              <span>{copiedShareId === sharedItem.id ? 'Kopyalandı!' : 'Kopyala'}</span>
-            </button>
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-              onClick={() => { nativeShare(sharedItem.id, sharedItem.name); setOpenShare(null); }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8.5 7.5L12 4l3.5 3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 10h-.5A1.5 1.5 0 0 0 4 11.5v7A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 18.5 10H18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              <span>Paylaş</span>
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="relative">
-        <button
-          className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
-         onClick={() => {
-  setOpenMenu(openMenu === sharedItem.id ? null : sharedItem.id);
-  setOpenShare(null); // share'i kapat
-}}
-          aria-label="options"
-        >
-          ⋯
-        </button>
-        {openMenu === sharedItem.id && (
-          <div className="rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1">
-            {amAdmin && (
-              <>
-                <button
-                  className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                  onClick={() => { setOpenMenu(null); deleteItem(sharedItem.id); }}
-                >
-                  {/* Trash icon */}
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <rect x="5" y="7" width="14" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M9 10v4M15 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M3 7h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M10 3h4a1 1 0 0 1 1 1v3H9V4a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                  <span>Kaldır</span>
-                </button>
-                <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
-              </>
-            )}
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${
-                savedIds.has(sharedItem.id)
-                  ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
-              onClick={() => { setOpenMenu(null); toggleSave(sharedItem.id); }}
-            >
-              {savedIds.has(sharedItem.id) ? (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M8 3h8a2 2 0 0 1 2 2v16l-6-4-6 4V5a2 2 0 0 1 2-2Z" fill="currentColor"/>
-                  </svg>
-                  <span>Kaydedilenlerden Kaldır</span>
-                </>
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M6 4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-7-5-7 5V4z" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  <span>Kaydet</span>
-                </>
-              )}
-            </button>
-          {/* GRID/LIST ITEM MENUS */}
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-             onClick={() => { setOpenMenu(null); report(sharedItem.id); }}
-            >
-              {/* Flag icon */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M6 21V5a2 2 0 0 1 2-2h7l-1 4h6l-1 4h-6l1 4h-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span>Report</span>
-            </button>
-         
-            <button
-              className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              onClick={() => { setOpenMenu(null); showInList(sharedItem.id); }}
-            >
-              {/* List icon */}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <rect x="4" y="6" width="16" height="2" rx="1" fill="currentColor" />
-                <rect x="4" y="11" width="16" height="2" rx="1" fill="currentColor" />
-                <rect x="4" y="16" width="16" height="2" rx="1" fill="currentColor" />
-              </svg>
-              <span>Listede göster</span>
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-    {/* Spotlight navigation arrows */}
-    {(currentIndex >= 0) && (
-      <>
-        <button
-          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
-          onClick={() => openByDelta(-1)}
-          disabled={currentIndex <= 0}
-          aria-label="Önceki öğe"
-          title="Önceki (←)"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-        <button
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full border bg-white/80 dark:bg-gray-800/80 p-2 shadow disabled:opacity-40"
-          onClick={() => openByDelta(1)}
-          disabled={currentIndex === filteredItems.length - 1}
-          aria-label="Sonraki öğe"
-          title="Sonraki (→)"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </>
-    )}
-
-    {/* CONTENT (animated on left/right nav) */}
-    <div
-      key={animKey}
-      className={animArmed ? (navDir === 1 ? 'animate-slideInFromRight' : navDir === -1 ? 'animate-slideInFromLeft' : '') : ''}
-      style={{ willChange: 'transform' }}
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex flex-col items-center shrink-0 w-28">
-          <img
-            src={sharedItem.imageUrl || '/default-item.svg'}
-            alt={sharedItem.name || 'item'}
-            width={112}
-            height={112}
-            decoding="async"
-            loading="eager" 
-            // @ts-ignore - experimental
-            fetchPriority="high"
-            className="w-28 h-28 object-cover rounded-lg"
-            style={{ contentVisibility: 'auto' }}
-          />
-          {sharedItem.edited && (
-            <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
-          )}
-        </div>
-        <div className="flex-1 min-w-0">
-          {(sharedItem as any)?.suspended && (
-  <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
-    </svg>
-    Askıda — yalnızca sen görüyorsun
-  </div>
-)}
-          <h3
-            className="text-base md:text-lg font-semibold leading-snug pr-16 md:pr-24 title-wrap md-clamp2"
-            title={sharedItem.name}
-            lang="tr"
-          >
-            {sharedItem.name}
-          </h3>
-          <p className="text-sm opacity-80 mt-1 break-words">{sharedItem.description}</p>
-          {sharedItem.createdBy && (
-            <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-              {sharedItem.createdBy.avatarUrl ? (
-                <img
-                  src={sharedItem.createdBy.avatarUrl}
-                  alt={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-                  className="w-5 h-5 rounded-full object-cover"
-                  title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-                />
-              ) : (
-                <div
-                  className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]"
-                  title={((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u'}
-                >
-                  {( ((sharedItem.createdBy as any)?.verified ? sharedItem.createdBy.name : maskName(sharedItem.createdBy.name)) || 'u' ).charAt(0).toUpperCase()}
-                </div>
-              )}
-              <span>
-                {(sharedItem.createdBy as any)?.verified ? (sharedItem.createdBy.name || 'Anonim') : maskName(sharedItem.createdBy.name)}
-              </span>
-              {(sharedItem.createdBy as any).verified && (
-                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                  <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                  <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              )}
+            <div ref={spotlightRef}>
+              <SpotlightCard
+                item={sharedItem}
+                amAdmin={amAdmin}
+                myId={myId}
+                saved={savedIds.has(sharedItem.id)}
+                // popovers
+                openShareId={openShare}
+                setOpenShareId={setOpenShare}
+                openMenuId={openMenu}
+                setOpenMenuId={setOpenMenu}
+                copiedShareId={copiedShareId}
+                // actions
+                onClose={closeSpotlight}
+                onDelete={deleteItem}
+                onToggleSave={toggleSave}
+                onReport={report}
+                onShowInList={showInList}
+                onCopyShare={handleCopyShare}
+                onNativeShare={nativeShare}
+                // navigation
+                index={currentIndex}
+                count={filteredItems.length}
+                onPrev={() => openByDelta(-1)}
+                onNext={() => openByDelta(1)}
+                animKey={animKey}
+                animClass={
+                  navDir === -1
+                    ? animArmed ? 'animate-slideInFromLeft' : ''
+                    : navDir === 1
+                    ? animArmed ? 'animate-slideInFromRight' : ''
+                    : ''
+                }
+                // comments / editing
+                voteOnComment={voteOnComment}
+                updateComment={updateComment}
+                deleteComment={deleteComment}
+                expandedComments={expandedComments}
+                setExpandedComments={(fn) => setExpandedComments(prev => (typeof fn === 'function' ? fn(prev) : prev))}
+                truncatedComments={truncatedComments}
+                measureTruncation={measureTruncation}
+                commentTextRefs={commentTextRefs}
+                editingCommentId={editingCommentId}
+                setEditingCommentId={setEditingCommentId}
+                editingCommentText={editingCommentText}
+                setEditingCommentText={setEditingCommentText}
+                editingCommentItem={editingCommentItem}
+                setEditingCommentItem={setEditingCommentItem}
+                editingCommentRating={editingCommentRating}
+                setEditingCommentRating={setEditingCommentRating}
+                showCount={spotlightShowCount}
+                setShowCount={(fn) => setSpotlightShowCount(typeof fn === 'function' ? fn : (n) => n)}
+              />
             </div>
           )}
-          {/* Tek satır: Ortalama yıldızlar + adet (ufak pill) */}
-          <div className="mt-2 flex items-center gap-2 flex-wrap">
-            {/* Ortalama yıldızlar (display only) */}
-            <Stars rating={sharedItem.avgRating ?? sharedItem.avg ?? 0} readOnly />
-            <RatingPill avg={sharedItem.avgRating ?? sharedItem.avg} count={sharedItem.count} />
-          </div>
-        </div>
-      </div>
-
-    {sharedItem.tags?.length > 0 && (
-      <div className="mt-2 pt-2 border-t dark:border-gray-800">
-        <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
-          {sharedItem.tags.slice(0, 10).map((t) => (
-            <Tag key={t} label={t} className="ml-0 inline-flex" />
-          ))}
-        </div>
-      </div>
-    )}
-
-    {sharedItem.comments?.length > 0 && <div className="mt-3 border-t dark:border-gray-800" />}
-
-      {sharedItem.comments?.length > 0 && (
-  (() => {
-    const my = myId ? sharedItem.comments.find(c => c.user?.id === myId) : null;
-    const othersAll = sharedItem.comments.filter(c => c.id !== (my?.id || ''));
-    const displayOthers = othersAll.slice(0, spotlightShowCount);
-    const hasMoreOthers = othersAll.length > spotlightShowCount;
-
-    return (
-      <div className="pt-3 space-y-2 text-sm leading-relaxed">
-            {/* Başkalarının yorumları */}
-            {displayOthers.map((c) => {
-              const isEditing = editingCommentId === c.id;
-              return (
-                <div key={c.id}>
-                  <div className="flex items-start gap-2 justify-between">
-                    <div className="flex items-start gap-2 min-w-0 flex-1">
-                      {c.user?.avatarUrl ? (
-                        <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
-                          {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs opacity-70 flex items-center">
-                          {((c.user as any)?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name))}
-                          {(c.user as any)?.verified && (
-                            <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
-                              <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                              <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                          {c.rating ? (
-                            <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
-                          ) : null}
-                        </div>
-                        {(() => {
-                          const isOpen = expandedComments.has(c.id);
-                          const isTrunc = truncatedComments.has(c.id);
-                          const longish = (c.text || '').length >= 60;
-                          if (isOpen) {
-                            return (
-                              <div className="flex items-start gap-2 justify-between">
-                                <div className="flex-1">
-                                  <div className="whitespace-pre-wrap break-words">
-                                    “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                  </div>
-                                  {(isTrunc || longish) && (
-                                    <button
-                                      type="button"
-                                      className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                      onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
-                                    >daha az</button>
-                                  )}
-                                </div>
-                                {(c.user?.id === myId) ? (
-                                  <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5" aria-label="Yorum puanı">
-                                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-                                  </span>
-                                ) : (
-                                  <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
-                                    <button
-                                      type="button"
-                                      className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                      title="Upvote"
-                                      onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                                    >▲</button>
-                                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                                    <button
-                                      type="button"
-                                      className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                      title="Downvote"
-                                      onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                                    >▼</button>
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          }
-                          return (
-                            <div className="flex items-start gap-2 justify-between min-w-0">
-                              <div className="min-w-0 flex items-baseline gap-1 flex-1">
-                                <div
-                                  ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
-                                  className="truncate w-full"
-                                >
-                                  “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                                </div>
-                                {(isTrunc || longish) && (
-                                  <button
-                                    type="button"
-                                    className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                                    onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
-                                  >devamını gör</button>
-                                )}
-                              </div>
-                              {(c.user?.id === myId) ? (
-                                <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
-                                  <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                                  <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                                  <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-                                </span>
-                              ) : (
-                                <span className="shrink-0 inline-flex items-center gap-1 select-none">
-                                  <button
-                                    type="button"
-                                    className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                    title="Upvote"
-                                    onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                                  >▲</button>
-                                  <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                                  <button
-                                    type="button"
-                                    className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                                    title="Downvote"
-                                    onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                                  >▼</button>
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                  {/* başkalarında edit/sil yok */}
-                  {!isEditing && null}
-                </div>
-              );
-            })}
-        {hasMoreOthers && (
-          <div className="pt-1">
-            <button
-              type="button"
-              className="text-[12px] underline opacity-75 hover:opacity-100"
-              onClick={() => setSpotlightShowCount(n => n + 7)}
-            >
-              daha fazla gör
-            </button>
-          </div>
-        )}
-
-        {/* Senin yorumun – en altta, highlight’lı */}
-        {my && (() => {
-          const c = my;
-          const isEditing = editingCommentId === c.id;
-          return (
-            <div key={c.id} className="flex items-start gap-2 justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-900/20 p-2">
-              <div className="flex items-start gap-2 min-w-0 flex-1">
-                {c.user?.avatarUrl ? (
-                  <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
-                    {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs opacity-70 flex items-center">
-                    Senin yorumun
-                    {c.rating ? (
-                      <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{c.rating}★</span>
-                    ) : null}
-                  </div>
-
-                  {!isEditing ? (
-                    (() => {
-                      const isOpen = expandedComments.has(c.id);
-                      const isTrunc = truncatedComments.has(c.id);
-                      const longish = (c.text || '').length >= 60;
-
-                      if (isOpen) {
-                        return (
-                          <div className="w-full">
-                            <div className="whitespace-pre-wrap break-words">“{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}</div>
-                            {(isTrunc || longish) && (
-                              <button
-                                type="button"
-                                className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                                onClick={() => setExpandedComments(p => { const n=new Set(p); n.delete(c.id); return n; })}
-                              >daha az</button>
-                            )}
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="w-full flex items-baseline gap-1 min-w-0">
-                          <div
-                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
-                            className="truncate w-full"
-                          >
-                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                          </div>
-                          {(isTrunc || longish) && (
-                            <button
-                              type="button"
-                              className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments(p => new Set(p).add(c.id))}
-                            >devamını gör</button>
-                          )}
-                        </div>
-                      );
-                    })()
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs opacity-70">Puanın<span className="text-red-500">*</span>:</span>
-                        <Stars rating={editingCommentRating} onRatingChange={setEditingCommentRating} size="sm" />
-                      </div>
-                      <textarea
-                        className="w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700"
-                        rows={3}
-                        value={editingCommentText}
-                        onChange={(e) => setEditingCommentText(e.target.value)}
-                        autoFocus
-                      />
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="px-2.5 py-1.5 rounded-lg border text-xs bg-black text-white disabled:opacity-50"
-                          onClick={async () => {
-                            if (!editingCommentRating) return;
-                            const ok = await updateComment(c.id, editingCommentText, sharedItem!.id, editingCommentRating);
-                            if (ok) {
-                              setEditingCommentId(null);
-                              setEditingCommentItem(null);
-                              setEditingCommentText('');
-                              setEditingCommentRating(0);
-                            }
-                          }}
-                          disabled={!editingCommentRating}
-                        >Kaydet</button>
-                        <button
-                          className="px-2.5 py-1.5 rounded-lg border text-xs"
-                          onClick={() => {
-                            setEditingCommentId(null);
-                            setEditingCommentItem(null);
-                            setEditingCommentText('');
-                            setEditingCommentRating(0);
-                          }}
-                        >Vazgeç</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {!isEditing && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
-                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Upvote">▲</span>
-                    <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                    <span className="px-1 py-0.5 rounded pointer-events-none hover:bg-gray-100 dark:hover:bg-gray-800" title="Downvote">▼</span>
-                  </span>
-                  <button
-                    className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-                    title="Yorumu düzenle"
-                    onClick={() => {
-                      setEditingCommentId(c.id);
-                      setEditingCommentItem(null);
-                      setEditingCommentText(c.text);
-                      setEditingCommentRating(c.rating || 0);
-                    }}
-                  >
-                    {/* kalem */}
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/><path d="M14.06 4.94l3.75 3.75 1.44-1.44a2.12 2.12 0 0 0 0-3l-.75-.75a2.12 2.12 0 0 0-3 0l-1.44 1.44z" stroke="currentColor" strokeWidth="1.6" fill="currentColor"/></svg>
-                  </button>
-                  <button
-                    className={`p-1.5 rounded-md ${confirmDeleteId === c.id ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`}
-                    title={confirmDeleteId === c.id ? 'Silmek için tekrar tıkla' : 'Yorumu sil'}
-                    onClick={() => {
-                      if (confirmDeleteId !== c.id) {
-                        setConfirmDeleteId(c.id);
-                        return;
-                      }
-                      deleteComment(c.id);
-                    }}
-                  >
-                    {confirmDeleteId === c.id ? (
-                      // check icon
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    ) : (
-                      // trash icon
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })()}
-      </div>
-    );
-  })()
-)}
-    {/* Comment input for spotlight (tek yorum kuralı) */}
-    {!(sharedItem as any).myCommentId && (
-      <div className="mt-3 pt-3 border-t dark:border-gray-800">
-        <CommentBox
-          itemId={sharedItem.id}
-          onDone={async () => {
-            await load();
-            await refreshShared(sharedItem.id);
-          }}
-          initialRating={0}
-        />
-      </div>
-    )}
-      </div>
-    </div>
-  )}
           {/* MOBIL: Etiketler/Filtreler (spotlight altı) */}
 <div className="md:hidden space-y-4">
   <CollapsibleSection
