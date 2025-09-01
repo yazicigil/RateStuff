@@ -2202,6 +2202,9 @@ if (!already) {
 
 
           {/* KART IZGARASI */}
+            <h2 className="text-lg font-semibold mb-2">
+            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
+          </h2>
           <div className="grid md:grid-cols-2 gap-4 rs-grid">
             {/* + EKLE KARTI (her zaman en başta) */}
             <button
@@ -2240,9 +2243,7 @@ if (!already) {
                 <div className="text-sm font-medium">Ekle</div>
               </div>
             </button>
-             <h2 className="text-lg font-semibold mb-2">
-            {order === 'new' ? 'En yeni' : 'En yüksek puan'}
-          </h2>
+           
             {filteredItems.map((i) => {
               const isSaved = savedIds.has(i.id);
               return (
