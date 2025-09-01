@@ -234,6 +234,11 @@ export default function CommentBox({
                 {typeof myComment.rating === 'number' && myComment.rating > 0 ? (
                   <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{myComment.rating}★</span>
                 ) : null}
+                <span className="flex items-center gap-1.5 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
+                  <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
+                  <span className="tabular-nums leading-none select-none">{upVotes - downVotes}</span>
+                  <span aria-label={`Downvotes: ${downVotes}`} title={`Downvotes: ${downVotes}`} className="leading-none select-none">▼</span>
+                </span>
               </div>
               <div className="w-full flex items-start gap-2 min-w-0">
                 <div
@@ -245,11 +250,6 @@ export default function CommentBox({
                 >
                   “{myComment.text}” {myComment.edited && <em className="opacity-60">(düzenlendi)</em>}
                 </div>
-                <span className="flex items-center gap-2 text-[12px] text-emerald-900/80 dark:text-emerald-200/80 shrink-0">
-                  <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
-                  <span className="tabular-nums leading-none select-none">{upVotes - downVotes}</span>
-                  <span aria-label={`Downvotes: ${downVotes}`} title={`Downvotes: ${downVotes}`} className="leading-none select-none">▼</span>
-                </span>
               </div>
               {isTruncated && (
                 <button

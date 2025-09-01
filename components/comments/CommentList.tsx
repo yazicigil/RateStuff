@@ -168,7 +168,7 @@ export default function CommentList({
                         </svg>
                       )}
                       {typeof c.rating === 'number' && c.rating > 0 && (
-                        <span className="ml-1 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">
+                        <span className="ml-1 inline-block bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full">
                           {c.rating}★
                         </span>
                       )}

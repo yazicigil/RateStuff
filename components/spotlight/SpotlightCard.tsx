@@ -7,6 +7,7 @@ import RatingPill from '@/components/RatingPill';
 import SharePopover from '@/components/popovers/SharePopover';
 import OptionsPopover from '@/components/popovers/OptionsPopover';
 import CommentBox from '@/components/comments/CommentBox';
+import CommentList from '@/components/comments/CommentList';
 
 export type SpotlightItem = {
   id: string;
@@ -312,124 +313,14 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
         {!!(item.comments && item.comments.length) && <div className="mt-3 border-t dark:border-gray-800" />}
 
-        {/* Başkalarının yorumları */}
-        {(displayOthers || []).map((c) => {
-          const isOpen = expandedComments.has(c.id);
-          const isTrunc = truncatedComments.has(c.id);
-          const longish = (c.text || '').length >= 60;
-          const mine = c.user?.id === myId;
-
-          return (
-            <div key={c.id} className="pt-3">
-              <div className="flex items-start gap-2 justify-between">
-                <div className="flex items-start gap-2 min-w-0 flex-1">
-                  {c.user?.avatarUrl ? (
-                    <img src={c.user.avatarUrl} alt={maskName(c.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
-                      {(maskName(c.user?.name) || 'U')[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <div className="text-xs opacity-70 flex items-center">
-                      {c.user?.verified ? (c.user?.name || 'Anonim') : maskName(c.user?.name)}
-                      {c.user?.verified && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" className="inline-block ml-1 w-4 h-4 align-middle">
-                          <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                          <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                      {c.rating ? (
-                        <span className="ml-1 inline-block bg-gray-200 text-gray-800 text-xs px-2 py-0.5 rounded-full">{c.rating}★</span>
-                      ) : null}
-                    </div>
-
-                    {isOpen ? (
-                      <div className="flex items-start gap-2 justify-between">
-                        <div className="flex-1">
-                          <div className="whitespace-pre-wrap break-words">
-                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                          </div>
-                          {(isTrunc || longish) && (
-                            <button
-                              type="button"
-                              className="mt-1 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments((p) => { const n = new Set(p); n.delete(c.id); return n; })}
-                            >daha az</button>
-                          )}
-                        </div>
-                        {mine ? (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5" aria-label="Yorum puanı">
-                            <span className="px-1 py-0.5 rounded pointer-events-none">▲</span>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <span className="px-1 py-0.5 rounded pointer-events-none">▼</span>
-                          </span>
-                        ) : (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none mt-0.5">
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Upvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                            >▲</button>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Downvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                            >▼</button>
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex items-start gap-2 justify-between min-w-0">
-                        <div className="min-w-0 flex items-baseline gap-1 flex-1">
-                          <div
-                            ref={(el) => { commentTextRefs.current[c.id] = el; if (el) setTimeout(() => measureTruncation(c.id), 0); }}
-                            className="truncate w-full"
-                          >
-                            “{c.text}” {c.edited && <em className="opacity-60">(düzenlendi)</em>}
-                          </div>
-                          {(isTrunc || longish) && (
-                            <button
-                              type="button"
-                              className="shrink-0 text-[11px] underline opacity-70 hover:opacity-100"
-                              onClick={() => setExpandedComments((p) => new Set(p).add(c.id))}
-                            >devamını gör</button>
-                          )}
-                        </div>
-                        {mine ? (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none" aria-label="Yorum puanı">
-                            <span className="px-1 py-0.5 rounded pointer-events-none">▲</span>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <span className="px-1 py-0.5 rounded pointer-events-none">▼</span>
-                          </span>
-                        ) : (
-                          <span className="shrink-0 inline-flex items-center gap-1 select-none">
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === 1 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Upvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === 1 ? 0 : 1)}
-                            >▲</button>
-                            <span className="tabular-nums text-xs opacity-80">{typeof c.score === 'number' ? c.score : 0}</span>
-                            <button
-                              type="button"
-                              className={`px-1 py-0.5 rounded ${c.myVote === -1 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}`}
-                              title="Downvote"
-                              onClick={() => voteOnComment(c.id, c.myVote === -1 ? 0 : -1)}
-                            >▼</button>
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {/* Başkalarının yorumları (CommentList) */}
+        <CommentList
+          itemId={item.id}
+          myId={myId}
+          comments={displayOthers}
+          totalCount={(item.comments || []).length}
+          onVote={(commentId, next) => voteOnComment(commentId, next)}
+        />
 
         {hasMoreOthers && (
           <div className="pt-1">

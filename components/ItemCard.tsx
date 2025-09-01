@@ -234,6 +234,7 @@ export default function ItemCard({
             itemId={i.id}
             myId={myId || null}
             comments={otherComments.slice(0, 3)}
+            totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
             onVote={onVoteComment}
             title="Yorumlar"
             emptyText={otherComments.length === 0 ? 'Henüz yorum yok.' : undefined}
