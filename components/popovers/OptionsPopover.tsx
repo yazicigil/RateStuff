@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 
 import TrashIcon from '@/assets/icons/trash.svg';
 import BookmarkIcon from '@/assets/icons/bookmark.svg';
+import BookmarkSlashIcon from '@/assets/icons/bookmarkslash.svg';
 import ListIcon from '@/assets/icons/list.svg';
 import ReportIcon from '@/assets/icons/report.svg';
 
@@ -118,7 +119,7 @@ export default function OptionsPopover({
       >
         {isSaved ? (
           <>
-            <MaskedIcon src={BookmarkIcon} className="w-[18px] h-[18px]" />
+            <MaskedIcon src={BookmarkSlashIcon} className="w-[18px] h-[18px]" />
             <span>Kaydedilenlerden Kaldır</span>
           </>
         ) : (
