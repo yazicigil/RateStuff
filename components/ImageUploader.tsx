@@ -177,7 +177,7 @@ export default function ImageUploader({
           )}
         </div>
         {/* Actions */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap flex-1 min-w-0">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -196,7 +196,12 @@ export default function ImageUploader({
               Kaldır
             </button>
           )}
-          <span className="text-xs opacity-60 hidden md:inline whitespace-nowrap">veya sürükleyip bırak</span>
+          <span
+            className="text-xs opacity-60 basis-full sm:basis-auto order-2 sm:order-none leading-tight"
+          >
+            <span className="block sm:inline">veya</span>
+            <span className="block sm:inline">sürükleyip bırak</span>
+          </span>
         </div>
       </div>
 

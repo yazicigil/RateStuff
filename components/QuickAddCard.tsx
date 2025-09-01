@@ -54,6 +54,9 @@ export default function QuickAddCard({
   const [justAdded, setJustAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ---- rating pill text (same as CommentBox)
+  const ratingPillText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
+
   // ---- helpers
   function normalizeTag(s: string) {
     return s.trim().replace(/^#+/, '').toLowerCase();
@@ -198,6 +201,27 @@ export default function QuickAddCard({
           {/* Etiketler */}
           <div>
             <label className="block text-sm font-medium mb-1">Etiketler <span className="opacity-60">*</span></label>
+            {/* Öneriler: tek satır, yatay scroll */}
+            {showSug && suggestions.length > 0 && tags.length < 3 && (
+              <div className="mb-1 overflow-x-auto">
+                <div className="flex items-center gap-1 whitespace-nowrap pr-1">
+                  {suggestions.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
+                      onMouseDown={(ev) => ev.preventDefault()}
+                      onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
+                    >
+                      <span>#{t}</span>
+                      <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div
               className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${tags.some(containsBannedWord) ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
               onFocus={() => setShowSug(true)}
@@ -220,34 +244,26 @@ export default function QuickAddCard({
                 value={tagInput}
                 onChange={(e) => { setTagInput(e.target.value); setShowSug(true); if (error) setError(null); }}
                 onKeyDown={(e) => {
-                  if ((e.key === 'Enter' || e.key === ',') && tags.length < 3) { e.preventDefault(); addTagsFromInput(); setShowSug(false); }
-                  else if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); }
-                  else if (e.key === 'Escape') { setShowSug(false); }
+                  if ((e.key === 'Enter' || e.key === ',') && tags.length < 3) {
+                    e.preventDefault();
+                    addTagsFromInput();
+                    setShowSug(false);
+                  } else if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                  } else if (e.key === 'Escape') {
+                    setShowSug(false);
+                  } else if (e.key === 'Backspace' && tagInput.trim() === '' && tags.length > 0) {
+                    // boşken backspace ile son etiketi kaldır
+                    setTags((prev) => prev.slice(0, -1));
+                    // girişte bir şey olmadığından default backspace davranışı gereksiz
+                    e.preventDefault();
+                  }
                 }}
                 onFocus={() => setShowSug(true)}
                 placeholder={tags.length >= 3 ? 'En fazla 3 etiket' : (tags.length ? '' : 'kahve, ekipman')}
                 className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                 disabled={tags.length >= 3}
               />
-              {showSug && suggestions.length > 0 && tags.length < 3 && (
-                <div className="absolute left-0 top-[calc(100%+6px)] z-30 w-full max-h-52 overflow-auto rounded-xl border bg-white shadow-lg dark:bg-gray-900 dark:border-gray-800">
-                  <div className="p-2 text-[11px] opacity-60">{tagInput.trim() ? 'Öneriler' : 'Trend etiketler'}</div>
-                  <ul className="py-1">
-                    {suggestions.map((t) => (
-                      <li key={t}>
-                        <button
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-                          onMouseDown={(ev) => ev.preventDefault()}
-                          onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
-                        >
-                          #{t}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
             {tags.some(containsBannedWord) && <span className="text-xs text-red-600">Etiketlerde yasaklı kelime var.</span>}
           </div>
@@ -257,8 +273,8 @@ export default function QuickAddCard({
             <label className="text-sm font-medium">Puanın <span className="opacity-60">*</span>:</label>
             <Stars value={rating} onRate={(n) => setRating(n)} />
             {rating > 0 && (
-              <span className="text-xs opacity-70 ml-1">
-                {rating === 1 ? 'çok kötü' : rating === 2 ? 'kötü' : rating === 3 ? 'idare eder' : rating === 4 ? 'iyi' : 'harika'}
+              <span className="inline-block text-xs rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20">
+                {ratingPillText}
               </span>
             )}
           </div>
