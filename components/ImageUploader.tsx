@@ -93,7 +93,7 @@ export default function ImageUploader({
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setErr('Sadece görsel yükleyin');
+      setErr('Sadece görsel yükleyebilirsiniz');
       return;
     }
     const max = maxSizeMB * 1024 * 1024;
@@ -123,10 +123,10 @@ export default function ImageUploader({
         if (isControlled) onChange?.(j.url);
         else setInnerUrl(j.url);
       } else {
-        setErr(j?.error || 'Yükleme hatası');
+        setErr(j?.error || 'Yükleme başarısız');
       }
     } catch (e: any) {
-      setErr(e?.message || 'Yükleme hatası');
+      setErr(e?.message || 'Yükleme başarısız');
     } finally {
       setUploading(false);
     }
@@ -142,66 +142,72 @@ export default function ImageUploader({
       {/* Form submit’i için gizli input (name verilirse) */}
       {name ? <input type="hidden" name={name} value={url ?? ''} /> : null}
 
-      <div
-        className={`relative flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 rounded-xl p-3 border transition-colors min-w-0 ${dragOver ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20' : 'border-dashed border-gray-300 dark:border-gray-700'}`}
-        onDragEnter={(e) => { prevent(e); setDragOver(true); }}
-        onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
-        onDragLeave={(e) => { prevent(e); setDragOver(false); }}
-        onDrop={handleDrop}
-        aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
-      >
-        {/* Drag overlay hint */}
-        {dragOver && (
-          <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
-            Bırak, yükleyelim ✨
-          </div>
-        )}
-        {/* Preview */}
+      <div className="flex items-stretch gap-3 sm:gap-4">
+        {/* Preview (left, outside dashed area) */}
         <div className="shrink-0">
-          {url ? (
-            <img
-              src={url}
-              alt="preview"
-              className="w-24 h-24 md:w-28 md:h-28 rounded object-cover border dark:border-gray-700"
-              loading="lazy"
-              decoding="async"
-            />
-          ) : (
-            <img
-              src="/default-item.svg"
-              alt="default item"
-              className="w-24 h-24 md:w-28 md:h-28 rounded object-contain border dark:border-gray-700 opacity-70"
-              loading="lazy"
-              decoding="async"
-            />
-          )}
-        </div>
-        {/* Actions */}
-        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-0">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 shrink-0"
-            disabled={uploading}
-          >
-            {uploading ? 'Yükleniyor…' : 'Dosya seç'}
-          </button>
+          <div className="w-32 h-32 md:w-40 md:h-40 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-700 overflow-hidden grid place-items-center">
+            {url ? (
+              <img
+                src={url}
+                alt="preview"
+                className="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <img
+                src="/default-item.svg"
+                alt="default item"
+                className="w-14 h-14 opacity-60"
+                loading="lazy"
+                decoding="async"
+              />
+            )}
+          </div>
           {url && (
             <button
               type="button"
-              className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700 shrink-0"
+              className="mt-2 w-full px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
               onClick={clearImage}
               disabled={uploading}
             >
               Kaldır
             </button>
           )}
-          <span
-            className="text-xs opacity-60 basis-full sm:basis-auto order-2 sm:order-none leading-tight"
+        </div>
+
+        {/* Dashed dropzone (right) */}
+        <div className="relative flex-1 min-w-0">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className={`w-full h-32 md:h-40 rounded-xl border transition-colors grid place-items-center text-center px-4 ${
+              dragOver
+                ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
+                : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
+            }`}
+            onDragEnter={(e) => { prevent(e); setDragOver(true); }}
+            onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
+            onDragLeave={(e) => { prevent(e); setDragOver(false); }}
+            onDrop={handleDrop}
+            aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
           >
-            <span className="block sm:inline">veya</span>
-            <span className="block sm:inline">sürükleyip bırak</span>
-          </span>
+            {/* Drag overlay hint */}
+            {dragOver && (
+              <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
+                Bırak, yükleyelim ✨
+              </div>
+            )}
+            <div className="flex flex-col items-center">
+              <span className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 dark:border-gray-700 mb-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="opacity-70">
+                  <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm0 0l5.5 6.5 3.5-4 6 7.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <div className="text-sm font-medium">{uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}</div>
+              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB</div>
+            </div>
+          </button>
         </div>
       </div>
 

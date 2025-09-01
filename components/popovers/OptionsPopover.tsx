@@ -112,24 +112,36 @@ export default function OptionsPopover({
         className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ${
           isSaved
             ? 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white'
         }`}
         onClick={() => { onClose(); onToggleSave(itemId); }}
         role="menuitem"
       >
         {isSaved ? (
           <>
-            <MaskedIcon src={BookmarkSlashIcon} className="w-[18px] h-[18px]" />
+            <MaskedIcon src={BookmarkSlashIcon} className="w-[18px] h-[18px] text-gray-700 dark:text-white" />
             <span>Kaydedilenlerden Kaldır</span>
           </>
         ) : (
           <>
-            <img src={(BookmarkIcon as any).src || (BookmarkIcon as any).default || '/assets/icons/bookmark.svg'} alt="" className="w-[18px] h-[18px] opacity-80 dark:opacity-90" />
+            <img src={(BookmarkIcon as any).src || (BookmarkIcon as any).default || '/assets/icons/bookmark.svg'} alt="" className="w-[18px] h-[18px] opacity-80 dark:invert" />
             <span>Kaydet</span>
           </>
         )}
       </button>
 
+      {!hideShowInList && (
+        <button
+          className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-white"
+          onClick={() => { onClose(); onShowInList(itemId); }}
+          role="menuitem"
+        >
+          <img src={(ListIcon as any).src || (ListIcon as any).default || '/assets/icons/list.svg'} alt="" className="w-[18px] h-[18px] dark:invert" />
+          <span>Listede göster</span>
+        </button>
+      )}
+
+      <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
       <button
         className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
         onClick={() => { onClose(); onReport(itemId); }}
@@ -138,17 +150,6 @@ export default function OptionsPopover({
         <MaskedIcon src={ReportIcon} className="w-[18px] h-[18px] text-red-600 dark:text-red-400" />
         <span>Report</span>
       </button>
-
-      {!hideShowInList && (
-        <button
-          className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          onClick={() => { onClose(); onShowInList(itemId); }}
-          role="menuitem"
-        >
-          <img src={(ListIcon as any).src || (ListIcon as any).default || '/assets/icons/list.svg'} alt="" className="w-[18px] h-[18px]" />
-          <span>Listede göster</span>
-        </button>
-      )}
     </div>
   );
 }

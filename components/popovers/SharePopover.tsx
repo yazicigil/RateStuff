@@ -96,24 +96,24 @@ export default function SharePopover({
       aria-label="Paylaş menüsü"
     >
       <button
-        className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+        className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white"
         onClick={() => onCopy(itemId)}
         role="menuitem"
       >
         {copiedShareId === itemId ? (
-          <img src={(ClipboardDoneIcon as any).src || (ClipboardDoneIcon as any).default || '/assets/icons/clipboard_done.svg'} alt="" className="w-[18px] h-[18px]" />
+          <img src={(ClipboardDoneIcon as any).src || (ClipboardDoneIcon as any).default || '/assets/icons/clipboard_done.svg'} alt="" className="w-[18px] h-[18px] dark:invert" />
         ) : (
-          <img src={(ClipboardIcon as any).src || (ClipboardIcon as any).default || '/assets/icons/clipboard.svg'} alt="" className="w-[18px] h-[18px]" />
+          <img src={(ClipboardIcon as any).src || (ClipboardIcon as any).default || '/assets/icons/clipboard.svg'} alt="" className="w-[18px] h-[18px] dark:invert" />
         )}
         <span>{copiedShareId === itemId ? 'Kopyalandı!' : 'Kopyala'}</span>
       </button>
 
       <button
-        className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+        className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white"
         onClick={() => { onShare(itemId, itemName); onClose(); }}
         role="menuitem"
       >
-        <img src={(ShareIcon as any).src || (ShareIcon as any).default || '/assets/icons/share.svg'} alt="" className="w-[18px] h-[18px]" />
+        <img src={(ShareIcon as any).src || (ShareIcon as any).default || '/assets/icons/share.svg'} alt="" className="w-[18px] h-[18px] dark:invert" />
         <span>Paylaş</span>
       </button>
     </div>
