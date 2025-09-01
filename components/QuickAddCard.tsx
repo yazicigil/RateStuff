@@ -49,6 +49,8 @@ export default function QuickAddCard({
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [showSug, setShowSug] = useState(false);
+  const [sugPage, setSugPage] = useState(0); // öneri sayfalama (4'lü gruplar)
+  const [sugDir, setSugDir] = useState<'left' | 'right' | null>(null); // sayfa geçiş yönü (animasyon)
 
   const [submitting, setSubmitting] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -93,6 +95,13 @@ export default function QuickAddCard({
     for (const t of list) if (!dedup.includes(t)) dedup.push(t);
     return dedup.slice(0, 10);
   }, [pool, trending, tagInput, tags]);
+
+  useEffect(() => { setSugPage(0); }, [tagInput, tags, suggestions.length]);
+  useEffect(() => {
+    if (!sugDir) return;
+    const id = setTimeout(() => setSugDir(null), 240);
+    return () => clearTimeout(id);
+  }, [sugDir]);
 
   const blocked =
     containsBannedWord(name) ||
@@ -201,31 +210,65 @@ export default function QuickAddCard({
           {/* Etiketler */}
           <div>
             <label className="block text-sm font-medium mb-1">Etiketler <span className="opacity-60">*</span></label>
-            {/* Öneriler: tek satır, yatay scroll */}
-            {showSug && suggestions.length > 0 && tags.length < 3 && (
-              <div className="mb-1 overflow-x-auto">
-                <div className="flex items-center gap-1 whitespace-nowrap pr-1">
-                  {suggestions.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
-                      onMouseDown={(ev) => ev.preventDefault()}
-                      onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
-                    >
-                      <span>#{t}</span>
-                      <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
-                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </button>
-                  ))}
-                </div>
+            {/* Öneriler: her zaman görünür; 4'lü sayfalama, sağ-sol oklarla gezinme */}
+            {suggestions.length > 0 && tags.length < 3 && (
+              <div className="mb-1 flex items-center gap-1 select-none">
+                {(() => {
+                  const pageSize = 4;
+                  const pageCount = Math.max(1, Math.ceil(suggestions.length / pageSize));
+                  const start = (sugPage % pageCount + pageCount) % pageCount * pageSize;
+                  const visible = suggestions.slice(start, start + pageSize);
+                  const canPage = pageCount > 1;
+                  return (
+                    <>
+                      <button
+                        type="button"
+                        className="shrink-0 w-6 h-6 grid place-items-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setSugDir('left'); setSugPage((p) => p - 1); }}
+                        disabled={!canPage}
+                        aria-label="Önceki öneriler"
+                        title="Önceki"
+                      >
+                        ‹
+                      </button>
+                      <div className={`overflow-hidden`}>
+                        <div className={`flex items-center gap-1 ${sugDir === 'left' ? 'sug-anim-left' : ''} ${sugDir === 'right' ? 'sug-anim-right' : ''}`}>
+                          {visible.map((t) => (
+                            <button
+                              key={t}
+                              type="button"
+                              className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
+                              onMouseDown={(ev) => ev.preventDefault()}
+                              onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
+                            >
+                              <span>#{t}</span>
+                              <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
+                                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="shrink-0 w-6 h-6 grid place-items-center rounded border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => { setSugDir('right'); setSugPage((p) => p + 1); }}
+                        disabled={!canPage}
+                        aria-label="Sonraki öneriler"
+                        title="Sonraki"
+                      >
+                        ›
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             )}
             <div
               className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${tags.some(containsBannedWord) ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
               onFocus={() => setShowSug(true)}
-              onBlur={() => setTimeout(() => setShowSug(false), 120)}
             >
               {tags.map((t) => (
                 <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
@@ -312,6 +355,18 @@ export default function QuickAddCard({
           </button>
         </div>
       </form>
+      <style jsx>{`
+        @keyframes sugInLeft {
+          from { transform: translateX(-14px); opacity: .0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes sugInRight {
+          from { transform: translateX(14px); opacity: .0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        .sug-anim-left { animation: sugInLeft .22s ease; }
+        .sug-anim-right { animation: sugInRight .22s ease; }
+      `}</style>
     </div>
   );
 }
