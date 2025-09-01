@@ -437,48 +437,16 @@ export default function SpotlightCard(props: SpotlightCardProps) {
           </div>
         )}
 
-        {my && (
-          <div className="pt-3">
-            <div className="flex items-start gap-2 justify-between rounded-lg border border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/40 dark:bg-emerald-900/20 p-2">
-              <div className="flex items-start gap-2 min-w-0 flex-1">
-                {my.user?.avatarUrl ? (
-                  <img src={my.user.avatarUrl} alt={maskName(my.user?.name)} className="w-5 h-5 rounded-full object-cover mt-0.5" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px] mt-0.5">
-                    {(maskName(my.user?.name) || 'U')[0].toUpperCase()}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs opacity-70 flex items-center">
-                    Senin yorumun
-                    {my.rating ? (
-                      <span className="ml-2 inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{my.rating}★</span>
-                    ) : null}
-                  </div>
-                  <div className="w-full flex items-baseline gap-1 min-w-0">
-                    <div
-                      ref={(el) => { commentTextRefs.current[my.id] = el; if (el) setTimeout(() => measureTruncation(my.id), 0); }}
-                      className="truncate w-full"
-                    >
-                      “{my.text}” {my.edited && <em className="opacity-60">(düzenlendi)</em>}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        {!my && (
-          <div className="mt-3 pt-3 border-t dark:border-gray-800">
-            <CommentBox
-              itemId={item.id}
-              onDone={() => {
-                try { onCommentDone && onCommentDone(); } catch {}
-              }}
-              initialRating={0}
-            />
-          </div>
-        )}
+        <div className="mt-3 pt-3 border-t dark:border-gray-800">
+          <CommentBox
+            itemId={item.id}
+            myComment={my || undefined}
+            onDone={() => {
+              try { onCommentDone && onCommentDone(); } catch {}
+            }}
+            initialRating={0}
+          />
+        </div>
       </div>
     </div>
   );

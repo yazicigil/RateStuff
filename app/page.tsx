@@ -1617,7 +1617,6 @@ if (!already) {
 </div>
 </div>
 
-          {loading && <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800">Yükleniyor…</div>}
 
           {/* Filtre özet çubuğu + sonuç sayacı */}
       {(starBuckets.size > 0 || selectedTags.size > 0) && (
@@ -1680,6 +1679,11 @@ if (!already) {
             <h2 className="text-lg font-semibold mb-2">
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
           </h2>
+          {loading && (
+            <div className="rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 mb-2">
+              Yükleniyor…
+            </div>
+          )}
           <div className="grid md:grid-cols-2 gap-4 rs-grid">
             {/* + EKLE KARTI (her zaman en başta) */}
             <button
