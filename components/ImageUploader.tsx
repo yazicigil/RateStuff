@@ -142,75 +142,66 @@ export default function ImageUploader({
       {/* Form submit’i için gizli input (name verilirse) */}
       {name ? <input type="hidden" name={name} value={url ?? ''} /> : null}
 
-      <div className="flex items-stretch gap-3 sm:gap-4">
-        {/* Preview (left, outside dashed area) */}
-        <div className="shrink-0">
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-lg border bg-white dark:bg-gray-900 dark:border-gray-700 overflow-hidden grid place-items-center">
-            {url ? (
-              <img
-                src={url}
-                alt="preview"
-                className="w-full h-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <img
-                src="/default-item.svg"
-                alt="default item"
-                className="w-14 h-14 opacity-60"
-                loading="lazy"
-                decoding="async"
-              />
-            )}
-          </div>
-          {url && (
-            <button
-              type="button"
-              className="mt-2 w-full px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
-              onClick={clearImage}
-              disabled={uploading}
-            >
-              Kaldır
-            </button>
-          )}
-        </div>
+      <div className="relative">
+  <button
+    type="button"
+    onClick={() => fileRef.current?.click()}
+    className={`w-full h-32 md:h-40 rounded-xl border transition-colors px-3 py-3 text-left ${
+      dragOver
+        ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
+        : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
+    }`}
+    onDragEnter={(e) => { prevent(e); setDragOver(true); }}
+    onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
+    onDragLeave={(e) => { prevent(e); setDragOver(false); }}
+    onDrop={handleDrop}
+    aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
+  >
+    {dragOver && (
+      <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
+        Bırak, yükleyelim ✨
+      </div>
+    )}
 
-        {/* Dashed dropzone (right) */}
-        <div className="relative flex-1 min-w-0">
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className={`w-full h-32 md:h-40 rounded-xl border transition-colors grid place-items-center text-center px-4 ${
-              dragOver
-                ? 'border-emerald-400 ring-2 ring-emerald-300/60 bg-emerald-50/40 dark:bg-emerald-900/20'
-                : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50/40 dark:hover:bg-gray-800/30'
-            }`}
-            onDragEnter={(e) => { prevent(e); setDragOver(true); }}
-            onDragOver={(e) => { prevent(e); if (!dragOver) setDragOver(true); }}
-            onDragLeave={(e) => { prevent(e); setDragOver(false); }}
-            onDrop={handleDrop}
-            aria-label="Görseli buraya sürükleyip bırak veya dosya seç"
-          >
-            {/* Drag overlay hint */}
-            {dragOver && (
-              <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-xl text-sm font-medium bg-white/90 dark:bg-gray-900/90">
-                Bırak, yükleyelim ✨
-              </div>
-            )}
-            <div className="flex flex-col items-center">
-              <span className="inline-flex items-center justify-center w-9 h-9 rounded-full border border-gray-300 dark:border-gray-700 mb-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden className="opacity-70">
-                  <path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm0 0l5.5 6.5 3.5-4 6 7.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-              <div className="text-sm font-medium">{uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}</div>
-              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB</div>
-            </div>
-          </button>
-        </div>
+    <div className="flex items-center gap-3 sm:gap-4">
+      {/* PREVIEW: kutunun içinde, sola yaslı */}
+      <div className="shrink-0 w-32 h-32 md:w-40 md:h-40 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
+        <img
+          src={url || '/default-item.svg'}
+          alt="preview"
+          className="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
       </div>
 
+      {/* Hints */}
+      <div className="min-w-0">
+        <div className="text-sm font-medium truncate">
+          {uploading ? 'Yükleniyor…' : 'Görseli buraya bırakın veya dosya seçin'}
+        </div>
+        <div className="text-xs opacity-60">Maksimum boyut: {maxSizeMB}MB</div>
+        <div className="text-xs opacity-60 mt-1">
+          <span className="inline sm:hidden">Dosya seç</span>
+          <span className="hidden sm:inline">Dosya seç</span>
+          <span className="mx-1">veya</span>
+          <span>sürükleyip bırak</span>
+        </div>
+      </div>
+    </div>
+  </button>
+
+  {url && (
+    <button
+      type="button"
+      className="mt-2 px-3 py-2 rounded-lg border text-sm dark:border-gray-700"
+      onClick={clearImage}
+      disabled={uploading}
+    >
+      Kaldır
+    </button>
+  )}
+</div>
       {err && <div className="mt-2 text-xs text-red-600">{err}</div>}
 
       <input
