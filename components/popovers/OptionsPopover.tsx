@@ -89,7 +89,7 @@ export default function OptionsPopover({
   return (
     <div
       ref={ref}
-      className={`rs-pop absolute right-10 top-0 z-30 w-56 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 ${className || ''}`}
+      className={`rs-pop absolute right-0 top-full mt-2 z-[60] w-[min(16rem,calc(100vw-2rem))] max-h-[60vh] overflow-auto rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 ${className || ''}`}
       style={style}
       role="menu"
       aria-label="Seçenekler menüsü"

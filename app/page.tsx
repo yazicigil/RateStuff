@@ -1220,6 +1220,11 @@ if (!already) {
       .rs-mobile-edge iframe {
         max-width: 100% !important;
       }
+      /* Exempt floating popovers from the mobile width clamp */
+      .rs-mobile-edge .rs-pop,
+      .rs-mobile-edge .rs-pop * {
+        max-width: none !important;
+      }
     }
       /* Tablet (md) aralığında kartların aşırı daralmasını engelle */
 @media (min-width: 768px) and (max-width: 1024px) {
