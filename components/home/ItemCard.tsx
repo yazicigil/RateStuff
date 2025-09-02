@@ -232,6 +232,7 @@ export default function ItemCard({
           <CommentList
             itemId={i.id}
             myId={myId || null}
+            ownerId={(i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as any}
             comments={otherComments.slice(0, 3)}
             totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
             onVote={onVoteComment}
