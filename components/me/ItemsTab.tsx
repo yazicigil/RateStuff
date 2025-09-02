@@ -3,7 +3,6 @@ import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react'
 import Link from 'next/link';
 import ImageUploader from '@/components/ImageUploader';
 import RatingPill from '@/components/RatingPill';
-import Stars from '@/components/Stars';
 
 /** — Tipler — */
 export type MyItem = {
@@ -17,15 +16,6 @@ export type MyItem = {
   edited?: boolean;
   suspended?: boolean;
   tags?: string[];
-};
-export type MyComment = {
-  id: string;
-  itemId: string;
-  itemName: string;
-  itemImageUrl?: string | null;
-  text: string;
-  edited?: boolean;
-  rating?: number | null;
 };
 
 /** — Yardımcılar — */
@@ -57,7 +47,6 @@ function makeBannedRegex(list?: string[] | null) {
 /** — Public API — */
 export default function ItemsTab({
   items,
-  comments,
   trending,
   loading,
   notify,
@@ -65,7 +54,6 @@ export default function ItemsTab({
   bannedWords,       // opsiyonel yasaklı kelime listesi
 }: {
   items: MyItem[];
-  comments: MyComment[];
   trending: string[];
   loading: boolean;
   notify: (msg: string) => void;
@@ -143,20 +131,6 @@ export default function ItemsTab({
     }
   }
 
-  async function changeMyCommentRatingLocal(commentId: string, itemId: string, value: number) {
-    const r = await fetch(`/api/comments/${commentId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rating: value }),
-    });
-    const j = await r.json().catch(() => null);
-    if (!j?.ok) {
-      alert('Hata: ' + (j?.error || r.status));
-    } else {
-      notify('Puan güncellendi');
-      await onReload?.();
-    }
-  }
 
   return (
     <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
@@ -240,7 +214,6 @@ export default function ItemsTab({
               </Link>
 
               {filteredItems.map(it => {
-                const myC = comments.find(c => c.itemId === it.id) ?? null;
                 return (
                   <ItemEditor
                     key={it.id}
@@ -265,9 +238,6 @@ export default function ItemsTab({
                     // actions
                     onSave={() => { if (violatedItem) return; return saveItemLocal(it.id); }}
                     onDelete={deleteItemLocal}
-                    // rating-in-comment
-                    myComment={myC}
-                    onRateMyComment={changeMyCommentRatingLocal}
                     // validation
                     violatedItem={violatedItem}
                   />
@@ -294,9 +264,6 @@ function ItemEditor(props: {
   // actions
   onSave: () => void | Promise<void>;
   onDelete: (id: string) => void | Promise<void>;
-  // rating-in-comment
-  myComment: MyComment | null;
-  onRateMyComment: (commentId: string, itemId: string, value: number) => void | Promise<void>;
   // validation
   violatedItem: string | null;
 }) {
@@ -307,7 +274,6 @@ function ItemEditor(props: {
     editImg, setEditImg,
     editTags, setEditTags,
     onSave, onDelete,
-    myComment, onRateMyComment,
     violatedItem,
   } = props;
 
@@ -444,21 +410,6 @@ function ItemEditor(props: {
             </>
           )}
 
-          {/* (opsiyonel) yorumuma verdiğim puan */}
-          {myComment && typeof myComment.rating === 'number' && (
-            <div className="mt-3 text-xs opacity-70 flex items-center gap-2" aria-label="Puanım">
-              <div className="scale-90 origin-left">
-                <Stars
-                  key={`${myComment.id}:${myComment.rating ?? 0}`}
-                  value={myComment.rating ?? 0}
-                  rating={myComment.rating ?? 0}
-                  onRate={(n) => onRateMyComment(myComment.id, it.id, n)}
-                  onRatingChange={(n: number) => onRateMyComment(myComment.id, it.id, n)}
-                />
-              </div>
-              <span className="tabular-nums">{(myComment.rating ?? 0).toFixed(1)}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -500,7 +451,9 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void | Promise<vo
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
       ) : (
         // trash
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 3.75A2.25 2.25 0 0 1 11.25 1.5h1.5A2.25 2.25 0 0 1 15 3.75V4.5h3.75a.75.75 0 0 1 0 1.5h-.32l-1.07 13.393A3.75 3.75 0 0 1 13.62 23.25H10.38a3.75 3.75 0 0 1-3.74-3.857L5.57 6H5.25a.75.75 0 0 1 0-1.5H9V3.75Zm1.5.75h3V3.75a.75.75 0 0 0-.75-.75h-1.5a.75.75 0 0 0-.75.75V4.5Z"/><path d="M8.069 6l1.06 13.268a2.25 2.25 0 0 0 2.25 2.082h1.242a2.25 2.25 0 0 0 2.25-2.082L15.931 6H8.069Z"/></svg>
+       <svg width="4" height="4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7l1-2h4l1 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
       )}
       <span className="sr-only">{confirmDelete ? 'Silmeyi onayla' : 'Sil'}</span>
     </button>

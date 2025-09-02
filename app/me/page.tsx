@@ -13,6 +13,7 @@ import Stars from "@/components/Stars";
 import NotificationsDropdown from "@/components/notifications/Dropdown";
 import SavedTab from '@/components/me/SavedTab';
 import ItemsTab from '@/components/me/ItemsTab';
+import CommentsTab from '@/components/me/CommentsTab';
 
 
 // Banned words (supports either default export or named `bannedWords`)
@@ -661,7 +662,7 @@ const body: any = {
         {activeSection === 'items' && (
           <ItemsTab
             items={items}
-            comments={comments}
+            
             trending={trending}
             loading={loading}
             notify={notify}
@@ -671,40 +672,12 @@ const body: any = {
 
         {/* COMMENTS */}
         {activeSection === 'comments' && (
-          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="px-4 pb-4 pt-3 space-y-3">
-              {loading ? (
-                <Skeleton rows={4} />
-              ) : comments.length === 0 ? (
-                <Box>Yorumun yok.</Box>
-              ) : (
-                <>
-                  <div className="grid md:grid-cols-2 gap-3 items-stretch">
-                    {comments.slice(0, commentsLimit).map(c => (
-                        <CommentRow
-                          key={c.id}
-                          c={c}
-                          myRating={typeof c.rating === 'number' ? c.rating : null}
-                          onRate={(itemId, value) => changeMyCommentRating(c.id, itemId, value)}
-                          onSave={saveComment}
-                          onDelete={deleteComment}
-                        />
-                    ))}
-                  </div>
-                  {comments.length > commentsLimit && (
-                    <div className="pt-2">
-                      <button
-                        className="px-3 py-2 rounded-xl border text-sm dark:border-gray-700"
-                        onClick={() => setCommentsLimit(l => l + 5)}
-                      >
-                        Daha fazla göster
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </section>
+          <CommentsTab
+            comments={comments}
+            loading={loading}
+            notify={notify}
+            onReload={load}
+          />
         )}
       </main>
       {toast && (
