@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ItemCard from '@/components/home/ItemCard';
 import { useRouter } from 'next/navigation';
@@ -120,88 +120,6 @@ export default function ItemsTab({
     });
   }, [items, itemsSelected]);
 
-  // Etiket filtresi: tek satır, oklarla sayfalı scroll (sığdığı kadar)
-  const itemsTagsScrollRef = useRef<HTMLDivElement | null>(null);
-  const [canPrevItemsTags, setCanPrevItemsTags] = useState(false);
-  const [canNextItemsTags, setCanNextItemsTags] = useState(false);
-  const [animItemsTags, setAnimItemsTags] = useState('');
-
-  const syncItemsTagsEdges = useCallback(() => {
-    const el = itemsTagsScrollRef.current;
-    if (!el) return;
-    const atStart = el.scrollLeft <= 2;
-    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
-    setCanPrevItemsTags(!atStart);
-    setCanNextItemsTags(!atEnd);
-  }, []);
-
-  const handlePrevItemsTags = useCallback(() => {
-    const el = itemsTagsScrollRef.current;
-    if (!el) return;
-    setAnimItemsTags('rs-anim-left');
-    el.scrollBy({ left: -el.clientWidth, behavior: 'smooth' });
-    window.setTimeout(() => setAnimItemsTags(''), 240);
-  }, []);
-
-  const handleNextItemsTags = useCallback(() => {
-    const el = itemsTagsScrollRef.current;
-    if (!el) return;
-    setAnimItemsTags('rs-anim-right');
-    el.scrollBy({ left: el.clientWidth, behavior: 'smooth' });
-    window.setTimeout(() => setAnimItemsTags(''), 240);
-  }, []);
-
-  useEffect(() => {
-    syncItemsTagsEdges();
-    const el = itemsTagsScrollRef.current;
-    if (!el) return;
-    const on = () => syncItemsTagsEdges();
-    el.addEventListener('scroll', on, { passive: true });
-    const ro = new ResizeObserver(on);
-    ro.observe(el);
-    return () => { el.removeEventListener('scroll', on); ro.disconnect(); };
-  }, [syncItemsTagsEdges]);
-
-  // Ensure edge sync after layout/paint (initial render and whenever tags change)
-  useLayoutEffect(() => {
-    // run twice to wait for fonts/layout settling
-    const run = () => syncItemsTagsEdges();
-    const r1 = requestAnimationFrame(() => {
-      run();
-      const r2 = requestAnimationFrame(run);
-      // store r2 on window to cancel if needed
-      (run as any)._r2 = r2;
-    });
-    return () => {
-      cancelAnimationFrame(r1);
-      if ((run as any)._r2) cancelAnimationFrame((run as any)._r2);
-    };
-  }, [syncItemsTagsEdges, itemsTags.length, filteredItems.length]);
-
-  // When tab becomes visible again, resync edges (fix: arrows missing until navigating back)
-  useEffect(() => {
-    const onVis = () => {
-      if (!document.hidden) {
-        // small delay to allow layout
-        setTimeout(() => syncItemsTagsEdges(), 0);
-      }
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => document.removeEventListener('visibilitychange', onVis);
-  }, [syncItemsTagsEdges]);
-
-  // Also observe intersection to resync when the strip actually enters the viewport
-  useEffect(() => {
-    const el = itemsTagsScrollRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver((entries) => {
-      if (entries[0]?.isIntersecting) {
-        requestAnimationFrame(() => syncItemsTagsEdges());
-      }
-    }, { threshold: 0.01 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [syncItemsTagsEdges]);
 
   // Items with "add" card and row-major two-column split for desktop
   const itemsWithAdd = useMemo(() => [{ __add: true } as any, ...filteredItems], [filteredItems]);
@@ -234,97 +152,23 @@ export default function ItemsTab({
           </div>
         ) : (
           <>
-            {/* Tag filter */}
+            {/* Tag filter — QuickAddCard tarzı: 4'lük sayfa, oklar, + ikonlu chip, dots */}
             {itemsTags.length > 0 && (
-              <div className="mb-3 relative">
-                {/* Sol/sağ oklar */}
-                {canPrevItemsTags && (
-                  <button
-                    type="button"
-                    className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
-                    onClick={handlePrevItemsTags}
-                    aria-label="Önceki"
-                  >
-                    <span className="sr-only">Önceki</span>
-                    ‹
-                  </button>
-                )}
-                {canNextItemsTags && (
-                  <button
-                    type="button"
-                    className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
-                    onClick={handleNextItemsTags}
-                    aria-label="Sonraki"
-                  >
-                    <span className="sr-only">Sonraki</span>
-                    ›
-                  </button>
-                )}
-
-                {/* Hepsi + taglar — tek satır, sayfalı scroll */}
-                <div
-                  ref={itemsTagsScrollRef}
-                  className="overflow-x-auto no-scrollbar scroll-smooth px-12"
-                  onScroll={syncItemsTagsEdges}
-                >
-                  <div className={`flex items-center gap-2 rs-sug-strip ${animItemsTags}`}>
-                    <button
-                      className={`px-2 py-1 rounded-full border text-xs shrink-0 snap-start ${
-                        itemsSelected.size === 0
-                          ? 'bg-black text-white border-black'
-                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                      }`}
-                      onClick={() => setItemsSelected(new Set())}
-                      onDoubleClick={() => setItemsSelected(new Set())}
-                    >
-                      Hepsi
-                    </button>
-                    {itemsTags.map((t) => {
-                      const isSel = itemsSelected.has(t);
-                      const isTrend = trending.includes(t);
-                      const base = 'px-2 py-1 rounded-full border text-xs shrink-0 snap-start';
-                      const className = isSel
-                        ? (isTrend
-                            ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
-                            : `${base} bg-black text-white border-black`)
-                        : (isTrend
-                            ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                            : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-                      return (
-                        <button
-                          key={t}
-                          className={className}
-                          onClick={() =>
-                            setItemsSelected((prev) => {
-                              const next = new Set(prev);
-                              if (next.has(t)) next.delete(t);
-                              else next.add(t);
-                              return next;
-                            })
-                          }
-                          onDoubleClick={() => setItemsSelected(new Set())}
-                          title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                        >
-                          #{t}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <style jsx>{`
-                  .no-scrollbar::-webkit-scrollbar { display: none; }
-                  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .95; z-index: 10; pointer-events: auto; }
-                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
-                  .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
-                  .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
-                  .rs-sug-strip { scroll-snap-type: x mandatory; }
-                  @keyframes sugInLeft { from { opacity:.0; transform: translateX(-14px); } to { opacity:1; transform: translateX(0); } }
-                  @keyframes sugInRight{ from { opacity:.0; transform: translateX(14px); }  to { opacity:1; transform: translateX(0); } }
-                  .rs-anim-left { animation: sugInLeft .24s ease both; }
-                  .rs-anim-right{ animation: sugInRight .24s ease both; }
-                `}</style>
+              <div className="mb-3">
+                <TagPager
+                  tags={itemsTags}
+                  trending={trending}
+                  selected={itemsSelected}
+                  onToggle={(t) =>
+                    setItemsSelected((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(t)) next.delete(t);
+                      else next.add(t);
+                      return next;
+                    })
+                  }
+                  onClear={() => setItemsSelected(new Set())}
+                />
               </div>
             )}
 
@@ -541,6 +385,220 @@ function Skeleton({ rows = 3 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="h-16 rounded-xl border dark:border-gray-800 bg-gray-100 dark:bg-gray-800/50 animate-pulse" />
       ))}
+    </div>
+  );
+}
+
+function TagPager({
+  tags,
+  trending,
+  selected,
+  onToggle,
+  onClear,
+}: {
+  tags: string[];
+  trending: string[];
+  selected: Set<string>;
+  onToggle: (t: string) => void;
+  onClear: () => void;
+}) {
+  const [page, setPage] = React.useState(0);
+  const [pages, setPages] = React.useState<string[][]>([]);
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+  const measureRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Build pages to fit as many chips as the container can hold (responsive)
+  const rebuildPages = React.useCallback(() => {
+    const root = containerRef.current;
+    const meas = measureRef.current;
+    if (!root || !meas) return;
+
+    const contentWidth = root.clientWidth; // width of row content area (inside px-12)
+
+    // Create measurables: Hepsi + each tag as a chip with exact classes
+    meas.innerHTML = '';
+    // Hepsi button
+    const hepsi = document.createElement('button');
+    hepsi.className = 'px-2 py-1 rounded-full border text-xs shrink-0';
+    hepsi.textContent = 'Hepsi';
+    meas.appendChild(hepsi);
+    const hepsiW = hepsi.getBoundingClientRect().width;
+
+    // gap between items is gap-2 => 0.5rem (~8px). Read from computed style for safety
+    const gapPx = 8; // tailwind gap-2
+
+    // Available width for chips = contentWidth - (left+right padding used by px-12) - Hepsi - a single gap between Hepsi and first chip
+    // We are inside a row with padding already applied externally. Here, we measure inside containerRef which is the row (no extra padding), so only subtract Hepsi and first gap.
+    const avail = Math.max(0, contentWidth - hepsiW - gapPx);
+
+    // Measure each tag chip width
+    const chipWidths: number[] = [];
+    const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
+      const base = 'inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs shrink-0';
+      const className = isSel
+        ? isTrend
+          ? `${base} bg-violet-600 text-white border-violet-600`
+          : `${base} bg-black text-white border-black`
+        : isTrend
+          ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
+          : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
+      const btn = document.createElement('button');
+      btn.className = className;
+      btn.innerHTML = `<span>#${label}</span><span style="font-size: .875rem; line-height: 1;">＋</span>`;
+      return btn;
+    };
+
+    tags.forEach((t) => {
+      const isSel = selected.has(t);
+      const isTrend = trending.includes(t);
+      const el = makeChip(t, isTrend, isSel);
+      meas.appendChild(el);
+      const w = el.getBoundingClientRect().width;
+      chipWidths.push(w);
+    });
+
+    // Pack chips into pages based on available width and gap
+    const newPages: string[][] = [];
+    let i = 0;
+    while (i < tags.length) {
+      let used = 0; // width used by chips on this page
+      const pageTags: string[] = [];
+      while (i < tags.length) {
+        const w = chipWidths[i];
+        const nextUsed = pageTags.length === 0 ? w : used + gapPx + w;
+        if (nextUsed <= avail) {
+          used = nextUsed;
+          pageTags.push(tags[i]);
+          i++;
+        } else {
+          break;
+        }
+      }
+      if (pageTags.length === 0) {
+        // Fallback to avoid infinite loop on extremely narrow widths
+        pageTags.push(tags[i]);
+        i++;
+      }
+      newPages.push(pageTags);
+    }
+
+    setPages(newPages);
+    // Reset page to 0 if current page overflows
+    setPage((p) => (p >= newPages.length ? 0 : p));
+  }, [tags, trending, selected]);
+
+  // Rebuild on mount and when deps/size change
+  React.useEffect(() => {
+    rebuildPages();
+    const ro = new ResizeObserver(() => rebuildPages());
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [rebuildPages]);
+
+  // If selected tags are not visible in current page, jump to the first page
+  React.useEffect(() => {
+    if (!pages.length) return;
+    const visible = new Set(pages[page] || []);
+    const anyVisible = Array.from(selected).some((t) => visible.has(t));
+    if (!anyVisible && selected.size > 0) setPage(0);
+  }, [pages, page, selected]);
+
+  const canPrev = page > 0;
+  const canNext = page < Math.max(0, pages.length - 1);
+  const visibleTags = pages[page] || tags.slice(0, 1);
+
+  return (
+    <div className="relative">
+      {/* hidden measurer */}
+      <div ref={measureRef} style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', zIndex: -1 }} />
+
+      {/* Oklar */}
+      {canPrev && (
+        <button
+          type="button"
+          className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
+          onClick={() => setPage((p) => Math.max(0, p - 1))}
+          aria-label="Önceki"
+        >
+          ‹
+        </button>
+      )}
+      {canNext && (
+        <button
+          type="button"
+          className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
+          onClick={() => setPage((p) => Math.min(pages.length - 1, p + 1))}
+          aria-label="Sonraki"
+        >
+          ›
+        </button>
+      )}
+
+      {/* İçerik (Hepsi + görünür chipler) */}
+      <div className="px-12" ref={containerRef}>
+        <div className="flex items-center gap-2 overflow-hidden">
+          <button
+            className={`px-2 py-1 rounded-full border text-xs shrink-0 ${
+              selected.size === 0
+                ? 'bg-black text-white border-black'
+                : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+            }`}
+            onClick={onClear}
+            onDoubleClick={onClear}
+          >
+            Hepsi
+          </button>
+
+          {/* sayfa animasyonu */}
+          <div key={`page-${page}`} className="flex items-center gap-2 animate-[sugIn_.22s_ease_both]">
+            {visibleTags.map((t) => {
+              const isSel = selected.has(t);
+              const isTrend = trending.includes(t);
+              const base = 'inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs shrink-0';
+              const className = isSel
+                ? isTrend
+                  ? `${base} bg-violet-600 text-white border-violet-600`
+                  : `${base} bg-black text-white border-black`
+                : isTrend
+                  ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                  : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
+              return (
+                <button
+                  key={t}
+                  className={className}
+                  onClick={() => onToggle(t)}
+                  title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                >
+                  <span>#{t}</span>
+                  <span aria-hidden className="text-sm leading-none">＋</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* page dots */}
+        {pages.length > 1 && (
+          <div className="mt-1 flex items-center justify-center gap-1">
+            {pages.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Sayfa ${i + 1}`}
+                onClick={() => setPage(i)}
+                className={`w-1.5 h-1.5 rounded-full ${i === page ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-700'}`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <style jsx>{`
+        @keyframes sugIn { from { opacity:.0; transform: translateX(8px); } to { opacity:1; transform: translateX(0); } }
+        .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .95; z-index: 10; pointer-events: auto; }
+        .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
+        .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
+        .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
+      `}</style>
     </div>
   );
 }
