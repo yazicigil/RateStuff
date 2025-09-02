@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import ItemCard from '@/components/home/ItemCard';
 import { useRouter } from 'next/navigation';
@@ -127,6 +127,47 @@ export default function ItemsTab({
     return () => { el.removeEventListener('scroll', on); ro.disconnect(); };
   }, [syncItemsTagsEdges]);
 
+  // Ensure edge sync after layout/paint (initial render and whenever tags change)
+  useLayoutEffect(() => {
+    // run twice to wait for fonts/layout settling
+    const run = () => syncItemsTagsEdges();
+    const r1 = requestAnimationFrame(() => {
+      run();
+      const r2 = requestAnimationFrame(run);
+      // store r2 on window to cancel if needed
+      (run as any)._r2 = r2;
+    });
+    return () => {
+      cancelAnimationFrame(r1);
+      if ((run as any)._r2) cancelAnimationFrame((run as any)._r2);
+    };
+  }, [syncItemsTagsEdges, itemsTags.length, filteredItems.length]);
+
+  // When tab becomes visible again, resync edges (fix: arrows missing until navigating back)
+  useEffect(() => {
+    const onVis = () => {
+      if (!document.hidden) {
+        // small delay to allow layout
+        setTimeout(() => syncItemsTagsEdges(), 0);
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [syncItemsTagsEdges]);
+
+  // Also observe intersection to resync when the strip actually enters the viewport
+  useEffect(() => {
+    const el = itemsTagsScrollRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0]?.isIntersecting) {
+        requestAnimationFrame(() => syncItemsTagsEdges());
+      }
+    }, { threshold: 0.01 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [syncItemsTagsEdges]);
+
   // Items with "add" card and row-major two-column split for desktop
   const itemsWithAdd = useMemo(() => [{ __add: true } as any, ...filteredItems], [filteredItems]);
   const [colLeft, colRight] = useMemo(() => {
@@ -188,7 +229,7 @@ export default function ItemsTab({
                 {/* Hepsi + taglar — tek satır, sayfalı scroll */}
                 <div
                   ref={itemsTagsScrollRef}
-                  className="overflow-x-auto no-scrollbar scroll-smooth px-8"
+                  className="overflow-x-auto no-scrollbar scroll-smooth px-12"
                   onScroll={syncItemsTagsEdges}
                 >
                   <div className={`flex items-center gap-2 rs-sug-strip ${animItemsTags}`}>
@@ -239,8 +280,8 @@ export default function ItemsTab({
                 <style jsx>{`
                   .no-scrollbar::-webkit-scrollbar { display: none; }
                   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .9; }
-                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .9); --rs-bd: #374151; --rs-fg: #e5e7eb; }
+                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .95; z-index: 10; pointer-events: auto; }
+                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
                   .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
                   .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
                   .rs-sug-strip { scroll-snap-type: x mandatory; }
