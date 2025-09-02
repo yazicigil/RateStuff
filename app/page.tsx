@@ -521,6 +521,21 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     return filtered;
   }, [items, starBuckets, selectedTags, order]);
 
+  // Row-major iki sütuna böl (1: sol, 2: sağ, 3: sol, 4: sağ ...)
+  const itemsWithAdd = useMemo(() => {
+    if (loading) return filteredItems;
+    // "+ Ekle" kartını ilk sıraya yerleştir
+    return [{ __add: true } as any, ...filteredItems];
+  }, [filteredItems, loading]);
+  const [colLeft, colRight] = useMemo(() => {
+    const L: any[] = [];
+    const R: any[] = [];
+    itemsWithAdd.forEach((it, idx) => {
+      (idx % 2 === 0 ? L : R).push(it);
+    });
+    return [L, R];
+  }, [itemsWithAdd]);
+
   // Spotlight gezinme: aktif index ve yardımcılar
   const currentIndex = useMemo(
     () => (sharedItem ? filteredItems.findIndex(i => i.id === sharedItem.id) : -1),
@@ -1125,6 +1140,7 @@ if (!already) {
         break-inside: avoid;
         -webkit-column-break-inside: avoid;
         page-break-inside: avoid;
+        margin-bottom: 1.25rem; /* kartlar arası dikey boşluğu artır (20px ~ mb-5) */
       }
       `}
       </style>
@@ -1403,66 +1419,131 @@ if (!already) {
               />
             </div>
           )}
-          {/* + EKLE KARTI (her zaman en başta, sütunlar dışında tam genişlik) */}
-          {!loading && (
-            <button
-              type="button"
-              onClick={() => {
-                // varsa açık spotlight'ı kapat
-                setSharedItem(null);
-                setSharedId(null);
-                setShowQuickAdd(true);
-              }}
-              className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px] mb-4"
-              aria-label="Yeni öğe ekle"
-              title="Yeni öğe ekle"
-            >
-              <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                <div className="text-4xl leading-none">+</div>
-                <div className="text-sm font-medium">Ekle</div>
-              </div>
-            </button>
-          )}
 
-          {/* 2 sütun bağımsız akış (masonry) */}
-          <div className="rs-masonry columns-1 md:columns-2">
-            {filteredItems.map((i) => (
-              <div
-                key={i.id}
-                ref={(el) => { itemRefs.current[i.id] = el; }}
-                className={`rs-masonry-item ${highlightId === i.id ? 'rs-flash rounded-2xl' : ''}`}
-              >
-                <ItemCard
-                  item={i}
-                  saved={savedIds.has(i.id)}
-                  amAdmin={amAdmin}
-                  myId={myId}
-                  onVoteComment={voteOnComment}
-                  onItemChanged={load}
-                  openShareId={openShare?.scope === 'list' ? openShare.id : null}
-                  setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
-                  openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
-                  setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
-                  copiedShareId={copiedShareId}
-                  onOpenSpotlight={openSpotlight}
-                  onToggleSave={toggleSave}
-                  onReport={report}
-                  onDelete={deleteItem}
-                  onCopyShare={handleCopyShare}
-                  onNativeShare={nativeShare}
-                  selectedTags={selectedTags}
-                  onToggleTag={(t) => {
-                    setSelectedTags(prev => {
-                      const next = new Set(prev);
-                      if (next.has(t)) next.delete(t); else next.add(t);
-                      return next;
-                    });
-                  }}
-                  onResetTags={() => setSelectedTags(new Set())}
-                  onShowInList={showInList}
-                />
-              </div>
-            ))}
+          {/* 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Sol sütun */}
+            <div className="flex flex-col gap-5">
+              {colLeft.map((it: any, ix: number) => (
+                it?.__add ? (
+                  <button
+                    key={`add-left-${ix}`}
+                    type="button"
+                    onClick={() => {
+                      // varsa açık spotlight'ı kapat
+                      setSharedItem(null);
+                      setSharedId(null);
+                      setShowQuickAdd(true);
+                    }}
+                    className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
+                    aria-label="Yeni öğe ekle"
+                    title="Yeni öğe ekle"
+                  >
+                    <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                      <div className="text-4xl leading-none">+</div>
+                      <div className="text-sm font-medium">Ekle</div>
+                    </div>
+                  </button>
+                ) : (
+                  <div
+                    key={it.id}
+                    ref={(el) => { itemRefs.current[it.id] = el; }}
+                    className={highlightId === it.id ? 'rs-flash rounded-2xl' : ''}
+                  >
+                    <ItemCard
+                      item={it}
+                      saved={savedIds.has(it.id)}
+                      amAdmin={amAdmin}
+                      myId={myId}
+                      onVoteComment={voteOnComment}
+                      onItemChanged={load}
+                      openShareId={openShare?.scope === 'list' ? openShare.id : null}
+                      setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+                      openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+                      setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
+                      copiedShareId={copiedShareId}
+                      onOpenSpotlight={openSpotlight}
+                      onToggleSave={toggleSave}
+                      onReport={report}
+                      onDelete={deleteItem}
+                      onCopyShare={handleCopyShare}
+                      onNativeShare={nativeShare}
+                      selectedTags={selectedTags}
+                      onToggleTag={(t) => {
+                        setSelectedTags(prev => {
+                          const next = new Set(prev);
+                          if (next.has(t)) next.delete(t); else next.add(t);
+                          return next;
+                        });
+                      }}
+                      onResetTags={() => setSelectedTags(new Set())}
+                      onShowInList={showInList}
+                    />
+                  </div>
+                )
+              ))}
+            </div>
+            {/* Sağ sütun */}
+            <div className="flex flex-col gap-5">
+              {colRight.map((it: any, ix: number) => (
+                it?.__add ? (
+                  <button
+                    key={`add-right-${ix}`}
+                    type="button"
+                    onClick={() => {
+                      // varsa açık spotlight'ı kapat
+                      setSharedItem(null);
+                      setSharedId(null);
+                      setShowQuickAdd(true);
+                    }}
+                    className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
+                    aria-label="Yeni öğe ekle"
+                    title="Yeni öğe ekle"
+                  >
+                    <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                      <div className="text-4xl leading-none">+</div>
+                      <div className="text-sm font-medium">Ekle</div>
+                    </div>
+                  </button>
+                ) : (
+                  <div
+                    key={it.id}
+                    ref={(el) => { itemRefs.current[it.id] = el; }}
+                    className={highlightId === it.id ? 'rs-flash rounded-2xl' : ''}
+                  >
+                    <ItemCard
+                      item={it}
+                      saved={savedIds.has(it.id)}
+                      amAdmin={amAdmin}
+                      myId={myId}
+                      onVoteComment={voteOnComment}
+                      onItemChanged={load}
+                      openShareId={openShare?.scope === 'list' ? openShare.id : null}
+                      setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+                      openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+                      setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
+                      copiedShareId={copiedShareId}
+                      onOpenSpotlight={openSpotlight}
+                      onToggleSave={toggleSave}
+                      onReport={report}
+                      onDelete={deleteItem}
+                      onCopyShare={handleCopyShare}
+                      onNativeShare={nativeShare}
+                      selectedTags={selectedTags}
+                      onToggleTag={(t) => {
+                        setSelectedTags(prev => {
+                          const next = new Set(prev);
+                          if (next.has(t)) next.delete(t); else next.add(t);
+                          return next;
+                        });
+                      }}
+                      onResetTags={() => setSelectedTags(new Set())}
+                      onShowInList={showInList}
+                    />
+                  </div>
+                )
+              ))}
+            </div>
           </div>
           <ReportModal
             open={reportOpen}
