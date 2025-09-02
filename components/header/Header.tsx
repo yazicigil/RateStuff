@@ -65,7 +65,7 @@ function ProfileDropdown({ me }: { me: Me }) {
         )}
         <span className="hidden sm:flex items-center gap-1">
           {me.name ?? 'Ben'}
-          {me.isAdmin && <img src="/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
+          {me.isAdmin && <img src="/public/verified.svg" alt="verified" className="w-3.5 h-3.5 opacity-90" />}
         </span>
         <svg width="12" height="12" viewBox="0 0 24 24" className="opacity-70"><polyline fill="none" stroke="currentColor" strokeWidth="2" points="6 9 12 15 18 9" /></svg>
       </button>
