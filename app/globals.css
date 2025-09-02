@@ -15,7 +15,8 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 
 
 /* --- Lottie color fix: force vector fills/strokes to follow currentColor --- */
-.lottie-colorize svg * {
+.lottie-colorize svg *,
+svg.lottie-colorize * {
   fill: currentColor !important;
   stroke: currentColor !important;
 }
