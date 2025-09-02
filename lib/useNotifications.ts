@@ -19,6 +19,7 @@ export function useNotifications(initialStatus: "all" | "unread" = "all", pageSi
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [total, setTotal] = useState(0);
   const [status, setStatus] = useState<"all" | "unread">(initialStatus);
 
   const load = useCallback(async (reset = false) => {
@@ -33,6 +34,7 @@ export function useNotifications(initialStatus: "all" | "unread" = "all", pageSi
     if (j.ok) {
       const nextCur = j.nextCursor as string | null;
       setUnreadCount(j.unreadCount ?? 0);
+      setTotal(j.total ?? 0);
       setHasMore(Boolean(nextCur));
       setCursor(nextCur);
       setItems((prev) => (reset ? j.items : [...prev, ...j.items]));
@@ -62,5 +64,5 @@ export function useNotifications(initialStatus: "all" | "unread" = "all", pageSi
   }, []);
 
   useEffect(() => { load(true); }, [status]); // status değişince reset
-  return { items, unreadCount, hasMore, loading, load, refresh, markRead, markAll, status, setStatus };
+  return { items, unreadCount, total, hasMore, loading, load, refresh, markRead, markAll, status, setStatus };
 }

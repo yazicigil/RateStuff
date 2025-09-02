@@ -14,7 +14,7 @@ import dotsAnim from "@/assets/animations/dots-loader.json";
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
-  const { items, unreadCount, hasMore, loading, load, refresh, markRead, markAll, status, setStatus } =
+  const { items, unreadCount, total, hasMore, loading, load, refresh, markRead, markAll, status, setStatus } =
     useNotifications("all", 5);
   const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
 
@@ -133,7 +133,7 @@ export default function NotificationsDropdown() {
   }, [open]);
 
   // show TOTAL notifications (including not-yet-loaded)
-  const totalCount = Number((status as any)?.total ?? 0);
+  const totalCount = Number(total ?? 0);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -170,6 +170,7 @@ export default function NotificationsDropdown() {
               animationData={bellSolidAnim}
               autoplay={false}
               loop={false}
+              renderer="svg"
               style={{ width: 20, height: 20 }}
               className="bell-lottie"
               rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
@@ -180,6 +181,7 @@ export default function NotificationsDropdown() {
               animationData={bellAnim}
               autoplay={false}
               loop={false}
+              renderer="svg"
               style={{ width: 20, height: 20 }}
               className="bell-lottie"
               rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
@@ -211,10 +213,15 @@ export default function NotificationsDropdown() {
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
                   <span className="text-[11px] text-neutral-500 dark:text-neutral-400">({totalCount})</span>
+                  {unreadCount > 0 && (
+                    <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     aria-label="Yenile"
-                    className="ml-0.5 p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    className="p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
                     onClick={() => {
                       const r = refreshRef.current;
                       r?.stop();
@@ -229,15 +236,11 @@ export default function NotificationsDropdown() {
                       animationData={refreshAnim}
                       autoplay={false}
                       loop={false}
+                      renderer="svg"
                       style={{ width: 18, height: 18 }}
                       className="refresh-lottie refresh-lottie--muted"
                     />
                   </button>
-                  {unreadCount > 0 && (
-                    <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
                   <button
                     className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800"
                     onClick={async () => {
@@ -347,6 +350,7 @@ export default function NotificationsDropdown() {
                     animationData={dotsAnim}
                     autoplay={false}
                     loop={true}
+                    renderer="svg"
                     style={{ width: 32, height: 12 }}
                     className="dots-lottie"
                   />
@@ -360,25 +364,29 @@ export default function NotificationsDropdown() {
               )}
             </div>
             <style jsx>{`
-              /* Bell icons: ensure visibility in dark mode by filtering the actual SVG */
+              /* Bell icons: ensure visibility in dark mode by filtering the actual SVG or canvas */
               .bell-lottie { opacity: 0.95; }
-              .bell-lottie :global(svg) { display: block; }
-              :global(.dark) .bell-lottie :global(svg) {
+              .bell-lottie :global(svg), .bell-lottie :global(canvas) { display: block; }
+              :global(.dark) .bell-lottie :global(svg),
+              :global(.dark) .bell-lottie :global(canvas) {
                 filter: invert(1) brightness(1.25) contrast(1.05);
               }
 
               .refresh-lottie { opacity: 0.9; }
-              .refresh-lottie :global(svg) { filter: grayscale(1) brightness(0.75); }
-              :global(.dark) .refresh-lottie :global(svg) { filter: grayscale(1) brightness(1.1); }
+              .refresh-lottie :global(svg), .refresh-lottie :global(canvas) { filter: grayscale(1) brightness(0.75); }
+              :global(.dark) .refresh-lottie :global(svg),
+              :global(.dark) .refresh-lottie :global(canvas) { filter: grayscale(1) brightness(1.1); }
 
               /* More muted refresh icon when placed in title */
               .refresh-lottie--muted { opacity: 0.7; }
-              .refresh-lottie--muted :global(svg) { filter: grayscale(1) brightness(0.6); }
-              :global(.dark) .refresh-lottie--muted :global(svg) { filter: grayscale(1) brightness(0.95); }
+              .refresh-lottie--muted :global(svg), .refresh-lottie--muted :global(canvas) { filter: grayscale(1) brightness(0.6); }
+              :global(.dark) .refresh-lottie--muted :global(svg),
+              :global(.dark) .refresh-lottie--muted :global(canvas) { filter: grayscale(1) brightness(0.95); }
 
               .dots-lottie { opacity: 0.9; }
-              .dots-lottie :global(svg) { filter: grayscale(1) brightness(0.55); }
-              :global(.dark) .dots-lottie :global(svg) { filter: grayscale(1) brightness(1.2); opacity: 0.95; }
+              .dots-lottie :global(svg), .dots-lottie :global(canvas) { filter: grayscale(1) brightness(0.55); }
+              :global(.dark) .dots-lottie :global(svg),
+              :global(.dark) .dots-lottie :global(canvas) { filter: grayscale(1) brightness(1.2); opacity: 0.95; }
             `}</style>
           </div>,
           document.body

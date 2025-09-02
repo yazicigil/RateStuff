@@ -44,11 +44,15 @@ export async function GET(req: Request) {
   const unreadCount = await prisma.notification.count({
     where: { userId: me.id, readAt: null },
   });
+  const total = await prisma.notification.count({
+    where: { userId: me.id },
+  });
 
   return NextResponse.json({
     ok: true,
     items: page,
     nextCursor,
     unreadCount,
+    total,
   });
 }
