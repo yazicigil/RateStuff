@@ -27,6 +27,10 @@ type QuickAddCardProps = {
   /** yerleşim: “compact” = tek kolon; “rich” = md+ iki kolon */
   variant?: 'compact' | 'rich';
 
+  /** kullanıcı oturum durumu ve giriş linki */
+  signedIn?: boolean;
+  signInHref?: string;
+
   /**
    * Form açılırken otomatik doldurma.
    * - name: arama çubuğu metni
@@ -49,6 +53,8 @@ export default function QuickAddCard({
   trending = [],
   allTags = [],
   variant = 'rich',
+  signedIn = true,
+  signInHref = '/signin',
   prefill,
 }: QuickAddCardProps & {
   prefill?: { name?: string; tags?: string[]; rating?: number };
@@ -429,11 +435,27 @@ export default function QuickAddCard({
 
         {/* CTA (tek satır, sağ-alt) */}
         <div className={`md:col-span-2 flex items-center justify-end ${variant === 'compact' ? 'pt-1' : 'pt-2'}`}>
+          {!signedIn && (
+            <a
+              href={signInHref}
+              className="mr-auto text-xs md:text-sm underline text-emerald-700 hover:opacity-90 dark:text-emerald-300"
+              title="Giriş yap"
+            >
+              Eklemek için giriş yap
+            </a>
+          )}
           {error && <span className="mr-3 text-sm text-red-600">{error}</span>}
           <button
             type="submit"
-            disabled={submitting || !valid}
-            title={blocked ? 'Yasaklı kelime içeriyor' : undefined}
+            disabled={submitting || !valid || !signedIn}
+            title={
+              !signedIn
+                ? 'Eklemek için giriş yapmalısın'
+                : blocked
+                ? 'Yasaklı kelime içeriyor'
+                : undefined
+            }
+            aria-disabled={submitting || !valid || !signedIn}
             className="px-4 py-2.5 rounded-xl text-sm md:text-base bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-400"
           >
             {submitting ? (

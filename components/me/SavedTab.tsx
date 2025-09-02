@@ -5,6 +5,20 @@ import RatingPill from '@/components/common/RatingPill';
 import Image from 'next/image';
 import bookmarkSlash from '@/assets/icons/bookmarkslash.svg';
 
+/** İsim maskeleme: "Burak Topaç" -> "B**** T****" */
+function maskName(full?: string | null) {
+  if (!full) return '';
+  return full
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => {
+      const chars = Array.from(part); // unicode güvenli
+      if (chars.length <= 1) return part; // tek harfse bırak
+      return chars[0] + '*'.repeat(chars.length - 1);
+    })
+    .join(' ');
+}
+
 /** — Tipler (MePage ile birebir uyum) — */
 export type MyItem = {
   id: string;
@@ -302,18 +316,25 @@ export default function SavedTab({
                       {(() => {
                         const by = it.createdBy || null;
                         const avatar = by?.avatarUrl ?? it.createdByAvatarUrl ?? null;
-                        const displayName = by?.maskedName ?? by?.name ?? it.createdByName ?? null;
-                        if (!avatar && !displayName) return null;
+                        const rawName = by?.maskedName ?? by?.name ?? it.createdByName ?? null;
+                        const email = (by as any)?.email ?? null;
+
+                        // Admin hesap maskeleme dışı
+                        const isAdmin = email === 'ratestuffnet@gmail.com';
+
+                        const shownName = isAdmin ? (rawName || 'Anonim') : maskName(rawName);
+
+                        if (!avatar && !shownName) return null;
                         return (
                           <div className="mt-2 flex items-center gap-2 text-xs">
                             <span className="opacity-60">Ekleyen:</span>
                             <span className="inline-flex items-center gap-2">
                               <span className="inline-grid place-items-center w-5 h-5 rounded-full overflow-hidden bg-gray-200 text-[10px] font-semibold">
                                 {avatar ? (
-                                  <img src={avatar} alt={displayName ?? 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+                                  <img src={avatar} alt={shownName || 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 ) : (
                                   <span className="text-white">
-                                    {(displayName || 'A')
+                                    {(rawName || 'A')
                                       .split(' ')
                                       .filter(Boolean)
                                       .slice(0, 2)
@@ -322,7 +343,15 @@ export default function SavedTab({
                                   </span>
                                 )}
                               </span>
-                              <span className="truncate max-w-[12rem]">{displayName || 'Anonim'}</span>
+                                                          <span className="truncate max-w-[12rem] inline-flex items-center">
+                                <span className="truncate">{shownName || 'Anonim'}</span>
+                                {isAdmin && (
+                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                                    <circle cx="12" cy="12" r="9" fill="#3B82F6"></circle>
+                                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                                  </svg>
+                                )}
+                              </span>
                             </span>
                           </div>
                         );

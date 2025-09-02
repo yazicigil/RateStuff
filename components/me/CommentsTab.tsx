@@ -166,6 +166,10 @@ function CommentRow({
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(c.text);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const maxLen = 240;
+  const counterId = React.useMemo(() => `mycm-counter-${c.id}`, [c.id]);
+
   const confirmDelTimerRef = useRef<number | null>(null);
   useEffect(() => {
     if (confirmDelete) {
@@ -215,11 +219,25 @@ function CommentRow({
                 value={val}
                 onChange={(e) => setVal(e.target.value)}
                 rows={3}
+                maxLength={maxLen}
+                aria-describedby={counterId}
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.style.height = '0px';
+                  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+                }}
                 className={`w-full border rounded-lg p-2 text-sm dark:bg-gray-800 dark:border-gray-700 ${violatedComment ? 'border-red-500 focus:ring-red-500' : ''}`}
               />
               {violatedComment && (
-                <div className="mt-1 text-xs text-red-600">Bu metin yasaklı kelime içeriyor: “{violatedComment}”. Lütfen düzelt.</div>
+                <div className="mt-1 text-xs text-red-600">
+                  Bu metin yasaklı kelime içeriyor: “{violatedComment}”. Lütfen düzelt.
+                </div>
               )}
+              <div className="mt-1 flex items-center justify-end">
+                <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
+                  {val.length}/{maxLen}
+                </span>
+              </div>
               <div className="flex gap-2">
                 <button
                   className={`px-3 py-1.5 rounded-lg border text-sm ${violatedComment ? 'opacity-50 cursor-not-allowed bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300' : 'bg-black text-white'}`}

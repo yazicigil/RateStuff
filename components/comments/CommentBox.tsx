@@ -195,7 +195,19 @@ export default function CommentBox({
                 }}
                 disabled={busy}
                 rows={2}
+                maxLength={maxLen}
+                aria-describedby={counterId}
               />
+              {hasBanned && (
+                <p className="mt-1 text-xs text-red-600 dark:text-red-500">
+                  Yorumunuzda yasaklı kelime bulunuyor.
+                </p>
+              )}
+              <div className="mt-1 flex items-center justify-end">
+                <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
+                  {text.length}/{maxLen}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <button

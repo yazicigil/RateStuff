@@ -23,6 +23,9 @@ export interface CommentListProps {
   itemId: string;
   myId?: string | null;
 
+  /** Gönderiyi paylaşan kullanıcının id'si (owner/publisher) */
+  ownerId?: string | null;
+
   // Gösterilecek yorumlar
   comments: SpotComment[];
 
@@ -58,6 +61,7 @@ function maskName(name?: string | null, verified?: boolean) {
 export default function CommentList({
   itemId,
   myId = null,
+  ownerId = null,
   comments,
   onVote,
   expandedComments,
@@ -96,14 +100,49 @@ export default function CommentList({
   const ordered = useMemo(() => {
     const mine: SpotComment[] = [];
     const others: SpotComment[] = [];
+    let ownerComment: SpotComment | null = null;
+
     for (const c of comments) {
-      if (c?.user?.id && myId && c.user.id === myId) mine.push(c);
-      else others.push(c);
+      const uid = c?.user?.id || null;
+
+      // Önce gönderi sahibinin yorumunu yakala (tek bir yorum varsayıyoruz)
+      if (!ownerComment && ownerId && uid === ownerId) {
+        ownerComment = c;
+        continue;
+      }
+
+      // Kendi yorumlarını ayır
+      if (uid && myId && uid === myId) {
+        mine.push(c);
+      } else {
+        others.push(c);
+      }
     }
-    // basitçe score'a göre azalan (yüksek puanlı önce), score yoksa stabil
-    others.sort((a,b) => (b.score ?? 0) - (a.score ?? 0));
-    return hideMyComment ? others : [...mine, ...others];
-  }, [comments, myId, hideMyComment]);
+
+    // Score'a göre azalan sırala (yüksek puanlı önce), score yoksa stabil
+    others.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
+    const list: SpotComment[] = [];
+
+    // Gönderi sahibi kendisi görüntülüyorsa: kendi yorumunu görmesin
+    const isOwnerViewingOwnPost = Boolean(ownerId && myId && ownerId === myId);
+
+    if (ownerComment && !isOwnerViewingOwnPost) {
+      list.push(ownerComment);
+    }
+
+    // Kendi yorumlarım (isteğe bağlı göster)
+    if (!hideMyComment) {
+      // Eğer owner benimse ve ownerComment benim listemden çıkarıldıysa, mine zaten kendi yorumlarım;
+      // hideMyComment=false ise bunları ekleyelim
+      list.push(...mine);
+    }
+
+    // Kalanlar
+    list.push(...others);
+
+    return list;
+  }, [comments, myId, ownerId, hideMyComment]);
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
@@ -130,7 +169,9 @@ export default function CommentList({
       </div>
 
       {ordered.length === 0 ? (
-        <div className="text-sm opacity-70">{emptyText}</div>
+        <div className="text-sm opacity-70">
+          {comments.some(c => c.user?.id === myId) ? "Henüz başka yorum yok." : emptyText}
+        </div>
       ) : (
         <ul>
           {ordered.map((c) => {
@@ -172,9 +213,6 @@ export default function CommentList({
                           {c.rating}★
                         </span>
                       )}
-                      {c.edited && (
-                        <em className="opacity-60"> (düzenlendi)</em>
-                      )}
                     </div>
 
                     {/* metin */}
@@ -190,6 +228,9 @@ export default function CommentList({
                       }
                     >
                       {c.text}
+                      {c.edited && (
+                        <em className="ml-1 text-xs opacity-60 align-baseline"> (düzenlendi)</em>
+                      )}
                     </div>
 
                     {/* “devamını gör” */}
