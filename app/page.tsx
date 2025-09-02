@@ -1397,7 +1397,7 @@ if (!already) {
               />
             </div>
           )}
-          <div className="grid md:grid-cols-2 gap-4 rs-grid">
+          <div className="flex flex-col gap-4">
             {/* + EKLE KARTI (her zaman en başta) */}
             {!loading && (
               <button
