@@ -12,6 +12,7 @@ import RatingPill from '@/components/RatingPill';
 import Stars from "@/components/Stars";
 import NotificationsDropdown from "@/components/notifications/Dropdown";
 import SavedTab from '@/components/me/SavedTab';
+import ItemsTab from '@/components/me/ItemsTab';
 
 
 // Banned words (supports either default export or named `bannedWords`)
@@ -658,121 +659,13 @@ const body: any = {
 
         {/* ITEMS */}
         {activeSection === 'items' && (
-          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="px-4 pb-4 pt-3 space-y-3">
-              {loading ? (
-                <Skeleton rows={4} />
-              ) : items.length === 0 ? (
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Link
-                    href="/#quick-add"
-                    prefetch={false}
-                    className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-56 sm:h-64 transition"
-                    aria-label="Hızlı ekle"
-                    title="Hızlı ekle"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-5xl leading-none">+</span>
-                      <span className="text-base font-medium">Ekle</span>
-                    </div>
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  {/* Etiket filtresi (sadece items içinde etiket varsa görünür) */}
-                  {itemsTags.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      <button
-                        className={`px-2 py-1 rounded-full border text-xs ${
-                          itemsSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                        }`}
-                        onClick={() => setItemsSelected(new Set())}
-                        onDoubleClick={() => setItemsSelected(new Set())}
-                      >
-                        Hepsi
-                      </button>
-                      {itemsTags.map(t => {
-                        const isSel = itemsSelected.has(t);
-                        const isTrend = trending.includes(t);
-                        const base = 'px-2 py-1 rounded-full border text-xs';
-                        const className = isSel
-                          ? (isTrend
-                              ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
-                              : `${base} bg-black text-white border-black`)
-                          : (isTrend
-                              ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                              : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-                        return (
-                          <button
-                            key={t}
-                            className={className}
-                            onClick={() =>
-                              setItemsSelected(prev => {
-                                const next = new Set(prev);
-                                if (next.has(t)) next.delete(t); else next.add(t);
-                                return next;
-                              })
-                            }
-                            onDoubleClick={() => setItemsSelected(new Set())}
-                            title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                          >
-                            #{t}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {/* Quick Add card (always first) */}
-                    <Link
-                      href="/#quick-add"
-                      prefetch={false}
-                      className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-44 transition"
-                      aria-label="Hızlı ekle"
-                      title="Hızlı ekle"
-                    >
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-4xl leading-none">+</span>
-                        <span className="text-sm font-medium">Ekle</span>
-                      </div>
-                    </Link>
-
-                    {filteredItems.map(it => {
-                      const myC = comments.find(c => c.itemId === it.id) ?? null;
-                      return (
-                        <ItemEditor
-                          key={it.id}
-                          it={it}
-                          editingItem={editingItem}
-                          setEditingItem={(id) => {
-                            setEditingItem(id);
-                            if (id === it.id) {
-                              setEditDesc(it.description || "");
-                              setEditImg(it.imageUrl ?? null);
-                              setEditTags((it.tags || []).join(", "));
-                            }
-                          }}
-                          editDesc={editDesc}
-                          setEditDesc={setEditDesc}
-                          editImg={editImg}
-                          setEditImg={setEditImg}
-                          
-                          onSave={() => saveItem(it.id)}
-                          onDelete={deleteItem}
-                          myComment={myC}
-                          onRateMyComment={(commentId, itemId, value) => changeMyCommentRating(commentId, itemId, value)}
-                          trending={trending}
-                          editTags={editTags}
-setEditTags={setEditTags}
-                        />
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          </section>
+          <ItemsTab
+            items={items}
+            comments={comments}
+            trending={trending}
+            loading={loading}
+            notify={notify}
+          />
         )}
 
 
