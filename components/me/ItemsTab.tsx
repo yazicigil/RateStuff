@@ -419,7 +419,7 @@ function TagPager({
     meas.innerHTML = '';
     // Hepsi button
     const hepsi = document.createElement('button');
-    hepsi.className = 'px-2 py-1 rounded-full border text-xs shrink-0';
+    hepsi.className = 'h-8 px-3 py-0 rounded-full border text-xs shrink-0';
     hepsi.textContent = 'Hepsi';
     meas.appendChild(hepsi);
     const hepsiW = hepsi.getBoundingClientRect().width;
@@ -434,7 +434,7 @@ function TagPager({
     // Measure each tag chip width
     const chipWidths: number[] = [];
     const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
-      const base = 'inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs shrink-0';
+      const base = 'inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0';
       const className = isSel
         ? isTrend
           ? `${base} bg-violet-600 text-white border-violet-600`
@@ -444,7 +444,7 @@ function TagPager({
           : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
       const btn = document.createElement('button');
       btn.className = className;
-      btn.innerHTML = `<span>#${label}</span><span style="font-size: .875rem; line-height: 1;">＋</span>`;
+      btn.innerHTML = `<span>#${label}</span>`;
       return btn;
     };
 
@@ -535,10 +535,10 @@ function TagPager({
       )}
 
       {/* İçerik (Hepsi + görünür chipler) */}
-      <div className="px-12" ref={containerRef}>
+      <div className="pr-12 min-h-[32px] transition-[padding] duration-150 ease-out" ref={containerRef} style={{ paddingLeft: canPrev ? 48 : 0 }}>
         <div className="flex items-center gap-2 overflow-hidden">
           <button
-            className={`px-2 py-1 rounded-full border text-xs shrink-0 ${
+            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${
               selected.size === 0
                 ? 'bg-black text-white border-black'
                 : 'bg-white dark:bg-gray-900 dark:border-gray-800'
@@ -554,7 +554,7 @@ function TagPager({
             {visibleTags.map((t) => {
               const isSel = selected.has(t);
               const isTrend = trending.includes(t);
-              const base = 'inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs shrink-0';
+              const base = 'inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0';
               const className = isSel
                 ? isTrend
                   ? `${base} bg-violet-600 text-white border-violet-600`
@@ -570,26 +570,11 @@ function TagPager({
                   title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
                 >
                   <span>#{t}</span>
-                  <span aria-hidden className="text-sm leading-none">＋</span>
                 </button>
               );
             })}
           </div>
         </div>
-
-        {/* page dots */}
-        {pages.length > 1 && (
-          <div className="mt-1 flex items-center justify-center gap-1">
-            {pages.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Sayfa ${i + 1}`}
-                onClick={() => setPage(i)}
-                className={`w-1.5 h-1.5 rounded-full ${i === page ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-700'}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
 
       <style jsx>{`
