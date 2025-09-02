@@ -221,7 +221,7 @@ export default function SearchWithSuggestions({ controls }: { controls: Controls
               }}
               onKeyDown={handleSearchKeyDown}
               placeholder="ara ( / )"
-              className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
+              className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400 rs-search"
             />
           </div>
           {!!controls.q && (
@@ -254,7 +254,7 @@ export default function SearchWithSuggestions({ controls }: { controls: Controls
               }}
               onKeyDown={handleSearchKeyDown}
               placeholder="ara ( / )"
-              className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400"
+              className="flex-1 min-w-[8rem] bg-transparent outline-none border-0 px-0 py-0 text-base md:text-sm leading-none text-gray-900 placeholder:text-gray-400 dark:text-gray-100 dark:placeholder-gray-400 rs-search"
             />
           </div>
           {!!controls.q && (
@@ -271,6 +271,24 @@ export default function SearchWithSuggestions({ controls }: { controls: Controls
           {suggOpen && <SuggestionDropdown />}
         </div>
       </div>
+      <style jsx>{`
+        /* Hide native clear (x) in WebKit/Chromium for our search inputs */
+        .rs-search::-webkit-search-cancel-button {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .rs-search::-webkit-search-decoration {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        /* Hide native clear in old Edge/IE */
+        .rs-search::-ms-clear,
+        .rs-search::-ms-reveal {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+      `}</style>
     </>
   );
 }

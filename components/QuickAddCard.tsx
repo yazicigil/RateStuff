@@ -26,6 +26,20 @@ type QuickAddCardProps = {
 
   /** yerleşim: “compact” = tek kolon; “rich” = md+ iki kolon */
   variant?: 'compact' | 'rich';
+
+  /**
+   * Form açılırken otomatik doldurma.
+   * - name: arama çubuğu metni
+   * - tags: seçili etiketler (en fazla 3 adet, normalize edilir)
+   * - rating: seçili yıldız (1-5); birden çok aralık seçiliyse 0/undefined geç
+   *
+   * Not: Yalnızca panel "kapalıdan açık" hale geçerken uygulanır; kullanıcı yazarken ezmez.
+   */
+  prefill?: {
+    name?: string;
+    tags?: string[];
+    rating?: number;
+  };
 };
 
 export default function QuickAddCard({
@@ -35,7 +49,10 @@ export default function QuickAddCard({
   trending = [],
   allTags = [],
   variant = 'rich',
-}: QuickAddCardProps) {
+  prefill,
+}: QuickAddCardProps & {
+  prefill?: { name?: string; tags?: string[]; rating?: number };
+}) {
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -133,6 +150,27 @@ export default function QuickAddCard({
     const id = setTimeout(() => nameRef.current?.focus(), 120);
     return () => clearTimeout(id);
   }, [open]);
+
+  // apply prefill only when panel transitions from closed -> open
+  const prevOpenRef = useRef<boolean>(open);
+  useEffect(() => {
+    const wasOpen = prevOpenRef.current;
+    prevOpenRef.current = open;
+    if (!open || wasOpen) return; // only on first open
+    const p = prefill || {};
+    // apply name if empty
+    if (p.name && !name) setName(p.name);
+    // apply tags if none selected
+    if (Array.isArray(p.tags) && p.tags.length && tags.length === 0) {
+      const norm = p.tags.map(normalizeTag).filter(Boolean);
+      setTags(Array.from(new Set(norm)).slice(0, 3));
+    }
+    // apply rating if not set
+    if (typeof p.rating === 'number' && p.rating > 0 && rating === 0) {
+      const clamped = Math.max(1, Math.min(5, Math.round(p.rating)));
+      setRating(clamped);
+    }
+  }, [open, prefill]);
 
   async function submit(e?: React.FormEvent) {
     e?.preventDefault?.();

@@ -1184,6 +1184,11 @@ if (!already) {
   <QuickAddCard
     open
     variant="rich"
+    prefill={{
+      name: (qCommitted || qInput).trim() || undefined,
+      tags: selectedTags.size ? Array.from(selectedTags) : undefined,
+      rating: starBuckets.size === 1 ? Array.from(starBuckets)[0] : undefined,
+    }}
     trending={trending}
     allTags={allTags}
     onClose={() => {
