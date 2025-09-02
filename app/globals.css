@@ -12,21 +12,3 @@
 
 /* page container defaults */
 body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
-
-
-/* --- Lottie color fix: force vector fills/strokes to follow currentColor --- */
-.lottie-colorize svg *,
-svg.lottie-colorize * {
-  fill: currentColor !important;
-  stroke: currentColor !important;
-}
-/* Keep filter fallback (older JSONs or canvas fallback) */
-.lottie-dark-fix { opacity: 0.95; }
-.lottie-dark-fix svg,
-.lottie-dark-fix canvas {
-  filter: grayscale(1) brightness(0.65);
-}
-.dark .lottie-dark-fix svg,
-.dark .lottie-dark-fix canvas {
-  filter: invert(1) brightness(1.2) contrast(1.05);
-}

@@ -5,11 +5,13 @@ import { useNotifications, type Notif } from "@/lib/useNotifications";
 import Lottie, { type LottieRefCurrentProps } from "lottie-react";
 
 import bellAnim from "@/assets/animations/bell.json";
-
 import bellSolidAnim from "@/assets/animations/bell-solid.json";
-
 import refreshAnim from "@/assets/animations/refresh.json";
 import dotsAnim from "@/assets/animations/dots-loader.json";
+import bellDarkAnim from "@/assets/animations/bell-dark.json";
+import bellSolidDarkAnim from "@/assets/animations/bell-solid-dark.json";
+import refreshDarkAnim from "@/assets/animations/refresh-dark.json";
+import dotsDarkAnim from "@/assets/animations/dots-loader-dark.json";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
@@ -54,6 +56,29 @@ export default function NotificationsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  // detect dark mode (tailwind .dark class or system)
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const check = () => {
+      try {
+        const hasClass = document.documentElement.classList.contains("dark");
+        const prefers = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
+        setIsDark(hasClass || prefers);
+      } catch {
+        setIsDark(false);
+      }
+    };
+    check();
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    const onChange = () => check();
+    mq?.addEventListener?.("change", onChange);
+    const obs = new MutationObserver(check);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => {
+      mq?.removeEventListener?.("change", onChange);
+      obs.disconnect();
+    };
+  }, []);
 
   // lottie refs for hover-triggered animation
   const bellRef = useRef<LottieRefCurrentProps | null>(null);
@@ -190,7 +215,7 @@ export default function NotificationsDropdown() {
           {open ? (
             <Lottie
               lottieRef={bellSolidRef as any}
-              animationData={bellSolidAnim}
+              animationData={isDark ? bellSolidDarkAnim : bellSolidAnim}
               autoplay={false}
               loop={false}
               renderer="svg"
@@ -201,7 +226,7 @@ export default function NotificationsDropdown() {
           ) : (
             <Lottie
               lottieRef={bellRef as any}
-              animationData={bellAnim}
+              animationData={isDark ? bellDarkAnim : bellAnim}
               autoplay={false}
               loop={false}
               renderer="svg"
@@ -256,7 +281,7 @@ export default function NotificationsDropdown() {
                   >
                     <Lottie
                       lottieRef={refreshRef as any}
-                      animationData={refreshAnim}
+                      animationData={isDark ? refreshDarkAnim : refreshAnim}
                       autoplay={false}
                       loop={false}
                       renderer="svg"
@@ -371,7 +396,7 @@ export default function NotificationsDropdown() {
                 >
                   <Lottie
                     lottieRef={dotsRef as any}
-                    animationData={dotsAnim}
+                    animationData={isDark ? dotsDarkAnim : dotsAnim}
                     autoplay={false}
                     loop={true}
                     renderer="svg"
