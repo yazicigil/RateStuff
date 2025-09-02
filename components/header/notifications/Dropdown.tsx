@@ -19,6 +19,7 @@ export default function NotificationsDropdown() {
   const { items, unreadCount, total, hasMore, loading, load, refresh, markRead, markAll, status, setStatus } =
     useNotifications("all", 5);
   const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
+  const totalCount = Number(total ?? 0);
 
   async function deleteNotification(id: string) {
     try {
@@ -169,8 +170,6 @@ export default function NotificationsDropdown() {
     };
   }, [open]);
 
-  // show TOTAL notifications (including not-yet-loaded)
-  const totalCount = Number(total ?? 0);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -261,9 +260,6 @@ export default function NotificationsDropdown() {
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
                   <span className="text-[11px] text-neutral-500 dark:text-neutral-400">({totalCount})</span>
-                  {unreadCount > 0 && (
-                    <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <button

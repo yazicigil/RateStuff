@@ -278,6 +278,8 @@ export default function ItemsTab({
                       saved={false}
                       amAdmin={false}
                       myId={null}
+                      showComments={false}
+                      showCommentBox={false}
                       openShareId={openShareId}
                       setOpenShareId={setOpenShareId}
                       openMenuId={openMenuId}
@@ -343,6 +345,8 @@ export default function ItemsTab({
                         saved={false}
                         amAdmin={false}
                         myId={null}
+                        showComments={false}
+                        showCommentBox={false}
                         openShareId={openShareId}
                         setOpenShareId={setOpenShareId}
                         openMenuId={openMenuId}
@@ -405,6 +409,8 @@ export default function ItemsTab({
                         saved={false}
                         amAdmin={false}
                         myId={null}
+                        showComments={false}
+                        showCommentBox={false}
                         openShareId={openShareId}
                         setOpenShareId={setOpenShareId}
                         openMenuId={openMenuId}

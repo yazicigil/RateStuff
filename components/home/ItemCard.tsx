@@ -100,8 +100,15 @@ export default function ItemCard({
     try {
       setSaving(true); setErr(null);
       const body = { description: descDraft, tags: tagsDraft, imageUrl: imgDraft };
-      const res = await fetch(`/api/items/${i.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error('Kaydedilemedi');
+      const res = await fetch(`/api/items/${i.id}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const txt = await res.text().catch(() => '');
+        throw new Error(txt || 'Kaydedilemedi');
+      }
       setEditing(false);
       onItemChanged && onItemChanged();
     } catch (e: any) {
@@ -180,96 +187,87 @@ export default function ItemCard({
       {/* BODY */}
       <div className="flex-1">
         {editing ? (
-          // EDITING MODE: Kartın kendi layout'u içinde, solda görsel uploader, sağda alanlar
           <>
-            <div className="flex items-start gap-3">
-              <div className="flex flex-col items-center shrink-0 w-28">
-                {/* ImageUploader kartın görsel alanının yerine */}
-                <div className="w-28 h-28 rounded-lg overflow-hidden border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 grid place-items-center">
-                  {/* Tip: ImageUploader'ın props sözleşmesi projede farklı olabilir; geniş destek için any ile çağırıyoruz */}
-                  {(ImageUploader as any) ? (
-                    <ImageUploader
-                      {...({} as any)}
-                      value={imgDraft}
-                      onChange={(url: string) => setImgDraft(url)}
-                      className="w-28 h-28"
-                    />
-                  ) : (
-                    <img src={imgDraft || i.imageUrl || '/default-item.svg'} alt="preview" className="w-28 h-28 object-cover" />
-                  )}
-                </div>
-                {i.edited && (
-                  <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                    düzenlendi
+            {/* Top: full-width image uploader (preview included); hide left image container while editing */}
+            <div className="mb-3">
+              <ImageUploader
+                {...({} as any)}
+                value={imgDraft}
+                onChange={(url: string) => setImgDraft(url)}
+                className="w-full"
+              />
+            </div>
+
+            {/* Title (name is immutable) */}
+            <h3 className="text-sm font-medium leading-tight title-wrap" title={i.name} lang="tr">
+              {i.name}
+            </h3>
+
+            {/* Description */}
+            <div className="mt-2">
+              <label className="block text-sm font-medium mb-1">Kısa açıklama</label>
+              <textarea
+                className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
+                rows={3}
+                maxLength={140}
+                value={descDraft}
+                onChange={(e) => setDescDraft(e.target.value)}
+                placeholder="kısa açıklama"
+              />
+              <div className="mt-1 text-[11px] opacity-60">{descDraft.length}/140</div>
+            </div>
+
+            {/* Tags (QuickAddCard style; no suggestions) */}
+            <div className="mt-3">
+              <label className="block text-sm font-medium mb-1">Etiketler</label>
+              <div
+                className="relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700"
+              >
+                {tagsDraft.map((t) => (
+                  <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+                    #{t}
+                    <button
+                      type="button"
+                      className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
+                      onClick={() => removeTag(t)}
+                      aria-label={`#${t} etiketini kaldır`}
+                    >
+                      ×
+                    </button>
                   </span>
-                )}
+                ))}
+                <input
+                  onKeyDown={handleTagKey}
+                  className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
+                  placeholder={tagsDraft.length ? '' : 'kahve, ekipman'}
+                />
               </div>
+            </div>
 
-              <div className="flex-1 min-w-0">
-                {/* Başlık sabit (isim değişmiyor) */}
-                <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
-                  <span className="text-left">{i.name}</span>
-                </h3>
-
-                {/* Açıklama */}
-                <div className="mt-2">
-                  <label className="text-xs opacity-70">Açıklama</label>
-                  <textarea
-                    className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
-                    rows={3}
-                    maxLength={240}
-                    value={descDraft}
-                    onChange={(e) => setDescDraft(e.target.value)}
-                    placeholder="Açıklama (max 240)"
-                  />
-                  <div className="text-[11px] opacity-70 text-right">{descDraft.length}/240</div>
-                </div>
-
-                {/* Etiketler */}
-                <div className="mt-3">
-                  <label className="text-xs opacity-70">Etiketler</label>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    {tagsDraft.map(t => (
-                      <span key={t} className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs dark:border-gray-700">
-                        #{t}
-                        <button type="button" className="opacity-70 hover:opacity-100" onClick={() => removeTag(t)} aria-label="etiketi kaldır">×</button>
-                      </span>
-                    ))}
-                    <input
-                      type="text"
-                      onKeyDown={handleTagKey}
-                      className="min-w-[8rem] flex-1 rounded-lg border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900"
-                      placeholder="etiket ekle ve Enter"
-                    />
-                  </div>
-                </div>
-
-                {/* Kaydet / İptal */}
-                {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
-                <div className="mt-3 flex items-center gap-2 justify-end">
-                  <button
-                    type="button"
-                    className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => {
-                      setEditing(false);
-                      setErr(null);
-                      setDescDraft(i?.description ?? '');
-                      setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
-                      setImgDraft(i?.imageUrl ?? '');
-                    }}
-                  >
-                    İptal
-                  </button>
-                  <button
-                    type="button"
-                    disabled={saving}
-                    className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60"
-                    onClick={saveEdit}
-                  >
-                    {saving ? 'Kaydediliyor…' : 'Kaydet'}
-                  </button>
-                </div>
-              </div>
+            {/* Actions */}
+            {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
+            <div className="mt-3 flex items-center gap-2 justify-end">
+              <button
+                type="button"
+                className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                onClick={() => {
+                  setEditing(false);
+                  setErr(null);
+                  setDescDraft(i?.description ?? '');
+                  setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
+                  setImgDraft(i?.imageUrl ?? '');
+                }}
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                disabled={saving}
+                className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60"
+                onClick={saveEdit}
+              >
+                {saving ? 'Kaydediliyor…' : 'Kaydet'}
+              </button>
             </div>
           </>
         ) : (

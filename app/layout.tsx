@@ -4,6 +4,7 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import Providers from "@/components/common/Providers";
 import { Analytics } from '@vercel/analytics/react';
+const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
 // --- Theme: pre-hydration guard (prevents light flash / resets on refresh) ---
 const THEME_STORAGE_KEYS = ["rs-theme", "theme", "ratestuff-theme"] as const;
