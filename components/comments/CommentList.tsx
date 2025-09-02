@@ -105,7 +105,7 @@ export default function CommentList({
     for (const c of comments) {
       const uid = c?.user?.id || null;
 
-      if (ownerId && uid === ownerId) {
+      if (ownerId != null && uid != null && String(uid) === String(ownerId)) {
         ownerComments.push(c);
         continue;
       }
@@ -118,7 +118,7 @@ export default function CommentList({
     }
 
     // Gönderi sahibi kendisi görüntülüyorsa: kendi yorumunu görmesin
-    const isOwnerViewingOwnPost = Boolean(ownerId && myId && ownerId === myId);
+    const isOwnerViewingOwnPost = ownerId != null && myId != null && String(ownerId) === String(myId);
 
     // Sıralama: (1) owner'ın yorum(lar)ı (pin'li), (2) benim yorumlarım (opsiyonel), (3) diğerleri (skorla)
     // Not: owner yorumları oy fark etmeksizin en üstte kalır.
