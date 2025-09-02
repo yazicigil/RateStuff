@@ -1422,8 +1422,8 @@ if (!already) {
 
           {/* Liste: Mobilde tek sütun (gerçek sıra korunur), md+ iki bağımsız sütun */}
 
-          {/* MOBILE: tek sütun — itemsWithAdd sırasını aynen uygula */}
-          <div className="md:hidden flex flex-col gap-5">
+          {/* MOBILE & TABLET: tek sütun — itemsWithAdd sırasını aynen uygula */}
+          <div className="flex flex-col gap-5 lg:hidden">
             {itemsWithAdd.map((it: any, ix: number) =>
               it?.__add ? (
                 <button
@@ -1483,8 +1483,8 @@ if (!already) {
             )}
           </div>
 
-          {/* DESKTOP/TABLET: 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
-          <div className="hidden md:grid grid-cols-2 gap-5">
+          {/* DESKTOP: 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
+          <div className="hidden lg:grid grid-cols-2 gap-5">
             {/* Sol sütun */}
             <div className="flex flex-col gap-5">
               {colLeft.map((it: any, ix: number) => (
