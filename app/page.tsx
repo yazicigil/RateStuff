@@ -51,6 +51,7 @@ import CommentBox from '@/components/comments/CommentBox';
 import { useSession } from 'next-auth/react';
 import { containsBannedWord } from '@/lib/bannedWords';
 import RatingPill from '@/components/RatingPill';
+import ReportModal from '@/components/ReportModal';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -1789,77 +1790,18 @@ if (!already) {
             </div>
           ))}
           </div>
-           {/* Report Modal UI */}
-          {reportOpen && (
-            <div className="fixed inset-0 z-[200]">
-              {/* backdrop */}
-              <div className="absolute inset-0 bg-black/30 dark:bg-black/50" onClick={() => setReportOpen(false)} />
-              {/* modal */}
-              <div className="absolute inset-0 grid place-items-center p-4">
-                <div className="w-full max-w-md rounded-2xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-xl">
-                  <div className="px-5 pt-4 pb-3 border-b dark:border-gray-800 flex items-center justify-between">
-                    <h3 className="text-base font-semibold">Rapor et</h3>
-                    <button className="w-8 h-8 grid place-items-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" onClick={() => setReportOpen(false)} aria-label="Kapat">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                    </button>
-                  </div>
-                  <div className="px-5 py-4 space-y-3">
-                    {reportError && (
-                      <div className="text-sm text-red-600 dark:text-red-400">{reportError}</div>
-                    )}
-
-                    <label className="block text-sm font-medium">Rapor sebebi</label>
-                    <div className="flex flex-wrap gap-2" role="group" aria-label="Rapor sebebi">
-                      {REPORT_PRESETS.map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setReportPreset(opt)}
-                          className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                            reportPreset === opt
-                              ? 'bg-red-600 border-red-600 text-white'
-                              : 'border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Details textarea */}
-                    {reportPreset === 'Diğer' ? (
-                      <div className="mt-1">
-                        <label className="block text-sm opacity-80 mb-1">Sebebi yaz</label>
-                        <textarea
-                          value={reportDetails}
-                          onChange={(e) => setReportDetails(e.target.value)}
-                          rows={4}
-                          className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-800 dark:border-gray-700"
-                          placeholder="Kısaca açıklayın…"
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-1">
-                        <label className="block text-sm opacity-80 mb-1">Ek not <span className="opacity-60">(opsiyonel)</span></label>
-                        <textarea
-                          value={reportDetails}
-                          onChange={(e) => setReportDetails(e.target.value)}
-                          rows={3}
-                          className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-200 dark:bg-gray-800 dark:border-gray-700"
-                          placeholder="İstersen kısa bir not bırak"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-end gap-2 pt-1">
-                      <button type="button" className="px-3 py-2 rounded-lg text-sm border hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800" onClick={() => setReportOpen(false)}>İptal</button>
-                      <button type="button" disabled={reportSubmitting} onClick={submitReport} className="px-3 py-2 rounded-lg text-sm bg-red-600 text-white disabled:opacity-60">{reportSubmitting ? 'Gönderiliyor…' : 'Gönder'}</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          <ReportModal
+            open={reportOpen}
+            presets={REPORT_PRESETS}
+            preset={reportPreset}
+            details={reportDetails}
+            submitting={reportSubmitting}
+            error={reportError}
+            onClose={() => setReportOpen(false)}
+            onSubmit={submitReport}
+            onSelectPreset={(v) => setReportPreset(v as typeof REPORT_PRESETS[number])}
+            onChangeDetails={(v) => setReportDetails(v)}
+          />
 
           {reportSuccess && (
             <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[210]">
