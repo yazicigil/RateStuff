@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import RatingPill from '@/components/RatingPill';
 import Stars from "@/components/Stars";
 import NotificationsDropdown from "@/components/notifications/Dropdown";
+import SavedTab from '@/components/me/SavedTab';
 
 
 // Banned words (supports either default export or named `bannedWords`)
@@ -168,12 +169,10 @@ export default function MePage() {
     }
   }
 
-  // Kaydedilenler filtre (çoklu tag seçimi)
-  const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
+  // Eklediklerim filtre (çoklu tag seçimi)
+  // Kaydedilenler filtre kaldırıldı, SavedTab yönetiyor.
   // Eklediklerim filtre (çoklu tag seçimi)
   const [itemsSelected, setItemsSelected] = useState<Set<string>>(new Set());
-  // Saved: two-step remove confirmation
-  const [confirmRemoveSaved, setConfirmRemoveSaved] = useState<string | null>(null);
 
   // Yorumlar: kaç adet görünüyor
   const [commentsLimit, setCommentsLimit] = useState(5);
@@ -246,12 +245,6 @@ export default function MePage() {
     load();
   }, []);
 
-  // Kaydedilenler için mevcut tag’lar (sadece saved içinden)
-  const savedTags = useMemo(() => {
-    const s = new Set<string>();
-    for (const it of saved) (it.tags || []).forEach(t => s.add(t));
-    return Array.from(s).sort();
-  }, [saved]);
 
   // Eklediklerim (items) içinde mevcut etiketler
   const itemsTags = useMemo(() => {
@@ -261,14 +254,6 @@ export default function MePage() {
   }, [items]);
 
 
-  const filteredSaved = useMemo(() => {
-    if (savedSelected.size === 0) return saved;
-    return saved.filter(it => {
-      const tags = new Set(it.tags || []);
-      for (const t of savedSelected) if (!tags.has(t)) return false;
-      return true;
-    });
-  }, [saved, savedSelected]);
 
   // Eklediklerim filtresi
   const filteredItems = useMemo(() => {
@@ -367,17 +352,6 @@ const body: any = {
     }
   }
 
-  async function removeSaved(itemId: string) {
-    const r = await fetch(`/api/items/${itemId}/save`, { method: "DELETE" });
-    const j = await r.json().catch(() => null);
-    if (j?.ok) {
-      setSaved(prev => prev.filter(x => x.id !== itemId));
-      setConfirmRemoveSaved(null);
-      notify('Kaydedilenden kaldırıldı');
-    } else {
-      alert("Hata: " + (j?.error || r.status));
-    }
-  }
 
   async function deleteItem(itemId: string) {
     // 1) Try native DELETE first
@@ -395,28 +369,6 @@ const body: any = {
       alert('Hata: ' + (j?.error || `${r.status} ${r.statusText}`));
     }
   }
-  // --- EFFECTS for Saved REMOVE confirmation ---
-  useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target?.closest('[data-saved-remove-btn]')) {
-        setConfirmRemoveSaved(null);
-      }
-    };
-    document.addEventListener('click', onDocClick, true);
-    return () => document.removeEventListener('click', onDocClick, true);
-  }, []);
-
-  const confirmSavedTimerRef = useRef<number | null>(null);
-  useEffect(() => {
-    if (confirmRemoveSaved) {
-      if (confirmSavedTimerRef.current) window.clearTimeout(confirmSavedTimerRef.current);
-      confirmSavedTimerRef.current = window.setTimeout(() => setConfirmRemoveSaved(null), 3000);
-    }
-    return () => {
-      if (confirmSavedTimerRef.current) window.clearTimeout(confirmSavedTimerRef.current);
-    };
-  }, [confirmRemoveSaved]);
 
     // --- URL hash ⇄ tab sync ---
   useEffect(() => {
@@ -694,190 +646,14 @@ const body: any = {
 
         {/* SAVED */}
         {activeSection === 'saved' && (
-          <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-            <div className="px-4 pb-4 pt-3 space-y-3">
-              {loading ? (
-                <Skeleton rows={4} />
-              ) : saved.length === 0 ? (
-                <Box>Henüz yok.</Box>
-              ) : (
-                <>
-                  {/* Etiket filtresi (sadece saved içinde etiket varsa görünür) */}
-                  {savedTags.length > 0 && (
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      <button
-                        className={`px-2 py-1 rounded-full border text-xs ${
-                          savedSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                        }`}
-                        onClick={() => setSavedSelected(new Set())}
-                        onDoubleClick={() => setSavedSelected(new Set())}
-                      >
-                        Hepsi
-                      </button>
-                      {savedTags.map(t => {
-                        const isSel = savedSelected.has(t);
-                        const isTrend = trending.includes(t);
-                        const base = 'px-2 py-1 rounded-full border text-xs';
-                        const className = isSel
-                          ? (isTrend
-                              ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
-                              : `${base} bg-black text-white border-black`)
-                          : (isTrend
-                              ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                              : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-                        return (
-                          <button
-                            key={t}
-                            className={className}
-                            onClick={() =>
-                              setSavedSelected(prev => {
-                                const next = new Set(prev);
-                                if (next.has(t)) next.delete(t); else next.add(t);
-                                return next;
-                              })
-                            }
-                            onDoubleClick={() => setSavedSelected(new Set())}
-                            title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                          >
-                            #{t}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {filteredSaved.map(it => (
-                      <div
-                        key={it.id}
-                        className={
-                          "rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full" +
-                          `${(it as any)?.suspended ? ' opacity-60 grayscale' : ''}`
-                        }
-                      >
-                        <div className="flex items-start gap-3">
-                          <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
-                            {it.imageUrl ? (
-                              <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                            ) : (
-                              <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                            )}
-                          </Link>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-2">
-                              {/* Sol: isim + ortalama pill */}
-                              <div className="min-w-0 flex items-center gap-2">
-                                <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
-                                  {it.name}
-                                </Link>
-                                <RatingPill avg={getAvg(it)} count={it.count ?? 0} />
-                              </div>
-
-                              {/* Sağ: kaldır butonu */}
-                              <button
-                                type="button"
-                                onMouseDown={(e: React.MouseEvent) => { e.stopPropagation(); }}
-                                onClick={(e: React.MouseEvent) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  const isConfirming = confirmRemoveSaved === it.id;
-                                  if (isConfirming) {
-                                    removeSaved(it.id);
-                                  } else {
-                                    setConfirmRemoveSaved(it.id);
-                                  }
-                                }}
-                                data-saved-remove-btn
-                                className={`text-xs px-2 py-1 rounded-lg border flex items-center gap-1 ${
-                                  confirmRemoveSaved === it.id
-                                    ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
-                                    : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
-                                }`}
-                                title={confirmRemoveSaved === it.id ? 'Onaylamak için tekrar tıkla' : 'Kaydedilenlerden kaldır'}
-                                aria-label={confirmRemoveSaved === it.id ? 'Kaldırmayı onayla' : 'Kaydedilenlerden kaldır'}
-                              >
-                                <span data-saved-remove-btn className="inline-flex items-center gap-1">
-                                  {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
-                                </span>
-                              </button>
-                            </div>
-                            {/* Suspended badge */}
-                            {(it as any)?.suspended && (
-                              <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
-                                </svg>
-                                Askıda — yalnızca sen görüyorsun
-                              </div>
-                            )}
-                            <p className="text-sm opacity-80 mt-1 line-clamp-3 break-words">{it.description}</p>
-
-                            {!!(it.tags && it.tags.length) && (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {it.tags.slice(0, 10).map(t => {
-                                  const isTrend = trending.includes(t);
-                                  return (
-                                    <span
-                                      key={t}
-                                      className={
-                                        "px-2 py-0.5 rounded-full text-xs border " +
-                                        (isTrend
-                                          ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
-                                          : "bg-white dark:bg-gray-800 dark:border-gray-700")
-                                      }
-                                      title={isTrend ? "Trend" : undefined}
-                                    >
-                                      #{t}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {/* Ekleyen kişi */}
-                            {(() => {
-                              const by = it.createdBy || null;
-                              const avatar = by?.avatarUrl ?? it.createdByAvatarUrl ?? null;
-                              const displayName = by?.maskedName ?? by?.name ?? it.createdByName ?? null;
-                              if (!avatar && !displayName) return null;
-                              return (
-                                <div className="mt-2 flex items-center gap-2 text-xs">
-                                  <span className="opacity-60">Ekleyen:</span>
-                                  <span className="inline-flex items-center gap-2">
-                                    <span className="inline-grid place-items-center w-5 h-5 rounded-full overflow-hidden bg-gray-200 text-[10px] font-semibold">
-                                      {avatar ? (
-                                        <img src={avatar} alt={displayName ?? 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                                      ) : (
-                                        <span className="text-white">
-                                          {(displayName || 'A')
-                                            .split(' ')
-                                            .filter(Boolean)
-                                            .slice(0, 2)
-                                            .map(s => (s[0] || '').toUpperCase())
-                                            .join('') || 'A'}
-                                        </span>
-                                      )}
-                                    </span>
-                                    <span className="truncate max-w-[12rem]">{displayName || 'Anonim'}</span>
-                                  </span>
-                                </div>
-                              );
-                            })()}
-
-                            {it.edited && (
-                              <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                                düzenlendi
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          </section>
+          <SavedTab
+            saved={saved}
+            trending={trending}
+            loading={loading}
+            error={error}
+            onNotify={notify}
+            onSavedChange={(next) => setSaved(next)}
+          />
         )}
 
         {/* ITEMS */}
