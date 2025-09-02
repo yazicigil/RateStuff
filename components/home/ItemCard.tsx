@@ -62,6 +62,7 @@ export default function ItemCard({
   const verified = Boolean((i?.createdBy as any)?.verified);
   const ownerId = (
     (i as any)?.createdById ??
+    (i as any)?.createdByUserId ??
     i?.createdBy?.id ??
     (i as any)?.ownerId ??
     (i as any)?.userId ??
@@ -72,16 +73,25 @@ export default function ItemCard({
   ) as string | null;
   const isOwner = myId && ownerId ? String(myId) === String(ownerId) : false;
 
-  const creatorNameRaw: string | null | undefined = i?.createdBy?.name ?? i?.createdByName ?? null;
-  const creatorAvatarRaw: string | null | undefined = i?.createdBy?.avatarUrl ?? i?.createdByAvatarUrl ?? null;
+  const creatorNameRaw: string | null | undefined =
+    i?.createdBy?.name ??
+    i?.createdBy?.maskedName ??
+    i?.createdByName ??
+    (i as any)?.createdByMaskedName ??
+    null;
+  const creatorAvatarRaw: string | null | undefined =
+    i?.createdBy?.avatarUrl ??
+    (i as any)?.createdByAvatarUrl ??
+    null;
 
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
 
-  const creatorName = useMemo(
-    () => maskName(creatorNameRaw, verified),
-    [creatorNameRaw, verified]
-  );
+  const creatorName = useMemo(() => {
+    const masked = maskName(creatorNameRaw, verified);
+    if (!masked && isOwner) return 'Ben';
+    return masked;
+  }, [creatorNameRaw, verified, isOwner]);
 
   const [editing, setEditing] = useState(false);
   const [descDraft, setDescDraft] = useState<string>(i?.description ?? '');
