@@ -53,6 +53,8 @@ import { containsBannedWord } from '@/lib/bannedWords';
 import RatingPill from '@/components/RatingPill';
 import ReportModal from '@/components/ReportModal';
 import TrendingTagsCard from '@/components/TrendingTagsCard';
+import AllTagsCard from '@/components/AllTagsCard';
+import SortAndStarsCard from '@/components/SortAndStarsCard';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -1301,106 +1303,35 @@ if (!already) {
 
           <div className="h-4" />
 
-          <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
-            <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
-              {allTags.map((t) => (
-                <Tag
-                  key={t}
-                  label={t}
-                  active={selectedTags.has(t)}
-                  onClick={() => {
-                    setSelectedTags(prev => {
-                      const next = new Set(prev);
-                      if (next.has(t)) next.delete(t); else next.add(t);
-                      return next;
-                    });
-                  }}
-                  onDoubleClick={() => setSelectedTags(new Set())}
-                  className={
-                    trending.includes(t)
-                      ? (selectedTags.has(t)
-                          ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-                          : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20')
-                      : ''
-                  }
-                />
-              ))}
-            </div>
-          </CollapsibleSection>
-          {/* Sıralama + Yıldız filtresi (styled, alt tarafta) */}
-          <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
-            {/* Sıralama */}
-            <div>
-              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sıralama</div>
-              <div className="flex gap-2 mt-2">
-                <button
-                  type="button"
-                  className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-                    order === 'new'
-                      ? 'bg-gray-900 text-white border border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow'
-                      : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setOrder('new')}
-                  aria-pressed={order === 'new'}
-                >
-                  En yeni
-                </button>
-                <button
-                  type="button"
-                  className={`rounded-full px-3 py-1.5 text-sm transition-colors ${
-                    order === 'top'
-                      ? 'bg-gray-900 text-white border border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow'
-                      : 'border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setOrder('top')}
-                  aria-pressed={order === 'top'}
-                >
-                  En yüksek puan
-                </button>
-              </div>
-            </div>
-            {/* Divider before Yıldızlar */}
-            <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
-              <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Yıldızlar</div>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {[1,2,3,4,5].map((n) => {
-                  const active = starBuckets.has(n);
-                  return (
-                    <button
-                      key={`sb-${n}`}
-                      type="button"
-                      className={
-                        active
-                          ? "rounded-full bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-100 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-                          : "rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-                      }
-                      onClick={() => {
-                        setStarBuckets(prev => {
-                          const next = new Set(prev);
-                          if (next.has(n)) next.delete(n); else next.add(n);
-                          return next;
-                        });
-                      }}
-                      aria-pressed={active}
-                      title={`${n} yıldız`}
-                    >
-                      {n} <span aria-hidden="true">★</span>
-                    </button>
-                  );
-                })}
-                {starBuckets.size > 0 && (
-                  <button
-                    type="button"
-                    className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-                    onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
-                    title="Filtreyi temizle"
-                  >
-                    Temizle
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <AllTagsCard
+            tags={allTags}
+            trending={trending}
+            selected={selectedTags}
+            onToggle={(t) => {
+              setSelectedTags(prev => {
+                const next = new Set(prev);
+                if (next.has(t)) next.delete(t); else next.add(t);
+                return next;
+              });
+            }}
+            onClearAll={() => setSelectedTags(new Set())}
+            defaultOpen={false}
+          />
+          <SortAndStarsCard
+            order={order}
+            onOrder={setOrder}
+            starBuckets={starBuckets}
+            onToggleStar={(n) => {
+              setStarBuckets(prev => {
+                const next = new Set(prev);
+                if (next.has(n)) next.delete(n); else next.add(n);
+                return next;
+              });
+            }}
+            onClearStars={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
+            compact={false}
+            className="mt-4"
+          />
         </aside>
 
         {/* Sağ: listeler */}
@@ -1515,100 +1446,36 @@ if (!already) {
     defaultOpen={true}
   />
 
-  <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
-    <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
-      {allTags.map((t) => (
-        <Tag
-          key={t}
-          label={t}
-          active={selectedTags.has(t)}
-          onClick={() => {
-            setSelectedTags(prev => {
-              const next = new Set(prev);
-              if (next.has(t)) next.delete(t); else next.add(t);
-              return next;
-            });
-          }}
-          onDoubleClick={() => setSelectedTags(new Set())}
-          className={
-            trending.includes(t)
-              ? (selectedTags.has(t)
-                  ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-                  : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20')
-              : ''
-          }
-        />
-      ))}
-    </div>
-  </CollapsibleSection>
+  <AllTagsCard
+    tags={allTags}
+    trending={trending}
+    selected={selectedTags}
+    onToggle={(t) => {
+      setSelectedTags(prev => {
+        const next = new Set(prev);
+        if (next.has(t)) next.delete(t); else next.add(t);
+        return next;
+      });
+    }}
+    onClearAll={() => setSelectedTags(new Set())}
+    defaultOpen={false}
+  />
 
-  {/* Sıralama + Yıldız filtresi (compact) */}
-<div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3 mt-4">
-  {/* Sıralama (desktop-like on mobile) */}
-  <div>
-    <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Sıralama</div>
-    <div className="flex gap-2 mt-2">
-      <button
-        type="button"
-        className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${order === 'new' ? 'border-gray-400 dark:border-gray-500' : ''}`}
-        onClick={() => setOrder('new')}
-        aria-pressed={order === 'new'}
-      >
-        En yeni
-      </button>
-      <button
-        type="button"
-        className={`rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 text-sm transition-colors ${order === 'top' ? 'border-gray-400 dark:border-gray-500' : ''}`}
-        onClick={() => setOrder('top')}
-        aria-pressed={order === 'top'}
-      >
-        En yüksek puan
-      </button>
-    </div>
-  </div>
-
-  {/* Divider before Yıldızlar */}
-  <div className="border-t border-gray-200 dark:border-gray-800 pt-3">
-    <div className="text-sm font-semibold text-gray-700 dark:text-gray-200">Yıldızlar</div>
-    <div className="flex flex-wrap gap-2 mt-2">
-      {[1,2,3,4,5].map((n) => {
-        const active = starBuckets.has(n);
-        return (
-          <button
-            key={`sbm-${n}`}
-            type="button"
-            className={
-              active
-                ? "rounded-full bg-yellow-100 border-yellow-300 text-yellow-800 dark:bg-yellow-900/30 dark:border-yellow-700 dark:text-yellow-100 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-                : "rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-            }
-            onClick={() => {
-              setStarBuckets(prev => {
-                const next = new Set(prev);
-                if (next.has(n)) next.delete(n); else next.add(n);
-                return next;
-              });
-            }}
-            aria-pressed={active}
-            title={`${n} yıldız`}
-          >
-            {n} <span aria-hidden="true">★</span>
-          </button>
-        );
-      })}
-      {starBuckets.size > 0 && (
-        <button
-          type="button"
-          className="ml-1 rounded-full border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-[0_0_0_2px_rgba(250,204,21,0.3)] px-3 py-1.5 text-sm flex items-center gap-1 transition-colors"
-          onClick={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
-          title="Filtreyi temizle"
-        >
-          Temizle
-        </button>
-      )}
-    </div>
-  </div>
-</div>
+  <SortAndStarsCard
+    order={order}
+    onOrder={setOrder}
+    starBuckets={starBuckets}
+    onToggleStar={(n) => {
+      setStarBuckets(prev => {
+        const next = new Set(prev);
+        if (next.has(n)) next.delete(n); else next.add(n);
+        return next;
+      });
+    }}
+    onClearStars={() => { setStarBuckets(new Set()); setQInput(''); setQCommitted(''); }}
+    compact={true}
+    className="mt-4"
+  />
 </div>
 
 
