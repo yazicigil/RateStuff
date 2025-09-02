@@ -4,10 +4,10 @@ import { createPortal } from "react-dom";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
 import AnimatedRefresh from "@/components/common/lottie/AnimatedRefresh";
 import Lottie, { LottieRefCurrentProps } from "lottie-react";
-// @ts-expect-error JSON import
-import bellAnim from "@/public/assets/animations/bell.json";
-// @ts-expect-error JSON import
-import bellSolidAnim from "@/public/assets/animations/bell-solid.json";
+
+import bellAnim from "@/assets/animations/bell.json";
+
+import bellSolidAnim from "@/assets/animations/bell-solid.json";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
@@ -113,6 +113,11 @@ export default function NotificationsDropdown() {
     };
   }, [open]);
 
+  const totalCount =
+    (typeof status === "object" && status && (status as any).total != null)
+      ? Number((status as any).total)
+      : (Array.isArray(items) ? items.length : 0);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -180,6 +185,7 @@ export default function NotificationsDropdown() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
+                  <span className="text-[11px] text-neutral-500 dark:text-neutral-400">({totalCount})</span>
                   {unreadCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
                   )}
