@@ -1,7 +1,7 @@
 // components/admin/StatsCard.tsx
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import AnimatedRefresh from "@/components/common/AnimatedRefresh";
+import AnimatedRefresh from "@/components/common/lottie/AnimatedRefresh";
 import refreshAnim from "@/assets/animations/refresh.json";
 
 export type StatsTabs = "users" | "reports" | "suspended" | "allItems";

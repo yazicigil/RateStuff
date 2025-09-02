@@ -2,7 +2,7 @@
 import "./globals.css";
 import Script from "next/script";
 import type { Metadata } from "next";
-import Providers from "@/components/Providers";
+import Providers from "@/components/common/Providers";
 import { Analytics } from '@vercel/analytics/react';
 
 // --- Theme: pre-hydration guard (prevents light flash / resets on refresh) ---

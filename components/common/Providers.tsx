@@ -2,7 +2,7 @@
   
 import { SessionProvider } from 'next-auth/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import A2HSToast from "@/components/A2HSToast";
+import A2HSToast from "@/components/common/A2HSToast";
   
 // --- A2HS helpers (inline to avoid new files) ---
 const DISMISS_KEY = 'a2hs:lastDismissedAt';

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import AnimatedLab from "@/components/common/AnimatedLab";
+import AnimatedLab from "@/components/common/lottie/AnimatedLab";
 
 /**
  * Header'da Bildirim Laboratuvarı toggle butonu.

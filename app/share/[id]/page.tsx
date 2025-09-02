@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 // app/share/[id]/page.tsx
 import { headers, cookies } from "next/headers";
-import SeoLD from "@/components/SeoLD";
-import SuspendedNotice from "@/components/SuspendedNotice";
+import SeoLD from "@/components/common/SeoLD";
+import SuspendedNotice from "@/components/common/SuspendedNotice";
 
 const SITE_DESC =
   (process.env.NEXT_PUBLIC_SITE_DESC && process.env.NEXT_PUBLIC_SITE_DESC.trim()) ||
