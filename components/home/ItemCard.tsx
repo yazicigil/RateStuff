@@ -1,5 +1,5 @@
 'use client';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import Stars from '@/components/common/Stars';
 import Tag from '@/components/common/Tag';
 import RatingPill from '@/components/common/RatingPill';
@@ -59,6 +59,8 @@ export default function ItemCard({
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
   const verified = Boolean((i?.createdBy as any)?.verified);
+  const ownerId = (i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as string | null;
+  const isOwner = myId && ownerId ? myId === ownerId : false;
 
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
@@ -67,6 +69,51 @@ export default function ItemCard({
     () => maskName(i?.createdBy?.name, verified),
     [i?.createdBy?.name, verified]
   );
+
+  const [editing, setEditing] = useState(false);
+  const [descDraft, setDescDraft] = useState<string>(i?.description ?? '');
+  const [tagsDraft, setTagsDraft] = useState<string[]>(Array.isArray(i?.tags) ? [...i.tags] : []);
+  const [imgDraft, setImgDraft] = useState<string>(i?.imageUrl ?? '');
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const addTag = useCallback((t: string) => {
+    const v = t.trim().toLowerCase();
+    if (!v) return;
+    setTagsDraft(prev => (prev.includes(v) ? prev : [...prev, v]).slice(0, 10));
+  }, []);
+  const removeTag = useCallback((t: string) => {
+    setTagsDraft(prev => prev.filter(x => x !== t));
+  }, []);
+  const handleTagKey = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(input.value);
+      input.value = '';
+    }
+  }, [addTag]);
+
+  const onPickImage = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => setImgDraft(String(reader.result || ''));
+    reader.readAsDataURL(file);
+  }, []);
+
+  const saveEdit = useCallback(async () => {
+    try {
+      setSaving(true); setErr(null);
+      const body = { description: descDraft, tags: tagsDraft, imageUrl: imgDraft };
+      const res = await fetch(`/api/items/${i.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!res.ok) throw new Error('Kaydedilemedi');
+      setEditing(false);
+      onItemChanged && onItemChanged();
+    } catch (e: any) {
+      setErr(e?.message || 'Hata oluştu');
+    } finally {
+      setSaving(false);
+    }
+  }, [descDraft, tagsDraft, imgDraft, i?.id, onItemChanged]);
 
   const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
@@ -122,6 +169,8 @@ export default function ItemCard({
             itemId={i.id}
             amAdmin={!!amAdmin}
             isSaved={saved}
+            isOwner={!!isOwner}
+            onEdit={() => setEditing(true)}
             onClose={() => setOpenMenuId(null)}
             onDelete={(id) => onDelete?.(id)}
             onToggleSave={(id) => onToggleSave(id)}
@@ -134,6 +183,60 @@ export default function ItemCard({
 
       {/* BODY */}
       <div className="flex-1">
+        {editing && (
+          <div className="mb-3 p-3 rounded-xl border dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40">
+            <div className="grid grid-cols-1 md:grid-cols-[112px,1fr] gap-3 items-start">
+              <div>
+                <img src={imgDraft || i.imageUrl || '/default-item.svg'} alt="preview" className="w-28 h-28 object-cover rounded-lg border dark:border-gray-700" />
+                <label className="mt-2 inline-flex items-center gap-2 text-xs cursor-pointer">
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onPickImage(f); }} />
+                  <span className="px-2 py-1 rounded border dark:border-gray-700">Görsel seç</span>
+                </label>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs opacity-70">Açıklama</label>
+                  <textarea
+                    className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+                    rows={3}
+                    maxLength={240}
+                    value={descDraft}
+                    onChange={(e) => setDescDraft(e.target.value)}
+                    placeholder="Açıklama (max 240)"
+                  />
+                  <div className="text-[11px] opacity-70 text-right">{descDraft.length}/240</div>
+                </div>
+                <div>
+                  <label className="text-xs opacity-70">Etiketler</label>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {tagsDraft.map(t => (
+                      <span key={t} className="inline-flex items-center gap-1 px-2 py-1 rounded-full border text-xs dark:border-gray-700">
+                        #{t}
+                        <button type="button" className="opacity-70 hover:opacity-100" onClick={() => removeTag(t)} aria-label="etiketi kaldır">×</button>
+                      </span>
+                    ))}
+                    <input
+                      type="text"
+                      onKeyDown={handleTagKey}
+                      className="min-w-[8rem] flex-1 rounded-lg border px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-900"
+                      placeholder="etiket ekle ve Enter"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
+            <div className="mt-3 flex items-center gap-2 justify-end">
+              <button type="button" className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => { setEditing(false); setErr(null); setDescDraft(i?.description ?? ''); setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []); setImgDraft(i?.imageUrl ?? ''); }}>
+                İptal
+              </button>
+              <button type="button" disabled={saving} className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60" onClick={saveEdit}>
+                {saving ? 'Kaydediliyor…' : 'Kaydet'}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-start gap-3">
           <div className="flex flex-col items-center shrink-0 w-28">
             <button
@@ -239,7 +342,7 @@ export default function ItemCard({
             <CommentList
               itemId={i.id}
               myId={myId || null}
-              ownerId={(i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as any}
+              ownerId={ownerId as any}
               comments={otherComments.slice(0, 3)}
               totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
               onVote={onVoteComment}
