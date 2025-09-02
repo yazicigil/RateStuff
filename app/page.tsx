@@ -1420,8 +1420,71 @@ if (!already) {
             </div>
           )}
 
-          {/* 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Liste: Mobilde tek sütun (gerçek sıra korunur), md+ iki bağımsız sütun */}
+
+          {/* MOBILE: tek sütun — itemsWithAdd sırasını aynen uygula */}
+          <div className="md:hidden flex flex-col gap-5">
+            {itemsWithAdd.map((it: any, ix: number) =>
+              it?.__add ? (
+                <button
+                  key={`add-m-${ix}`}
+                  type="button"
+                  onClick={() => {
+                    setSharedItem(null);
+                    setSharedId(null);
+                    setShowQuickAdd(true);
+                  }}
+                  className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
+                  aria-label="Yeni öğe ekle"
+                  title="Yeni öğe ekle"
+                >
+                  <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                    <div className="text-4xl leading-none">+</div>
+                    <div className="text-sm font-medium">Ekle</div>
+                  </div>
+                </button>
+              ) : (
+                <div
+                  key={it.id}
+                  ref={(el) => { itemRefs.current[it.id] = el; }}
+                  className={highlightId === it.id ? 'rs-flash rounded-2xl' : ''}
+                >
+                  <ItemCard
+                    item={it}
+                    saved={savedIds.has(it.id)}
+                    amAdmin={amAdmin}
+                    myId={myId}
+                    onVoteComment={voteOnComment}
+                    onItemChanged={load}
+                    openShareId={openShare?.scope === 'list' ? openShare.id : null}
+                    setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+                    openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+                    setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
+                    copiedShareId={copiedShareId}
+                    onOpenSpotlight={openSpotlight}
+                    onToggleSave={toggleSave}
+                    onReport={report}
+                    onDelete={deleteItem}
+                    onCopyShare={handleCopyShare}
+                    onNativeShare={nativeShare}
+                    selectedTags={selectedTags}
+                    onToggleTag={(t) => {
+                      setSelectedTags(prev => {
+                        const next = new Set(prev);
+                        if (next.has(t)) next.delete(t); else next.add(t);
+                        return next;
+                      });
+                    }}
+                    onResetTags={() => setSelectedTags(new Set())}
+                    onShowInList={showInList}
+                  />
+                </div>
+              )
+            )}
+          </div>
+
+          {/* DESKTOP/TABLET: 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
+          <div className="hidden md:grid grid-cols-2 gap-5">
             {/* Sol sütun */}
             <div className="flex flex-col gap-5">
               {colLeft.map((it: any, ix: number) => (
@@ -1430,7 +1493,6 @@ if (!already) {
                     key={`add-left-${ix}`}
                     type="button"
                     onClick={() => {
-                      // varsa açık spotlight'ı kapat
                       setSharedItem(null);
                       setSharedId(null);
                       setShowQuickAdd(true);
@@ -1491,7 +1553,6 @@ if (!already) {
                     key={`add-right-${ix}`}
                     type="button"
                     onClick={() => {
-                      // varsa açık spotlight'ı kapat
                       setSharedItem(null);
                       setSharedId(null);
                       setShowQuickAdd(true);

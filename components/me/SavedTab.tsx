@@ -126,6 +126,16 @@ export default function SavedTab({
     });
   }, [localSaved, savedSelected]);
 
+  // Ana sayfadaki gibi: row‑major iki sütuna böl (1: sol, 2: sağ, 3: sol, 4: sağ ...)
+  const [colLeft, colRight] = useMemo(() => {
+    const L: MyItem[] = [];
+    const R: MyItem[] = [];
+    filteredSaved.forEach((it, idx) => {
+      (idx % 2 === 0 ? L : R).push(it);
+    });
+    return [L, R];
+  }, [filteredSaved]);
+
   /** BE: Kaydedilenden kaldır (optimistic) */
   const removeSaved = useCallback(async (itemId: string) => {
     // optimistic
@@ -212,8 +222,10 @@ export default function SavedTab({
               </div>
             )}
 
-            {/* Kartlar */}
-            <div className="grid md:grid-cols-2 gap-4">
+            {/* Kartlar — mobilde tek sütun (gerçek sıra), md+ iki sütun (row‑major) */}
+
+            {/* MOBILE: tek sütun — filteredSaved sırasını aynen uygula */}
+            <div className="md:hidden flex flex-col gap-5">
               {filteredSaved.map(it => (
                 <div key={it.id}>
                   <ItemCard
@@ -263,6 +275,114 @@ export default function SavedTab({
                   />
                 </div>
               ))}
+            </div>
+
+            {/* DESKTOP/TABLET: 2 sütun — bağımsız dikey akış, row‑major dağıtım */}
+            <div className="hidden md:grid grid-cols-2 gap-5">
+              {/* Sol sütun */}
+              <div className="flex flex-col gap-5">
+                {colLeft.map(it => (
+                  <div key={it.id}>
+                    <ItemCard
+                      item={it}
+                      saved={true}
+                      amAdmin={false}
+                      myId={null}
+                      openShareId={openShareId}
+                      setOpenShareId={setOpenShareId}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                      copiedShareId={copiedShareId ?? null}
+                      onOpenSpotlight={(id) => router.push(spotlightHref(id))}
+                      onToggleSave={(id) => {
+                        // Saved tabde: kaydedilenden kaldır
+                        setConfirmRemoveSaved(id);
+                        removeSaved(id);
+                      }}
+                      onReport={(id) => onNotify?.('Raporlama bu ekranda devre dışı')}
+                      onDelete={undefined}
+                      onCopyShare={(id) => {
+                        try {
+                          navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                          setCopiedShareId(id);
+                          onNotify?.('Bağlantı kopyalandı');
+                          setTimeout(() => setCopiedShareId(null), 1500);
+                        } catch {}
+                      }}
+                      onNativeShare={(id, name) => {
+                        try {
+                          if (navigator.share) {
+                            navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
+                          } else {
+                            navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                            onNotify?.('Bağlantı kopyalandı');
+                          }
+                        } catch {}
+                      }}
+                      onShowInList={() => {}}
+                      onVoteComment={() => {}}
+                      onItemChanged={undefined}
+                      selectedTags={new Set<string>()}
+                      onToggleTag={() => {}}
+                      onResetTags={() => {}}
+                      showComments={false}
+                      showCommentBox={false}
+                    />
+                  </div>
+                ))}
+              </div>
+              {/* Sağ sütun */}
+              <div className="flex flex-col gap-5">
+                {colRight.map(it => (
+                  <div key={it.id}>
+                    <ItemCard
+                      item={it}
+                      saved={true}
+                      amAdmin={false}
+                      myId={null}
+                      openShareId={openShareId}
+                      setOpenShareId={setOpenShareId}
+                      openMenuId={openMenuId}
+                      setOpenMenuId={setOpenMenuId}
+                      copiedShareId={copiedShareId ?? null}
+                      onOpenSpotlight={(id) => router.push(spotlightHref(id))}
+                      onToggleSave={(id) => {
+                        // Saved tabde: kaydedilenden kaldır
+                        setConfirmRemoveSaved(id);
+                        removeSaved(id);
+                      }}
+                      onReport={(id) => onNotify?.('Raporlama bu ekranda devre dışı')}
+                      onDelete={undefined}
+                      onCopyShare={(id) => {
+                        try {
+                          navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                          setCopiedShareId(id);
+                          onNotify?.('Bağlantı kopyalandı');
+                          setTimeout(() => setCopiedShareId(null), 1500);
+                        } catch {}
+                      }}
+                      onNativeShare={(id, name) => {
+                        try {
+                          if (navigator.share) {
+                            navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
+                          } else {
+                            navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                            onNotify?.('Bağlantı kopyalandı');
+                          }
+                        } catch {}
+                      }}
+                      onShowInList={() => {}}
+                      onVoteComment={() => {}}
+                      onItemChanged={undefined}
+                      selectedTags={new Set<string>()}
+                      onToggleTag={() => {}}
+                      onResetTags={() => {}}
+                      showComments={false}
+                      showCommentBox={false}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
