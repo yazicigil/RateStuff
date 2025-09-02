@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import Link from 'next/link';
 import RatingPill from '@/components/common/RatingPill';
 import Image from 'next/image';
-import bookmarkSlash from '@/public/assets/icons/bookmarkslash.svg';
+import bookmarkSlash from '@/assets/icons/bookmarkslash.svg';
 
 /** — Tipler (MePage ile birebir uyum) — */
 export type MyItem = {

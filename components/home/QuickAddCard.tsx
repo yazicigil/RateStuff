@@ -152,7 +152,7 @@ export default function QuickAddCard({
   }, [open]);
 
   // apply prefill only when panel transitions from closed -> open
-  const prevOpenRef = useRef<boolean>(open);
+  const prevOpenRef = useRef<boolean>(false);
   useEffect(() => {
     const wasOpen = prevOpenRef.current;
     prevOpenRef.current = open;
