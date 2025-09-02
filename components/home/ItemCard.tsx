@@ -7,6 +7,7 @@ import SharePopover from '@/components/common/popovers/SharePopover';
 import OptionsPopover from '@/components/common/popovers/OptionsPopover';
 import CommentList from '@/components/comments/CommentList';
 import CommentBox from '@/components/comments/CommentBox';
+import ImageUploader from '@/components/common/ImageUploader';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
@@ -94,11 +95,6 @@ export default function ItemCard({
     }
   }, [addTag]);
 
-  const onPickImage = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => setImgDraft(String(reader.result || ''));
-    reader.readAsDataURL(file);
-  }, []);
 
   const saveEdit = useCallback(async () => {
     try {
@@ -183,18 +179,40 @@ export default function ItemCard({
 
       {/* BODY */}
       <div className="flex-1">
-        {editing && (
-          <div className="mb-3 p-3 rounded-xl border dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40">
-            <div className="grid grid-cols-1 md:grid-cols-[112px,1fr] gap-3 items-start">
-              <div>
-                <img src={imgDraft || i.imageUrl || '/default-item.svg'} alt="preview" className="w-28 h-28 object-cover rounded-lg border dark:border-gray-700" />
-                <label className="mt-2 inline-flex items-center gap-2 text-xs cursor-pointer">
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.currentTarget.files?.[0]; if (f) onPickImage(f); }} />
-                  <span className="px-2 py-1 rounded border dark:border-gray-700">Görsel seç</span>
-                </label>
+        {editing ? (
+          // EDITING MODE: Kartın kendi layout'u içinde, solda görsel uploader, sağda alanlar
+          <>
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center shrink-0 w-28">
+                {/* ImageUploader kartın görsel alanının yerine */}
+                <div className="w-28 h-28 rounded-lg overflow-hidden border dark:border-gray-700 bg-gray-50 dark:bg-gray-800 grid place-items-center">
+                  {/* Tip: ImageUploader'ın props sözleşmesi projede farklı olabilir; geniş destek için any ile çağırıyoruz */}
+                  {(ImageUploader as any) ? (
+                    <ImageUploader
+                      {...({} as any)}
+                      value={imgDraft}
+                      onChange={(url: string) => setImgDraft(url)}
+                      className="w-28 h-28"
+                    />
+                  ) : (
+                    <img src={imgDraft || i.imageUrl || '/default-item.svg'} alt="preview" className="w-28 h-28 object-cover" />
+                  )}
+                </div>
+                {i.edited && (
+                  <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                    düzenlendi
+                  </span>
+                )}
               </div>
-              <div className="space-y-3">
-                <div>
+
+              <div className="flex-1 min-w-0">
+                {/* Başlık sabit (isim değişmiyor) */}
+                <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
+                  <span className="text-left">{i.name}</span>
+                </h3>
+
+                {/* Açıklama */}
+                <div className="mt-2">
                   <label className="text-xs opacity-70">Açıklama</label>
                   <textarea
                     className="mt-1 w-full rounded-lg border px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
@@ -206,7 +224,9 @@ export default function ItemCard({
                   />
                   <div className="text-[11px] opacity-70 text-right">{descDraft.length}/240</div>
                 </div>
-                <div>
+
+                {/* Etiketler */}
+                <div className="mt-3">
                   <label className="text-xs opacity-70">Etiketler</label>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     {tagsDraft.map(t => (
@@ -223,160 +243,180 @@ export default function ItemCard({
                     />
                   </div>
                 </div>
+
+                {/* Kaydet / İptal */}
+                {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
+                <div className="mt-3 flex items-center gap-2 justify-end">
+                  <button
+                    type="button"
+                    className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => {
+                      setEditing(false);
+                      setErr(null);
+                      setDescDraft(i?.description ?? '');
+                      setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
+                      setImgDraft(i?.imageUrl ?? '');
+                    }}
+                  >
+                    İptal
+                  </button>
+                  <button
+                    type="button"
+                    disabled={saving}
+                    className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60"
+                    onClick={saveEdit}
+                  >
+                    {saving ? 'Kaydediliyor…' : 'Kaydet'}
+                  </button>
+                </div>
               </div>
             </div>
-            {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
-            <div className="mt-3 flex items-center gap-2 justify-end">
-              <button type="button" className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => { setEditing(false); setErr(null); setDescDraft(i?.description ?? ''); setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []); setImgDraft(i?.imageUrl ?? ''); }}>
-                İptal
-              </button>
-              <button type="button" disabled={saving} className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60" onClick={saveEdit}>
-                {saving ? 'Kaydediliyor…' : 'Kaydet'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="flex items-start gap-3">
-          <div className="flex flex-col items-center shrink-0 w-28">
-            <button
-              type="button"
-              onClick={() => onOpenSpotlight(i.id)}
-              className="rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
-              aria-label={`${i.name} spotlight'ı aç`}
-              title={`${i.name} spotlight'ı aç`}
-            >
-              <img
-                src={i.imageUrl || '/default-item.svg'}
-                alt={i.name || 'item'}
-                className="w-28 h-28 object-cover rounded-lg"
-                onError={(e) => {
-                  const t = e.currentTarget as HTMLImageElement;
-                  if (t.src.endsWith('/default-item.svg')) return;
-                  t.onerror = null;
-                  t.src = '/default-item.svg';
-                }}
-              />
-            </button>
-            {i.edited && (
-              <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                düzenlendi
-              </span>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {i?.suspended && (
-              <div className="mb-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                Askıda — yalnızca sen görüyorsun
-              </div>
-            )}
-
-            <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
-              <button
-                type="button"
-                onClick={() => onOpenSpotlight(i.id)}
-                className="text-left hover:underline underline-offset-2 decoration-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded"
-                aria-label={`${i.name} spotlight'ı aç`}
-                title={`${i.name} spotlight'ı aç`}
-              >
-                {i.name}
-              </button>
-            </h3>
-            {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
-
-            {i.createdBy && (
-              <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-                {i.createdBy.avatarUrl ? (
-                  <img
-                    src={i.createdBy.avatarUrl}
-                    alt={creatorName || 'u'}
-                    className="w-5 h-5 rounded-full object-cover"
-                    title={creatorName || 'u'}
-                  />
-                ) : (
-                  <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={creatorName || 'u'}>
-                    {(creatorName || 'u').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <span>{creatorName}</span>
-                {verified && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            )}
-
-            {/* Stars + Rating pill */}
-            <div className="mt-2 flex items-center gap-2 flex-wrap">
-              <Stars rating={avg} readOnly />
-              <RatingPill avg={i.avgRating ?? i.avg} count={i.count} />
-            </div>
-          </div>
-        </div>
-
-        {/* Tags */}
-        {Array.isArray(i.tags) && i.tags.length > 0 && (
-          <div className="mt-2 pt-2 border-t dark:border-gray-800">
-            <div className="w-full flex flex-wrap items-center gap-1 justify-start">
-              {i.tags.slice(0, 10).map((t: string) => (
-                <Tag
-                  key={t}
-                  label={t}
-                  className="inline-flex"
-                  active={selectedTags.has(t)}
-                  onClick={() => onToggleTag(t)}
-                  onDoubleClick={() => onToggleTag(t)} // (page tarafında double-click tümünü temizlemeyi handle ediyorsun)
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Comments (max 3) */}
-        {showComments && (
-          <div className="mt-2 pt-2 border-t dark:border-gray-800">
-            <CommentList
-              itemId={i.id}
-              myId={myId || null}
-              ownerId={ownerId as any}
-              comments={otherComments.slice(0, 3)}
-              totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
-              onVote={onVoteComment}
-              title="Yorumlar"
-              emptyText={otherComments.length === 0 ? 'Henüz başka yorum yok.' : undefined}
-            />
-            {showMore && (
-              <div className="mt-2">
+          </>
+        ) : (
+          // NORMAL MODE: mevcut kart görünümü
+          <>
+            <div className="flex items-start gap-3">
+              <div className="flex flex-col items-center shrink-0 w-28">
                 <button
                   type="button"
                   onClick={() => onOpenSpotlight(i.id)}
-                  className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  aria-label={`${i.name} spotlight'ı aç`}
+                  title={`${i.name} spotlight'ı aç`}
                 >
-                  Tüm yorumları gör
+                  <img
+                    src={i.imageUrl || '/default-item.svg'}
+                    alt={i.name || 'item'}
+                    className="w-28 h-28 object-cover rounded-lg"
+                    onError={(e) => {
+                      const t = e.currentTarget as HTMLImageElement;
+                      if (t.src.endsWith('/default-item.svg')) return;
+                      t.onerror = null;
+                      t.src = '/default-item.svg';
+                    }}
+                  />
                 </button>
+                {i.edited && (
+                  <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                    düzenlendi
+                  </span>
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                {i?.suspended && (
+                  <div className="mb-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                    Askıda — yalnızca sen görüyorsun
+                  </div>
+                )}
+
+                <h3 className="text-sm font-medium leading-tight pr-16 md:pr-24 title-wrap md-clamp2" title={i.name} lang="tr">
+                  <button
+                    type="button"
+                    onClick={() => onOpenSpotlight(i.id)}
+                    className="text-left hover:underline underline-offset-2 decoration-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded"
+                    aria-label={`${i.name} spotlight'ı aç`}
+                    title={`${i.name} spotlight'ı aç`}
+                  >
+                    {i.name}
+                  </button>
+                </h3>
+                {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
+
+                {i.createdBy && (
+                  <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+                    {i.createdBy.avatarUrl ? (
+                      <img
+                        src={i.createdBy.avatarUrl}
+                        alt={creatorName || 'u'}
+                        className="w-5 h-5 rounded-full object-cover"
+                        title={creatorName || 'u'}
+                      />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={creatorName || 'u'}>
+                        {(creatorName || 'u').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <span>{creatorName}</span>
+                    {verified && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </div>
+                )}
+
+                {/* Stars + Rating pill */}
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  <Stars rating={avg} readOnly />
+                  <RatingPill avg={i.avgRating ?? i.avg} count={i.count} />
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            {Array.isArray(i.tags) && i.tags.length > 0 && (
+              <div className="mt-2 pt-2 border-t dark:border-gray-800">
+                <div className="w-full flex flex-wrap items-center gap-1 justify-start">
+                  {i.tags.slice(0, 10).map((t: string) => (
+                    <Tag
+                      key={t}
+                      label={t}
+                      className="inline-flex"
+                      active={selectedTags.has(t)}
+                      onClick={() => onToggleTag(t)}
+                      onDoubleClick={() => onToggleTag(t)} // (page tarafında double-click tümünü temizlemeyi handle ediyorsun)
+                    />
+                  ))}
+                </div>
               </div>
             )}
-          </div>
+
+            {/* Comments (max 3) */}
+            {showComments && (
+              <div className="mt-2 pt-2 border-t dark:border-gray-800">
+                <CommentList
+                  itemId={i.id}
+                  myId={myId || null}
+                  ownerId={ownerId as any}
+                  comments={otherComments.slice(0, 3)}
+                  totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
+                  onVote={onVoteComment}
+                  title="Yorumlar"
+                  emptyText={otherComments.length === 0 ? 'Henüz başka yorum yok.' : undefined}
+                />
+                {showMore && (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => onOpenSpotlight(i.id)}
+                      className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      Tüm yorumları gör
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* CommentBox (always at bottom) */}
+            {showCommentBox && (
+              <div className="mt-3 pt-3 border-t dark:border-gray-800">
+                <CommentBox
+                  itemId={i.id}
+                  myComment={myComment || undefined}
+                  onDone={() => {
+                    try { onItemChanged && onItemChanged(); } catch {}
+                  }}
+                  initialRating={0}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      {/* CommentBox (always at bottom) */}
-      {showCommentBox && (
-        <div className="mt-3 pt-3 border-t dark:border-gray-800">
-          <CommentBox
-            itemId={i.id}
-            myComment={myComment || undefined}
-            onDone={() => {
-              try { onItemChanged && onItemChanged(); } catch {}
-            }}
-            initialRating={0}
-          />
-        </div>
-      )}
     </div>
   );
 }
