@@ -1119,7 +1119,13 @@ if (!already) {
       /* Listede göster → geçici vurgu */
       .rs-flash { outline: 2px solid rgb(16 185 129 / 0.9); outline-offset: 2px; }
 
-      
+      /* Masonry (2 sütun, bağımsız düşen kartlar) */
+      .rs-masonry { column-gap: 1rem; } /* ~ gap-4 */
+      .rs-masonry-item {
+        break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        page-break-inside: avoid;
+      }
       `}
       </style>
       
@@ -1383,7 +1389,7 @@ if (!already) {
 
 
           {/* KART IZGARASI */}
-            <h1 className="text-lg font-semibold mb-2">
+          <h1 className="text-lg font-semibold mb-2">
             {order === 'new' ? 'En yeni' : 'En yüksek puan'}
           </h1>
           {loading && (
@@ -1397,67 +1403,66 @@ if (!already) {
               />
             </div>
           )}
-          <div className="flex flex-col gap-4">
-            {/* + EKLE KARTI (her zaman en başta) */}
-            {!loading && (
-              <button
-                type="button"
-                onClick={() => {
-                  {
-                    // varsa açık spotlight'ı kapat
-                    setSharedItem(null);
-                    setSharedId(null);
-                    setShowQuickAdd(true);
-                  }
-                }}
-                className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
-                aria-label="Yeni öğe ekle"
-                title="Yeni öğe ekle"
-              >
-                <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                  <div className="text-4xl leading-none">+</div>
-                  <div className="text-sm font-medium">Ekle</div>
-                </div>
-              </button>
-            )}
-           
-          {filteredItems.map((i) => (
-            <div
-              key={i.id}
-              ref={(el) => { itemRefs.current[i.id] = el; }}
-              className={highlightId === i.id ? 'rs-flash rounded-2xl' : ''}
+          {/* + EKLE KARTI (her zaman en başta, sütunlar dışında tam genişlik) */}
+          {!loading && (
+            <button
+              type="button"
+              onClick={() => {
+                // varsa açık spotlight'ı kapat
+                setSharedItem(null);
+                setSharedId(null);
+                setShowQuickAdd(true);
+              }}
+              className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px] mb-4"
+              aria-label="Yeni öğe ekle"
+              title="Yeni öğe ekle"
             >
-              <ItemCard
-                item={i}
-                saved={savedIds.has(i.id)}
-                amAdmin={amAdmin}
-                myId={myId}
-                onVoteComment={voteOnComment}
-                onItemChanged={load}
-                openShareId={openShare?.scope === 'list' ? openShare.id : null}
-                setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
-                openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
-                setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
-                copiedShareId={copiedShareId}
-                onOpenSpotlight={openSpotlight}
-                onToggleSave={toggleSave}
-                onReport={report}
-                onDelete={deleteItem}
-                onCopyShare={handleCopyShare}
-                onNativeShare={nativeShare}
-                selectedTags={selectedTags}
-                onToggleTag={(t) => {
-                  setSelectedTags(prev => {
-                    const next = new Set(prev);
-                    if (next.has(t)) next.delete(t); else next.add(t);
-                    return next;
-                  });
-                }}
-                onResetTags={() => setSelectedTags(new Set())}
-                onShowInList={showInList}
-              />
-            </div>
-          ))}
+              <div className="grid place-items-center gap-1 text-emerald-700 dark:text-emerald-300">
+                <div className="text-4xl leading-none">+</div>
+                <div className="text-sm font-medium">Ekle</div>
+              </div>
+            </button>
+          )}
+
+          {/* 2 sütun bağımsız akış (masonry) */}
+          <div className="rs-masonry columns-1 md:columns-2">
+            {filteredItems.map((i) => (
+              <div
+                key={i.id}
+                ref={(el) => { itemRefs.current[i.id] = el; }}
+                className={`rs-masonry-item ${highlightId === i.id ? 'rs-flash rounded-2xl' : ''}`}
+              >
+                <ItemCard
+                  item={i}
+                  saved={savedIds.has(i.id)}
+                  amAdmin={amAdmin}
+                  myId={myId}
+                  onVoteComment={voteOnComment}
+                  onItemChanged={load}
+                  openShareId={openShare?.scope === 'list' ? openShare.id : null}
+                  setOpenShareId={(id) => setOpenShare(id ? { scope: 'list', id } : null)}
+                  openMenuId={openMenu?.scope === 'list' ? openMenu.id : null}
+                  setOpenMenuId={(id) => setOpenMenu(id ? { scope: 'list', id } : null)}
+                  copiedShareId={copiedShareId}
+                  onOpenSpotlight={openSpotlight}
+                  onToggleSave={toggleSave}
+                  onReport={report}
+                  onDelete={deleteItem}
+                  onCopyShare={handleCopyShare}
+                  onNativeShare={nativeShare}
+                  selectedTags={selectedTags}
+                  onToggleTag={(t) => {
+                    setSelectedTags(prev => {
+                      const next = new Set(prev);
+                      if (next.has(t)) next.delete(t); else next.add(t);
+                      return next;
+                    });
+                  }}
+                  onResetTags={() => setSelectedTags(new Set())}
+                  onShowInList={showInList}
+                />
+              </div>
+            ))}
           </div>
           <ReportModal
             open={reportOpen}
