@@ -52,6 +52,7 @@ import { useSession } from 'next-auth/react';
 import { containsBannedWord } from '@/lib/bannedWords';
 import RatingPill from '@/components/RatingPill';
 import ReportModal from '@/components/ReportModal';
+import TrendingTagsCard from '@/components/TrendingTagsCard';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -1284,35 +1285,19 @@ if (!already) {
         {/* Sol: etiketler */}
         <aside className="hidden md:block">
          
-          <CollapsibleSection
-            title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
+          <TrendingTagsCard
+            tags={trending}
+            selected={selectedTags}
+            onToggle={(t) => {
+              setSelectedTags(prev => {
+                const next = new Set(prev);
+                if (next.has(t)) next.delete(t); else next.add(t);
+                return next;
+              });
+            }}
+            onClearAll={() => setSelectedTags(new Set())}
             defaultOpen={true}
-            className="border-violet-300 bg-violet-50 dark:border-violet-700 dark:bg-violet-900/20"
-            summaryClassName="text-violet-900 dark:text-violet-200"
-          >
-            <div className="flex flex-wrap gap-2">
-              {trending.map((t) => (
-                <Tag
-                  key={t}
-                  label={t}
-                  active={selectedTags.has(t)}
-                  onClick={() => {
-                    setSelectedTags(prev => {
-                      const next = new Set(prev);
-                      if (next.has(t)) next.delete(t); else next.add(t);
-                      return next;
-                    });
-                  }}
-                  onDoubleClick={() => setSelectedTags(new Set())}
-                  className={
-                    selectedTags.has(t)
-                      ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-                      : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20'
-                  }
-                />
-              ))}
-            </div>
-          </CollapsibleSection>
+          />
 
           <div className="h-4" />
 
@@ -1516,35 +1501,19 @@ if (!already) {
           )}
           {/* MOBIL: Etiketler/Filtreler (spotlight altı) */}
 <div className="md:hidden space-y-4">
-  <CollapsibleSection
-    title={`Trend Etiketler${selectedInTrending ? ` (${selectedInTrending} seçili)` : ''}`}
+  <TrendingTagsCard
+    tags={trending}
+    selected={selectedTags}
+    onToggle={(t) => {
+      setSelectedTags(prev => {
+        const next = new Set(prev);
+        if (next.has(t)) next.delete(t); else next.add(t);
+        return next;
+      });
+    }}
+    onClearAll={() => setSelectedTags(new Set())}
     defaultOpen={true}
-    className="border-violet-300 bg-violet-50 dark:border-violet-700 dark:bg-violet-900/20"
-    summaryClassName="text-violet-900 dark:text-violet-200"
-  >
-    <div className="flex flex-wrap gap-2">
-      {trending.map((t) => (
-        <Tag
-          key={t}
-          label={t}
-          active={selectedTags.has(t)}
-          onClick={() => {
-            setSelectedTags(prev => {
-              const next = new Set(prev);
-              if (next.has(t)) next.delete(t); else next.add(t);
-              return next;
-            });
-          }}
-          onDoubleClick={() => setSelectedTags(new Set())}
-          className={
-            selectedTags.has(t)
-              ? 'bg-violet-600 text-white border-violet-600 hover:bg-violet-700 shadow'
-              : 'bg-violet-500/10 text-violet-900 border-violet-300 hover:bg-violet-500/20 dark:bg-violet-400/10 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-400/20'
-          }
-        />
-      ))}
-    </div>
-  </CollapsibleSection>
+  />
 
   <CollapsibleSection title={`Tüm Etiketler${selectedInAllTags ? ` (${selectedInAllTags} seçili)` : ''}`} defaultOpen={false}>
     <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-auto pr-1">
