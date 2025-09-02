@@ -30,7 +30,6 @@ async function nativeShare(id: string, name: string) {
     }
   } catch {}
 }
-import SeoLD from "@/components/SeoLD";
 import QuickAddCard from '@/components/QuickAddCard';
 import ItemCard from '@/components/ItemCard';
 import Head from 'next/head';
@@ -41,16 +40,8 @@ import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import Tag from '@/components/Tag';
-import Stars from '@/components/Stars';
 import Header from '@/components/Header';
-import CollapsibleSection from '@/components/CollapsibleSection';
-import ImageUploader from '@/components/ImageUploader';
-import CommentBox from '@/components/comments/CommentBox';
 import { useSession } from 'next-auth/react';
-import { containsBannedWord } from '@/lib/bannedWords';
-import RatingPill from '@/components/RatingPill';
 import ReportModal from '@/components/ReportModal';
 import TrendingTagsCard from '@/components/TrendingTagsCard';
 import AllTagsCard from '@/components/AllTagsCard';
@@ -58,22 +49,6 @@ import SortAndStarsCard from '@/components/SortAndStarsCard';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
-// İsimleri maskelemek için (Ad Soyad -> A* S****)
-// Not: Hiçbir özel anahtar kelime (anon, guest vs.) yok; dolu gelen her isim maskelenir.
-function maskName(s?: string | null) {
-  if (!s) return 'Anonim'; // yalnızca boş/gelmeyen için
-  const raw = String(s).trim();
-  if (!raw) return 'Anonim';
-
-  const parts = raw.split(/\s+/).filter(Boolean);
-  return parts
-    .map((p) => {
-      const first = p.charAt(0).toLocaleUpperCase('tr-TR');
-      const restLen = Math.max(1, p.length - 1);
-      return first + '*'.repeat(restLen);
-    })
-    .join(' ');
-}
 
 // --- 401'de otomatik signin'e yönlendiren fetch ---
 async function fetchOrSignin(url: string, init?: RequestInit) {
@@ -119,8 +94,7 @@ export default function HomePage() {
   const [qInput, setQInput] = useState('');
   const [qCommitted, setQCommitted] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [previewItems, setPreviewItems] = useState<ItemVM[]>([]);
-  const [previewLoading, setPreviewLoading] = useState(false);
+
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -179,38 +153,13 @@ const handleCopyShare = async (id: string) => {
 useEffect(() => {
   if (!openShare) setCopiedShareId(null);
 }, [openShare]);
-  const [quickRating, setQuickRating] = useState(5);
-  const [justAdded, setJustAdded] = useState(false);
-  const [pulseQuick, setPulseQuick] = useState(false);
-  const quickSectionRef = useRef<HTMLDivElement>(null);
-  const quickNameRef = useRef<HTMLInputElement>(null);
-  const [quickName, setQuickName] = useState('');
-  const [quickTags, setQuickTags] = useState<string[]>([]);
-  const [quickTagInput, setQuickTagInput] = useState('');
-  const [quickComment, setQuickComment] = useState('');
-  const [quickTagError, setQuickTagError] = useState<string | null>(null);
+
+
   // Quick-add: tag suggestions (trending when empty, filtered allTags when typing)
-  const [showQuickTagSug, setShowQuickTagSug] = useState(false);
-  const quickTagSuggestions = useMemo(() => {
-    const already = new Set(quickTags.map(normalizeTag));
-    const input = normalizeTag(quickTagInput);
-    const pool = input ? allTags : trending;
-    const list = (pool || [])
-      .map(String)
-      .map(normalizeTag)
-      .filter(Boolean)
-      .filter(t => !already.has(t))
-      .filter(t => (input ? t.includes(input) : true));
-    // de-duplicate while preserving order
-    const dedup: string[] = [];
-    for (const t of list) if (!dedup.includes(t)) dedup.push(t);
-    return dedup.slice(0, 10);
-  }, [quickTagInput, quickTags, trending, allTags]);
-  // Kaydedilmiş item ID’leri
+
+   
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
-  const [newImage, setNewImage] = useState<string | null>(null);
-  const [newRating, setNewRating] = useState<number>(0);
-  const [loadedOnce, setLoadedOnce] = useState(false);
+
   const [starBuckets, setStarBuckets] = useState<Set<number>>(new Set());
   // Yorum düzenleme state'i
   const [editingCommentId, setEditingCommentId] = useState<string|null>(null);
@@ -235,7 +184,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
   // Hızlı ekle spotlight kontrolü
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-  const quickAddRef = useRef<HTMLDivElement>(null);
+
 
   function measureTruncation(id: string) {
     const el = commentTextRefs.current[id];
@@ -305,15 +254,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const [navDir, setNavDir] = useState<0 | 1 | -1>(0); // 0: yok, 1: sağa (next), -1: sola (prev)
   const [animKey, setAnimKey] = useState(0);
   const [animArmed, setAnimArmed] = useState(false);
-  // Seçili etiket sayıları (başlıklarda göstermek için)
-  const selectedInTrending = useMemo(
-    () => trending.filter(t => selectedTags.has(t)).length,
-    [trending, selectedTags]
-  );
-  const selectedInAllTags = useMemo(
-    () => allTags.filter(t => selectedTags.has(t)).length,
-    [allTags, selectedTags]
-  );
 
   // Aktif oturum (sadece kendi yorumlarım için çöp kutusunu gösterebilmek adına)
   const { data: session } = useSession();
@@ -423,7 +363,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
       setItems(Array.isArray(_items) ? _items : []);
       setAllTags(Array.isArray(_allTags) ? _allTags : []);
       setTrending(Array.isArray(_trending) ? _trending : []);
-      setLoadedOnce(true);
+      
     } finally {
       setLoading(false);
     }
@@ -464,15 +404,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         const hash = window.location.hash;
         if (hash === '#quick-add') {
           setShowQuickAdd(true);
-          // render tamamlandıktan sonra doğru yere smooth scroll + focus
-          requestAnimationFrame(() => {
-            const el = quickAddRef.current;
-            if (el) smoothScrollIntoView(el);
-            setTimeout(() => {
-              quickNameRef.current?.focus();
-              quickNameRef.current?.select();
-            }, 150);
-          });
         }
       } catch {}
     }
@@ -555,7 +486,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     if (cleared || startedDeleting) {
       setQCommitted('');
       setSuggestions([]);
-      setPreviewItems([]);
+      
     }
   }, [qInput, qCommitted]);
 
@@ -613,7 +544,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
 
   async function addItem(form: FormData) {
     setAdding(true);
-    setQuickFormError(null);
+   
     try {
       const payload = {
         name: String(form.get('name') || ''),
@@ -634,8 +565,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   setQInput('');
   setQCommitted('');
   await load();
-        setJustAdded(true);
-        setTimeout(() => setJustAdded(false), 2000);
+      
         return true;
      } else {
    const err = String(j?.error || '');
@@ -645,10 +575,10 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
      /Unique constraint/i.test(err) ||
      (/unique/i.test(err) && /name/i.test(err));
    if (isDuplicate) {
-     setQuickFormError('Aynı isimli gönderi daha önce paylaşılmış. Lütfen farklı bir ad deneyin veya mevcut gönderiyi puanlayın/yorum yapın.');
+    
      return false;
    }
-   setQuickFormError('Bir hata oluştu. Lütfen tekrar deneyin.');
+
    return false;
 }
     } finally { setAdding(false); }
@@ -794,44 +724,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         await refreshShared(itemId);
       }
     } else alert('Hata: ' + (j?.error || res.status));
-  }
-
-  function jumpToQuickAdd() {
-    try {
-      const url = new URL(window.location.href);
-      url.hash = 'quick-add';
-      window.history.replaceState({}, '', url.toString());
-    } catch {}
-    const name = qInput.trim();
-    if (name) setQuickName(name);
-    setShowQuickAdd(true);
-
-    // spotlight açıksa kapat
-    setSharedItem(null);
-    setSharedId(null);
-
-    // Mevcut filtrelerden hızlı ekle formunu doldur
-    // Etiketler: maksimum 3
-    if (selectedTags.size > 0) {
-      setQuickTags(Array.from(selectedTags).slice(0, 3));
-      setQuickTagInput('');
-    }
-    // Yıldız: yalnızca tek kova seçiliyse otomatik doldur
-    {
-      const stars = Array.from(starBuckets);
-      setNewRating(stars.length === 1 ? stars[0] : 0);
-    }
-
-    // render’ı bekleyip doğru yere smooth scroll
-    requestAnimationFrame(() => {
-      const el = quickAddRef.current;
-      if (el) smoothScrollIntoView(el);
-    });
-
-    setTimeout(() => {
-      quickNameRef.current?.focus();
-      quickNameRef.current?.select();
-    }, 150);
   }
 
   async function report(id: string) {
@@ -1035,60 +927,15 @@ if (!already) {
     }
   }, [sharedItem?.id, navDir]);
 
-  const clamp2: React.CSSProperties = {
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    wordBreak: 'normal',
-    overflowWrap: 'normal',
-    hyphens: 'auto',
-  };
 
-  const quickFormRef = useRef<HTMLFormElement>(null);
-  const [quickFormError, setQuickFormError] = useState<string | null>(null);
-  const quickValid = quickName.trim().length > 0 && quickTags.length > 0 && newRating > 0;
-  const hasBannedName = containsBannedWord(quickName);
-  const hasBannedComment = containsBannedWord(quickComment);
-  const hasBannedTag = quickTags.some(t => containsBannedWord(t));
-  const quickBlocked = hasBannedName || hasBannedComment || hasBannedTag;
+
+  
 
   // Quick-add spotlight kapanınca formu ve alanları sıfırla
-  useEffect(() => {
-    if (!showQuickAdd) {
-      // Form ve alanları sıfırla
-      try { quickFormRef.current?.reset(); } catch {}
-      setQuickName('');
-      setQuickTagInput('');
-      setQuickTags([]);
-      setNewRating(0);
-      setNewImage(null);
-      setQuickComment('');
-      setQuickTagError(null);
-    }
-  }, [showQuickAdd]);
 
-  function normalizeTag(s: string) {
-    return s.trim().replace(/^#+/, '').toLowerCase();
-  }
-  function addTagsFromInput(src?: string) {
-    const raw = typeof src === 'string' ? src : quickTagInput;
-    const parts = raw.split(',').map(normalizeTag).filter(Boolean);
-    if (parts.length === 0) return;
-    let bannedHit = false;
-    setQuickTags(prev => {
-      const set = new Set(prev);
-      for (const p of parts) {
-        if (set.size >= 3) break; // cap at 3
-        if (containsBannedWord(p)) { bannedHit = true; continue; }
-        set.add(p);
-      }
-      return Array.from(set).slice(0,3);
-    });
-    setQuickTagInput('');
-    setQuickTagError(bannedHit ? 'Etikette yasaklı kelime kullanılamaz.' : null);
-  }
+
+
+
 
   // --- SEO: JSON-LD (WebSite + Organization) ---
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
@@ -1272,13 +1119,7 @@ if (!already) {
       /* Listede göster → geçici vurgu */
       .rs-flash { outline: 2px solid rgb(16 185 129 / 0.9); outline-offset: 2px; }
 
-      @keyframes rs-spin {
-        to { transform: rotate(1turn); }
-      }
-      .rs-spinner {
-        animation: rs-spin 1s linear infinite;
-        will-change: transform;
-      }
+      
       `}
       </style>
       
@@ -1557,25 +1398,12 @@ if (!already) {
               <button
                 type="button"
                 onClick={() => {
-                  // varsa açık spotlight'ı kapat
-                  setSharedItem(null);
-                  setSharedId(null);
-                  // Mevcut filtrelerden hızlı eklemeyi önceden doldur
-                  if (qInput.trim()) setQuickName(qInput.trim());
-                  if (selectedTags.size > 0) {
-                    setQuickTags(Array.from(selectedTags).slice(0, 3));
-                    setQuickTagInput('');
-                  }
                   {
-                    const stars = Array.from(starBuckets);
-                    setNewRating(stars.length === 1 ? stars[0] : 0);
+                    // varsa açık spotlight'ı kapat
+                    setSharedItem(null);
+                    setSharedId(null);
+                    setShowQuickAdd(true);
                   }
-                  setShowQuickAdd(true);
-                  requestAnimationFrame(() => {
-                    const el = quickAddRef.current;
-                    if (el) smoothScrollIntoView(el);
-                  });
-                  setTimeout(() => { quickNameRef.current?.focus(); }, 100);
                 }}
                 className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
                 aria-label="Yeni öğe ekle"
