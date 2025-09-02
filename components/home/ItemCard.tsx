@@ -72,12 +72,15 @@ export default function ItemCard({
   ) as string | null;
   const isOwner = myId && ownerId ? String(myId) === String(ownerId) : false;
 
+  const creatorNameRaw: string | null | undefined = i?.createdBy?.name ?? i?.createdByName ?? null;
+  const creatorAvatarRaw: string | null | undefined = i?.createdBy?.avatarUrl ?? i?.createdByAvatarUrl ?? null;
+
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
 
   const creatorName = useMemo(
-    () => maskName(i?.createdBy?.name, verified),
-    [i?.createdBy?.name, verified]
+    () => maskName(creatorNameRaw, verified),
+    [creatorNameRaw, verified]
   );
 
   const [editing, setEditing] = useState(false);
@@ -331,11 +334,11 @@ export default function ItemCard({
                 </h3>
                 {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
 
-                {i.createdBy && (
+                {(i.createdBy || creatorNameRaw) && (
                   <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
-                    {i.createdBy.avatarUrl ? (
+                    {creatorAvatarRaw ? (
                       <img
-                        src={i.createdBy.avatarUrl}
+                        src={creatorAvatarRaw}
                         alt={creatorName || 'u'}
                         className="w-5 h-5 rounded-full object-cover"
                         title={creatorName || 'u'}

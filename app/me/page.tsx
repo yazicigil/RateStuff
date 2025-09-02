@@ -664,10 +664,12 @@ const body: any = {
         {activeSection === 'items' && (
           <ItemsTab
             items={items}
-            
             trending={trending}
             loading={loading}
             notify={notify}
+            onReload={load}
+            myId={me?.id ?? null}
+            amAdmin={Boolean((me as any)?.isAdmin || (me as any)?.email === 'ratestuffnet@gmail.com')}
           />
         )}
 
