@@ -36,6 +36,10 @@ export interface ItemCardProps {
   selectedTags: Set<string>;
   onToggleTag: (t: string) => void;
   onResetTags: () => void;
+  /** alt kısımdaki listeyi gizlemek için */
+  showComments?: boolean;          // default: true
+  /** alt kısımdaki yorum kutusunu gizlemek için */
+  showCommentBox?: boolean;        // default: true
 }
 
 function maskName(s?: string | null, verified?: boolean) {
@@ -49,7 +53,9 @@ export default function ItemCard({
   item: i, saved, amAdmin, myId,
   openShareId, setOpenShareId, openMenuId, setOpenMenuId, copiedShareId,
   onOpenSpotlight, onToggleSave, onReport, onDelete, onCopyShare, onNativeShare, onVoteComment, onItemChanged,
-  selectedTags, onToggleTag,
+  selectedTags, onToggleTag, onResetTags,
+  showComments = true,
+  showCommentBox = true,
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
   const verified = Boolean((i?.createdBy as any)?.verified);
@@ -228,42 +234,46 @@ export default function ItemCard({
         )}
 
         {/* Comments (max 3) */}
-        <div className="mt-2 pt-2 border-t dark:border-gray-800">
-          <CommentList
-            itemId={i.id}
-            myId={myId || null}
-            ownerId={(i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as any}
-            comments={otherComments.slice(0, 3)}
-            totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
-            onVote={onVoteComment}
-            title="Yorumlar"
-            emptyText={otherComments.length === 0 ? 'Henüz yorum yok.' : undefined}
-          />
-          {showMore && (
-            <div className="mt-2">
-              <button
-                type="button"
-                onClick={() => onOpenSpotlight(i.id)}
-                className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-              >
-                Tüm yorumları gör
-              </button>
-            </div>
-          )}
-        </div>
+        {showComments && (
+          <div className="mt-2 pt-2 border-t dark:border-gray-800">
+            <CommentList
+              itemId={i.id}
+              myId={myId || null}
+              ownerId={(i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as any}
+              comments={otherComments.slice(0, 3)}
+              totalCount={Array.isArray(i?.comments) ? (i.comments as any[]).length : 0}
+              onVote={onVoteComment}
+              title="Yorumlar"
+              emptyText={otherComments.length === 0 ? 'Henüz başka yorum yok.' : undefined}
+            />
+            {showMore && (
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => onOpenSpotlight(i.id)}
+                  className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  Tüm yorumları gör
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* CommentBox (always at bottom) */}
-      <div className="mt-3 pt-3 border-t dark:border-gray-800">
-        <CommentBox
-          itemId={i.id}
-          myComment={myComment || undefined}
-          onDone={() => {
-            try { onItemChanged && onItemChanged(); } catch {}
-          }}
-          initialRating={0}
-        />
-      </div>
+      {showCommentBox && (
+        <div className="mt-3 pt-3 border-t dark:border-gray-800">
+          <CommentBox
+            itemId={i.id}
+            myComment={myComment || undefined}
+            onDone={() => {
+              try { onItemChanged && onItemChanged(); } catch {}
+            }}
+            initialRating={0}
+          />
+        </div>
+      )}
     </div>
   );
 }

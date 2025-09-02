@@ -4,6 +4,8 @@ import Link from 'next/link';
 import RatingPill from '@/components/common/RatingPill';
 import Image from 'next/image';
 import bookmarkSlash from '@/assets/icons/bookmarkslash.svg';
+import ItemCard from '@/components/home/ItemCard';
+import { useRouter } from 'next/navigation';
 
 /** İsim maskeleme: "Burak Topaç" -> "B**** T****" */
 function maskName(full?: string | null) {
@@ -101,6 +103,12 @@ export default function SavedTab({
     document.addEventListener('click', onDocClick, true);
     return () => document.removeEventListener('click', onDocClick, true);
   }, []);
+
+  // ItemCard için local state'ler
+  const [openShareId, setOpenShareId] = useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+  const router = useRouter();
 
   /** Türev veriler */
   const savedTags = useMemo(() => {
@@ -207,165 +215,52 @@ export default function SavedTab({
             {/* Kartlar */}
             <div className="grid md:grid-cols-2 gap-4">
               {filteredSaved.map(it => (
-                <div
-                  key={it.id}
-                  className={
-                    "rounded-xl border p-4 bg-white dark:bg-gray-900 dark:border-gray-800 transition hover:shadow-md hover:-translate-y-0.5 overflow-hidden max-w-full" +
-                    `${(it as any)?.suspended ? ' opacity-60 grayscale' : ''}`
-                  }
-                >
-                  <div className="flex items-start gap-3">
-                    <Link href={spotlightHref(it.id)} prefetch={false} className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0 grid place-items-center">
-                      {it.imageUrl ? (
-                        <img src={it.imageUrl} alt={it.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      ) : (
-                        <img src="/default-item.svg" alt="default" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      )}
-                    </Link>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        {/* Sol: isim + ortalama pill */}
-                        <div className="min-w-0 flex items-center gap-2">
-                          <Link href={spotlightHref(it.id)} prefetch={false} className="text-base font-medium truncate break-words hover:underline">
-                            {it.name}
-                          </Link>
-                          <RatingPill avg={getAvg(it)} count={it.count ?? 0} />
-                        </div>
-
-                        {/* Sağ: kaldır butonu (iki adım onay) */}
-                        <button
-                          type="button"
-                          onMouseDown={(e: React.MouseEvent) => { e.stopPropagation(); }}
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            const isConfirming = confirmRemoveSaved === it.id;
-                            if (isConfirming) {
-                              removeSaved(it.id);
-                            } else {
-                              setConfirmRemoveSaved(it.id);
-                            }
-                          }}
-                          data-saved-remove-btn
-                          className={`text-xs px-2 py-1 rounded-lg border flex items-center gap-1 ${
-                            confirmRemoveSaved === it.id
-                              ? 'bg-green-50 border-green-300 text-green-700 dark:bg-green-900/20 dark:border-green-700 dark:text-green-300'
-                              : 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'
-                          }`}
-                          title={confirmRemoveSaved === it.id ? 'Onaylamak için tekrar tıkla' : 'Kaydedilenlerden kaldır'}
-                          aria-label={confirmRemoveSaved === it.id ? 'Kaldırmayı onayla' : 'Kaydedilenlerden kaldır'}
-                        >
-                          <span data-saved-remove-btn className="inline-flex items-center gap-1">
-                            {confirmRemoveSaved === it.id ? (
-                              <IconCheck className="w-4 h-4" />
-                            ) : (
-                              <span
-                                aria-hidden="true"
-                                className="w-4 h-4 inline-block bg-red-600 dark:bg-red-400"
-                                style={{
-                                  WebkitMaskImage: `url(${(bookmarkSlash as any).src ?? bookmarkSlash})`,
-                                  maskImage: `url(${(bookmarkSlash as any).src ?? bookmarkSlash})`,
-                                  WebkitMaskSize: 'contain',
-                                  maskSize: 'contain',
-                                  WebkitMaskRepeat: 'no-repeat',
-                                  maskRepeat: 'no-repeat',
-                                  WebkitMaskPosition: 'center',
-                                  maskPosition: 'center',
-                                }}
-                              />
-                            )}
-                          </span>
-                        </button>
-                      </div>
-
-                      {/* Suspended badge */}
-                      {(it as any)?.suspended && (
-                        <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          Askıda — yalnızca sen görüyorsun
-                        </div>
-                      )}
-
-                      <p className="text-sm opacity-80 mt-1 line-clamp-3 break-words">{it.description}</p>
-
-                      {!!(it.tags && it.tags.length) && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {it.tags.slice(0, 10).map(t => {
-                            const isTrend = trending.includes(t);
-                            return (
-                              <span
-                                key={t}
-                                className={
-                                  "px-2 py-0.5 rounded-full text-xs border " +
-                                  (isTrend
-                                    ? "bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700"
-                                    : "bg-white dark:bg-gray-800 dark:border-gray-700")
-                                }
-                                title={isTrend ? "Trend" : undefined}
-                              >
-                                #{t}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Ekleyen kişi */}
-                      {(() => {
-                        const by = it.createdBy || null;
-                        const avatar = by?.avatarUrl ?? it.createdByAvatarUrl ?? null;
-                        // Maskeyi her zaman gerçek isimden üret (backend'in maskedName'i yerine)
-                        const baseName = by?.name ?? it.createdByName ?? null;
-
-                        // Admin tespiti: createdBy.email veya (varsa) createdByEmail alanı
-                        const email = (by as any)?.email ?? (it as any)?.createdByEmail ?? null;
-                        const isAdmin = email === 'ratestuffnet@gmail.com';
-
-                        // Admin maskelenmez, badge gösterilecek
-                        const shownName = isAdmin ? (baseName || 'Anonim') : maskName(baseName);
-
-                        if (!avatar && !shownName) return null;
-                        return (
-                          <div className="mt-2 flex items-center gap-2 text-xs">
-                            <span className="opacity-60">Ekleyen:</span>
-                            <span className="inline-flex items-center gap-2">
-                              <span className="inline-grid place-items-center w-5 h-5 rounded-full overflow-hidden bg-gray-200 text-[10px] font-semibold">
-                                {avatar ? (
-                                  <img src={avatar} alt={shownName || 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                                ) : (
-                                  <span className="text-white">
-                                    {(baseName || 'A')
-                                      .split(' ')
-                                      .filter(Boolean)
-                                      .slice(0, 2)
-                                      .map(s => (s[0] || '').toUpperCase())
-                                      .join('') || 'A'}
-                                  </span>
-                                )}
-                              </span>
-                              <span className="truncate max-w-[12rem] inline-flex items-center">
-                                <span className="truncate">{shownName || 'Anonim'}</span>
-                                {isAdmin && (
-                                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                                    <circle cx="12" cy="12" r="9" fill="#3B82F6"></circle>
-                                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
-                                  </svg>
-                                )}
-                              </span>
-                            </span>
-                          </div>
-                        );
-                      })()}
-
-                      {it.edited && (
-                        <span className="mt-2 inline-block text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
-                          düzenlendi
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                <div key={it.id}>
+                  <ItemCard
+                    item={it}
+                    saved={true}
+                    amAdmin={false}
+                    myId={null}
+                    openShareId={openShareId}
+                    setOpenShareId={setOpenShareId}
+                    openMenuId={openMenuId}
+                    setOpenMenuId={setOpenMenuId}
+                    copiedShareId={copiedShareId ?? null}
+                    onOpenSpotlight={(id) => router.push(spotlightHref(id))}
+                    onToggleSave={(id) => {
+                      // Saved tabde: kaydedilenden kaldır
+                      setConfirmRemoveSaved(id);
+                      removeSaved(id);
+                    }}
+                    onReport={(id) => onNotify?.('Raporlama bu ekranda devre dışı')}
+                    onDelete={undefined}
+                    onCopyShare={(id) => {
+                      try {
+                        navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                        setCopiedShareId(id);
+                        onNotify?.('Bağlantı kopyalandı');
+                        setTimeout(() => setCopiedShareId(null), 1500);
+                      } catch {}
+                    }}
+                    onNativeShare={(id, name) => {
+                      try {
+                        if (navigator.share) {
+                          navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
+                        } else {
+                          navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
+                          onNotify?.('Bağlantı kopyalandı');
+                        }
+                      } catch {}
+                    }}
+                    onShowInList={() => {}}
+                    onVoteComment={() => {}}
+                    onItemChanged={undefined}
+                    selectedTags={new Set<string>()}
+                    onToggleTag={() => {}}
+                    onResetTags={() => {}}
+                    showComments={false}
+                    showCommentBox={false}
+                  />
                 </div>
               ))}
             </div>
