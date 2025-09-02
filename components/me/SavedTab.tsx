@@ -245,7 +245,20 @@ export default function SavedTab({
                             {confirmRemoveSaved === it.id ? (
                               <IconCheck className="w-4 h-4" />
                             ) : (
-                              <Image src={bookmarkSlash} alt="remove" width={16} height={16} className="text-red-600 dark:text-red-400" />
+                              <span
+                                aria-hidden="true"
+                                className="w-4 h-4 inline-block bg-red-600 dark:bg-red-400"
+                                style={{
+                                  WebkitMaskImage: `url(${(bookmarkSlash as any).src ?? bookmarkSlash})`,
+                                  maskImage: `url(${(bookmarkSlash as any).src ?? bookmarkSlash})`,
+                                  WebkitMaskSize: 'contain',
+                                  maskSize: 'contain',
+                                  WebkitMaskRepeat: 'no-repeat',
+                                  maskRepeat: 'no-repeat',
+                                  WebkitMaskPosition: 'center',
+                                  maskPosition: 'center',
+                                }}
+                              />
                             )}
                           </span>
                         </button>
