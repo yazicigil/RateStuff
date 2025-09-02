@@ -10,7 +10,7 @@ import ImageUploader from "@/components/common/ImageUploader";
 import { useSession } from "next-auth/react";
 import RatingPill from '@/components/common/RatingPill';
 import Stars from "@/components/common/Stars";
-import NotificationsDropdown from "@/components/notifications/Dropdown";
+import NotificationsDropdown from "@/components/header/notifications/Dropdown";
 import SavedTab from '@/components/me/SavedTab';
 import ItemsTab from '@/components/me/ItemsTab';
 import CommentsTab from '@/components/me/CommentsTab';

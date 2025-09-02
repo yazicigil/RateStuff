@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
+import AnimatedRefresh from "@/components/common/lottie/AnimatedRefresh";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
@@ -166,7 +167,12 @@ export default function NotificationsDropdown() {
                   >
                     Bildirimleri temizle
                   </button>
-                  <button className="h-7 px-2 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs hover:bg-neutral-50 dark:hover:bg-neutral-800" onClick={() => refresh()}>Yenile</button>
+                  <AnimatedRefresh
+                    onClick={refresh}
+                    className="ml-1"
+                    size={20}
+                    path="/animations/refresh.json"
+                  />
                 </div>
               </div>
               <div className="mt-1 h-px bg-neutral-200 dark:bg-neutral-800" />

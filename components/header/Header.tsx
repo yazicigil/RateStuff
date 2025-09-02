@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
-import NotificationsDropdown from '@/components/notifications/Dropdown';
+import NotificationsDropdown from '@/components/header/notifications/Dropdown';
 import SearchWithSuggestions from '@/components/header/search/SearchWithSuggestions';
 
 type Me = { id: string; name: string | null; avatarUrl?: string | null; isAdmin?: boolean };

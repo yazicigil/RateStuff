@@ -1,4 +1,3 @@
-// components/common/AnimatedRefresh.tsx
 "use client";
 
 import { useRef, useState, useEffect } from "react";
