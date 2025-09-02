@@ -37,6 +37,9 @@ import Head from 'next/head';
 import SpotlightCard from '@/components/spotlight/SpotlightCard';
 import ScrollToTop from "@/components/ScrollToTop";
 
+import Lottie, { LottieRefCurrentProps } from 'lottie-react';
+import starLoaderAnim from '@/assets/animations/star-loader.json';
+
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import Tag from '@/components/Tag';
@@ -127,6 +130,11 @@ export default function HomePage() {
     return pool.filter(t => t.toLowerCase().includes(s)).slice(0, 12);
   }, [qInput, allTags, trending]);
   const [loading, setLoading] = useState(false);
+  const loaderRef = useRef<LottieRefCurrentProps>(null);
+  useEffect(() => {
+    // Lottie bileşenine hız uygula (prop olarak 'speed' desteklenmiyor)
+    try { loaderRef.current?.setSpeed(1.8); } catch {}
+  }, [loading]);
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [openMenu, setOpenMenu] = useState<{ scope: 'list' | 'spot'; id: string } | null>(null);
@@ -1697,10 +1705,12 @@ if (!already) {
           </h1>
           {loading && (
             <div className="flex items-center justify-center min-h-[50vh]" aria-live="polite" aria-busy="true">
-              <img
-                src="/meteor-rain.gif"
-                alt="Yükleniyor…"
-                className="w-28 h-28 object-contain opacity-100"
+              <Lottie
+                animationData={starLoaderAnim}
+                loop
+                autoplay
+                lottieRef={loaderRef}
+                className="w-32 h-32"
               />
             </div>
           )}
