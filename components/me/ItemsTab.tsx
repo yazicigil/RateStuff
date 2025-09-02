@@ -451,7 +451,7 @@ function ConfirmDeleteButton({ onConfirm }: { onConfirm: () => void | Promise<vo
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
       ) : (
         // trash
-       <svg width="4" height="4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7l1-2h4l1 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
       )}
