@@ -94,6 +94,48 @@ export default function ItemsTab({
     });
   }, [items, itemsSelected]);
 
+  // Etiket filtresi: tek satır, oklarla sayfalı scroll (sığdığı kadar)
+  const itemsTagsScrollRef = useRef<HTMLDivElement | null>(null);
+  const [canPrevItemsTags, setCanPrevItemsTags] = useState(false);
+  const [canNextItemsTags, setCanNextItemsTags] = useState(false);
+  const [animItemsTags, setAnimItemsTags] = useState('');
+
+  const syncItemsTagsEdges = useCallback(() => {
+    const el = itemsTagsScrollRef.current;
+    if (!el) return;
+    const atStart = el.scrollLeft <= 2;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+    setCanPrevItemsTags(!atStart);
+    setCanNextItemsTags(!atEnd);
+  }, []);
+
+  const handlePrevItemsTags = useCallback(() => {
+    const el = itemsTagsScrollRef.current;
+    if (!el) return;
+    setAnimItemsTags('rs-anim-left');
+    el.scrollBy({ left: -el.clientWidth, behavior: 'smooth' });
+    window.setTimeout(() => setAnimItemsTags(''), 240);
+  }, []);
+
+  const handleNextItemsTags = useCallback(() => {
+    const el = itemsTagsScrollRef.current;
+    if (!el) return;
+    setAnimItemsTags('rs-anim-right');
+    el.scrollBy({ left: el.clientWidth, behavior: 'smooth' });
+    window.setTimeout(() => setAnimItemsTags(''), 240);
+  }, []);
+
+  useEffect(() => {
+    syncItemsTagsEdges();
+    const el = itemsTagsScrollRef.current;
+    if (!el) return;
+    const on = () => syncItemsTagsEdges();
+    el.addEventListener('scroll', on, { passive: true });
+    const ro = new ResizeObserver(on);
+    ro.observe(el);
+    return () => { el.removeEventListener('scroll', on); ro.disconnect(); };
+  }, [syncItemsTagsEdges]);
+
   /** — API çağrıları (lokal) — */
   async function saveItemLocal(id: string) {
     const body: any = {
@@ -156,45 +198,95 @@ export default function ItemsTab({
           <>
             {/* Tag filter */}
             {itemsTags.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-2">
-                <button
-                  className={`px-2 py-1 rounded-full border text-xs ${
-                    itemsSelected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-                  }`}
-                  onClick={() => setItemsSelected(new Set())}
-                  onDoubleClick={() => setItemsSelected(new Set())}
+              <div className="mb-3 relative">
+                {/* Sol/sağ oklar */}
+                {canPrevItemsTags && (
+                  <button
+                    type="button"
+                    className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
+                    onClick={handlePrevItemsTags}
+                    aria-label="Önceki"
+                  >
+                    <span className="sr-only">Önceki</span>
+                    ‹
+                  </button>
+                )}
+                {canNextItemsTags && (
+                  <button
+                    type="button"
+                    className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
+                    onClick={handleNextItemsTags}
+                    aria-label="Sonraki"
+                  >
+                    <span className="sr-only">Sonraki</span>
+                    ›
+                  </button>
+                )}
+
+                {/* Hepsi + taglar — tek satır, sayfalı scroll */}
+                <div
+                  ref={itemsTagsScrollRef}
+                  className="overflow-x-auto no-scrollbar scroll-smooth px-8"
+                  onScroll={syncItemsTagsEdges}
                 >
-                  Hepsi
-                </button>
-                {itemsTags.map(t => {
-                  const isSel = itemsSelected.has(t);
-                  const isTrend = trending.includes(t);
-                  const base = 'px-2 py-1 rounded-full border text-xs';
-                  const className = isSel
-                    ? (isTrend
-                        ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
-                        : `${base} bg-black text-white border-black`)
-                    : (isTrend
-                        ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                        : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-                  return (
+                  <div className={`flex items-center gap-2 rs-sug-strip ${animItemsTags}`}>
                     <button
-                      key={t}
-                      className={className}
-                      onClick={() =>
-                        setItemsSelected(prev => {
-                          const next = new Set(prev);
-                          if (next.has(t)) next.delete(t); else next.add(t);
-                          return next;
-                        })
-                      }
+                      className={`px-2 py-1 rounded-full border text-xs shrink-0 snap-start ${
+                        itemsSelected.size === 0
+                          ? 'bg-black text-white border-black'
+                          : 'bg-white dark:bg-gray-900 dark:border-gray-800'
+                      }`}
+                      onClick={() => setItemsSelected(new Set())}
                       onDoubleClick={() => setItemsSelected(new Set())}
-                      title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
                     >
-                      #{t}
+                      Hepsi
                     </button>
-                  );
-                })}
+                    {itemsTags.map((t) => {
+                      const isSel = itemsSelected.has(t);
+                      const isTrend = trending.includes(t);
+                      const base = 'px-2 py-1 rounded-full border text-xs shrink-0 snap-start';
+                      const className = isSel
+                        ? (isTrend
+                            ? `${base} bg-violet-600 text-white border-violet-600 hover:bg-violet-700`
+                            : `${base} bg-black text-white border-black`)
+                        : (isTrend
+                            ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                            : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
+                      return (
+                        <button
+                          key={t}
+                          className={className}
+                          onClick={() =>
+                            setItemsSelected((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(t)) next.delete(t);
+                              else next.add(t);
+                              return next;
+                            })
+                          }
+                          onDoubleClick={() => setItemsSelected(new Set())}
+                          title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                        >
+                          #{t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <style jsx>{`
+                  .no-scrollbar::-webkit-scrollbar { display: none; }
+                  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .9; }
+                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .9); --rs-bd: #374151; --rs-fg: #e5e7eb; }
+                  .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
+                  .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
+                  .rs-sug-strip { scroll-snap-type: x mandatory; }
+                  @keyframes sugInLeft { from { opacity:.0; transform: translateX(-14px); } to { opacity:1; transform: translateX(0); } }
+                  @keyframes sugInRight{ from { opacity:.0; transform: translateX(14px); }  to { opacity:1; transform: translateX(0); } }
+                  .rs-anim-left { animation: sugInLeft .24s ease both; }
+                  .rs-anim-right{ animation: sugInRight .24s ease both; }
+                `}</style>
               </div>
             )}
 
