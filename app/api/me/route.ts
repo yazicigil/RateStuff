@@ -7,6 +7,8 @@ import { deleteBlobIfVercel } from "@/lib/blob"; // ← eklendi
 export async function GET(req: Request) {
   try {
     const me = await getSessionUser();
+    const meEmail = (me as any)?.email ?? null;
+    const meIsAdmin = Boolean((me as any)?.isAdmin);
 
     // Oturum yoksa NextAuth sign-in ekranına yönlendir (callback olarak geldiğin sayfa)
     if (!me) {
@@ -26,6 +28,7 @@ export async function GET(req: Request) {
         include: {
           ratings: { select: { value: true } },
           tags: { include: { tag: true } },
+          createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true } },
         },
       }),
       prisma.rating.findMany({
@@ -46,7 +49,7 @@ export async function GET(req: Request) {
             include: {
               ratings: { select: { value: true } },
               tags: { include: { tag: true } },
-              createdBy: { select: { id: true, name: true, avatarUrl: true } },
+              createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true } },
             },
           },
         },
@@ -138,6 +141,9 @@ export async function GET(req: Request) {
             .filter((x: any) => typeof x === "string" && x.length > 0)
         : undefined;
 
+      const createdByEmail = (i as any)?.createdBy?.email as string | undefined;
+      const isCreatedByVerified = Boolean((i as any)?.createdBy?.isAdmin) || (createdByEmail === 'ratestuffnet@gmail.com');
+
       return {
         id: i.id,
         name: i.name,
@@ -153,10 +159,19 @@ export async function GET(req: Request) {
         ...(i?.createdBy ? {
           createdBy: {
             id: i.createdBy.id,
-            name: maskName(i.createdBy.name) ?? null,
+            name: (() => {
+              const isSelf = i.createdBy.id === me.id;
+              const raw = i.createdBy.name ?? i.createdBy.maskedName ?? null;
+              return (isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
+            })(),
             avatarUrl: i.createdBy.avatarUrl ?? null,
+            verified: isCreatedByVerified,
           },
-          createdByName: maskName(i.createdBy.name) ?? null,
+          createdByName: (() => {
+            const isSelf = i.createdBy.id === me.id;
+            const raw = i.createdBy.name ?? i.createdBy.maskedName ?? null;
+            return (isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
+          })(),
           createdByAvatarUrl: i.createdBy.avatarUrl ?? null,
         } : {}),
       };
@@ -191,7 +206,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      me: { id: me.id, name: me.name ?? null, avatarUrl: me.avatarUrl ?? null },
+      me: { id: me.id, name: me.name ?? null, avatarUrl: me.avatarUrl ?? null, email: meEmail, isAdmin: meIsAdmin },
       ...shaped,
     });
   } catch (e: any) {
