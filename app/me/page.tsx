@@ -126,7 +126,7 @@ export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
-  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null }|null>(null);
+  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null; email?: string|null; isAdmin?: boolean }|null>(null);
   const [items, setItems]     = useState<MyItem[]>([]);
   const [saved, setSaved]     = useState<MyItem[]>([]);
   const [ratings, setRatings] = useState<MyRating[]>([]);
@@ -591,7 +591,9 @@ const body: any = {
           <div className="flex-1 min-w-0">
             <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
               {me?.name || "Profilim"}
-              {(me as any)?.isAdmin && <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />}
+              {(((me as any)?.isAdmin) || ((me as any)?.email === "ratestuffnet@gmail.com")) && (
+                <img src="/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />
+              )}
             </div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
             <div className="absolute top-4 right-4">

@@ -61,11 +61,13 @@ export default function ItemCard({
   const avg = i?.avgRating ?? i?.avg ?? 0;
   const verified = Boolean((i?.createdBy as any)?.verified);
   const ownerId = (
-    i?.createdBy?.id ??
     (i as any)?.createdById ??
+    i?.createdBy?.id ??
     (i as any)?.ownerId ??
     (i as any)?.userId ??
+    (i as any)?.createdBy?.userId ??
     (i as any)?.user?.id ??
+    (i as any)?.user?.userId ??
     null
   ) as string | null;
   const isOwner = myId && ownerId ? String(myId) === String(ownerId) : false;
