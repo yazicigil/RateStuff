@@ -316,13 +316,15 @@ export default function SavedTab({
                       {(() => {
                         const by = it.createdBy || null;
                         const avatar = by?.avatarUrl ?? it.createdByAvatarUrl ?? null;
-                        const rawName = by?.maskedName ?? by?.name ?? it.createdByName ?? null;
-                        const email = (by as any)?.email ?? null;
+                        // Maskeyi her zaman gerçek isimden üret (backend'in maskedName'i yerine)
+                        const baseName = by?.name ?? it.createdByName ?? null;
 
-                        // Admin hesap maskeleme dışı
+                        // Admin tespiti: createdBy.email veya (varsa) createdByEmail alanı
+                        const email = (by as any)?.email ?? (it as any)?.createdByEmail ?? null;
                         const isAdmin = email === 'ratestuffnet@gmail.com';
 
-                        const shownName = isAdmin ? (rawName || 'Anonim') : maskName(rawName);
+                        // Admin maskelenmez, badge gösterilecek
+                        const shownName = isAdmin ? (baseName || 'Anonim') : maskName(baseName);
 
                         if (!avatar && !shownName) return null;
                         return (
@@ -334,7 +336,7 @@ export default function SavedTab({
                                   <img src={avatar} alt={shownName || 'ekleyen'} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                                 ) : (
                                   <span className="text-white">
-                                    {(rawName || 'A')
+                                    {(baseName || 'A')
                                       .split(' ')
                                       .filter(Boolean)
                                       .slice(0, 2)
@@ -343,7 +345,7 @@ export default function SavedTab({
                                   </span>
                                 )}
                               </span>
-                                                          <span className="truncate max-w-[12rem] inline-flex items-center">
+                              <span className="truncate max-w-[12rem] inline-flex items-center">
                                 <span className="truncate">{shownName || 'Anonim'}</span>
                                 {isAdmin && (
                                   <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">

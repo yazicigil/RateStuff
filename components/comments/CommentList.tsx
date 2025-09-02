@@ -98,47 +98,45 @@ export default function CommentList({
 
   // Kendi yorumun en üstte gözüksün (varsa), kalanlar tarih/score sırasına göre
   const ordered = useMemo(() => {
+    const ownerComments: SpotComment[] = [];
     const mine: SpotComment[] = [];
     const others: SpotComment[] = [];
-    let ownerComment: SpotComment | null = null;
 
     for (const c of comments) {
       const uid = c?.user?.id || null;
 
-      // Önce gönderi sahibinin yorumunu yakala (tek bir yorum varsayıyoruz)
-      if (!ownerComment && ownerId && uid === ownerId) {
-        ownerComment = c;
+      if (ownerId && uid === ownerId) {
+        ownerComments.push(c);
         continue;
       }
 
-      // Kendi yorumlarını ayır
-      if (uid && myId && uid === myId) {
+      if (myId && uid === myId) {
         mine.push(c);
       } else {
         others.push(c);
       }
     }
 
-    // Score'a göre azalan sırala (yüksek puanlı önce), score yoksa stabil
+    // Gönderi sahibi kendisi görüntülüyorsa: kendi yorumunu görmesin
+    const isOwnerViewingOwnPost = Boolean(ownerId && myId && ownerId === myId);
+
+    // Sıralama: (1) owner'ın yorum(lar)ı (pin'li), (2) benim yorumlarım (opsiyonel), (3) diğerleri (skorla)
+    // Not: owner yorumları oy fark etmeksizin en üstte kalır.
+    // İç gruplar içinde basit stabil sıra; istenirse tarih/score ile ayrıca sıralanabilir.
+
+    // Diğerleri: score'a göre azalan
     others.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
     const list: SpotComment[] = [];
 
-    // Gönderi sahibi kendisi görüntülüyorsa: kendi yorumunu görmesin
-    const isOwnerViewingOwnPost = Boolean(ownerId && myId && ownerId === myId);
-
-    if (ownerComment && !isOwnerViewingOwnPost) {
-      list.push(ownerComment);
+    if (!isOwnerViewingOwnPost && ownerComments.length > 0) {
+      list.push(...ownerComments);
     }
 
-    // Kendi yorumlarım (isteğe bağlı göster)
-    if (!hideMyComment) {
-      // Eğer owner benimse ve ownerComment benim listemden çıkarıldıysa, mine zaten kendi yorumlarım;
-      // hideMyComment=false ise bunları ekleyelim
+    if (!hideMyComment && mine.length > 0) {
       list.push(...mine);
     }
 
-    // Kalanlar
     list.push(...others);
 
     return list;
