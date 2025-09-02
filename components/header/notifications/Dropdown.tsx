@@ -3,6 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
 import AnimatedRefresh from "@/components/common/lottie/AnimatedRefresh";
+import Lottie, { LottieRefCurrentProps } from "lottie-react";
+// @ts-expect-error JSON import
+import bellAnim from "@/public/assets/animations/bell.json";
+// @ts-expect-error JSON import
+import bellSolidAnim from "@/public/assets/animations/bell-solid.json";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
@@ -47,6 +52,10 @@ export default function NotificationsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+
+  // lottie refs for hover-triggered animation
+  const bellRef = useRef<LottieRefCurrentProps | null>(null);
+  const bellSolidRef = useRef<LottieRefCurrentProps | null>(null);
 
   function positionPanel() {
     if (!btnRef.current) return;
@@ -120,10 +129,33 @@ export default function NotificationsDropdown() {
           } 
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden focusable="false" fill={open ? "currentColor" : "none"} stroke={open ? "none" : "currentColor"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22c1.1 0 2-.9 2-2H10a2 2 0 0 0 2 2Z" />
-          <path d="M18 16V11a6 6 0 1 0-12 0v5l-2 2h16l-2-2Z" />
-        </svg>
+        <span
+          className="inline-flex items-center justify-center"
+          onMouseEnter={() => {
+            const ref = open ? bellSolidRef.current : bellRef.current;
+            ref?.stop();
+            ref?.goToAndStop?.(0, true);
+            ref?.play();
+          }}
+        >
+          {open ? (
+            <Lottie
+              lottieRef={bellSolidRef as any}
+              animationData={bellSolidAnim}
+              autoplay={false}
+              loop={false}
+              style={{ width: 20, height: 20 }}
+            />
+          ) : (
+            <Lottie
+              lottieRef={bellRef as any}
+              animationData={bellAnim}
+              autoplay={false}
+              loop={false}
+              style={{ width: 20, height: 20 }}
+            />
+          )}
+        </span>
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-red-600 text-white text-[10px] leading-5 text-center">
             {unreadCount > 9 ? "9+" : unreadCount}
