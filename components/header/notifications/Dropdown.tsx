@@ -60,6 +60,7 @@ export default function NotificationsDropdown() {
   const bellSolidRef = useRef<LottieRefCurrentProps | null>(null);
   const refreshRef = useRef<LottieRefCurrentProps | null>(null);
   const dotsRef = useRef<LottieRefCurrentProps | null>(null);
+  const [bellBusy, setBellBusy] = useState(false);
   useEffect(() => {
     const r = dotsRef.current;
     if (!r) return;
@@ -73,8 +74,19 @@ export default function NotificationsDropdown() {
       r.goToAndStop?.(0, true);
     }
   }, [loading]);
-  // block bell hover animation briefly after click
-  const bellHoverBlockUntilRef = useRef<number>(0);
+
+  // Subscribe to Lottie complete events to clear bellBusy flag
+  useEffect(() => {
+    const solid = bellSolidRef.current as any;
+    const outline = bellRef.current as any;
+    const onDone = () => setBellBusy(false);
+    solid?.addEventListener?.('complete', onDone);
+    outline?.addEventListener?.('complete', onDone);
+    return () => {
+      solid?.removeEventListener?.('complete', onDone);
+      outline?.removeEventListener?.('complete', onDone);
+    };
+  }, []);
 
   function positionPanel() {
     if (!btnRef.current) return;
@@ -144,8 +156,16 @@ export default function NotificationsDropdown() {
         aria-controls="notif-panel"
         className="relative h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
         onClick={() => {
-          // block hover animation for 2s after click
-          bellHoverBlockUntilRef.current = Date.now() + 2000;
+          // play the currently visible bell animation smoothly; suppress hover until it completes
+          const ref = (open ? bellSolidRef.current : bellRef.current) as any;
+          if (ref) {
+            try {
+              setBellBusy(true);
+              ref.stop();
+              ref.goToAndStop?.(0, true);
+              ref.play();
+            } catch {}
+          }
           setOpen((o) => !o);
           if (!open) {
             refresh();
@@ -156,12 +176,15 @@ export default function NotificationsDropdown() {
         <span
           className="inline-flex items-center justify-center"
           onMouseEnter={() => {
-            // if within block window, skip hover animation
-            if (Date.now() < bellHoverBlockUntilRef.current) return;
-            const ref = open ? bellSolidRef.current : bellRef.current;
-            ref?.stop();
-            ref?.goToAndStop?.(0, true);
-            ref?.play();
+            if (bellBusy) return; // skip while click animation is running
+            const ref = (open ? bellSolidRef.current : bellRef.current) as any;
+            if (!ref) return;
+            try {
+              setBellBusy(true);
+              ref.stop();
+              ref.goToAndStop?.(0, true);
+              ref.play();
+            } catch {}
           }}
         >
           {open ? (
