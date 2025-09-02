@@ -1,8 +1,8 @@
 'use client';
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import ImageUploader from '@/components/ImageUploader';
-import RatingPill from '@/components/RatingPill';
+import ImageUploader from '@/components/common/ImageUploader';
+import RatingPill from '@/components/common/RatingPill';
 
 /** — Tipler — */
 export type MyItem = {

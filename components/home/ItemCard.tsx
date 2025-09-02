@@ -1,10 +1,10 @@
 'use client';
 import React, { useMemo } from 'react';
-import Stars from '@/components/Stars';
-import Tag from '@/components/Tag';
-import RatingPill from '@/components/RatingPill';
-import SharePopover from '@/components/popovers/SharePopover';
-import OptionsPopover from '@/components/popovers/OptionsPopover';
+import Stars from '@/components/common/Stars';
+import Tag from '@/components/common/Tag';
+import RatingPill from '@/components/common/RatingPill';
+import SharePopover from '@/components/common/popovers/SharePopover';
+import OptionsPopover from '@/components/common/popovers/OptionsPopover';
 import CommentList from '@/components/comments/CommentList';
 import CommentBox from '@/components/comments/CommentBox';
 

@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import Tag from '@/components/Tag';
-import Stars from '@/components/Stars';
-import RatingPill from '@/components/RatingPill';
-import SharePopover from '@/components/popovers/SharePopover';
-import OptionsPopover from '@/components/popovers/OptionsPopover';
+import Tag from '@/components/common/Tag';
+import Stars from '@/components/common/Stars';
+import RatingPill from '@/components/common/RatingPill';
+import SharePopover from '@/components/common/popovers/SharePopover';
+import OptionsPopover from '@/components/common/popovers/OptionsPopover';
 import CommentBox from '@/components/comments/CommentBox';
 import CommentList from '@/components/comments/CommentList';
 

@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import Stars from '@/components/Stars';
+import Stars from '@/components/common/Stars';
 
 /** Tipler */
 export type MyComment = {

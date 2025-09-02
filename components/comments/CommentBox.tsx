@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
-import Stars from "../Stars";
+import Stars from "../common/Stars";
 import { containsBannedWord } from "@/lib/bannedWords";
 
 function maskName(s?: string | null) {

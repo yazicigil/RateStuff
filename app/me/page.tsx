@@ -2,14 +2,14 @@
 import React from "react";
 
 import Link from "next/link";
-import ScrollToTop from "@/components/ScrollToTop";
+import ScrollToTop from "@/components/common/ScrollToTop";
 import { useEffect, useMemo, useState } from "react";
 import { useCallback, useRef } from "react";
 import { signOut } from "next-auth/react";
-import ImageUploader from "@/components/ImageUploader";
+import ImageUploader from "@/components/common/ImageUploader";
 import { useSession } from "next-auth/react";
-import RatingPill from '@/components/RatingPill';
-import Stars from "@/components/Stars";
+import RatingPill from '@/components/common/RatingPill';
+import Stars from "@/components/common/Stars";
 import NotificationsDropdown from "@/components/notifications/Dropdown";
 import SavedTab from '@/components/me/SavedTab';
 import ItemsTab from '@/components/me/ItemsTab';

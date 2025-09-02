@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import ImageUploader from "@/components/ImageUploader";
+import ImageUploader from "@/components/common/ImageUploader";
 
 type UserLite = {
   id: string;

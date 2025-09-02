@@ -1,7 +1,7 @@
 // components/TrendingTagsCard.tsx
 'use client';
-import CollapsibleSection from '@/components/CollapsibleSection';
-import Tag from '@/components/Tag';
+import CollapsibleSection from '@/components/home/CollapsibleSection';
+import Tag from '@/components/common/Tag';
 import { memo, useMemo } from 'react';
 
 export type TrendingTagsCardProps = {

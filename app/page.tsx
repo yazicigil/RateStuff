@@ -30,22 +30,22 @@ async function nativeShare(id: string, name: string) {
     }
   } catch {}
 }
-import QuickAddCard from '@/components/QuickAddCard';
-import ItemCard from '@/components/ItemCard';
+import QuickAddCard from '@/components/home/QuickAddCard';
+import ItemCard from '@/components/home/ItemCard';
 import Head from 'next/head';
-import SpotlightCard from '@/components/spotlight/SpotlightCard';
-import ScrollToTop from "@/components/ScrollToTop";
+import SpotlightCard from '@/components/home/spotlight/SpotlightCard';
+import ScrollToTop from "@/components/common/ScrollToTop";
 
 import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Header from '@/components/Header';
+import Header from '@/components/header/Header';
 import { useSession } from 'next-auth/react';
-import ReportModal from '@/components/ReportModal';
-import TrendingTagsCard from '@/components/TrendingTagsCard';
-import AllTagsCard from '@/components/AllTagsCard';
-import SortAndStarsCard from '@/components/SortAndStarsCard';
+import ReportModal from '@/components/common/ReportModal';
+import TrendingTagsCard from '@/components/home/TrendingTagsCard';
+import AllTagsCard from '@/components/home/AllTagsCard';
+import SortAndStarsCard from '@/components/home/SortAndStarsCard';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 

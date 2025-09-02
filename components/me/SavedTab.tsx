@@ -1,7 +1,9 @@
 'use client';
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import RatingPill from '@/components/RatingPill';
+import RatingPill from '@/components/common/RatingPill';
+import Image from 'next/image';
+import bookmarkSlash from '@/public/assets/icons/bookmarkslash.svg';
 
 /** — Tipler (MePage ile birebir uyum) — */
 export type MyItem = {
@@ -29,13 +31,6 @@ function IconCheck({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/>
-    </svg>
-  );
-}
-function IconBookmarkMinus({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M6.75 2.25A2.25 2.25 0 0 0 4.5 4.5v17.19a.56.56 0 0 0 .89.46l6.11-4.58 6.11 4.58a.56.56 0 0 0 .89-.46V4.5A2.25 2.25 0 0 0 16.25 2.25h-9.5Zm2 8a.75.75 0 0 1 0-1.5h6.5a.75.75 0 0 1 0 1.5h-6.5Z"/>
     </svg>
   );
 }
@@ -247,7 +242,11 @@ export default function SavedTab({
                           aria-label={confirmRemoveSaved === it.id ? 'Kaldırmayı onayla' : 'Kaydedilenlerden kaldır'}
                         >
                           <span data-saved-remove-btn className="inline-flex items-center gap-1">
-                            {confirmRemoveSaved === it.id ? <IconCheck className="w-4 h-4" /> : <IconBookmarkMinus className="w-4 h-4" />}
+                            {confirmRemoveSaved === it.id ? (
+                              <IconCheck className="w-4 h-4" />
+                            ) : (
+                              <Image src={bookmarkSlash} alt="remove" width={16} height={16} className="text-red-600 dark:text-red-400" />
+                            )}
                           </span>
                         </button>
                       </div>

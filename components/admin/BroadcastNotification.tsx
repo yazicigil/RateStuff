@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import ImageUploader from "@/components/ImageUploader";
+import ImageUploader from "@/components/common/ImageUploader";
 
 export default function BroadcastNotification() {
   const [title, setTitle] = useState("");
