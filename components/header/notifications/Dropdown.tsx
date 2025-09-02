@@ -132,10 +132,8 @@ export default function NotificationsDropdown() {
     };
   }, [open]);
 
-  const totalCount =
-    (typeof status === "object" && status && (status as any).total != null)
-      ? Number((status as any).total)
-      : (Array.isArray(items) ? items.length : 0);
+  // show TOTAL notifications (including not-yet-loaded)
+  const totalCount = Number((status as any)?.total ?? 0);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -174,6 +172,7 @@ export default function NotificationsDropdown() {
               loop={false}
               style={{ width: 20, height: 20 }}
               className="bell-lottie"
+              rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
             />
           ) : (
             <Lottie
@@ -183,6 +182,7 @@ export default function NotificationsDropdown() {
               loop={false}
               style={{ width: 20, height: 20 }}
               className="bell-lottie"
+              rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
             />
           )}
         </span>
@@ -211,6 +211,28 @@ export default function NotificationsDropdown() {
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <span>Bildirimler</span>
                   <span className="text-[11px] text-neutral-500 dark:text-neutral-400">({totalCount})</span>
+                  <button
+                    type="button"
+                    aria-label="Yenile"
+                    className="ml-0.5 p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    onClick={() => {
+                      const r = refreshRef.current;
+                      r?.stop();
+                      r?.goToAndStop?.(0, true);
+                      r?.play();
+                      refresh();
+                    }}
+                    title="Yenile"
+                  >
+                    <Lottie
+                      lottieRef={refreshRef as any}
+                      animationData={refreshAnim}
+                      autoplay={false}
+                      loop={false}
+                      style={{ width: 18, height: 18 }}
+                      className="refresh-lottie refresh-lottie--muted"
+                    />
+                  </button>
                   {unreadCount > 0 && (
                     <span className="inline-flex min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[10px] leading-5 text-center">{unreadCount > 9 ? "9+" : unreadCount}</span>
                   )}
@@ -227,29 +249,10 @@ export default function NotificationsDropdown() {
                       });
                       refresh();
                     }}
+                    title="Temizle"
+                    aria-label="Temizle"
                   >
-                    Bildirimleri temizle
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Yenile"
-                    className="ml-1 p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                    onClick={() => {
-                      const r = refreshRef.current;
-                      r?.stop();
-                      r?.goToAndStop?.(0, true);
-                      r?.play();
-                      refresh();
-                    }}
-                  >
-                    <Lottie
-                      lottieRef={refreshRef as any}
-                      animationData={refreshAnim}
-                      autoplay={false}
-                      loop={false}
-                      style={{ width: 20, height: 20 }}
-                      className="refresh-lottie"
-                    />
+                    Temizle
                   </button>
                 </div>
               </div>
@@ -357,30 +360,25 @@ export default function NotificationsDropdown() {
               )}
             </div>
             <style jsx>{`
-              .refresh-lottie {
-                filter: grayscale(1) brightness(0.75);
-                opacity: 0.9;
+              /* Bell icons: ensure visibility in dark mode by filtering the actual SVG */
+              .bell-lottie { opacity: 0.95; }
+              .bell-lottie :global(svg) { display: block; }
+              :global(.dark) .bell-lottie :global(svg) {
+                filter: invert(1) brightness(1.25) contrast(1.05);
               }
-              :global(.dark) .refresh-lottie {
-                filter: grayscale(1) brightness(1.1);
-                opacity: 0.9;
-              }
-              /* Bell icons: make them visible on dark backgrounds */
-              .bell-lottie {
-                opacity: 0.95;
-              }
-              :global(.dark) .bell-lottie {
-                filter: invert(1) brightness(1.2) contrast(1.05);
-                opacity: 0.95;
-              }
-              .dots-lottie {
-                filter: grayscale(1) brightness(0.55);
-                opacity: 0.9;
-              }
-              :global(.dark) .dots-lottie {
-                filter: grayscale(1) brightness(1.2);
-                opacity: 0.95;
-              }
+
+              .refresh-lottie { opacity: 0.9; }
+              .refresh-lottie :global(svg) { filter: grayscale(1) brightness(0.75); }
+              :global(.dark) .refresh-lottie :global(svg) { filter: grayscale(1) brightness(1.1); }
+
+              /* More muted refresh icon when placed in title */
+              .refresh-lottie--muted { opacity: 0.7; }
+              .refresh-lottie--muted :global(svg) { filter: grayscale(1) brightness(0.6); }
+              :global(.dark) .refresh-lottie--muted :global(svg) { filter: grayscale(1) brightness(0.95); }
+
+              .dots-lottie { opacity: 0.9; }
+              .dots-lottie :global(svg) { filter: grayscale(1) brightness(0.55); }
+              :global(.dark) .dots-lottie :global(svg) { filter: grayscale(1) brightness(1.2); opacity: 0.95; }
             `}</style>
           </div>,
           document.body
