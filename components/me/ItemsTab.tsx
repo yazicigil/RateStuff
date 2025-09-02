@@ -50,8 +50,10 @@ export default function ItemsTab({
   trending,
   loading,
   notify,
-  onReload,          // entegrasyonda istersen parent yeniden yüklesin
-  bannedWords,       // opsiyonel yasaklı kelime listesi
+  onReload,
+  bannedWords,
+  myId,            // <-- eklendi
+  amAdmin,         // <-- eklendi
 }: {
   items: MyItem[];
   trending: string[];
@@ -59,6 +61,8 @@ export default function ItemsTab({
   notify: (msg: string) => void;
   onReload?: () => void | Promise<void>;
   bannedWords?: string[];
+  myId?: string | null;    // <-- eklendi
+  amAdmin?: boolean;       // <-- eklendi
 }) {
   const [itemsSelected, setItemsSelected] = useState<Set<string>>(new Set());
 
@@ -67,6 +71,37 @@ export default function ItemsTab({
   const [openShareId, setOpenShareId] = useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+
+  // Optimistic removal for delete
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      // optimistic: hide immediately
+      setRemovedIds(prev => {
+        const n = new Set(prev);
+        n.add(id);
+        return n;
+      });
+
+      const res = await fetch(`/api/items/${id}/delete`, { method: 'POST' });
+      if (!res.ok) {
+        // revert on failure
+        setRemovedIds(prev => {
+          const n = new Set(prev);
+          n.delete(id);
+          return n;
+        });
+        const txt = await res.text().catch(() => 'Silinemedi');
+        throw new Error(txt || 'Silinemedi');
+      }
+
+      notify('Gönderi silindi');
+      await onReload?.();
+    } catch (e: any) {
+      notify(e?.message || 'Hata oluştu');
+    }
+  }, [notify, onReload]);
 
   // Derive tag list from items
   const itemsTags = useMemo(() => {
@@ -312,13 +347,13 @@ export default function ItemsTab({
                       <span className="text-sm font-medium">Ekle</span>
                     </div>
                   </Link>
-                ) : (
+                ) : removedIds.has(it.id) ? null : (
                   <div key={it.id}>
                     <ItemCard
                       item={it}
                       saved={false}
-                      amAdmin={false}
-                      myId={null}
+                      amAdmin={!!amAdmin}
+                      myId={myId ?? null}
                       showComments={false}
                       showCommentBox={false}
                       openShareId={openShareId}
@@ -329,7 +364,7 @@ export default function ItemsTab({
                       onOpenSpotlight={(id) => router.push(spotlightHref(id))}
                       onToggleSave={() => {}}
                       onReport={() => {}}
-                      onDelete={undefined}
+                      onDelete={handleDelete}
                       onCopyShare={(id) => {
                         try {
                           navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
@@ -379,13 +414,13 @@ export default function ItemsTab({
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
                     </Link>
-                  ) : (
+                  ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>
                       <ItemCard
                         item={it}
                         saved={false}
-                        amAdmin={false}
-                        myId={null}
+                        amAdmin={!!amAdmin}
+                        myId={myId ?? null}
                         showComments={false}
                         showCommentBox={false}
                         openShareId={openShareId}
@@ -396,7 +431,7 @@ export default function ItemsTab({
                         onOpenSpotlight={(id) => router.push(spotlightHref(id))}
                         onToggleSave={() => {}}
                         onReport={() => {}}
-                        onDelete={undefined}
+                        onDelete={handleDelete}
                         onCopyShare={(id) => {
                           try {
                             navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
@@ -443,13 +478,13 @@ export default function ItemsTab({
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
                     </Link>
-                  ) : (
+                  ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>
                       <ItemCard
                         item={it}
                         saved={false}
-                        amAdmin={false}
-                        myId={null}
+                        amAdmin={!!amAdmin}
+                        myId={myId ?? null}
                         showComments={false}
                         showCommentBox={false}
                         openShareId={openShareId}
@@ -460,7 +495,7 @@ export default function ItemsTab({
                         onOpenSpotlight={(id) => router.push(spotlightHref(id))}
                         onToggleSave={() => {}}
                         onReport={() => {}}
-                        onDelete={undefined}
+                        onDelete={handleDelete}
                         onCopyShare={(id) => {
                           try {
                             navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);

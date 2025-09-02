@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback, useLayoutEffect } from 'react';
 import Link from 'next/link';
 import RatingPill from '@/components/common/RatingPill';
 import Image from 'next/image';
@@ -166,7 +166,19 @@ export default function SavedTab({
       return true;
     });
   }, [localSaved, savedSelected]);
-
+  // After layout/paint, re-check edges to avoid flicker/missing arrows on first render
+  useLayoutEffect(() => {
+    const r1 = requestAnimationFrame(() => {
+      syncScrollEdges();
+      // run a second time in case fonts/images cause late reflow
+      const r2 = requestAnimationFrame(syncScrollEdges);
+      (window as any).__rs_r2 = r2;
+    });
+    return () => {
+      cancelAnimationFrame(r1);
+      if ((window as any).__rs_r2) cancelAnimationFrame((window as any).__rs_r2);
+    };
+  }, [syncScrollEdges, localSaved.length, savedSelected.size]);
   // Ana sayfadaki gibi: row‑major iki sütuna böl (1: sol, 2: sağ, 3: sol, 4: sağ ...)
   const [colLeft, colRight] = useMemo(() => {
     const L: MyItem[] = [];
@@ -249,7 +261,7 @@ export default function SavedTab({
                 {/* Hepsi + taglar — tek satır, sayfalı scroll */}
                 <div
                   ref={savedTagsScrollRef}
-                  className="overflow-x-auto no-scrollbar scroll-smooth px-8"
+                  className="overflow-x-auto no-scrollbar scroll-smooth px-12"
                   onScroll={syncScrollEdges}
                 >
                   <div className={`flex items-center gap-2 rs-sug-strip ${animClass}`}>
@@ -300,8 +312,8 @@ export default function SavedTab({
                 <style jsx>{`
                   .no-scrollbar::-webkit-scrollbar { display: none; }
                   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .9; }
-                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .9); --rs-bd: #374151; --rs-fg: #e5e7eb; }
+                  .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .95; z-index: 10; pointer-events: auto; }
+                  .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
                   .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
                   .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
                   .rs-sug-strip { scroll-snap-type: x mandatory; }
@@ -310,6 +322,7 @@ export default function SavedTab({
                   .rs-anim-left { animation: sugInLeft .24s ease both; }
                   .rs-anim-right{ animation: sugInRight .24s ease both; }
                 `}</style>
+
               </div>
             )}
 

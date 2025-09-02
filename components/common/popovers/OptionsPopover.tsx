@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import TrashIcon from '@/assets/icons/trash.svg';
 import BookmarkIcon from '@/assets/icons/bookmark.svg';
@@ -77,6 +77,7 @@ export default function OptionsPopover({
   style,
 }: OptionsPopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -84,11 +85,14 @@ export default function OptionsPopover({
       const t = e.target as HTMLElement | null;
       if (!t) return;
       if (ref.current && (ref.current.contains(t) || t.closest('.rs-pop'))) return;
+      setConfirmDelete(false);
       onClose();
     }
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
   }, [open, onClose]);
+
+  useEffect(() => { if (open) setConfirmDelete(false); }, [open]);
 
   if (!open) return null;
 
@@ -114,12 +118,33 @@ export default function OptionsPopover({
           )}
 
           <button
-            className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-            onClick={() => { onClose(); onDelete(itemId); }}
+            className={
+              'w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 transition-colors ' +
+              (confirmDelete
+                ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20'
+                : 'text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20')
+            }
+            onClick={() => {
+              if (!confirmDelete) {
+                setConfirmDelete(true);
+              } else {
+                // confirm and delete
+                setConfirmDelete(false);
+                onDelete(itemId);
+                onClose();
+              }
+            }}
             role="menuitem"
           >
-            <MaskedIcon src={TrashIcon} className="w-[18px] h-[18px] text-red-600 dark:text-red-400" />
-            <span>Kaldır</span>
+            {confirmDelete ? (
+              // check icon inline (green themed via currentColor)
+              <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            ) : (
+              <MaskedIcon src={TrashIcon} className="w-[18px] h-[18px]" />
+            )}
+            <span>{confirmDelete ? 'Onayla' : 'Kaldır'}</span>
           </button>
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
         </>
