@@ -195,7 +195,7 @@ export default function NotificationsDropdown() {
               loop={false}
               renderer="svg"
               style={{ width: 20, height: 20 }}
-              className="bell-lottie lottie-dark-fix"
+              className="bell-lottie lottie-dark-fix lottie-colorize text-neutral-800 dark:text-neutral-100"
               rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
             />
           ) : (
@@ -206,7 +206,7 @@ export default function NotificationsDropdown() {
               loop={false}
               renderer="svg"
               style={{ width: 20, height: 20 }}
-              className="bell-lottie lottie-dark-fix"
+              className="bell-lottie lottie-dark-fix lottie-colorize text-neutral-800 dark:text-neutral-100"
               rendererSettings={{ preserveAspectRatio: 'xMidYMid meet' }}
             />
           )}
@@ -261,7 +261,7 @@ export default function NotificationsDropdown() {
                       loop={false}
                       renderer="svg"
                       style={{ width: 18, height: 18 }}
-                      className="refresh-lottie refresh-lottie--muted lottie-dark-fix"
+                      className="refresh-lottie refresh-lottie--muted lottie-dark-fix lottie-colorize text-neutral-600 dark:text-neutral-300"
                     />
                   </button>
                   <button
@@ -375,7 +375,7 @@ export default function NotificationsDropdown() {
                     loop={true}
                     renderer="svg"
                     style={{ width: 32, height: 12 }}
-                    className="dots-lottie lottie-dark-fix"
+                    className="dots-lottie lottie-dark-fix lottie-colorize text-neutral-600 dark:text-neutral-300"
                   />
                 </button>
               )}
