@@ -60,8 +60,15 @@ export default function ItemCard({
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
   const verified = Boolean((i?.createdBy as any)?.verified);
-  const ownerId = (i?.createdBy?.id ?? (i as any)?.ownerId ?? (i as any)?.userId ?? (i as any)?.user?.id ?? null) as string | null;
-  const isOwner = myId && ownerId ? myId === ownerId : false;
+  const ownerId = (
+    i?.createdBy?.id ??
+    (i as any)?.createdById ??
+    (i as any)?.ownerId ??
+    (i as any)?.userId ??
+    (i as any)?.user?.id ??
+    null
+  ) as string | null;
+  const isOwner = myId && ownerId ? String(myId) === String(ownerId) : false;
 
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
