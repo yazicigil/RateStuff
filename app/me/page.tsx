@@ -592,7 +592,11 @@ const body: any = {
             <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
               {me?.name || "Profilim"}
               {(((me as any)?.isAdmin) || ((me as any)?.email === "ratestuffnet@gmail.com")) && (
-                <img src="/public/verified.svg" alt="verified" className="w-4 h-4 opacity-90" />
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+
               )}
             </div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>

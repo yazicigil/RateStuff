@@ -25,6 +25,12 @@ model User {
   commentVotes CommentVote[]
   saved        SavedItem[]    // ← eklendi
   reports      Report[]
+  verified      Boolean  @default(false)
+  verifiedAt    DateTime?
+  verifiedById  String?
+  verifiedBy    User?    @relation("UserVerifiedBy", fields: [verifiedById], references: [id])
+
+  @@index([verified])
 }
 
 model Item {
