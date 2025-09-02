@@ -2,12 +2,14 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNotifications, type Notif } from "@/lib/useNotifications";
-import AnimatedRefresh from "@/components/common/lottie/AnimatedRefresh";
-import Lottie, { LottieRefCurrentProps } from "lottie-react";
+import Lottie, { type LottieRefCurrentProps } from "lottie-react";
 
 import bellAnim from "@/assets/animations/bell.json";
 
 import bellSolidAnim from "@/assets/animations/bell-solid.json";
+
+import refreshAnim from "@/assets/animations/refresh.json";
+import dotsAnim from "@/assets/animations/dots-loader.json";
 
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
@@ -56,6 +58,23 @@ export default function NotificationsDropdown() {
   // lottie refs for hover-triggered animation
   const bellRef = useRef<LottieRefCurrentProps | null>(null);
   const bellSolidRef = useRef<LottieRefCurrentProps | null>(null);
+  const refreshRef = useRef<LottieRefCurrentProps | null>(null);
+  const dotsRef = useRef<LottieRefCurrentProps | null>(null);
+  useEffect(() => {
+    const r = dotsRef.current;
+    if (!r) return;
+    // When loading: play dots; when idle: reset to first frame (stopped).
+    if (loading) {
+      r.stop();
+      r.goToAndStop?.(0, true);
+      r.play();
+    } else {
+      r.stop();
+      r.goToAndStop?.(0, true);
+    }
+  }, [loading]);
+  // block bell hover animation briefly after click
+  const bellHoverBlockUntilRef = useRef<number>(0);
 
   function positionPanel() {
     if (!btnRef.current) return;
@@ -126,17 +145,21 @@ export default function NotificationsDropdown() {
         aria-expanded={open}
         aria-controls="notif-panel"
         className="relative h-9 flex items-center gap-2 px-3 rounded-xl border border-gray-300 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
-        onClick={() => { 
-          setOpen((o) => !o); 
-          if (!open) { 
-            refresh(); 
-            markAll(); 
-          } 
+        onClick={() => {
+          // block hover animation for 2s after click
+          bellHoverBlockUntilRef.current = Date.now() + 2000;
+          setOpen((o) => !o);
+          if (!open) {
+            refresh();
+            markAll();
+          }
         }}
       >
         <span
           className="inline-flex items-center justify-center"
           onMouseEnter={() => {
+            // if within block window, skip hover animation
+            if (Date.now() < bellHoverBlockUntilRef.current) return;
             const ref = open ? bellSolidRef.current : bellRef.current;
             ref?.stop();
             ref?.goToAndStop?.(0, true);
@@ -150,6 +173,7 @@ export default function NotificationsDropdown() {
               autoplay={false}
               loop={false}
               style={{ width: 20, height: 20 }}
+              className="bell-lottie"
             />
           ) : (
             <Lottie
@@ -158,6 +182,7 @@ export default function NotificationsDropdown() {
               autoplay={false}
               loop={false}
               style={{ width: 20, height: 20 }}
+              className="bell-lottie"
             />
           )}
         </span>
@@ -205,12 +230,27 @@ export default function NotificationsDropdown() {
                   >
                     Bildirimleri temizle
                   </button>
-                  <AnimatedRefresh
-                    onClick={refresh}
-                    className="ml-1"
-                    size={20}
-                    path="/animations/refresh.json"
-                  />
+                  <button
+                    type="button"
+                    aria-label="Yenile"
+                    className="ml-1 p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    onClick={() => {
+                      const r = refreshRef.current;
+                      r?.stop();
+                      r?.goToAndStop?.(0, true);
+                      r?.play();
+                      refresh();
+                    }}
+                  >
+                    <Lottie
+                      lottieRef={refreshRef as any}
+                      animationData={refreshAnim}
+                      autoplay={false}
+                      loop={false}
+                      style={{ width: 20, height: 20 }}
+                      className="refresh-lottie"
+                    />
+                  </button>
                 </div>
               </div>
               <div className="mt-1 h-px bg-neutral-200 dark:bg-neutral-800" />
@@ -293,10 +333,21 @@ export default function NotificationsDropdown() {
             <div className="p-2">
               {hasMore && (
                 <button
-                  className="w-full text-sm py-2 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  className="w-full text-sm py-2 rounded-md border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 flex items-center justify-center"
                   disabled={loading}
                   onClick={() => load()}
-                >{loading ? "Yükleniyor..." : "Daha fazla"}</button>
+                  aria-label={loading ? "Yükleniyor" : "Daha fazla"}
+                  title={loading ? "Yükleniyor" : "Daha fazla"}
+                >
+                  <Lottie
+                    lottieRef={dotsRef as any}
+                    animationData={dotsAnim}
+                    autoplay={false}
+                    loop={true}
+                    style={{ width: 32, height: 12 }}
+                    className="dots-lottie"
+                  />
+                </button>
               )}
               {!visibleItems.length && !loading && (
                 <div className="text-center text-sm py-8 text-neutral-500">
@@ -305,6 +356,32 @@ export default function NotificationsDropdown() {
                 </div>
               )}
             </div>
+            <style jsx>{`
+              .refresh-lottie {
+                filter: grayscale(1) brightness(0.75);
+                opacity: 0.9;
+              }
+              :global(.dark) .refresh-lottie {
+                filter: grayscale(1) brightness(1.1);
+                opacity: 0.9;
+              }
+              /* Bell icons: make them visible on dark backgrounds */
+              .bell-lottie {
+                opacity: 0.95;
+              }
+              :global(.dark) .bell-lottie {
+                filter: invert(1) brightness(1.2) contrast(1.05);
+                opacity: 0.95;
+              }
+              .dots-lottie {
+                filter: grayscale(1) brightness(0.55);
+                opacity: 0.9;
+              }
+              :global(.dark) .dots-lottie {
+                filter: grayscale(1) brightness(1.2);
+                opacity: 0.95;
+              }
+            `}</style>
           </div>,
           document.body
         )
