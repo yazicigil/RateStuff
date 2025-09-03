@@ -125,9 +125,9 @@ export default async function BrandProfilePage() {
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 sm:p-8 pt-20 md:pt-24 pl-40 md:pl-48 relative">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111827] shadow-sm p-6 sm:p-8 pt-12 md:pt-16 pl-40 md:pl-48 relative">
           {/* Avatar inside card, overlapping like reference layout */}
-          <div className="absolute -top-16 left-6 w-32 h-32 rounded-full ring-4 ring-white dark:ring-neutral-900 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+          <div className="absolute -top-16 left-6 w-32 h-32 rounded-full ring-4 ring-purple-500 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
             {user.avatarUrl ? (
               <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover rounded-full" />
             ) : (
@@ -176,24 +176,12 @@ export default async function BrandProfilePage() {
             </div>
           </div>
 
-          {/* Single tab header */}
-          <div className="mt-6 sm:mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className={clsx(
-                  "px-4 py-1.5 rounded-full text-sm font-medium",
-                  "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 shadow-sm"
-                )}
-              >
-                Ürünlerim
-              </button>
-            </div>
-          </div>
+          
         </div>
 
+        <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
         {/* ItemsTab client section */}
-        <div className="mt-6 sm:mt-8">
+        <div className="mt-4 sm:mt-5">
           {/* ItemsTab client section */}
           {/* notify/onReload left undefined on purpose (client wrapper internal fallback) */}
           <ItemsTab
