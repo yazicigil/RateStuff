@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
+import BrandItemsGrid from "@/components/brand/BrandItemsGrid";
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 
@@ -197,46 +198,14 @@ export default async function BrandProfilePage() {
 
         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
         <div className="mt-4 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {itemsForClient.map((it) => {
-            const cardProps = {
-              item: it,
-              saved: false,
-              amAdmin: Boolean((session as any)?.user?.isAdmin),
-              myId: user.id,
+         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
 
-              // popover control (no-op in this view)
-              openShareId: null as string | null,
-              setOpenShareId: (_id: string | null) => {},
-              openMenuId: null as string | null,
-              setOpenMenuId: (_id: string | null) => {},
-              copiedShareId: null as string | null,
-
-              // actions (no-op)
-              onOpenSpotlight: (_id: string) => {},
-              onToggleSave: (_id: string) => {},
-              onReport: (_id: string) => {},
-              onDelete: (_id: string) => {},
-              onCopyShare: (_id: string) => {},
-              onNativeShare: (_id: string, _name: string) => {},
-              onShowInList: (_id: string) => {},
-              onVoteComment: (_cid: string, _v: 1 | 0 | -1) => {},
-              onItemChanged: () => {},
-
-              // tag filter helpers (no-op)
-              selectedTags: new Set<string>(),
-              onToggleTag: (_t: string) => {},
-              onResetTags: () => {},
-
-              // hide comment UI
-              showComments: false,
-              showCommentBox: false,
-            } as const;
-            return (
-              <div key={it.id} className="min-w-0">
-                <ItemCard {...cardProps} />
-              </div>
-            );
-          })}
+<BrandItemsGrid
+  items={itemsForClient}
+  myId={user.id}
+  amAdmin={Boolean((session as any)?.user?.isAdmin)}
+/>
+         
         </div>
       </div>
     </div>
