@@ -16,6 +16,13 @@ export type MyItem = {
   edited?: boolean;
   suspended?: boolean;
   tags?: string[];
+  createdBy?: {
+    id?: string;
+    name?: string | null;
+    maskedName?: string | null;
+    avatarUrl?: string | null;
+    kind?: "REGULAR" | "BRAND" | string | null;
+  } | null;
 };
 
 /** — Yardımcılar — */

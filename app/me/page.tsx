@@ -126,7 +126,7 @@ export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
-  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null; email?: string|null; isAdmin?: boolean }|null>(null);
+  const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null; email?: string|null; isAdmin?: boolean; kind?: "REGULAR" | "BRAND" | string | null }|null>(null);
   const [items, setItems]     = useState<MyItem[]>([]);
   const [saved, setSaved]     = useState<MyItem[]>([]);
   const [ratings, setRatings] = useState<MyRating[]>([]);
@@ -591,12 +591,15 @@ const body: any = {
           <div className="flex-1 min-w-0">
             <div className="text-base md:text-lg font-semibold truncate flex items-center gap-1">
               {me?.name || "Profilim"}
-              {(((me as any)?.isAdmin) || ((me as any)?.email === "ratestuffnet@gmail.com")) && (
+              {(
+                ((me as any)?.isAdmin) ||
+                ((me as any)?.email === "ratestuffnet@gmail.com") ||
+                (String((me as any)?.kind || "").toUpperCase() === "BRAND")
+              ) && (
                 <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-
+                  <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                  <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               )}
             </div>
             <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>

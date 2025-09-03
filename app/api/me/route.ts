@@ -206,7 +206,14 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      me: { id: me.id, name: me.name ?? null, avatarUrl: me.avatarUrl ?? null, email: meEmail, isAdmin: meIsAdmin },
+      me: {
+        id: me.id,
+        name: me.name ?? null,
+        avatarUrl: me.avatarUrl ?? null,
+        email: meEmail,
+        isAdmin: meIsAdmin,
+        kind: (me as any)?.kind ?? null,
+      },
       ...shaped,
     });
   } catch (e: any) {
