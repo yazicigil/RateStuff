@@ -86,21 +86,44 @@ function ProfileDropdown({ me }: { me: Me }) {
           role="menu"
           className="absolute right-0 mt-2 w-48 rounded-xl border bg-white dark:bg-gray-900 dark:border-gray-800 shadow-lg p-1 z-[80]"
         >
-          <Link
-            href="/me"
-            prefetch
-            role="menuitem"
-            className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
-            onClick={() => setOpen(false)}
-          >
-            Profilim
-          </Link>
+          {String(me?.kind || "").toUpperCase() === "BRAND" ? (
+            <Link
+              href="/brand/me"
+              prefetch
+              role="menuitem"
+              className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+              onClick={() => setOpen(false)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+                <path fill="currentColor" d="M12 17.27l-5.18 3.04 1.27-5.45L3 10.24l5.53-.48L12 4.5l3.47 5.26 5.53.48-5.09 4.62 1.27 5.45z"/>
+              </svg>
+              Marka profili
+            </Link>
+          ) : (
+            <Link
+              href="/me"
+              prefetch
+              role="menuitem"
+              className="block w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800 flex items-center gap-2"
+              onClick={() => setOpen(false)}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+                <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" strokeWidth="2" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              Profilim
+            </Link>
+          )}
           <button
             role="menuitem"
-            className="block w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
             onClick={() => { setOpen(false); signOut({ callbackUrl: '/' }); }}
             type="button"
           >
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="shrink-0">
+              <path d="M10 17l-1.41-1.41L12.17 12 8.59 8.41 10 7l5 5-5 5z" fill="currentColor"/>
+              <path d="M13 3H6a2 2 0 0 0-2 2v4h2V5h7V3zm-7 16v-4H4v4a2 2 0 0 0 2 2h7v-2H6z" fill="currentColor"/>
+            </svg>
             Çıkış
           </button>
         </div>
