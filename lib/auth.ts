@@ -74,26 +74,37 @@ export const authOptions: NextAuthOptions = {
       const email = user.email;
       if (!email) return false;
 
-      // 1) Daha önce var mıydı?
-      const existed = await prisma.user.findUnique({
+      // 1) Var mı? (adı ve kind bilgisi ile birlikte al)
+      const existing = await prisma.user.findUnique({
         where: { email },
-        select: { id: true },
+        select: { id: true, name: true, kind: true },
       });
 
-      // 2) Upsert (avatarUrl only first time)
-      await prisma.user.upsert({
-        where: { email },
-        update: {
-          // Mevcut kullanıcıda avatarUrl'i PROVIDER'dan ASLA güncellemiyoruz (kullanıcının yüklediği avatar korunur)
-          name: user.name ?? undefined,
-        },
-        create: {
-          email,
-          name: user.name ?? null,
-          // Yeni kullanıcı için ilk ve son kez provider fotoğrafını seed et
-          avatarUrl: (user.image as string | undefined) ?? null,
-        },
-      });
+      if (!existing) {
+        // 2a) İlk defa giriş — oluştur (ad ve provider avatarı yalnızca burada set edilir)
+        await prisma.user.create({
+          data: {
+            email,
+            name: user.name ?? null,
+            avatarUrl: (user.image as string | undefined) ?? null,
+          },
+        });
+      } else {
+        // 2b) Mevcut kullanıcı — adı ezme:
+        // - Eğer kullanıcı BRAND ise asla overwrite etme
+        // - BRAND değilse ve daha önce adı yoksa (null/empty) sadece o zaman provider adını set et
+        const isBrand = String(existing.kind || "").toUpperCase() === "BRAND";
+        const hasName = Boolean(existing.name && String(existing.name).trim().length > 0);
+        const providerName = (user.name ?? "").trim();
+
+        if (!isBrand && !hasName && providerName) {
+          await prisma.user.update({
+            where: { email },
+            data: { name: providerName },
+          });
+        }
+        // Not: avatarUrl burada güncellenmez; kullanıcı yüklediği avatar korunur.
+      }
 
       // 3) Admin promote (merkezî)
       if (email === "ratestuffnet@gmail.com") {
