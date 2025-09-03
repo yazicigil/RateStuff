@@ -1,8 +1,10 @@
 // lib/auth.ts
 import { getServerSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
+import { constantTimeEqual, hashNonce } from "@/lib/crypto-lite";
 
 // basit in-memory guard (dev/prod serverless'ta cold startta sıfırlanır, yine de duplicate'i azaltır)
 const g: any = globalThis as any;
@@ -20,6 +22,47 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: GOOGLE_ID!,
       clientSecret: GOOGLE_SECRET!,
+    }),
+    Credentials({
+      id: "brand-otp",
+      name: "Brand OTP",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        nonce: { label: "Nonce", type: "text" },
+      },
+      async authorize(creds) {
+        const db = prisma as any;
+        const email = String(creds?.email || "").toLowerCase().trim();
+        const nonce = String(creds?.nonce || "");
+        if (!email || !nonce) return null;
+
+        // nonce doğrula
+        const rec = await db.brandLoginNonce.findFirst({
+          where: { email, expiresAt: { gt: new Date() } },
+          orderBy: { createdAt: "desc" },
+        });
+        if (!rec) return null;
+
+        const ok = constantTimeEqual(hashNonce(nonce), rec.nonceHash);
+        if (!ok) return null;
+
+        // whitelist kontrolü
+        const acct = await db.brandAccount.findUnique({ where: { email } });
+        if (!acct || !acct.active) return null;
+
+        // user upsert (BRAND)
+        const user = await prisma.user.upsert({
+          where: { email },
+          update: { kind: "BRAND" } as any,
+          create: { email, kind: "BRAND", name: acct.displayName ?? null } as any,
+          select: { id: true, email: true, name: true },
+        });
+
+        // nonce tek kullanımlık
+        await db.brandLoginNonce.delete({ where: { id: rec.id } });
+
+        return { id: user.id, email: user.email!, name: user.name ?? undefined };
+      },
     }),
   ],
   pages: {
@@ -66,14 +109,15 @@ export const authOptions: NextAuthOptions = {
       if (email) {
         const u = await prisma.user.findUnique({
           where: { email },
-          select: { id: true, name: true, avatarUrl: true, isAdmin: true, createdAt: true },
+          select: { id: true, name: true, avatarUrl: true, isAdmin: true, createdAt: true, kind: true } as any,
         });
 
         if (u && session.user) {
           (session as any).user.id = u.id;
-          session.user.name = u.name ?? session.user.name ?? null;
+          (session.user as any).name = (u?.name ?? null);
           (session.user as any).avatarUrl = u.avatarUrl ?? null;
           (session.user as any).isAdmin = u.isAdmin;
+          (session.user as any).kind = u.kind ?? "REGULAR";
         }
       }
 
