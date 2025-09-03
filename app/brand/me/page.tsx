@@ -6,8 +6,7 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
-
-const ItemsTab = dynamic(() => import('@/components/me/ItemsTab'), { ssr: false });
+import ItemsCardClient from '@/components/brand/ItemsCardClient';
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 
@@ -212,16 +211,12 @@ export default async function BrandProfilePage() {
         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
         {/* ItemsTab client section */}
         <div className="mt-4 sm:mt-5">
-          {/* ItemsTab client section */}
-          {/* notify/onReload left undefined on purpose (client wrapper internal fallback) */}
-          <ItemsTab
+          <ItemsCardClient
             items={itemsForClient as any}
             trending={[]}
             loading={false}
             myId={user.id}
             amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
-            notify={() => {}}
-            onReload={() => {}}
           />
         </div>
       </div>
