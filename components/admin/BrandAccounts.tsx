@@ -4,6 +4,36 @@ import { revalidatePath } from "next/cache";
 import ImageUploader from "@/components/common/ImageUploader";
 import React from "react";
 import EditBrandModal from "@/components/admin/EditBrandModal";
+import { redirect } from "next/navigation";
+
+// Client-side: toast + highlight newly created brand
+function CreatedFlash() {
+  "use client";
+  const React = require("react");
+  const { useEffect } = React;
+  const { toast } = require("react-hot-toast");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const created = params.get("created");
+    if (!created) return;
+    // Toast
+    toast.success("Eklendi");
+    // Highlight the corresponding row
+    const sel = `[data-email="${CSS.escape(created)}"]`;
+    const row = document.querySelector(sel) as HTMLElement | null;
+    if (row) {
+      row.classList.add("ring-2", "ring-emerald-400", "ring-offset-2");
+      setTimeout(() => {
+        row.classList.remove("ring-2", "ring-emerald-400", "ring-offset-2");
+      }, 2000);
+    }
+    // Clean the URL
+    window.history.replaceState(null, "", window.location.pathname);
+  }, []);
+
+  return null;
+}
 
 async function toggleActive(id: string, active: boolean) {
   "use server";
@@ -73,13 +103,34 @@ async function createBrand(formData: FormData) {
       active: true,
     },
   });
-  // Avatar User tablosuna yazılır (create veya update)
-  await prisma.user.upsert({
+  // User tablosuna da kaydet / güncelle:
+  // - İlk oluşturma: name=displayName, kind=BRAND, avatarUrl (varsa)
+  // - Zaten varsa: kind=BRAND'e çek; name boşsa displayName ile doldur; avatarUrl geldiyse güncelle
+  const existingUser = await prisma.user.findUnique({
     where: { email },
-    update: { avatarUrl },
-    create: { email, avatarUrl },
+    select: { id: true, name: true },
   });
-  revalidatePath("/admin/brands");
+  if (!existingUser) {
+    await prisma.user.create({
+      data: {
+        email,
+        name: displayName,
+        avatarUrl,
+        kind: "BRAND",
+      },
+    });
+  } else {
+    const nameShouldSet = (!existingUser.name || !existingUser.name.trim().length) && !!displayName;
+    await prisma.user.update({
+      where: { email },
+      data: {
+        kind: "BRAND",
+        ...(nameShouldSet ? { name: displayName! } : {}),
+        ...(avatarUrl ? { avatarUrl } : {}),
+      },
+    });
+  }
+  redirect(`/admin/brands?created=${encodeURIComponent(email)}`);
 }
 
 export default async function BrandAccounts() {
@@ -109,6 +160,7 @@ export default async function BrandAccounts() {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4">
+      <CreatedFlash />
       <div className="mb-8 rounded-xl border bg-white/60 shadow-sm backdrop-blur-sm dark:bg-neutral-900/60 dark:border-neutral-800">
         <div className="p-4 md:p-6 border-b dark:border-neutral-800">
           <h3 className="text-base md:text-lg font-semibold">Yeni Brand hesabı ekle</h3>
@@ -169,7 +221,7 @@ export default async function BrandAccounts() {
           </thead>
           <tbody className="divide-y dark:divide-neutral-800">
             {list.map((b) => (
-              <tr key={b.id} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-900/30">
+              <tr key={b.id} data-email={b.email} className="hover:bg-neutral-50/50 dark:hover:bg-neutral-900/30">
                 <td className="px-3 py-2">{b.email}</td>
                 <td className="px-3 py-2">{b.displayName ?? "-"}</td>
                 <td className="px-3 py-2">
