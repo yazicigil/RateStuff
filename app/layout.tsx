@@ -4,6 +4,8 @@ import Script from "next/script";
 import type { Metadata } from "next";
 import Providers from "@/components/common/Providers";
 import { Analytics } from '@vercel/analytics/react';
+import { Toaster } from "react-hot-toast";
+
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
 // --- Theme: pre-hydration guard (prevents light flash / resets on refresh) ---
@@ -95,6 +97,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  
   const orgLD = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -138,6 +141,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className="min-h-screen antialiased">
+         <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Providers>{children}</Providers>
           <Analytics />
         <Script id="presence-heartbeat" strategy="afterInteractive">
