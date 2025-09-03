@@ -11,7 +11,7 @@ async function toggleActive(id: string, active: boolean) {
   "use server";
   await prisma.brandAccount.update({ where: { id }, data: { active } });
   // Bu componenti nerede kullanırsan kullan, admin listesi aynı path’teyse revalidate et
-  revalidatePath("/admin/brands");
+  revalidatePath("/admin");
 }
 
 async function deleteBrand(id: string) {
@@ -24,7 +24,7 @@ async function deleteBrand(id: string) {
 
   if (!brand) {
     // Kayıt zaten yoksa idempotent davran
-    revalidatePath("/admin/brands");
+    revalidatePath("/admin");
     return;
   }
 
@@ -56,7 +56,7 @@ async function deleteBrand(id: string) {
     }
   });
 
-  revalidatePath("/admin/brands");
+  revalidatePath("/admin");
 }
 
 async function updateBrand(formData: FormData) {
@@ -96,7 +96,7 @@ async function updateBrand(formData: FormData) {
       },
     });
   }
-  revalidatePath("/admin/brands");
+  revalidatePath("/admin");
 }
 
 async function createBrand(formData: FormData) {
@@ -141,7 +141,7 @@ async function createBrand(formData: FormData) {
       },
     });
   }
-  redirect(`/admin/brands?created=${encodeURIComponent(email)}`);
+  redirect(`/admin?created=${encodeURIComponent(email)}`);
 }
 
 export default async function BrandAccounts() {
