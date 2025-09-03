@@ -207,6 +207,7 @@ model BrandAccount {
   id           String   @id @default(cuid())
   email        String   @unique
   displayName  String?
+  avatarUrl    String?
   active       Boolean  @default(true)
   features     Json?
   createdAt    DateTime @default(now())
