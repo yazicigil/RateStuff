@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import clsx from "clsx";
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -66,69 +67,102 @@ export default async function BrandProfilePage() {
 
   const itemsCount = await prisma.item.count({ where: { createdById: user.id } });
 
+  // Ortalama rating (1-5) — Comment tablosundan, bu kullanıcıya ait item'ların yorumlarına göre
+  const ratingAgg = await prisma.comment.aggregate({
+    _avg: { rating: true },
+    where: {
+      item: { createdById: user.id },
+    },
+  });
+  const avgRating = ratingAgg._avg.rating;
+
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
-      <div className="mx-auto max-w-5xl px-4 py-10">
-        {/* Header */}
-        <div className="flex items-start gap-6">
-          <div className="relative w-20 h-20 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-800">
-            {user.avatarUrl ? (
-              <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover" />
-            ) : (
-              <div className="w-full h-full grid place-items-center text-xl">
-                {(user.name ?? user.email ?? "B")[0]}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+        {/* Hero */}
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/60 dark:bg-neutral-900/40 backdrop-blur p-6 sm:p-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-start gap-5">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 ring-1 ring-neutral-200/70 dark:ring-neutral-800/70">
+                {user.avatarUrl ? (
+                  <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full grid place-items-center text-2xl">
+                    {(user.name ?? user.email ?? "B")[0]}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
+                    {brand?.displayName ?? user.name ?? user.email}
+                  </h1>
+                  <VerifiedBadge />
+                </div>
+                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
+                {brand?.active === false && (
+                  <p className="mt-1 text-xs text-amber-500">(pasif)</p>
+                )}
+              </div>
+            </div>
 
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold">
-              {brand?.displayName ?? user.name ?? user.email}
-              <VerifiedBadge />
-            </h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
-              {user.email}
-              {brand?.active === false && (
-                <span className="ml-2 text-amber-500">(pasif)</span>
-              )}
-            </p>
-
-            <div className="mt-4 flex gap-4 text-sm">
-              <span className="px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800">
-                Paylaşılan içerik: <b>{itemsCount}</b>
-              </span>
-              {/* Örn. başka metrikler eklenebilir */}
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 bg-neutral-50 dark:bg-neutral-900">
+                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
+                <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
+              </div>
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 bg-neutral-50 dark:bg-neutral-900">
+                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
+                <div className="mt-1 text-2xl font-semibold">
+                  {avgRating ? avgRating.toFixed(2) : "—"}
+                  <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Link
-              href="/admin/brands"
-              className="hidden md:inline-flex h-9 items-center rounded-md border border-neutral-300 dark:border-neutral-700 px-3 hover:bg-neutral-50 dark:hover:bg-neutral-900"
-            >
-              Marka ayarları
-            </Link>
+          {/* Single tab header */}
+          <div className="mt-6 sm:mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className={clsx(
+                  "px-3 py-1.5 rounded-full text-sm",
+                  "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                )}
+              >
+                Ürünlerim
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Items */}
-        <div className="mt-8">
-          <h2 className="text-lg font-medium mb-3">Son paylaşımlar</h2>
-
+        {/* Items grid */}
+        <div className="mt-6 sm:mt-8">
           {items.length === 0 ? (
             <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              Henüz bir paylaşım yok.
+              Henüz bir ürün eklenmemiş.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {items.map((it) => (
-                // Eğer sizde ItemCard varsa onu kullanın:
-                // <ItemCard key={it.id} item={it} showVerifiedBadge />
-                <div key={it.id} className="rounded-lg border border-neutral-200 dark:border-neutral-800 p-4">
-                  <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                    {new Date(it.createdAt).toLocaleDateString()}
+                <div
+                  key={it.id}
+                  className="group rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:shadow-sm transition"
+                >
+                  <div className="p-4">
+                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                      {new Date(it.createdAt).toLocaleDateString()}
+                    </div>
+                    <div className="text-base font-medium mt-1">{it.name}</div>
+                    {/* Kart içinde ortalama puan varsa göster */}
+                    {(it as any)?.ratingAvg || (it as any)?.avgRating || (it as any)?.averageRating ? (
+                      <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+                        Puan: {((it as any).ratingAvg ?? (it as any).avgRating ?? (it as any).averageRating).toFixed?.(2) ?? (it as any).ratingAvg ?? (it as any).avgRating ?? (it as any).averageRating}/5
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="text-base font-medium mt-1">{it.name}</div>
                 </div>
               ))}
             </div>
