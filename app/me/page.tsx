@@ -73,6 +73,7 @@ type MyItem = {
     name?: string | null;
     maskedName?: string | null;
     avatarUrl?: string | null;
+    kind?: "REGULAR" | "BRAND" | string | null;
   } | null;
   // Eski payloadlar için sade alanlar (fallback)
   createdByName?: string | null;

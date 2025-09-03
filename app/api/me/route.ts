@@ -28,7 +28,7 @@ export async function GET(req: Request) {
         include: {
           ratings: { select: { value: true } },
           tags: { include: { tag: true } },
-          createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true } },
+          createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true, kind: true } },
         },
       }),
       prisma.rating.findMany({
@@ -49,7 +49,7 @@ export async function GET(req: Request) {
             include: {
               ratings: { select: { value: true } },
               tags: { include: { tag: true } },
-              createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true } },
+              createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, isAdmin: true, email: true, kind: true } },
             },
           },
         },
@@ -142,7 +142,9 @@ export async function GET(req: Request) {
         : undefined;
 
       const createdByEmail = (i as any)?.createdBy?.email as string | undefined;
-      const isCreatedByVerified = Boolean((i as any)?.createdBy?.isAdmin) || (createdByEmail === 'ratestuffnet@gmail.com');
+      const createdByKind = String((i as any)?.createdBy?.kind || "").toUpperCase();
+      const isBrand = createdByKind === "BRAND";
+      const isCreatedByVerified = isBrand || Boolean((i as any)?.createdBy?.isAdmin) || (createdByEmail === 'ratestuffnet@gmail.com');
 
       return {
         id: i.id,
@@ -162,15 +164,16 @@ export async function GET(req: Request) {
             name: (() => {
               const isSelf = i.createdBy.id === me.id;
               const raw = i.createdBy.name ?? i.createdBy.maskedName ?? null;
-              return (isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
+              return (isBrand || isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
             })(),
             avatarUrl: i.createdBy.avatarUrl ?? null,
+            kind: (i as any)?.createdBy?.kind ?? null,
             verified: isCreatedByVerified,
           },
           createdByName: (() => {
             const isSelf = i.createdBy.id === me.id;
             const raw = i.createdBy.name ?? i.createdBy.maskedName ?? null;
-            return (isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
+            return (isBrand || isCreatedByVerified || isSelf) ? (i.createdBy.name ?? raw) : (maskName(raw) ?? null);
           })(),
           createdByAvatarUrl: i.createdBy.avatarUrl ?? null,
         } : {}),
