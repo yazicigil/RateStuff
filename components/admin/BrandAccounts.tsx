@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import ImageUploader from "@/components/common/ImageUploader";
 import React from "react";
+import EditBrandModal from "@/components/admin/EditBrandModal";
 
 async function toggleActive(id: string, active: boolean) {
   "use server";
@@ -26,6 +27,11 @@ async function updateBrand(formData: FormData) {
   const displayName = displayNameRaw.length ? displayNameRaw : null;
   const avatarUrlRaw = String(formData.get("avatarUrl") || "").trim();
   const avatarUrl = avatarUrlRaw.length ? avatarUrlRaw : null;
+  // fetch current brand account to know previous email (in case of email change)
+  const current = await prisma.brandAccount.findUnique({
+    where: { id },
+    select: { email: true },
+  });
   await prisma.brandAccount.update({
     where: { id },
     data: {
@@ -33,12 +39,20 @@ async function updateBrand(formData: FormData) {
       displayName,
     },
   });
-  // Avatar değişikliği User tablosuna yazılır
-  if (email) {
+  // User tablosunda avatar ve isim (name) senkronize edilir
+  const effectiveEmail = (email && email.length ? email : current?.email) || null;
+  if (effectiveEmail) {
     await prisma.user.upsert({
-      where: { email },
-      update: { avatarUrl },
-      create: { email, avatarUrl },
+      where: { email: effectiveEmail },
+      update: {
+        avatarUrl,
+        name: displayName, // displayName ile user.name'i de güncelle
+      },
+      create: {
+        email: effectiveEmail,
+        avatarUrl,
+        name: displayName,
+      },
     });
   }
   revalidatePath("/admin/brands");
@@ -174,39 +188,11 @@ export default async function BrandAccounts() {
                 <td className="px-3 py-2">{b.createdAt.toLocaleString()}</td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
-                    <details className="group relative">
-                      <summary className="px-2 py-1 rounded-md border cursor-pointer list-none select-none inline-flex items-center gap-1 hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                        Düzenle
-                      </summary>
-                      <div className="absolute right-0 z-10 mt-2 w-80 rounded-lg border bg-white shadow-lg p-3 dark:bg-neutral-900 dark:border-neutral-700">
-                        <form action={updateBrand} className="space-y-2">
-                          <input type="hidden" name="id" value={b.id} />
-                          <div className="flex gap-2">
-                            <input
-                              name="email"
-                              type="email"
-                              defaultValue={b.email}
-                              placeholder="email@brand.com"
-                              className="px-2 py-1 rounded-md border flex-1 bg-white dark:bg-neutral-900 dark:border-neutral-800"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <input
-                              name="displayName"
-                              defaultValue={b.displayName ?? ""}
-                              placeholder="Görünen ad"
-                              className="px-2 py-1 rounded-md border flex-1 bg-white dark:bg-neutral-900 dark:border-neutral-800"
-                            />
-                          </div>
-                          <div>
-                            <ImageUploader name="avatarUrl" defaultValue={avatarByEmail.get(b.email) ?? ""} />
-                          </div>
-                          <div className="flex justify-end gap-2 pt-1">
-                            <button className="px-3 py-1 rounded-md border">Kaydet</button>
-                          </div>
-                        </form>
-                      </div>
-                    </details>
+                    <EditBrandModal
+                      brand={{ id: b.id, email: b.email, displayName: b.displayName ?? null }}
+                      defaultAvatarUrl={avatarByEmail.get(b.email) ?? ""}
+                      updateAction={updateBrand}
+                    />
                     <form action={toggleActive.bind(null, b.id, !b.active)}>
                       <button className="px-2 py-1 rounded-md border hover:bg-neutral-50 dark:hover:bg-neutral-800">
                         {b.active ? "Pasifleştir" : "Aktifleştir"}
