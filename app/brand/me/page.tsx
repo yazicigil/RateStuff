@@ -1,204 +1,95 @@
-// app/brand/me/page.tsx
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import Image from "next/image";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import clsx from "clsx";
-import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
+"use client";
+import { useState } from "react";
 
-// verified badge – inline svg
-function VerifiedBadge() {
-  return (
-    <svg
-      width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"
-      className="inline-block ml-1 w-4 h-4 align-middle"
-    >
-      <circle cx="12" cy="12" r="9" className="fill-[#3B82F6] dark:fill-[#3B82F6]" />
-      <path d="M8.5 12.5l2 2 4-4"
-        fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+type Props = {
+  brandId?: string | null;
+  initialBio?: string;
+};
 
-export default async function BrandProfilePage() {
-  const session = await auth();
-  if (!session?.user?.email) notFound();
+export default function BrandBioInline({ brandId, initialBio = "" }: Props) {
+  const [editing, setEditing] = useState(false);
+  const [bio, setBio] = useState(initialBio);
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
-  // DB'den tam kullanıcıyı al ve kind kontrolünü burada yap
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      avatarUrl: true,
-      createdAt: true,
-      kind: true,
-    },
-  });
-  if (!user) notFound();
-  if (user.kind !== "BRAND") {
-    // regular kullanıcı yanlışlıkla geldiyse 404 ver
-    notFound();
+  async function save() {
+    if (!brandId) return;
+    setSaving(true); setErr(null);
+    try {
+      const res = await fetch("/api/brand/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandId, bio }),
+      });
+      if (!res.ok) throw new Error("save-failed");
+      setEditing(false);
+      if (typeof window !== "undefined") window.location.reload();
+    } catch (e) {
+      setErr("Kaydedilemedi. Tekrar deneyin.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  // Kullanıcının brand hesabı ve basit metrikler
-  const brand = await prisma.brandAccount.findUnique({
-    where: { email: user.email! },
-    select: {
-      id: true,
-      email: true,
-      displayName: true,
-      active: true,
-      coverImageUrl: true,
-      bio: true,
-    },
-  });
+  if (!editing) {
+    if (!bio) {
+      return (
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="mt-3 text-sm text-neutral-600 dark:text-neutral-300 hover:underline inline-flex items-center gap-1"
+        >
+          Açıklama ekle
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-600 dark:text-neutral-300">
+            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
+          </svg>
+        </button>
+      );
+    }
+    return (
+      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
+        {bio}{" "}
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="ml-2 inline-flex items-center p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
+          aria-label="Açıklamayı düzenle"
+          title="Düzenle"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-600 dark:text-neutral-300">
+            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
+          </svg>
+        </button>
+      </p>
+    );
+  }
 
-  // İtem örneği: brand kullanıcının paylaştığı son 10 item
-  const items = await prisma.item.findMany({
-    where: { createdById: user.id },
-    orderBy: { createdAt: "desc" },
-    take: 10,
-    select: {
-      id: true,
-      name: true,
-      createdAt: true,
-    },
-  });
-
-  const itemsCount = await prisma.item.count({ where: { createdById: user.id } });
-
-  // Ortalama rating (1-5) — Comment tablosundan, bu kullanıcıya ait item'ların yorumlarına göre
-  const ratingAgg = await prisma.comment.aggregate({
-    _avg: { rating: true },
-    where: {
-      item: { createdById: user.id },
-    },
-  });
-  const avgRating = ratingAgg._avg.rating;
-
+  // Editing state (centered small modal)
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
-      {/* Cover */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="relative mb-6 sm:mb-8 h-44 sm:h-56 md:h-64 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
-          {brand?.coverImageUrl ? (
-            <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 dark:from-neutral-800 dark:via-neutral-900 dark:to-neutral-800" />
-          )}
-          <BrandCoverEditor
-            brandId={brand?.id}
-            initialCoverUrl={brand?.coverImageUrl || ""}
-            initialBio={brand?.bio || ""}
-            recommendText="Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)"
-          />
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+      <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium">Açıklamayı düzenle</h3>
+          <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Kapat">
+            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.41 4.3 19.71 2.89 18.3 9.17 12 2.89 5.71 4.3 4.29l6.29 6.3 6.29-6.3z"/></svg>
+          </button>
         </div>
-      </div>
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
-        {/* Hero */}
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/60 dark:bg-neutral-900/40 backdrop-blur p-6 sm:p-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="flex items-start gap-5">
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-neutral-200 dark:bg-neutral-800 ring-1 ring-neutral-200/70 dark:ring-neutral-800/70">
-                {user.avatarUrl ? (
-                  <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover" />
-                ) : (
-                  <div className="w-full h-full grid place-items-center text-2xl">
-                    {(user.name ?? user.email ?? "B")[0]}
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight">
-                    {brand?.displayName ?? user.name ?? user.email}
-                  </h1>
-                  <VerifiedBadge />
-                </div>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
-                {brand?.bio && (
-                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-                    {brand.bio}
-                  </p>
-                )}
-                {brand?.active === false && (
-                  <p className="mt-1 text-xs text-amber-500">(pasif)</p>
-                )}
-              </div>
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 bg-neutral-50 dark:bg-neutral-900">
-                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
-                <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
-              </div>
-              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 bg-neutral-50 dark:bg-neutral-900">
-                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
-                <div className="mt-1 text-2xl font-semibold flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="inline-block w-5 h-5 text-yellow-500 mr-1"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  {avgRating ? avgRating.toFixed(2) : "—"}
-                  <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Single tab header */}
-          <div className="mt-6 sm:mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className={clsx(
-                  "px-3 py-1.5 rounded-full text-sm",
-                  "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
-                )}
-              >
-                Ürünlerim
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Items grid */}
-        <div className="mt-6 sm:mt-8">
-          {items.length === 0 ? (
-            <div className="text-sm text-neutral-500 dark:text-neutral-400">
-              Henüz bir ürün eklenmemiş.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {items.map((it) => (
-                <div
-                  key={it.id}
-                  className="group rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:shadow-sm transition"
-                >
-                  <div className="p-4">
-                    <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {new Date(it.createdAt).toLocaleDateString()}
-                    </div>
-                    <div className="text-base font-medium mt-1">{it.name}</div>
-                    {/* Kart içinde ortalama puan varsa göster */}
-                    {(it as any)?.ratingAvg || (it as any)?.avgRating || (it as any)?.averageRating ? (
-                      <div className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-                        Puan: {((it as any).ratingAvg ?? (it as any).avgRating ?? (it as any).averageRating).toFixed?.(2) ?? (it as any).ratingAvg ?? (it as any).avgRating ?? (it as any).averageRating}/5
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+        <textarea
+          className="w-full min-h-[140px] resize-y rounded-md border bg-white dark:bg-neutral-900 text-sm p-2 border-neutral-300 dark:border-neutral-700"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          placeholder="Markanız hakkında kısa bir açıklama..."
+        />
+        {err && <div className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</div>}
+        <div className="flex justify-end gap-2 pt-3">
+          <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded-md border border-neutral-300 dark:border-neutral-700 text-sm">İptal</button>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 text-sm disabled:opacity-60"
+          >
+            {saving ? "Kaydediliyor..." : "Kaydet"}
+          </button>
         </div>
       </div>
     </div>

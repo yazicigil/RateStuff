@@ -8,19 +8,16 @@ const ImageUploader = dynamic(() => import("@/components/common/ImageUploader"),
 type Props = {
   brandId?: string | null;
   initialCoverUrl?: string;
-  initialBio?: string;
   recommendText?: string;
 };
 
 export default function BrandCoverEditor({
   brandId,
   initialCoverUrl = "",
-  initialBio = "",
   recommendText = "Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)",
 }: Props) {
   const [open, setOpen] = useState(false);
   const [coverUrl, setCoverUrl] = useState(initialCoverUrl);
-  const [bio, setBio] = useState(initialBio);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -31,7 +28,7 @@ export default function BrandCoverEditor({
       const res = await fetch("/api/brand/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandId, coverImageUrl: coverUrl || null, bio }),
+        body: JSON.stringify({ brandId, coverImageUrl: coverUrl || null }),
       });
       if (!res.ok) throw new Error("save-failed");
       // Optimistic close; consumer page is server-rendered, so refresh
@@ -61,7 +58,7 @@ export default function BrandCoverEditor({
 
       {/* Modal */}
       {open && (
-        <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-sm flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-medium">Kapak görseli &amp; Biyografi</h3>
@@ -79,16 +76,6 @@ export default function BrandCoverEditor({
                 onChange={(url: string | null) => setCoverUrl(url ?? "")}
                 className="rounded-md"
               />
-
-              <div>
-                <label className="block text-xs mb-1 text-neutral-600 dark:text-neutral-300">Biyografi</label>
-                <textarea
-                  className="w-full min-h-[120px] resize-y rounded-md border bg-white dark:bg-neutral-900 text-sm p-2 border-neutral-300 dark:border-neutral-700"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Markanız hakkında kısa bir açıklama..."
-                />
-              </div>
 
               {err && <div className="text-xs text-red-600 dark:text-red-400">{err}</div>}
 
