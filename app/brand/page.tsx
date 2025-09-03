@@ -19,6 +19,17 @@ export default function BrandLoginPage() {
     return () => clearInterval(t);
   }, [cooldown]);
 
+  // Prefill e-posta: önceki girişte "Beni hatırla" açık ise localStorage'dan çek
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("rs_brand_email");
+      if (saved && typeof saved === "string" && saved.includes("@")) {
+        setEmail(saved);
+        setRemember(true);
+      }
+    } catch {}
+  }, []);
+
   async function requestCode() {
     setErr(null); setBusy(true);
     try {
@@ -50,6 +61,14 @@ export default function BrandLoginPage() {
         setBusy(false);
         return;
       }
+      // "Beni hatırla" açıksa e-postayı kaydet; değilse temizle
+      try {
+        if (remember) {
+          localStorage.setItem("rs_brand_email", email);
+        } else {
+          localStorage.removeItem("rs_brand_email");
+        }
+      } catch {}
       await signIn("brand-otp", {
         email, nonce: data.nonce,
         redirect: true, callbackUrl: "/",
