@@ -43,8 +43,8 @@ export interface ItemCardProps {
   showCommentBox?: boolean;        // default: true
 }
 
-function maskName(s?: string | null, verified?: boolean) {
-  if (verified) return s || 'Anonim';
+function maskName(s?: string | null, isBrand?: boolean) {
+  if (isBrand) return s || 'Anonim';
   if (!s) return 'Anonim';
   const parts = String(s).trim().split(/\s+/).filter(Boolean);
   return parts.map(p => p[0]?.toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
@@ -59,7 +59,7 @@ export default function ItemCard({
   showCommentBox = true,
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
-  const verified = Boolean((i?.createdBy as any)?.verified);
+  const isBrand = String((i?.createdBy as any)?.kind || "").toUpperCase() === "BRAND";
   const ownerId = (
     (i as any)?.createdById ??
     (i as any)?.createdByUserId ??
@@ -88,10 +88,10 @@ export default function ItemCard({
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
 
   const creatorName = useMemo(() => {
-    const masked = maskName(creatorNameRaw, verified);
+    const masked = maskName(creatorNameRaw, isBrand);
     if (!masked && isOwner) return 'Ben';
     return masked;
-  }, [creatorNameRaw, verified, isOwner]);
+  }, [creatorNameRaw, isBrand, isOwner]);
 
   const [editing, setEditing] = useState(false);
   const [descDraft, setDescDraft] = useState<string>(i?.description ?? '');
@@ -421,13 +421,16 @@ export default function ItemCard({
                         {(creatorName || 'u').charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span>{creatorName}</span>
-                    {verified && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
-                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                        <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
+                <span>{creatorName}</span>
+                {isBrand && (
+                  <img
+                    src="/verified.svg"
+                    alt="verified brand"
+                    width={14}
+                    height={14}
+                    className="inline-block ml-1 align-middle opacity-90"
+                  />
+                )}
                   </div>
                 )}
 

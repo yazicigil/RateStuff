@@ -7,6 +7,11 @@ const db = prisma as any;
 export async function POST(req: Request) {
   const { email, code } = await req.json();
 
+  // purge expired OTP rows to keep table small
+  await db.brandOtp.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+
   const entry = await db.brandOtp.findFirst({
     where: { email, consumedAt: null, expiresAt: { gt: new Date() } },
     orderBy: { createdAt: "desc" },

@@ -1,14 +1,20 @@
-export function getDisplayName(
-  u: { name?: string | null; verified?: boolean } | null | undefined,
-  fallback = "Kullanıcı"
-) {
-  if (!u) return fallback;
-  const n = (u.name ?? "").trim();
-  if (u.verified) return n || fallback;
-  if (!n) return fallback;
-  return n.length <= 2 ? fallback : `${n.slice(0, 3)}…`;
+export type UserLike = {
+  id?: string;
+  name?: string | null;
+  maskedName?: string | null;
+  kind?: "REGULAR" | "BRAND" | string | null;
+};
+
+export function getDisplayName(u: UserLike): string {
+  if (!u) return "Kullanıcı";
+  // BRAND ise maskeleme yok
+  if (u.kind === "BRAND") {
+    return (u.name ?? u.maskedName ?? "Kullanıcı").trim();
+  }
+  // Diğerlerinde maskeyi koru
+  return (u.maskedName ?? u.name ?? "Kullanıcı").trim();
 }
 
-export function isVerified(u?: { verified?: boolean }) {
-  return !!u?.verified;
+export function isBrand(u: UserLike): boolean {
+  return u?.kind === "BRAND";
 }

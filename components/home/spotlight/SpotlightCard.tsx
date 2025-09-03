@@ -20,7 +20,13 @@ export type SpotlightItem = {
   edited?: boolean;
   suspended?: boolean;
   reportCount?: number;
-  createdBy?: { id?: string; name?: string | null; avatarUrl?: string | null; verified?: boolean } | null;
+  createdBy?: {
+    id?: string;
+    name?: string | null;
+    avatarUrl?: string | null;
+    verified?: boolean;
+    kind?: "REGULAR" | "BRAND" | string | null;
+  } | null;
   tags?: string[];
   comments: {
     id: string;
@@ -33,7 +39,8 @@ export type SpotlightItem = {
   }[];
 };
 
-function maskName(s?: string | null) {
+function maskName(s?: string | null, isBrand?: boolean) {
+  if (isBrand) return s || 'Anonim';
   if (!s) return 'Anonim';
   const raw = String(s).trim();
   if (!raw) return 'Anonim';
@@ -274,23 +281,32 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 {item.createdBy.avatarUrl ? (
                   <img
                     src={item.createdBy.avatarUrl}
-                    alt={maskName(item.createdBy.name)}
+                    alt={maskName(item.createdBy.name, String(item.createdBy?.kind || "").toUpperCase() === "BRAND")}
                     className="w-5 h-5 rounded-full object-cover"
                   />
                 ) : (
                   <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                    {(maskName(item.createdBy.name) || 'U').charAt(0).toUpperCase()}
+                    {(maskName(item.createdBy.name, String(item.createdBy?.kind || "").toUpperCase() === "BRAND") || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
-                <span>
-                  {item.createdBy?.verified ? (item.createdBy.name || 'Anonim') : maskName(item.createdBy?.name)}
-                </span>
-                {item.createdBy?.verified && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden className="inline-block ml-1 w-4 h-4 align-middle">
-                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                    <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
+                {(() => {
+                  const isBrand = String(item.createdBy?.kind || "").toUpperCase() === "BRAND";
+                  const display = isBrand ? (item.createdBy?.name || "Anonim") : maskName(item.createdBy?.name);
+                  return (
+                    <>
+                      <span>{display}</span>
+                      {isBrand && (
+                        <img
+                          src="/verified.svg"
+                          alt="verified brand"
+                          width={14}
+                          height={14}
+                          className="inline-block ml-1 align-middle opacity-90"
+                        />
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             )}
 

@@ -2,7 +2,6 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import ImageUploader from "@/components/common/ImageUploader";
-import { useState } from "react";
 import React from "react";
 
 async function toggleActive(id: string, active: boolean) {
@@ -32,9 +31,16 @@ async function updateBrand(formData: FormData) {
     data: {
       ...(email ? { email } : {}),
       displayName,
-      avatarUrl,
     },
   });
+  // Avatar değişikliği User tablosuna yazılır
+  if (email) {
+    await prisma.user.upsert({
+      where: { email },
+      update: { avatarUrl },
+      create: { email, avatarUrl },
+    });
+  }
   revalidatePath("/admin/brands");
 }
 
@@ -50,9 +56,14 @@ async function createBrand(formData: FormData) {
     data: {
       email,
       displayName,
-      avatarUrl,
       active: true,
     },
+  });
+  // Avatar User tablosuna yazılır (create veya update)
+  await prisma.user.upsert({
+    where: { email },
+    update: { avatarUrl },
+    create: { email, avatarUrl },
   });
   revalidatePath("/admin/brands");
 }
@@ -64,7 +75,6 @@ export default async function BrandAccounts() {
       id: true,
       email: true,
       displayName: true,
-      avatarUrl: true,
       active: true,
       createdAt: true,
     },
@@ -74,10 +84,13 @@ export default async function BrandAccounts() {
   const emails = list.map((b) => b.email);
   const usersWithCounts = await prisma.user.findMany({
     where: { email: { in: emails } },
-    select: { email: true, _count: { select: { items: true } } },
+    select: { email: true, avatarUrl: true, _count: { select: { items: true } } },
   });
   const itemCountByEmail = new Map<string, number>(
     usersWithCounts.map((u) => [u.email!, u._count.items])
+  );
+  const avatarByEmail = new Map<string, string | null>(
+    usersWithCounts.map((u) => [u.email!, u.avatarUrl ?? null])
   );
 
   return (
@@ -146,9 +159,9 @@ export default async function BrandAccounts() {
                 <td className="px-3 py-2">{b.email}</td>
                 <td className="px-3 py-2">{b.displayName ?? "-"}</td>
                 <td className="px-3 py-2">
-                  {b.avatarUrl ? (
+                  {avatarByEmail.get(b.email) ? (
                     <img
-                      src={b.avatarUrl}
+                      src={avatarByEmail.get(b.email)!}
                       alt="avatar"
                       className="w-8 h-8 rounded-full object-cover ring-1 ring-black/5"
                     />
@@ -186,7 +199,7 @@ export default async function BrandAccounts() {
                             />
                           </div>
                           <div>
-                            <ImageUploader name="avatarUrl" defaultValue={b.avatarUrl ?? ""} />
+                            <ImageUploader name="avatarUrl" defaultValue={avatarByEmail.get(b.email) ?? ""} />
                           </div>
                           <div className="flex justify-end gap-2 pt-1">
                             <button className="px-3 py-1 rounded-md border">Kaydet</button>

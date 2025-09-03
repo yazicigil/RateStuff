@@ -8,6 +8,11 @@ export async function POST(req: Request) {
   const { email } = await req.json();
   const ip = req.headers.get("x-forwarded-for") ?? "";
 
+  // purge expired OTP rows to keep table small
+  await db.brandOtp.deleteMany({
+    where: { expiresAt: { lt: new Date() } },
+  });
+
   // whitelist check
   const acct = await db.brandAccount.findUnique({ where: { email } });
   if (!acct || !acct.active) return NextResponse.json({ ok: true });
