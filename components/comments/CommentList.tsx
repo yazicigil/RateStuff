@@ -5,8 +5,10 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 export type CommentUser = {
   id?: string | null;
   name?: string | null;
+  maskedName?: string | null;
   avatarUrl?: string | null;
   verified?: boolean;
+  kind?: "REGULAR" | "BRAND" | string | null;
 };
 
 export type SpotComment = {
@@ -51,8 +53,8 @@ export interface CommentListProps {
 }
 
 /** isim maskeleme (doğrulanmamış kullanıcılar için) */
-function maskName(name?: string | null, verified?: boolean) {
-  if (verified) return name || 'Anonim';
+function maskName(name?: string | null, isBrand?: boolean) {
+  if (isBrand) return name || 'Anonim';
   if (!name) return 'Anonim';
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   return parts.map(p => (p[0] ?? '').toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
@@ -173,8 +175,11 @@ export default function CommentList({
       ) : (
         <ul>
           {ordered.map((c) => {
-            const verified = Boolean(c?.user?.verified);
-            const displayName = maskName(c?.user?.name, verified);
+            const isBrand = String(c?.user?.kind || "").toUpperCase() === "BRAND";
+            const displayName =
+              isBrand
+                ? (c?.user?.name || "Anonim")
+                : (c?.user?.maskedName || maskName(c?.user?.name, false));
             const score = typeof c.score === 'number' ? c.score : 0;
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
@@ -200,7 +205,7 @@ export default function CommentList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 text-xs opacity-80">
                       <span className="truncate">{displayName}</span>
-                      {verified && (
+                      {isBrand && (
                         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block align-middle">
                           <circle cx="12" cy="12" r="9" fill="#3B82F6" />
                           <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
