@@ -122,21 +122,21 @@ export default async function BrandProfilePage() {
             recommendText="Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)"
           />
         </div>
-        {/* Circular avatar overlapping cover */}
-        <div className="absolute -bottom-16 left-8 w-32 h-32 rounded-full ring-4 ring-white dark:ring-neutral-900 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-          {user.avatarUrl ? (
-            <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover rounded-full" />
-          ) : (
-            <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
-              {(user.name ?? user.email ?? "B")[0]}
-            </div>
-          )}
-        </div>
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
         {/* Hero */}
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 sm:p-8 pt-20 md:pt-24 pl-40 md:pl-48">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 sm:p-8 pt-20 md:pt-24 pl-40 md:pl-48 relative">
+          {/* Avatar inside card, overlapping like reference layout */}
+          <div className="absolute -top-16 left-6 w-32 h-32 rounded-full ring-4 ring-white dark:ring-neutral-900 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+            {user.avatarUrl ? (
+              <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover rounded-full" />
+            ) : (
+              <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
+                {(user.name ?? user.email ?? "B")[0]}
+              </div>
+            )}
+          </div>
+          <div className="mt-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
@@ -153,7 +153,7 @@ export default async function BrandProfilePage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:gap-5 md:w-auto w-full md:justify-end">
               <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-neutral-900">
                 <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
                 <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
