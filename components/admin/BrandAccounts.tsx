@@ -44,7 +44,46 @@ async function toggleActive(id: string, active: boolean) {
 
 async function deleteBrand(id: string) {
   "use server";
-  await prisma.brandAccount.delete({ where: { id } });
+  // Önce email'i al
+  const brand = await prisma.brandAccount.findUnique({
+    where: { id },
+    select: { email: true },
+  });
+
+  if (!brand) {
+    // Kayıt zaten yoksa idempotent davran
+    revalidatePath("/admin/brands");
+    return;
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // BrandAccount'ı sil
+    await tx.brandAccount.delete({ where: { id } });
+
+    // İlgili brand OTP / nonce kayıtlarını temizle
+    await tx.brandOtp.deleteMany({ where: { email: brand.email } }).catch(() => {});
+    await tx.brandLoginNonce.deleteMany({ where: { email: brand.email } }).catch(() => {});
+
+    // Aynı email ile User var mı? Varsa item sayısına göre karar ver
+    const user = await tx.user.findUnique({
+      where: { email: brand.email },
+      select: { id: true, _count: { select: { items: true } }, kind: true },
+    });
+
+    if (user) {
+      if (user._count.items === 0) {
+        // Bağımlı item yoksa User'ı tamamen sil
+        await tx.user.delete({ where: { email: brand.email } });
+      } else {
+        // Item'ları var: user'ı koru ama BRAND işaretini kaldır (opsiyonel)
+        await tx.user.update({
+          where: { email: brand.email },
+          data: { kind: "REGULAR" },
+        });
+      }
+    }
+  });
+
   revalidatePath("/admin/brands");
 }
 
