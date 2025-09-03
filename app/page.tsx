@@ -74,7 +74,14 @@ type ItemVM = {
   myRating?: number | null;
   edited?: boolean;
   suspended?: boolean;
-  createdBy?: { id: string; name: string; avatarUrl?: string | null; verified?: boolean } | null;
+  createdBy?: {
+    id: string;
+    name: string;
+    maskedName?: string | null;
+    avatarUrl?: string | null;
+    verified?: boolean;
+    kind?: "REGULAR" | "BRAND" | string | null;
+  } | null;
   comments: {
     id: string;
     text: string;
@@ -82,7 +89,14 @@ type ItemVM = {
     score?: number | null;              // toplam oy (up - down)
     myVote?: 1 | -1 | 0 | null;         // kullanıcının mevcut oyu
     edited?: boolean;
-    user?: { id?: string; name?: string | null; avatarUrl?: string | null; verified?: boolean };
+    user?: {
+      id?: string;
+      name?: string | null;
+      maskedName?: string | null;
+      avatarUrl?: string | null;
+      verified?: boolean;
+      kind?: "REGULAR" | "BRAND" | string | null;
+    };
   }[];
   tags: string[];
   reportCount?: number;
