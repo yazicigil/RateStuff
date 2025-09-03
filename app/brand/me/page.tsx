@@ -146,8 +146,7 @@ export default async function BrandProfilePage() {
               </div>
               <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{user.email}</p>
               {/* Bio inline view/edit: boşsa "Açıklama ekle", doluysa metin + küçük kalem ikonu */}
-              {/* @ts-expect-error Server Component uses client component */}
-              <BrandBioInline brandId={brand?.id} initialBio={brand?.bio ?? ""} />
+              <BrandBioInline brandId={brand?.id as string} initialBio={brand?.bio ?? ""} isOwner />
               {brand?.active === false && (
                 <p className="mt-1 text-xs text-amber-500">(pasif)</p>
               )}
