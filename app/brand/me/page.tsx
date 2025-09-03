@@ -107,7 +107,7 @@ export default async function BrandProfilePage() {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
-        <div className="relative mb-10 sm:mb-12 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
+        <div className="relative mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
           {brand?.coverImageUrl ? (
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
