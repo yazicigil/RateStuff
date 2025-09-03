@@ -65,7 +65,7 @@ export default function ItemsTab({
   items: MyItem[];
   trending: string[];
   loading: boolean;
-  notify: (msg: string) => void;
+  notify?: (msg: string) => void;
   onReload?: () => void | Promise<void>;
   bannedWords?: string[];
   myId?: string | null;    // <-- eklendi
@@ -81,6 +81,16 @@ export default function ItemsTab({
 
   // Optimistic removal for delete
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  const notifyFn = React.useCallback((msg: string) => {
+    try {
+      if (typeof notify === 'function') return notify(msg);
+      (window as any)?.toast?.(msg);
+      console.log(msg);
+    } catch {
+      // no-op
+    }
+  }, [notify]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -103,12 +113,12 @@ export default function ItemsTab({
         throw new Error(txt || 'Silinemedi');
       }
 
-      notify('Gönderi silindi');
+      notifyFn('Gönderi silindi');
       await onReload?.();
     } catch (e: any) {
-      notify(e?.message || 'Hata oluştu');
+      notifyFn(e?.message || 'Hata oluştu');
     }
-  }, [notify, onReload]);
+  }, [notifyFn, onReload]);
 
   // Derive tag list from items
   const itemsTags = useMemo(() => {
@@ -220,7 +230,7 @@ export default function ItemsTab({
                         try {
                           navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
                           setCopiedShareId(id);
-                          notify('Bağlantı kopyalandı');
+                          notifyFn('Bağlantı kopyalandı');
                           setTimeout(() => setCopiedShareId(null), 1500);
                         } catch {}
                       }}
@@ -230,7 +240,7 @@ export default function ItemsTab({
                             navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
                           } else {
                             navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
-                            notify('Bağlantı kopyalandı');
+                            notifyFn('Bağlantı kopyalandı');
                           }
                         } catch {}
                       }}
@@ -287,7 +297,7 @@ export default function ItemsTab({
                           try {
                             navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
                             setCopiedShareId(id);
-                            notify('Bağlantı kopyalandı');
+                            notifyFn('Bağlantı kopyalandı');
                             setTimeout(() => setCopiedShareId(null), 1500);
                           } catch {}
                         }}
@@ -297,7 +307,7 @@ export default function ItemsTab({
                               navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
                             } else {
                               navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
-                              notify('Bağlantı kopyalandı');
+                              notifyFn('Bağlantı kopyalandı');
                             }
                           } catch {}
                         }}
@@ -351,7 +361,7 @@ export default function ItemsTab({
                           try {
                             navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
                             setCopiedShareId(id);
-                            notify('Bağlantı kopyalandı');
+                            notifyFn('Bağlantı kopyalandı');
                             setTimeout(() => setCopiedShareId(null), 1500);
                           } catch {}
                         }}
@@ -361,7 +371,7 @@ export default function ItemsTab({
                               navigator.share({ title: name, url: `${window.location.origin}/?item=${id}` });
                             } else {
                               navigator.clipboard?.writeText(`${window.location.origin}/?item=${id}`);
-                              notify('Bağlantı kopyalandı');
+                              notifyFn('Bağlantı kopyalandı');
                             }
                           } catch {}
                         }}

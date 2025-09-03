@@ -48,8 +48,8 @@ export default function BrandCoverEditor({
         type="button"
         onClick={() => setOpen(true)}
         className="absolute top-3 right-3 z-10 rounded-full bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700 p-2 hover:bg-white dark:hover:bg-neutral-800 shadow"
-        aria-label="Kapak / Biyo düzenle"
-        title="Düzenle"
+        aria-label="Kapak görselini düzenle"
+        title="Kapak görselini düzenle"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-700 dark:text-neutral-200">
           <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
@@ -61,7 +61,7 @@ export default function BrandCoverEditor({
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">Kapak görseli &amp; Biyografi</h3>
+              <h3 className="text-sm font-medium">Kapak görseli</h3>
               <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Kapat">
                 <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.41 4.3 19.71 2.89 18.3 9.17 12 2.89 5.71 4.3 4.29l6.29 6.3 6.29-6.3z"/></svg>
               </button>

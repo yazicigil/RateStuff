@@ -1,95 +1,209 @@
-"use client";
-import { useState } from "react";
+// app/brand/me/page.tsx
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import Image from "next/image";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import clsx from "clsx";
+import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
+import dynamic from "next/dynamic";
 
-type Props = {
-  brandId?: string | null;
-  initialBio?: string;
-};
+const ItemsTab = dynamic(() => import('@/components/me/ItemsTab'), { ssr: false });
 
-export default function BrandBioInline({ brandId, initialBio = "" }: Props) {
-  const [editing, setEditing] = useState(false);
-  const [bio, setBio] = useState(initialBio);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 
-  async function save() {
-    if (!brandId) return;
-    setSaving(true); setErr(null);
-    try {
-      const res = await fetch("/api/brand/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brandId, bio }),
-      });
-      if (!res.ok) throw new Error("save-failed");
-      setEditing(false);
-      if (typeof window !== "undefined") window.location.reload();
-    } catch (e) {
-      setErr("Kaydedilemedi. Tekrar deneyin.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (!editing) {
-    if (!bio) {
-      return (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="mt-3 text-sm text-neutral-600 dark:text-neutral-300 hover:underline inline-flex items-center gap-1"
-        >
-          Açıklama ekle
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-600 dark:text-neutral-300">
-            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
-          </svg>
-        </button>
-      );
-    }
-    return (
-      <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
-        {bio}{" "}
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="ml-2 inline-flex items-center p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
-          aria-label="Açıklamayı düzenle"
-          title="Düzenle"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-600 dark:text-neutral-300">
-            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
-          </svg>
-        </button>
-      </p>
-    );
-  }
-
-  // Editing state (centered small modal)
+// verified badge – inline svg
+function VerifiedBadge() {
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-      <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium">Açıklamayı düzenle</h3>
-          <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Kapat">
-            <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.41 4.3 19.71 2.89 18.3 9.17 12 2.89 5.71 4.3 4.29l6.29 6.3 6.29-6.3z"/></svg>
-          </button>
+    <svg
+      width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"
+      className="inline-block ml-1 w-4 h-4 align-middle"
+    >
+      <circle cx="12" cy="12" r="9" className="fill-[#3B82F6] dark:fill-[#3B82F6]" />
+      <path d="M8.5 12.5l2 2 4-4"
+        fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export default async function BrandProfilePage() {
+  const session = await auth();
+  if (!session?.user?.email) notFound();
+
+  // DB'den tam kullanıcıyı al ve kind kontrolünü burada yap
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      avatarUrl: true,
+      createdAt: true,
+      kind: true,
+    },
+  });
+  if (!user) notFound();
+  if (user.kind !== "BRAND") {
+    // regular kullanıcı yanlışlıkla geldiyse 404 ver
+    notFound();
+  }
+
+  // Kullanıcının brand hesabı ve basit metrikler
+  const brand = await prisma.brandAccount.findUnique({
+    where: { email: user.email! },
+    select: {
+      id: true,
+      email: true,
+      displayName: true,
+      active: true,
+      coverImageUrl: true,
+      bio: true,
+    },
+  });
+
+  // İtem örneği: brand kullanıcının paylaştığı son 10 item
+  const items = await prisma.item.findMany({
+    where: { createdById: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+    },
+  });
+
+  const itemsCount = await prisma.item.count({ where: { createdById: user.id } });
+
+  // Ortalama rating (1-5) — Comment tablosundan, bu kullanıcıya ait item'ların yorumlarına göre
+  const ratingAgg = await prisma.comment.aggregate({
+    _avg: { rating: true },
+    where: {
+      item: { createdById: user.id },
+    },
+  });
+  const avgRating = ratingAgg._avg.rating;
+
+  // Per-item average ratings from comments
+  const itemAverages = await prisma.comment.groupBy({
+    by: ['itemId'],
+    _avg: { rating: true },
+    where: { item: { createdById: user.id } },
+  });
+  const avgMap = new Map(itemAverages.map((g) => [g.itemId, g._avg.rating ?? null]));
+
+  const itemsForClient = items.map((it) => ({
+    id: it.id,
+    name: it.name,
+    description: '',
+    imageUrl: null as string | null,
+    avg: avgMap.get(it.id) ?? null,
+    avgRating: avgMap.get(it.id) ?? null,
+    tags: [] as string[],
+    createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
+  }));
+
+  return (
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+      {/* Cover */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
+        <div className="relative mb-10 sm:mb-12 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
+          {brand?.coverImageUrl ? (
+            <>
+              <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/0 via-black/0 to-black/10 dark:from-black/0 dark:to-black/20" />
+            </>
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-indigo-200 via-pink-200 to-amber-200 dark:from-indigo-900/40 dark:via-fuchsia-900/40 dark:to-amber-900/40" />
+          )}
+          <BrandCoverEditor
+            brandId={brand?.id}
+            initialCoverUrl={brand?.coverImageUrl || ""}
+            recommendText="Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)"
+          />
         </div>
-        <textarea
-          className="w-full min-h-[140px] resize-y rounded-md border bg-white dark:bg-neutral-900 text-sm p-2 border-neutral-300 dark:border-neutral-700"
-          value={bio}
-          onChange={(e) => setBio(e.target.value)}
-          placeholder="Markanız hakkında kısa bir açıklama..."
-        />
-        {err && <div className="text-xs text-red-600 dark:text-red-400 mt-2">{err}</div>}
-        <div className="flex justify-end gap-2 pt-3">
-          <button onClick={() => setEditing(false)} className="px-3 py-1.5 rounded-md border border-neutral-300 dark:border-neutral-700 text-sm">İptal</button>
-          <button
-            onClick={save}
-            disabled={saving}
-            className="px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 text-sm disabled:opacity-60"
-          >
-            {saving ? "Kaydediliyor..." : "Kaydet"}
-          </button>
+        {/* Circular avatar overlapping cover */}
+        <div className="absolute -bottom-16 left-8 w-32 h-32 rounded-full ring-4 ring-white dark:ring-neutral-900 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
+          {user.avatarUrl ? (
+            <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover rounded-full" />
+          ) : (
+            <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
+              {(user.name ?? user.email ?? "B")[0]}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+        {/* Hero */}
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 sm:p-8 pt-20 md:pt-24 pl-40 md:pl-48">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+                  {brand?.displayName ?? user.name ?? user.email}
+                </h1>
+                <VerifiedBadge />
+              </div>
+              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{user.email}</p>
+              {/* Bio inline view/edit: boşsa "Açıklama ekle", doluysa metin + küçük kalem ikonu */}
+              {/* @ts-expect-error Server Component uses client component */}
+              <BrandBioInline brandId={brand?.id} initialBio={brand?.bio ?? ""} />
+              {brand?.active === false && (
+                <p className="mt-1 text-xs text-amber-500">(pasif)</p>
+              )}
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-neutral-900">
+                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
+                <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
+              </div>
+              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-neutral-900">
+                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
+                <div className="mt-1 text-2xl font-semibold flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="inline-block w-5 h-5 text-yellow-500 mr-1"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                  {avgRating ? avgRating.toFixed(2) : "—"}
+                  <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Single tab header */}
+          <div className="mt-6 sm:mt-8 border-t border-neutral-200 dark:border-neutral-800 pt-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                className={clsx(
+                  "px-4 py-1.5 rounded-full text-sm font-medium",
+                  "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 shadow-sm"
+                )}
+              >
+                Ürünlerim
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ItemsTab client section */}
+        <div className="mt-6 sm:mt-8">
+          {/* ItemsTab client section */}
+          {/* notify/onReload left undefined on purpose (client wrapper internal fallback) */}
+          <ItemsTab
+            items={itemsForClient as any}
+            trending={[]}
+            loading={false}
+            myId={user.id}
+            amAdmin={Boolean((session as any)?.user?.isAdmin)}
+          />
         </div>
       </div>
     </div>
