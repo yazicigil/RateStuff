@@ -57,27 +57,50 @@ export default function NotificationsDropdown() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
-  // detect dark mode (tailwind .dark class or system)
+  // detect dark mode (prefer explicit app theme over system)
   const [isDark, setIsDark] = useState(false);
   useEffect(() => {
-    const check = () => {
+    function computeIsDark(): boolean {
       try {
-        const hasClass = document.documentElement.classList.contains("dark");
-        const prefers = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
-        setIsDark(hasClass || prefers);
+        const root = document.documentElement;
+        const hasDark = root.classList.contains("dark");
+        const hasLight = root.classList.contains("light");
+        const dataTheme = root.getAttribute("data-theme");
+        // If app explicitly sets theme via class or data-theme, trust that first
+        if (hasDark) return true;
+        if (hasLight) return false;
+        if (dataTheme === "dark") return true;
+        if (dataTheme === "light") return false;
+        // Else fall back to stored preference if your app uses it
+        const stored = (() => {
+          try { return localStorage.getItem("theme"); } catch { return null; }
+        })();
+        if (stored === "dark") return true;
+        if (stored === "light") return false;
+        // Finally, use system preference
+        return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
       } catch {
-        setIsDark(false);
+        return false;
       }
-    };
+    }
+    const check = () => setIsDark(computeIsDark());
     check();
     const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
-    const onChange = () => check();
-    mq?.addEventListener?.("change", onChange);
+    const onMQ = () => check();
+    mq?.addEventListener?.("change", onMQ);
     const obs = new MutationObserver(check);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "theme") check();
+    };
+    window.addEventListener("storage", onStorage);
+    // Optional: listen for a custom event if your app dispatches one
+    window.addEventListener("ratestuff:themechange", check as any);
     return () => {
-      mq?.removeEventListener?.("change", onChange);
+      mq?.removeEventListener?.("change", onMQ);
       obs.disconnect();
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("ratestuff:themechange", check as any);
     };
   }, []);
 
