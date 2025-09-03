@@ -197,7 +197,7 @@ export default function BrandLoginPage() {
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-6 text-center">
             Markan RateStuff’ta gösterilsin mi?{" "}
             <Link href="#" className="text-[#011a3d] dark:text-white font-medium hover:underline">
-              Kaydol
+              Daha fazla bilgi al
             </Link>
           </p>
         </div>

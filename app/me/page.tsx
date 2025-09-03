@@ -2,6 +2,7 @@
 import React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import ScrollToTop from "@/components/common/ScrollToTop";
 import { useEffect, useMemo, useState } from "react";
 import { useCallback, useRef } from "react";
@@ -127,6 +128,8 @@ export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState<string | null>(null);
 
+  const router = useRouter();
+
   const [me, setMe]           = useState<{ id:string; name?:string|null; avatarUrl?:string|null; email?: string|null; isAdmin?: boolean; kind?: "REGULAR" | "BRAND" | string | null }|null>(null);
   const [items, setItems]     = useState<MyItem[]>([]);
   const [saved, setSaved]     = useState<MyItem[]>([]);
@@ -247,6 +250,14 @@ export default function MePage() {
   useEffect(() => {
     load();
   }, []);
+
+  // Redirect to /me/brand if user is BRAND
+  useEffect(() => {
+    if (me?.kind === "BRAND") {
+      router.replace("/me/brand");
+      return;
+    }
+  }, [me, router]);
 
 
   // Eklediklerim (items) içinde mevcut etiketler
