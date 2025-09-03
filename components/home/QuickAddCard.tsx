@@ -88,7 +88,11 @@ export default function QuickAddCard({
   }
   function addTagsFromInput(src?: string) {
     const raw = typeof src === 'string' ? src : tagInput;
-    const parts = raw.split(',').map(normalizeTag).filter(Boolean);
+    const parts = raw
+      .replace(/\uFF0C/g, ',') // fullwidth comma → normal comma (Android/IME)
+      .split(/[\,\n]+/)
+      .map(normalizeTag)
+      .filter(Boolean);
     if (!parts.length) return;
     let banned = false;
     setTags((prev) => {
@@ -371,7 +375,16 @@ export default function QuickAddCard({
               ))}
               <input
                 value={tagInput}
-                onChange={(e) => { setTagInput(e.target.value); setShowSug(true); if (error) setError(null); }}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setTagInput(v);
+                  setShowSug(true);
+                  if (error) setError(null);
+                  // Android/IME: virgül (`,`, `\uFF0C`) veya yeni satır girildiğinde etiketleri ayıkla
+                  if (/[,\n\uFF0C]/.test(v) && tags.length < 3) {
+                    addTagsFromInput(v);
+                  }
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'ArrowLeft' && suggestions.length > 0) {
                     e.preventDefault();
