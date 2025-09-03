@@ -5,35 +5,7 @@ import ImageUploader from "@/components/common/ImageUploader";
 import React from "react";
 import EditBrandModal from "@/components/admin/EditBrandModal";
 import { redirect } from "next/navigation";
-
-// Client-side: toast + highlight newly created brand
-function CreatedFlash() {
-  "use client";
-  const React = require("react");
-  const { useEffect } = React;
-  const { toast } = require("react-hot-toast");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const created = params.get("created");
-    if (!created) return;
-    // Toast
-    toast.success("Eklendi");
-    // Highlight the corresponding row
-    const sel = `[data-email="${CSS.escape(created)}"]`;
-    const row = document.querySelector(sel) as HTMLElement | null;
-    if (row) {
-      row.classList.add("ring-2", "ring-emerald-400", "ring-offset-2");
-      setTimeout(() => {
-        row.classList.remove("ring-2", "ring-emerald-400", "ring-offset-2");
-      }, 2000);
-    }
-    // Clean the URL
-    window.history.replaceState(null, "", window.location.pathname);
-  }, []);
-
-  return null;
-}
+import CreatedFlash from "@/components/admin/CreatedFlash";
 
 async function toggleActive(id: string, active: boolean) {
   "use server";
