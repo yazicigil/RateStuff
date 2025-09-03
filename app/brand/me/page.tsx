@@ -123,7 +123,7 @@ export default async function BrandProfilePage() {
           />
         </div>
       </div>
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
         <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-6 sm:p-8 pt-20 md:pt-24 pl-40 md:pl-48 relative">
           {/* Avatar inside card, overlapping like reference layout */}
