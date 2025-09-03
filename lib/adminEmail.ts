@@ -2,7 +2,7 @@
 // Admin e-postaları için somut gönderici: önce RESEND, sonra SMTP (Nodemailer)
 
 // Parse MAIL_FROM reliably (supports "Name <addr>" and plain address)
-function parseFrom(raw?: string) {
+function parseFrom(raw?: string): { name?: string; address: string } {
   const s = (raw || '').trim();
   // Match optional name and <address>
   const m = s.match(/^"?([^"<]*)"?\s*<\s*([^>]+)\s*>$/);
@@ -13,7 +13,7 @@ function parseFrom(raw?: string) {
   }
   // Fallback: plain address (strip quotes/brackets)
   const address = s.replace(/^['"<\s]+|['">\s]+$/g, '');
-  return { name: undefined as string | undefined, address };
+  return { address };
 }
 
 const RAW_FROM = process.env.MAIL_FROM || 'RateStuff <admin@ratestuff.net>';
@@ -68,13 +68,13 @@ return data;
       await transporter.verify();
 
       const info = await transporter.sendMail({
-  from: { name: FROM_PARSED.name, address: FROM_PARSED.address },
-  to,
-  subject,
-  html,
-  // Ensure clean SMTP envelope (MAIL FROM / RCPT TO)
-  envelope: { from: FROM_PARSED.address, to },
-});
+        from: FROM_DISPLAY, // use string form "Name <addr>"
+        to,
+        subject,
+        html,
+        // Ensure clean SMTP envelope (MAIL FROM / RCPT TO)
+        envelope: { from: FROM_PARSED.address, to },
+      });
       if (process.env.MAIL_DEBUG === '1') {
         console.log('[adminEmail][smtp] ok', { host: process.env.SMTP_HOST, port, from: FROM_PARSED.address, to });
       }
