@@ -98,10 +98,13 @@ export default function BrandLoginPage() {
         {/* Logo aligned with title (left aligned in the form column) */}
         <div className="w-full max-w-sm text-neutral-900 dark:text-neutral-100">
           <div className="mb-6 self-start">
-            <object
-              type="image/svg+xml"
-              data="/forbrandslogo.svg"
-              className="w-[320px] h-[64px] -ml-2 text-[#011a3d] fill-[#011a3d] dark:text-white dark:fill-white"
+            <Image
+              src="/forbrandslogo.svg"
+              alt="RateStuff for Brands"
+              width={360}
+              height={72}
+              priority
+              className="-ml-3 md:-ml-2"
             />
           </div>
 

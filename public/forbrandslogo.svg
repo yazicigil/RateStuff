@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="130" viewBox="0 0 768 97.5" preserveAspectRatio="xMidYMid meet" version="1.0">
   <style>
+    svg { background: transparent; }
     :root { color: #011a3d; }
     @media (prefers-color-scheme: dark) {
       :root { color: #ffffff; }
