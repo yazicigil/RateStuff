@@ -44,28 +44,28 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
 
   if (!isOwner) {
     return (
-      <p className="text-sm text-neutral-700">{bio || 'Açıklama ekle'}</p>
+      <p className="text-sm text-neutral-800 dark:text-neutral-200">{bio || 'Açıklama ekle'}</p>
     );
   }
 
   return (
-    <div className="text-sm text-neutral-700">
+    <div className="text-sm text-neutral-800 dark:text-neutral-200">
       {isEditing ? (
         <div className="flex flex-col space-y-2">
           <textarea
-            className="border border-neutral-300 rounded p-2 resize-none"
+            className="border border-neutral-300 dark:border-neutral-700 rounded p-2 resize-none bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500"
             rows={3}
             value={draftBio}
             onChange={(e) => setDraftBio(e.target.value)}
             disabled={isSaving}
             maxLength={240}
           />
-          <div className="text-xs text-neutral-500 text-right">
+          <div className="text-xs text-neutral-500 dark:text-neutral-400 text-right">
             {draftBio.length} / 240
           </div>
           <div className="flex space-x-2">
             <button
-              className="bg-green-600 text-white px-3 py-1 rounded disabled:opacity-50"
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSave}
               disabled={isSaving}
               type="button"
@@ -73,7 +73,7 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
               Kaydet
             </button>
             <button
-              className="bg-gray-300 text-gray-800 px-3 py-1 rounded"
+              className="bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-300 dark:hover:bg-neutral-700 px-3 py-1 rounded"
               onClick={handleCancel}
               type="button"
             >
@@ -83,7 +83,7 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
         </div>
       ) : (
         <div
-          className="flex items-center space-x-1 cursor-pointer hover:text-neutral-900"
+          className="flex items-center space-x-1 cursor-pointer text-neutral-800 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500/60 rounded"
           onClick={() => setIsEditing(true)}
           role="button"
           tabIndex={0}
@@ -95,12 +95,16 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
           }}
         >
           <p>{bio || 'Açıklama ekle'}</p>
-          <img
-            src="/assets/icons/pencil.svg"
-            alt="Edit bio"
-            className="w-4 h-4"
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            className="w-4 h-4 text-neutral-600 dark:text-neutral-300"
             aria-hidden="true"
-          />
+          >
+            <path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25z" fill="currentColor" />
+            <path d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor" />
+          </svg>
         </div>
       )}
     </div>

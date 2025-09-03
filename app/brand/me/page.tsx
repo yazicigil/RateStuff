@@ -1,4 +1,3 @@
-// app/brand/me/page.tsx
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Image from "next/image";
@@ -8,9 +7,13 @@ import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
 
-const ItemsTab = dynamic(() => import('@/components/me/ItemsTab'), { ssr: false });
-
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
+
+const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr: false });
+
+const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
+
+const ItemCard = dynamic(() => import('@/components/home/ItemCard'), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -104,7 +107,24 @@ export default async function BrandProfilePage() {
   }));
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen bg-neutral-50 dark:bg-[#111827] text-neutral-900 dark:text-neutral-100">
+      {/* Inline Header */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-4 pb-3">
+        <div className="flex items-center justify-between">
+          <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
+            {/* Public SVG logo rendered as object; color-adapt via className */}
+            <object
+              type="image/svg+xml"
+              data="/forbrandslogo.svg"
+              className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:text-white"
+              aria-label="RateStuff for Brands"
+            />
+          </Link>
+          <div className="flex items-center gap-2">
+            <NotificationsDropdown />
+          </div>
+        </div>
+      </div>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
         <div className="relative mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
@@ -125,18 +145,14 @@ export default async function BrandProfilePage() {
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111827] shadow-sm p-6 sm:p-8 pt-12 md:pt-16 pl-40 md:pl-48 relative">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111827] shadow-sm p-6 sm:p-8 pt-6 md:pt-8 pl-40 md:pl-48 relative">
           {/* Avatar inside card, overlapping like reference layout */}
-          <div className="absolute -top-16 left-6 w-32 h-32 rounded-full ring-4 ring-purple-500 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden">
-            {user.avatarUrl ? (
-              <Image src={user.avatarUrl} alt={user.name ?? "Brand"} fill className="object-cover rounded-full" />
-            ) : (
-              <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
-                {(user.name ?? user.email ?? "B")[0]}
-              </div>
-            )}
-          </div>
-          <div className="mt-2 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
+          <EditAvatar
+            className="absolute -top-16 left-6 w-32 h-32"
+            initialUrl={user.avatarUrl ?? null}
+            name={user.name ?? user.email ?? "Brand"}
+          />
+          <div className="mt-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
@@ -154,11 +170,11 @@ export default async function BrandProfilePage() {
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-4 md:gap-5 md:w-auto w-full md:justify-end">
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-neutral-900">
+              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-[#111827]">
                 <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
                 <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
               </div>
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-neutral-900">
+              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-[#111827]">
                 <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
                 <div className="mt-1 text-2xl font-semibold flex items-center">
                   <svg
@@ -180,17 +196,47 @@ export default async function BrandProfilePage() {
         </div>
 
         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
-        {/* ItemsTab client section */}
-        <div className="mt-4 sm:mt-5">
-          {/* ItemsTab client section */}
-          {/* notify/onReload left undefined on purpose (client wrapper internal fallback) */}
-          <ItemsTab
-            items={itemsForClient as any}
-            trending={[]}
-            loading={false}
-            myId={user.id}
-            amAdmin={Boolean((session as any)?.user?.isAdmin)}
-          />
+        <div className="mt-4 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {itemsForClient.map((it) => {
+            const cardProps = {
+              item: it,
+              saved: false,
+              amAdmin: Boolean((session as any)?.user?.isAdmin),
+              myId: user.id,
+
+              // popover control (no-op in this view)
+              openShareId: null as string | null,
+              setOpenShareId: (_id: string | null) => {},
+              openMenuId: null as string | null,
+              setOpenMenuId: (_id: string | null) => {},
+              copiedShareId: null as string | null,
+
+              // actions (no-op)
+              onOpenSpotlight: (_id: string) => {},
+              onToggleSave: (_id: string) => {},
+              onReport: (_id: string) => {},
+              onDelete: (_id: string) => {},
+              onCopyShare: (_id: string) => {},
+              onNativeShare: (_id: string, _name: string) => {},
+              onShowInList: (_id: string) => {},
+              onVoteComment: (_cid: string, _v: 1 | 0 | -1) => {},
+              onItemChanged: () => {},
+
+              // tag filter helpers (no-op)
+              selectedTags: new Set<string>(),
+              onToggleTag: (_t: string) => {},
+              onResetTags: () => {},
+
+              // hide comment UI
+              showComments: false,
+              showCommentBox: false,
+            } as const;
+            return (
+              <div key={it.id} className="min-w-0">
+                <ItemCard {...cardProps} />
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
