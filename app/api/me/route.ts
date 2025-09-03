@@ -7,7 +7,17 @@ import { deleteBlobIfVercel } from "@/lib/blob"; // ← eklendi
 export async function GET(req: Request) {
   try {
     const me = await getSessionUser();
-    const meEmail = (me as any)?.email ?? null;
+    // Ensure we have email & kind on `me` (older getSessionUser versions might omit)
+    let meEmail = (me as any)?.email ?? null;
+    let meKind  = (me as any)?.kind ?? null;
+    if (!meEmail || meKind == null) {
+      const fresh = await prisma.user.findUnique({
+        where: { id: me!.id },
+        select: { email: true, kind: true },
+      });
+      meEmail = meEmail ?? fresh?.email ?? null;
+      meKind  = meKind ?? fresh?.kind ?? null;
+    }
     const meIsAdmin = Boolean((me as any)?.isAdmin);
 
     // Oturum yoksa NextAuth sign-in ekranına yönlendir (callback olarak geldiğin sayfa)
@@ -215,7 +225,7 @@ export async function GET(req: Request) {
         avatarUrl: me.avatarUrl ?? null,
         email: meEmail,
         isAdmin: meIsAdmin,
-        kind: (me as any)?.kind ?? null,
+        kind: meKind,
       },
       ...shaped,
     });

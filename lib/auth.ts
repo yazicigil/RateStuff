@@ -170,6 +170,6 @@ export async function getSessionUser() {
   if (!email) return null;
   return prisma.user.findUnique({
     where: { email },
-    select: { id: true, name: true, avatarUrl: true, isAdmin: true },
+    select: { id: true, email: true, name: true, avatarUrl: true, isAdmin: true, kind: true },
   });
 }

@@ -603,7 +603,7 @@ const body: any = {
                 </svg>
               )}
             </div>
-            <div className="text-xs opacity-70">Yalnızca burada gerçek adın gösterilir</div>
+            <div className="text-xs opacity-70">Bu sayfayı yalnızca sen görebilirsin</div>
             <div className="absolute top-4 right-4">
               <button
                 type="button"
