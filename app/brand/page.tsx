@@ -78,14 +78,13 @@ export default function BrandLoginPage() {
       <div className="flex w-full md:w-1/2 flex-col items-center justify-center p-6 md:p-10">
         {/* Logo aligned with title (left aligned in the form column) */}
         <div className="w-full max-w-sm">
-          <Image
-            src="/forbrandslogo.svg"
-            alt="RateStuff for Brands"
-            width={300}
-            height={60}
-            className="mb-6 self-start"
-            priority
-          />
+          <div className="mb-6 self-start">
+            <object
+              type="image/svg+xml"
+              data="/forbrandslogo.svg"
+              className="w-[320px] h-[64px] -ml-2 text-[#011a3d] fill-[#011a3d]"
+            />
+          </div>
 
           <h1 className="text-2xl font-semibold mb-6 font-[poppins] text-[#011a3d]">
             Marka hesabınla giriş yap
