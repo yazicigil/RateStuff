@@ -6,15 +6,14 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
-import BrandItemsGrid from "@/components/brand/BrandItemsGrid";
+
+const ItemsTab = dynamic(() => import('@/components/me/ItemsTab'), { ssr: false });
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 
 const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr: false });
 
 const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
-
-const ItemCard = dynamic(() => import('@/components/home/ItemCard'), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -73,6 +72,8 @@ export default async function BrandProfilePage() {
     select: {
       id: true,
       name: true,
+      description: true,
+      imageUrl: true,
       createdAt: true,
     },
   });
@@ -96,13 +97,25 @@ export default async function BrandProfilePage() {
   });
   const avgMap = new Map(itemAverages.map((g) => [g.itemId, g._avg.rating ?? null]));
 
+  // Total comments per item
+  const commentsCountAgg = await prisma.comment.groupBy({
+    by: ['itemId'],
+    _count: { _all: true },
+    where: { item: { createdById: user.id } },
+  });
+  const commentsCountMap = new Map(
+    commentsCountAgg.map((g) => [g.itemId, (g as any)._count?._all ?? 0])
+  );
+
   const itemsForClient = items.map((it) => ({
     id: it.id,
     name: it.name,
-    description: '',
-    imageUrl: null as string | null,
+    description: it.description ?? '',
+    imageUrl: it.imageUrl ?? null,
     avg: avgMap.get(it.id) ?? null,
     avgRating: avgMap.get(it.id) ?? null,
+    commentsCount: commentsCountMap.get(it.id) ?? 0,
+    ratingsCount: commentsCountMap.get(it.id) ?? 0,
     tags: [] as string[],
     createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
   }));
@@ -197,15 +210,19 @@ export default async function BrandProfilePage() {
         </div>
 
         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
-        <div className="mt-4 sm:mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
-
-<BrandItemsGrid
-  items={itemsForClient}
-  myId={user.id}
-  amAdmin={Boolean((session as any)?.user?.isAdmin)}
-/>
-         
+        {/* ItemsTab client section */}
+        <div className="mt-4 sm:mt-5">
+          {/* ItemsTab client section */}
+          {/* notify/onReload left undefined on purpose (client wrapper internal fallback) */}
+          <ItemsTab
+            items={itemsForClient as any}
+            trending={[]}
+            loading={false}
+            myId={user.id}
+            amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
+            notify={() => {}}
+            onReload={() => {}}
+          />
         </div>
       </div>
     </div>
