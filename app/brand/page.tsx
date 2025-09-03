@@ -94,27 +94,27 @@ export default function BrandLoginPage() {
       </div>
 
       {/* Right pane */}
-      <div className="flex w-full md:w-1/2 flex-col items-center justify-center p-6 md:p-10">
+      <div className="flex w-full md:w-1/2 flex-col items-center justify-center p-6 md:p-10 bg-white dark:bg-neutral-950">
         {/* Logo aligned with title (left aligned in the form column) */}
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm text-neutral-900 dark:text-neutral-100">
           <div className="mb-6 self-start">
             <object
               type="image/svg+xml"
               data="/forbrandslogo.svg"
-              className="w-[320px] h-[64px] -ml-2 text-[#011a3d] fill-[#011a3d]"
+              className="w-[320px] h-[64px] -ml-2 text-[#011a3d] fill-[#011a3d] dark:text-white dark:fill-white"
             />
           </div>
 
-          <h1 className="text-2xl font-semibold mb-6 font-[poppins] text-[#011a3d]">
+          <h1 className="text-2xl font-semibold mb-6 font-[poppins] text-[#011a3d] dark:text-white">
             Marka hesabınla giriş yap
           </h1>
 
           {/* STEP 1: email + remember */}
           {step === 1 && (
             <>
-              <label className="text-sm text-[#011a3d]">E-posta</label>
+              <label className="text-sm text-[#011a3d] dark:text-white">E-posta</label>
               <input
-                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border bg-white dark:bg-neutral-900 dark:border-neutral-800"
+                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#011a3d] dark:bg-neutral-900 dark:text-neutral-100 dark:border-neutral-800 dark:placeholder-neutral-400 dark:focus:ring-[#011a3d]"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
@@ -122,7 +122,7 @@ export default function BrandLoginPage() {
               />
 
               {/* Remember toggle */}
-              <div className="flex items-center mt-2 mb-4 space-x-2">
+              <div className="flex items-center mt-2 mb-4 space-x-2 text-neutral-700 dark:text-neutral-200">
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -130,32 +130,32 @@ export default function BrandLoginPage() {
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#011a3d] rounded-full peer dark:bg-gray-700 peer-checked:bg-[#011a3d] transition-colors"></div>
-                  <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-full"></div>
+                  <div className="w-11 h-6 bg-gray-200 shadow-inner peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#011a3d] rounded-full peer dark:bg-neutral-700 peer-checked:bg-[#011a3d] transition-colors"></div>
+                  <div className="absolute left-0.5 top-0.5 bg-white dark:bg-neutral-100 w-5 h-5 rounded-full transition-transform peer-checked:translate-x-full"></div>
                 </label>
-                <span className="text-sm select-none text-[#011a3d]">Beni hatırla</span>
+                <span className="text-sm select-none text-[#011a3d] dark:text-white">Beni hatırla</span>
               </div>
 
               <button
-                className="w-full h-10 rounded-md bg-[#011a3d] text-white disabled:opacity-60"
+                className="w-full h-10 rounded-md bg-[#011a3d] text-white disabled:opacity-60 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#011a3d] focus:ring-offset-white dark:focus:ring-offset-neutral-950"
                 disabled={busy || !email}
                 onClick={requestCode}
               >
                 {busy ? "Gönderiliyor..." : "Giriş kodu gönder"}
               </button>
-              <p className="text-xs text-neutral-500 mt-2">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">
                 Bu e-posta marka listemizde kayıtlı olmalı.
               </p>
-              {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
+              {err && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{err}</p>}
             </>
           )}
 
           {/* STEP 2: code verify */}
           {step === 2 && (
             <>
-              <label className="text-sm text-[#011a3d]">6 haneli kod</label>
+              <label className="text-sm text-[#011a3d] dark:text-white">6 haneli kod</label>
               <input
-                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border tracking-widest text-center bg-white dark:bg-neutral-900 dark:border-neutral-800"
+                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border tracking-widest text-center bg-white text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#011a3d] dark:bg-neutral-900 dark:text-neutral-100 dark:border-neutral-800 dark:placeholder-neutral-400 dark:focus:ring-[#011a3d]"
                 inputMode="numeric"
                 maxLength={6}
                 value={code}
@@ -163,7 +163,7 @@ export default function BrandLoginPage() {
                 placeholder="------"
               />
               <button
-                className="w-full h-10 rounded-md bg-[#011a3d] text-white disabled:opacity-60"
+                className="w-full h-10 rounded-md bg-[#011a3d] text-white disabled:opacity-60 hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#011a3d] focus:ring-offset-white dark:focus:ring-offset-neutral-950"
                 disabled={busy || code.length !== 6}
                 onClick={verifyAndSignIn}
               >
@@ -172,13 +172,13 @@ export default function BrandLoginPage() {
 
               <div className="flex items-center justify-between mt-2">
                 <button
-                  className="h-10 px-3 rounded-md border text-[#011a3d] border-[#011a3d]"
+                  className="h-10 px-3 rounded-md border text-[#011a3d] border-[#011a3d] dark:text-white dark:border-white hover:bg-[#011a3d]/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#011a3d]"
                   onClick={() => setStep(1)}
                 >
                   E-postayı değiştir
                 </button>
                 <button
-                  className="h-10 px-3 rounded-md border text-[#011a3d] border-[#011a3d] disabled:opacity-60"
+                  className="h-10 px-3 rounded-md border text-[#011a3d] border-[#011a3d] dark:text-white dark:border-white hover:bg-[#011a3d]/5 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#011a3d]"
                   disabled={cooldown > 0}
                   onClick={requestCode}
                   title={cooldown > 0 ? `${cooldown}s` : "Kodu yeniden gönder"}
@@ -187,13 +187,13 @@ export default function BrandLoginPage() {
                 </button>
               </div>
 
-              {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
+              {err && <p className="text-sm text-red-600 dark:text-red-400 mt-2">{err}</p>}
             </>
           )}
 
-          <p className="text-xs text-neutral-500 mt-6 text-center">
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-6 text-center">
             Markan RateStuff’ta gösterilsin mi?{" "}
-            <Link href="#" className="text-[#011a3d] font-medium">
+            <Link href="#" className="text-[#011a3d] dark:text-white font-medium hover:underline">
               Kaydol
             </Link>
           </p>
