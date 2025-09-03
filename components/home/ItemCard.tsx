@@ -99,6 +99,8 @@ export default function ItemCard({
   const [imgDraft, setImgDraft] = useState<string>(i?.imageUrl ?? '');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Tag editor input (Android/IME friendly)
+  const [tagEditInput, setTagEditInput] = useState('');
 
   const addTag = useCallback((t: string) => {
     const v = t.trim().toLowerCase();
@@ -108,20 +110,68 @@ export default function ItemCard({
   const removeTag = useCallback((t: string) => {
     setTagsDraft(prev => prev.filter(x => x !== t));
   }, []);
+
+  // ---- helpers (align with QuickAddCard behavior)
+  function normalizeTag(s: string) {
+    return s.trim().replace(/^#+/, '').toLowerCase();
+  }
+  function addTagsFromInput(src?: string) {
+    const raw = typeof src === 'string' ? src : tagEditInput;
+    const parts = raw
+      .replace(/\uFF0C/g, ',') // fullwidth comma → normal comma (Android/IME)
+      .split(/[,\n]+/)
+      .map(normalizeTag)
+      .filter(Boolean);
+    if (!parts.length) return;
+    setTagsDraft((prev) => {
+      const set = new Set(prev);
+      for (const p of parts) {
+        if (set.size >= 10) break; // edit ekranında üst sınırı 10 tutuyoruz
+        set.add(p);
+      }
+      return Array.from(set).slice(0, 10);
+    });
+    setTagEditInput('');
+  }
+
   const handleTagKey = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    const input = e.currentTarget;
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      addTag(input.value);
-      input.value = '';
+      addTagsFromInput(tagEditInput);
+    } else if (e.key === 'Backspace' && tagEditInput.trim() === '' && tagsDraft.length > 0) {
+      // boşken backspace ile son etiketi kaldır (QuickAddCard uyumu)
+      e.preventDefault();
+      setTagsDraft((prev) => prev.slice(0, -1));
+    } else if (e.key === 'Escape') {
+      // öneri olmadığı için sadece inputu temizle
+      setTagEditInput('');
     }
-  }, [addTag]);
+  }, [tagEditInput, tagsDraft.length]);
 
 
   const saveEdit = useCallback(async () => {
     try {
       setSaving(true); setErr(null);
-      const body = { description: descDraft, tags: tagsDraft, imageUrl: imgDraft };
+
+      // --- Merge pending tag input into tagsDraft before save
+      let nextTags = tagsDraft;
+      if (tagEditInput.trim().length > 0) {
+        const parts = tagEditInput
+          .replace(/\uFF0C/g, ',')
+          .split(/[,\n]+/)
+          .map(normalizeTag)
+          .filter(Boolean);
+        if (parts.length) {
+          const set = new Set(nextTags);
+          for (const p of parts) {
+            if (set.size >= 10) break;
+            set.add(p);
+          }
+          nextTags = Array.from(set).slice(0, 10);
+        }
+      }
+
+      const body = { description: descDraft, tags: nextTags, imageUrl: imgDraft };
       const res = await fetch(`/api/items/${i.id}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -131,6 +181,9 @@ export default function ItemCard({
         const txt = await res.text().catch(() => '');
         throw new Error(txt || 'Kaydedilemedi');
       }
+      // state'i eşitle ve inputu temizle
+      setTagsDraft(nextTags);
+      setTagEditInput('');
       setEditing(false);
       onItemChanged && onItemChanged();
     } catch (e: any) {
@@ -138,7 +191,7 @@ export default function ItemCard({
     } finally {
       setSaving(false);
     }
-  }, [descDraft, tagsDraft, imgDraft, i?.id, onItemChanged]);
+  }, [descDraft, tagsDraft, tagEditInput, imgDraft, i?.id, onItemChanged]);
 
   const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
@@ -259,6 +312,15 @@ export default function ItemCard({
                   </span>
                 ))}
                 <input
+                  value={tagEditInput}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTagEditInput(v);
+                    // Android/IME: virgül (`,`, `\uFF0C`) veya yeni satır girildiğinde etiketleri ayıkla
+                    if (/[,\n\uFF0C]/.test(v) && tagsDraft.length < 10) {
+                      addTagsFromInput(v);
+                    }
+                  }}
                   onKeyDown={handleTagKey}
                   className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                   placeholder={tagsDraft.length ? '' : 'kahve, ekipman'}
@@ -278,6 +340,7 @@ export default function ItemCard({
                   setDescDraft(i?.description ?? '');
                   setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
                   setImgDraft(i?.imageUrl ?? '');
+                  setTagEditInput('');
                 }}
               >
                 İptal

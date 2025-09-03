@@ -185,13 +185,56 @@ export default function QuickAddCard({
   async function submit(e?: React.FormEvent) {
     e?.preventDefault?.();
     setError(null);
-    if (!valid) {
+
+    // --- Merge pending tag input into tags (handles single or last tag without trailing comma)
+    let bannedPending = false;
+    let nextTags = tags;
+    if (tagInput.trim().length > 0) {
+      const parts = tagInput
+        .replace(/\uFF0C/g, ',')
+        .split(/[,\n]+/)
+        .map(normalizeTag)
+        .filter(Boolean);
+      if (parts.length) {
+        const set = new Set(nextTags);
+        for (const p of parts) {
+          if (set.size >= 3) break;
+          if (containsBannedWord(p)) { bannedPending = true; continue; }
+          set.add(p);
+        }
+        nextTags = Array.from(set).slice(0, 3);
+      }
+    }
+
+    const blockedNow =
+      containsBannedWord(name) ||
+      containsBannedWord(comment) ||
+      nextTags.some((t) => containsBannedWord(t));
+
+    const validNow = name.trim().length > 0 && nextTags.length > 0 && rating > 0 && !blockedNow;
+    if (!validNow) {
       setError('Zorunlu alanları doldurmalısın.');
       return;
     }
+    if (bannedPending) {
+      setError('Etikette yasaklı kelime kullanılamaz.');
+      // devam edelim; yasaklı olanları atlayıp kalanları alıyoruz
+    }
+
     try {
       setSubmitting(true);
-      const ok = await onSubmit({ name: name.trim(), desc: desc.trim(), tags, rating, comment: comment.trim(), imageUrl });
+      // state'leri de senkronize et
+      setTags(nextTags);
+      setTagInput('');
+
+      const ok = await onSubmit({
+        name: name.trim(),
+        desc: desc.trim(),
+        tags: nextTags,
+        rating,
+        comment: comment.trim(),
+        imageUrl,
+      });
       if (ok) {
         formRef.current?.reset();
         setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput('');
