@@ -1,10 +1,11 @@
-// app/brand/profile/page.tsx
+// app/brand/me/page.tsx
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import clsx from "clsx";
+import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -50,6 +51,8 @@ export default async function BrandProfilePage() {
       email: true,
       displayName: true,
       active: true,
+      coverImageUrl: true,
+      bio: true,
     },
   });
 
@@ -78,6 +81,22 @@ export default async function BrandProfilePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+      {/* Cover */}
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="relative mb-6 sm:mb-8 h-44 sm:h-56 md:h-64 rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
+          {brand?.coverImageUrl ? (
+            <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-r from-neutral-200 via-neutral-100 to-neutral-200 dark:from-neutral-800 dark:via-neutral-900 dark:to-neutral-800" />
+          )}
+          <BrandCoverEditor
+            brandId={brand?.id}
+            initialCoverUrl={brand?.coverImageUrl || ""}
+            initialBio={brand?.bio || ""}
+            recommendText="Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)"
+          />
+        </div>
+      </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8 sm:py-12">
         {/* Hero */}
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/60 dark:bg-neutral-900/40 backdrop-blur p-6 sm:p-8">
@@ -100,6 +119,11 @@ export default async function BrandProfilePage() {
                   <VerifiedBadge />
                 </div>
                 <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
+                {brand?.bio && (
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-line">
+                    {brand.bio}
+                  </p>
+                )}
                 {brand?.active === false && (
                   <p className="mt-1 text-xs text-amber-500">(pasif)</p>
                 )}
@@ -114,7 +138,15 @@ export default async function BrandProfilePage() {
               </div>
               <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 bg-neutral-50 dark:bg-neutral-900">
                 <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
-                <div className="mt-1 text-2xl font-semibold">
+                <div className="mt-1 text-2xl font-semibold flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="inline-block w-5 h-5 text-yellow-500 mr-1"
+                  >
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
                   {avgRating ? avgRating.toFixed(2) : "—"}
                   <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
                 </div>

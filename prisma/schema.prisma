@@ -214,7 +214,13 @@ model BrandAccount {
 
   createdById  String?
   createdBy    User?    @relation("UserCreatedBrandAccounts", fields: [createdById], references: [id])
+
+  coverImageUrl String?   // profil üst görseli
+  bio           String?   @db.Text  // uzun açıklama için
+
+  @@index([email])
 }
+
 
 // One-time 6-digit codes (hashed); short TTL, limited attempts
 model BrandOtp {

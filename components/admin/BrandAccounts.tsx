@@ -141,7 +141,7 @@ async function createBrand(formData: FormData) {
       },
     });
   }
-  redirect(`/admin?created=${encodeURIComponent(email)}`);
+  redirect(`admin?tab=brands`);
 }
 
 export default async function BrandAccounts() {
