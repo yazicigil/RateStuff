@@ -13,6 +13,8 @@ import bellSolidDarkAnim from "@/assets/animations/bell-solid-dark.json";
 import refreshDarkAnim from "@/assets/animations/refresh-dark.json";
 import dotsDarkAnim from "@/assets/animations/dots-loader-dark.json";
 
+import { readTheme } from "@/lib/theme";
+
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
@@ -63,21 +65,13 @@ export default function NotificationsDropdown() {
     function computeIsDark(): boolean {
       try {
         const root = document.documentElement;
-        const hasDark = root.classList.contains("dark");
-        const hasLight = root.classList.contains("light");
-        const dataTheme = root.getAttribute("data-theme");
-        // If app explicitly sets theme via class or data-theme, trust that first
-        if (hasDark) return true;
-        if (hasLight) return false;
-        if (dataTheme === "dark") return true;
-        if (dataTheme === "light") return false;
-        // Else fall back to stored preference if your app uses it
-        const stored = (() => {
-          try { return localStorage.getItem("theme"); } catch { return null; }
-        })();
-        if (stored === "dark") return true;
-        if (stored === "light") return false;
-        // Finally, use system preference
+        // 1) If the app currently has the 'dark' class, trust it.
+        if (root.classList.contains("dark")) return true;
+        // 2) Otherwise, consult our app's stored preference.
+        const pref = readTheme?.() ?? "system"; // 'light' | 'dark' | 'system'
+        if (pref === "dark") return true;
+        if (pref === "light") return false;
+        // 3) If pref === 'system', fall back to system setting.
         return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? false;
       } catch {
         return false;
@@ -89,9 +83,9 @@ export default function NotificationsDropdown() {
     const onMQ = () => check();
     mq?.addEventListener?.("change", onMQ);
     const obs = new MutationObserver(check);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme"] });
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "theme") check();
+      if (e.key === "theme-pref") check();
     };
     window.addEventListener("storage", onStorage);
     // Optional: listen for a custom event if your app dispatches one
