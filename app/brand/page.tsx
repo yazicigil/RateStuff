@@ -11,6 +11,7 @@ export default function BrandLoginPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+  const [remember, setRemember] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -52,6 +53,7 @@ export default function BrandLoginPage() {
       await signIn("brand-otp", {
         email, nonce: data.nonce,
         redirect: true, callbackUrl: "/",
+        remember,
       });
     } catch {
       setErr("Giriş başarısız. Tekrar deneyin.");
@@ -60,105 +62,97 @@ export default function BrandLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Sol görsel */}
-      <div className="hidden md:flex w-1/2 relative">
-        <Image
-          src="/brand.jpg"
-          alt="Brand visual"
-          fill
-          className="object-cover"
-          priority
-        />
-      </div>
+    <div className="max-w-sm mx-auto py-10 flex flex-col">
+      <Image
+        src="/forbrandslogo.svg"
+        alt="Brand Logo"
+        width={300}
+        height={60}
+        className="mb-8 self-start text-[#011a3d]"
+      />
+      <h1 className="text-2xl font-semibold mb-6 font-[poppins] text-[#011a3d]">Marka hesabınla giriş yap</h1>
 
-      {/* Sağ taraf: logo + form */}
-      <div className="flex w-full md:w-1/2 flex-col items-center justify-center p-6 md:p-8">
-        <Image
-          src="/forbrandslogo.svg"
-          alt="RateStuff for Brands"
-          width={220}
-          height={44}
-          className="mb-8"
-          priority
-        />
+      {step === 1 && (
+        <>
+          <label className="text-sm">E-posta</label>
+          <input
+            className="w-full mt-1 mb-3 px-3 py-2 rounded border"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            placeholder="ornek@marka.com"
+          />
+          <button
+            className="w-full h-10 rounded bg-[#011a3d] text-white dark:bg-[#011a3d] dark:text-white disabled:opacity-60"
+            disabled={busy || !email}
+            onClick={requestCode}
+          >
+            {busy ? "Gönderiliyor..." : "Giriş kodu gönder"}
+          </button>
+          <p className="text-xs text-neutral-500 mt-2">
+            Bu e-posta marka listemizde kayıtlı olmalı.
+          </p>
+          {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
+        </>
+      )}
 
-        <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold mb-6">Marka hesabınla giriş yap</h1>
+      {step === 2 && (
+        <>
+          <label className="text-sm">6 haneli kod</label>
+          <input
+            className="w-full mt-1 mb-3 px-3 py-2 rounded border tracking-widest text-center"
+            inputMode="numeric" maxLength={6}
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+            placeholder="------"
+          />
+          <button
+            className="w-full h-10 rounded bg-[#011a3d] text-white dark:bg-[#011a3d] dark:text-white disabled:opacity-60"
+            disabled={busy || code.length !== 6}
+            onClick={verifyAndSignIn}
+          >
+            {busy ? "Doğrulanıyor..." : "Giriş yap"}
+          </button>
 
-          {step === 1 && (
-            <>
-              <label className="text-sm">Email</label>
+          <div className="flex items-center justify-between mt-2">
+            <button
+              className="h-10 px-3 rounded border text-[#011a3d] border-[#011a3d]"
+              onClick={() => setStep(1)}
+            >
+              E-postayı değiştir
+            </button>
+            <button
+              className="h-10 px-3 rounded border text-[#011a3d] border-[#011a3d] disabled:opacity-60"
+              disabled={cooldown > 0}
+              onClick={requestCode}
+              title={cooldown > 0 ? `${cooldown}s` : "Kodu yeniden gönder"}
+            >
+              {cooldown > 0 ? `Tekrar: ${cooldown}s` : "Kodu yeniden gönder"}
+            </button>
+          </div>
+
+          <div className="flex items-center mt-4 space-x-2">
+            <label className="relative inline-flex items-center cursor-pointer">
               <input
-                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border bg-white dark:bg-neutral-900 dark:border-neutral-800"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                placeholder="ornek@marka.com"
+                type="checkbox"
+                className="sr-only peer"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
               />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#011a3d] rounded-full peer dark:bg-gray-700 peer-checked:bg-[#011a3d] transition-colors"></div>
+              <div className="absolute left-0.5 top-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-full"></div>
+            </label>
+            <span className="text-sm select-none">Beni hatırla</span>
+          </div>
 
-              <div className="flex items-center gap-2 mb-3 text-xs text-neutral-500">
-                <input type="checkbox" disabled className="h-4 w-8 rounded-full appearance-none bg-neutral-200" />
-                Beni hatırla
-              </div>
+          {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
+        </>
+      )}
 
-              <button
-                className="w-full h-10 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 disabled:opacity-60"
-                disabled={busy || !email}
-                onClick={requestCode}
-              >
-                {busy ? "Gönderiliyor..." : "Giriş yap"}
-              </button>
-
-              <p className="text-xs text-neutral-500 mt-6 text-center">
-                Markan RateStuff’ta gösterilsin mi?{" "}
-                <Link href="#" className="text-emerald-600 font-medium">Kaydol</Link>
-              </p>
-
-              {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
-            </>
-          )}
-
-          {step === 2 && (
-            <>
-              <label className="text-sm">6 haneli kod</label>
-              <input
-                className="w-full mt-1 mb-3 px-3 py-2 rounded-md border tracking-widest text-center bg-white dark:bg-neutral-900 dark:border-neutral-800"
-                inputMode="numeric" maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                placeholder="------"
-              />
-              <button
-                className="w-full h-10 rounded-md bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 disabled:opacity-60"
-                disabled={busy || code.length !== 6}
-                onClick={verifyAndSignIn}
-              >
-                {busy ? "Doğrulanıyor..." : "Giriş yap"}
-              </button>
-
-              <div className="flex items-center justify-between mt-2">
-                <button
-                  className="h-10 px-3 rounded-md border dark:border-neutral-800"
-                  onClick={() => setStep(1)}
-                >
-                  E-postayı değiştir
-                </button>
-                <button
-                  className="h-10 px-3 rounded-md border disabled:opacity-60 dark:border-neutral-800"
-                  disabled={cooldown > 0}
-                  onClick={requestCode}
-                  title={cooldown > 0 ? `${cooldown}s` : "Kodu yeniden gönder"}
-                >
-                  {cooldown > 0 ? `Tekrar: ${cooldown}s` : "Kodu yeniden gönder"}
-                </button>
-              </div>
-
-              {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
-            </>
-          )}
-        </div>
-      </div>
+      <p className="text-xs text-neutral-500 mt-6 text-center">
+        Markan RateStuff’ta gösterilsin mi?{" "}
+        <Link href="#" className="text-[#011a3d] font-medium">Kaydol</Link>
+      </p>
     </div>
   );
 }
