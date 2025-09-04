@@ -131,7 +131,7 @@ export default async function BrandProfilePage() {
               src="/forbrandslogo.svg"
               alt="RateStuff for Brands"
               priority
-              className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:invert"
+              className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
             />
           </Link>
           <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default async function BrandProfilePage() {
           <div className="my-4 sm:my-5 border-t border-neutral-200 dark:border-neutral-800" />
 
           {/* Stats row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5 w-full">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 w-full">
             <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 sm:px-5 py-3 sm:py-4 md:py-5 bg-white dark:bg-[#0b1220]">
               <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
               <div className="mt-1 text-xl sm:text-2xl font-semibold">{itemsCount}</div>
