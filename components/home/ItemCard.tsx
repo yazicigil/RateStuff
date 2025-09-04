@@ -271,7 +271,7 @@ export default function ItemCard({
         )}
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-7 h-7 md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             aria-label="share"
             onClick={handleShareClick}
             style={{
@@ -300,7 +300,7 @@ export default function ItemCard({
         </div>
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-7 h-7 md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             onClick={handleMenuClick}
             aria-label="options"
             style={{
@@ -488,7 +488,7 @@ export default function ItemCard({
                 )}
               </div>
 
-              <div className="flex-1 min-w-0 pr-16 md:pr-24">
+              <div className="flex-1 min-w-0 pr-14 md:pr-24">
                 {i?.suspended && (
                   <div className="mb-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
@@ -514,7 +514,7 @@ export default function ItemCard({
                 {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
 
                 {(i.createdBy || creatorNameRaw) && (
-                  <div className="mt-2 flex items-center gap-2 text-xs opacity-80 min-w-0">
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs opacity-80 min-w-0">
                     {creatorAvatarRaw ? (
                       <img
                         src={creatorAvatarRaw}
@@ -527,7 +527,7 @@ export default function ItemCard({
                         {(creatorName || 'u').charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="flex-1 truncate">{creatorName}</span>
+                    <span className="flex-auto whitespace-normal break-words">{creatorName}</span>
                     {isVerified && (
                       <svg
                         width="14"
