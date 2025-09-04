@@ -19,6 +19,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [overPos, setOverPos] = useState<"before" | "after">("before");
+  const [initialOrder, setInitialOrder] = useState<SocialLink[] | null>(null);
 
   const sorted = useMemo(
     () => [...links].sort((a, b) => a.order - b.order || 0),
@@ -133,14 +134,12 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
   }
 
   async function persistReorder(next: SocialLink[]) {
-    const changed = next.filter((l, idx) => l.order !== idx);
-    if (!changed.length) return;
     await Promise.all(
-      changed.map((l, idx) =>
+      next.map((l, idx) =>
         fetch(`/api/socials/${l.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ order: next.findIndex(x => x.id === l.id) }),
+          body: JSON.stringify({ order: idx }),
         })
       )
     );
@@ -149,6 +148,8 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
 
   function onDragStart(id: string) {
     setDragId(id);
+    // snapshot the order before any reordering
+    setInitialOrder(sorted.map(x => ({ ...x })));
   }
   function onDragOver(e: React.DragEvent<HTMLLIElement>, over: string) {
     e.preventDefault();
@@ -176,6 +177,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
     const next = [...sorted].map((l, i) => ({ ...l, order: i }));
     setDragId(null);
     setOverId(null);
+    setInitialOrder(null);
     await persistReorder(next);
   }
   function onDragLeave(e: React.DragEvent<HTMLLIElement>) {
