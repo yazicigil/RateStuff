@@ -43,8 +43,8 @@ export interface ItemCardProps {
   showCommentBox?: boolean;        // default: true
 }
 
-function maskName(s?: string | null, isBrand?: boolean) {
-  if (isBrand) return s || 'Anonim';
+function maskName(s?: string | null, isBrand?: boolean, isVerified?: boolean) {
+  if (isBrand || isVerified) return s || 'Anonim';
   if (!s) return 'Anonim';
   const parts = String(s).trim().split(/\s+/).filter(Boolean);
   return parts.map(p => p[0]?.toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
@@ -60,6 +60,7 @@ export default function ItemCard({
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
   const isBrand = String((i?.createdBy as any)?.kind || "").toUpperCase() === "BRAND";
+  const isVerified = Boolean(i?.createdBy?.verified) || isBrand;
   const productUrl: string | null = (i as any)?.productUrl || null;
   const showProductCta = isBrand && typeof productUrl === 'string' && productUrl.length > 0;
   const ownerId = (
@@ -90,10 +91,10 @@ export default function ItemCard({
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
 
   const creatorName = useMemo(() => {
-    const masked = maskName(creatorNameRaw, isBrand);
+    const masked = maskName(creatorNameRaw, isBrand, isVerified);
     if (!masked && isOwner) return 'Ben';
     return masked;
-  }, [creatorNameRaw, isBrand, isOwner]);
+  }, [creatorNameRaw, isBrand, isVerified, isOwner]);
 
   const [editing, setEditing] = useState(false);
   const [descDraft, setDescDraft] = useState<string>(i?.description ?? '');
@@ -513,7 +514,7 @@ export default function ItemCard({
                       </div>
                     )}
                 <span>{creatorName}</span>
-                {isBrand && (
+                {isVerified && (
                   <svg
                     width="14"
                     height="14"

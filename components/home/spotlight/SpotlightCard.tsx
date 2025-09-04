@@ -259,7 +259,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 t.src = '/default-item.svg';
               }}
             />
-            {item.edited && (
+            {item.edited && !isBrand && (
               <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
             )}
           </div>
