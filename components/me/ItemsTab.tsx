@@ -82,6 +82,9 @@ export default function ItemsTab({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
 
+  // Quick add open/close (for brand profiles)
+  const [qaOpen, setQaOpen] = useState(false);
+
   // Optimistic removal for delete
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
@@ -215,16 +218,34 @@ export default function ItemsTab({
         ) : items.length === 0 ? (
           <div className="grid md:grid-cols-2 gap-4">
             {(isBrandProfile || brandTheme) ? (
-              <QuickAddCard
-                onSubmit={handleQuickAddSubmit}
-                trending={trending}
-                allTags={itemsTags}
-                variant="rich"
-                signedIn={!!myId}
-                signInHref="/signin"
-                prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                isBrandProfile
-              />
+              qaOpen ? (
+                <QuickAddCard
+                  open
+                  onClose={() => setQaOpen(false)}
+                  onSubmit={handleQuickAddSubmit}
+                  trending={trending}
+                  allTags={itemsTags}
+                  variant="rich"
+                  signedIn={!!myId}
+                  signInHref="/signin"
+                  prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                  isBrandProfile
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setQaOpen(true)}
+                  className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                  style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                  aria-label="Hızlı ekle"
+                  title="Hızlı ekle"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <span className="text-5xl leading-none">+</span>
+                    <span className="text-base font-medium">Ekle</span>
+                  </div>
+                </button>
+              )
             ) : (
               <Link
                 href="/#quick-add"
@@ -271,17 +292,35 @@ export default function ItemsTab({
               {itemsWithAdd.map((it: any, ix: number) => (
                 it?.__add ? (
                   (isBrandProfile || brandTheme) ? (
-                    <QuickAddCard
-                      key={`add-m-${ix}`}
-                      onSubmit={handleQuickAddSubmit}
-                      trending={trending}
-                      allTags={itemsTags}
-                      variant="compact"
-                      signedIn={!!myId}
-                      signInHref="/signin"
-                      prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                      isBrandProfile
-                    />
+                    qaOpen ? (
+                      <QuickAddCard
+                        key={`add-m-${ix}`}
+                        open
+                        onClose={() => setQaOpen(false)}
+                        onSubmit={handleQuickAddSubmit}
+                        trending={trending}
+                        allTags={itemsTags}
+                        variant="compact"
+                        signedIn={!!myId}
+                        signInHref="/signin"
+                        prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                        isBrandProfile
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setQaOpen(true)}
+                        className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                        style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                        aria-label="Hızlı ekle"
+                        title="Hızlı ekle"
+                      >
+                        <div className="flex flex-col items-center gap-2">
+                          <span className="text-4xl leading-none">+</span>
+                          <span className="text-sm font-medium">Ekle</span>
+                        </div>
+                      </button>
+                    )
                   ) : (
                     <Link
                       key={`add-m-${ix}`}
@@ -353,17 +392,35 @@ export default function ItemsTab({
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
                     (isBrandProfile || brandTheme) ? (
-                      <QuickAddCard
-                        key={`add-left-${ix}`}
-                        onSubmit={handleQuickAddSubmit}
-                        trending={trending}
-                        allTags={itemsTags}
-                        variant="compact"
-                        signedIn={!!myId}
-                        signInHref="/signin"
-                        prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                        isBrandProfile
-                      />
+                      qaOpen ? (
+                        <QuickAddCard
+                          key={`add-left-${ix}`}
+                          open
+                          onClose={() => setQaOpen(false)}
+                          onSubmit={handleQuickAddSubmit}
+                          trending={trending}
+                          allTags={itemsTags}
+                          variant="compact"
+                          signedIn={!!myId}
+                          signInHref="/signin"
+                          prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                          isBrandProfile
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setQaOpen(true)}
+                          className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                          style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                          aria-label="Hızlı ekle"
+                          title="Hızlı ekle"
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <span className="text-4xl leading-none">+</span>
+                            <span className="text-sm font-medium">Ekle</span>
+                          </div>
+                        </button>
+                      )
                     ) : (
                       <Link
                         key={`add-left-${ix}`}
@@ -432,17 +489,35 @@ export default function ItemsTab({
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
                     (isBrandProfile || brandTheme) ? (
-                      <QuickAddCard
-                        key={`add-right-${ix}`}
-                        onSubmit={handleQuickAddSubmit}
-                        trending={trending}
-                        allTags={itemsTags}
-                        variant="compact"
-                        signedIn={!!myId}
-                        signInHref="/signin"
-                        prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                        isBrandProfile
-                      />
+                      qaOpen ? (
+                        <QuickAddCard
+                          key={`add-right-${ix}`}
+                          open
+                          onClose={() => setQaOpen(false)}
+                          onSubmit={handleQuickAddSubmit}
+                          trending={trending}
+                          allTags={itemsTags}
+                          variant="compact"
+                          signedIn={!!myId}
+                          signInHref="/signin"
+                          prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                          isBrandProfile
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setQaOpen(true)}
+                          className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                          style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                          aria-label="Hızlı ekle"
+                          title="Hızlı ekle"
+                        >
+                          <div className="flex flex-col items-center gap-2">
+                            <span className="text-4xl leading-none">+</span>
+                            <span className="text-sm font-medium">Ekle</span>
+                          </div>
+                        </button>
+                      )
                     ) : (
                       <Link
                         key={`add-right-${ix}`}
