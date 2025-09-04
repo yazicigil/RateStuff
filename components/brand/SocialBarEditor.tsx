@@ -16,6 +16,9 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
   const [saving, setSaving] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [overPos, setOverPos] = useState<"before" | "after">("before");
 
   const sorted = useMemo(
     () => [...links].sort((a, b) => a.order - b.order || 0),
@@ -122,6 +125,67 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
     load();
   }
 
+  function arrayMove<T>(arr: T[], from: number, to: number) {
+    const copy = [...arr];
+    const item = copy.splice(from, 1)[0];
+    copy.splice(to, 0, item);
+    return copy;
+  }
+
+  async function persistReorder(next: SocialLink[]) {
+    const changed = next.filter((l, idx) => l.order !== idx);
+    if (!changed.length) return;
+    await Promise.all(
+      changed.map((l, idx) =>
+        fetch(`/api/socials/${l.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order: next.findIndex(x => x.id === l.id) }),
+        })
+      )
+    );
+    load();
+  }
+
+  function onDragStart(id: string) {
+    setDragId(id);
+  }
+  function onDragOver(e: React.DragEvent<HTMLLIElement>, over: string) {
+    e.preventDefault();
+    if (!dragId) return;
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const isBefore = (e.clientY - rect.top) < rect.height / 2;
+    setOverId(over);
+    setOverPos(isBefore ? "before" : "after");
+    if (dragId === over) return;
+    const from = sorted.findIndex(x => x.id === dragId);
+    let to = sorted.findIndex(x => x.id === over);
+    if (to === -1 || from === -1) return;
+    // drop position is before/after hovered item
+    to = isBefore ? to : to + 1;
+    // when dragging down and inserting after, adjust because original index is removed first
+    const adjusted = to > from ? to - 1 : to;
+    if (adjusted === from) return;
+    const next = arrayMove(sorted, from, adjusted).map((l, i) => ({ ...l, order: i }));
+    setLinks(next);
+    onPreview?.(next);
+  }
+  async function onDrop() {
+    if (!dragId) return;
+    const next = [...sorted].map((l, i) => ({ ...l, order: i }));
+    setDragId(null);
+    setOverId(null);
+    await persistReorder(next);
+  }
+  function onDragLeave(e: React.DragEvent<HTMLLIElement>) {
+    // Only clear if leaving the current element (avoid thrashing during child enter/leave)
+    const related = e.relatedTarget as Node | null;
+    if (!e.currentTarget.contains(related)) {
+      setOverId(null);
+    }
+  }
+
   return (
     <div className="space-y-4 rounded-xl border border-zinc-300/40 p-3">
       <div className="flex items-center justify-between">
@@ -135,23 +199,23 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
           </button>
         </div>
       </div>
-      <form onSubmit={addLink} className="flex flex-wrap items-end gap-3">
+      <form onSubmit={addLink} className="flex flex-wrap items-end gap-2">
         <div className="flex-1 min-w-60">
-          <label className="text-sm opacity-70">URL</label>
+          <label className="sr-only">URL</label>
           <input
             type="url"
             required
-            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none focus:ring-1 focus:ring-emerald-500/40"
+            className="w-full rounded-full border border-zinc-300/40 bg-white/5 px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-emerald-500/40"
             placeholder="https://instagram.com/marka"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
         </div>
         <div className="w-56">
-          <label className="text-sm opacity-70">Etiket (opsiyonel)</label>
+          <label className="sr-only">Etiket</label>
           <input
-            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none focus:ring-1 focus:ring-emerald-500/40"
-            placeholder="Instagram"
+            className="w-full rounded-full border border-zinc-300/40 bg-white/5 px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-emerald-500/40"
+            placeholder="Etiket (opsiyonel)"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             maxLength={30}
@@ -159,30 +223,46 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
         </div>
         <button
           disabled={saving}
-          className="rounded-xl px-4 py-2 bg-emerald-600 text-white disabled:opacity-60"
+          className="rounded-full px-4 py-2 text-sm border border-emerald-500/60 text-emerald-600 hover:bg-emerald-500/10 disabled:opacity-60"
         >
           {saving ? "Ekleniyor…" : "Ekle"}
         </button>
       </form>
 
       {!sorted.length ? (
-        <p className="text-sm opacity-70">Henüz sosyal bağlantı eklenmemiş.</p>
+        <p className="text-sm opacity-60">Henüz sosyal bağlantı eklenmemiş.</p>
       ) : (
         <ul className="space-y-3">
           {sorted.map((l, i) => (
-            <li key={l.id} className="flex items-center gap-3 rounded-xl border border-zinc-300/30 p-2">
+            <li
+              key={l.id}
+              draggable
+              onDragStart={() => onDragStart(l.id)}
+              onDragOver={(e) => onDragOver(e, l.id)}
+              onDrop={onDrop}
+              onDragLeave={onDragLeave}
+              className={`relative flex items-center gap-2 rounded-lg border border-zinc-300/30 p-1.5 hover:bg-zinc-200/10 transition
+    ${dragId === l.id ? "opacity-70 scale-[0.99] shadow-sm" : ""}`}
+            >
+              {(overId === l.id && dragId) && (
+                <div
+                  className={`absolute left-0 right-0 ${overPos === "before" ? "top-0" : "bottom-0"} h-0.5`}
+                >
+                  <div className="mx-1 h-full rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+              )}
               <div className="shrink-0">
-                <SocialIcon url={l.url} style={{ height: 28, width: 28 }} />
+                <SocialIcon url={l.url} style={{ height: 24, width: 24 }} />
               </div>
 
               <input
-                className="flex-1 min-w-60 rounded-lg bg-transparent px-2 py-1 outline-none border border-transparent focus:border-zinc-300/50"
+                className="flex-1 min-w-60 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
                 value={l.url}
                 onChange={(e) => setLinks(prev => prev.map(x => x.id === l.id ? { ...x, url: e.target.value } : x))}
                 onBlur={(e) => saveInline(l.id, { url: e.target.value })}
               />
               <input
-                className="w-48 rounded-lg bg-transparent px-2 py-1 outline-none border border-transparent focus:border-zinc-300/50"
+                className="w-44 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
                 value={l.label ?? ""}
                 placeholder="Etiket"
                 onChange={(e) => setLinks(prev => prev.map(x => x.id === l.id ? { ...x, label: e.target.value } : x))}
@@ -190,32 +270,40 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
                 maxLength={30}
               />
 
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => move(l.id, -1)}
-                  className="rounded-lg px-2 py-1 border border-zinc-300/50 hover:bg-zinc-200/20"
-                  aria-label="Yukarı taşı"
-                  disabled={i === 0}
-                >↑</button>
-                <button
-                  onClick={() => move(l.id, +1)}
-                  className="rounded-lg px-2 py-1 border border-zinc-300/50 hover:bg-zinc-200/20"
-                  aria-label="Aşağı taşı"
-                  disabled={i === sorted.length - 1}
-                >↓</button>
+              <div className="flex items-center gap-1.5">
+                {/* Drag handle */}
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-zinc-300/40 text-zinc-500 cursor-grab select-none">
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </span>
                 <button
                   onClick={() => toggleVisibility(l.id, !l.visible)}
-                  className={`rounded-lg px-2 py-1 border ${l.visible ? "border-amber-500/60" : "border-zinc-300/50 hover:bg-zinc-200/20"}`}
+                  className={`inline-flex items-center justify-center w-8 h-8 rounded-full border ${l.visible ? "border-amber-500/60" : "border-zinc-300/50 hover:bg-zinc-200/20"}`}
                   aria-label={l.visible ? "Gizle" : "Göster"}
+                  title={l.visible ? "Gizle" : "Göster"}
                 >
-                  {l.visible ? "Gizle" : "Göster"}
+                  {l.visible ? (
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" stroke="currentColor" strokeWidth="2" fill="none"/>
+                      <path d="M4 4l16 16" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                  )}
                 </button>
                 <button
                   onClick={() => remove(l.id)}
-                  className="rounded-lg px-2 py-1 border border-red-500/60 text-red-600"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-red-500/60 text-red-600 hover:bg-red-500/10"
                   aria-label="Sil"
+                  title="Sil"
                 >
-                  Sil
+                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 6h18M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6M10 6l1-2h2l1 2" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               </div>
             </li>
