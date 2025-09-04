@@ -51,9 +51,16 @@ export default function BrandCoverEditor({
         aria-label="Kapak görselini düzenle"
         title="Kapak görselini düzenle"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className="text-neutral-700 dark:text-neutral-200">
-          <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.33H5v-.92L14.06 6.52l.92.92L5.92 19.58zM20.71 5.04a1 1 0 0 0 0-1.41l-1.34-1.34a1 1 0 0 0-1.41 0l-1.83 1.83 2.75 2.75 1.83-1.83z"/>
-        </svg>
+         <svg width="18" height="18" viewBox="0 0 24 24" className="text-neutral-800 dark:text-neutral-100">
+            <path
+              d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25z"
+              fill="currentColor"
+            />
+            <path
+              d="M20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+              fill="currentColor"
+            />
+          </svg>
       </button>
 
       {/* Modal */}

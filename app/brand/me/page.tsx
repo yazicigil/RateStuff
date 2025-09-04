@@ -185,7 +185,7 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative z-10 rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
