@@ -9,7 +9,7 @@ type Props = {
   className?: string;
 };
 
-const PALETTE = ['#FFFFFF','#FEF3C7','#DBEAFE','#DCFCE7','#FEE2E2','#EDE9FE','#F5F5F5','#E0F2FE','#FFE4E6'];
+const PALETTE = ['#FFFFFF','#f2600c','#6ca2e8','#fbcf41','#00995e','#874a97'];
 
 export default function CardColorPicker({ initialColor, targetId = 'brand-hero-card', className }: Props) {
   const [color, setColor] = useState<string>(initialColor ?? '#FFFFFF');
