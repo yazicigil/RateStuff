@@ -217,7 +217,7 @@ model BrandAccount {
 
   coverImageUrl String?   // profil üst görseli
   bio           String?   @db.Text  // uzun açıklama için
-
+  cardColor String?
   @@index([email])
 }
 
