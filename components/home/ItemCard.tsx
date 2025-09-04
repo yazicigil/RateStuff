@@ -238,13 +238,13 @@ export default function ItemCard({
       )}
 
       {/* TOP RIGHT: Share + Options (buttons) */}
-      <div className="rs-pop absolute top-2 right-2 z-20 flex flex-col gap-2">
+      <div className="rs-pop absolute top-1.5 right-1.5 z-20 flex flex-col gap-1.5">
         {showProductCta && (
           <a
             href={productUrl as string}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="w-7 h-7 md:w-8 md:h-8 grid place-items-center rounded-lg shadow focus:outline-none focus:ring-2"
+            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg shadow focus:outline-none focus:ring-2"
             style={{
               backgroundColor: '#6827CD',
               color: '#fff',
@@ -259,7 +259,7 @@ export default function ItemCard({
               fill="none"
               stroke="currentColor"
               strokeWidth={1.5}
-              className="w-3.5 h-3.5"
+              className="w-3 h-3"
             >
               <path
                 strokeLinecap="round"
@@ -271,7 +271,7 @@ export default function ItemCard({
         )}
         <div className="relative">
           <button
-            className="w-7 h-7 md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             aria-label="share"
             onClick={handleShareClick}
             style={{
@@ -280,7 +280,7 @@ export default function ItemCard({
               ['--tw-ring-color' as any]: 'var(--brand-focus)'
             }}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-3.5 h-3.5">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-3 h-3">
               <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -300,7 +300,7 @@ export default function ItemCard({
         </div>
         <div className="relative">
           <button
-            className="w-7 h-7 md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             onClick={handleMenuClick}
             aria-label="options"
             style={{
@@ -488,7 +488,7 @@ export default function ItemCard({
                 )}
               </div>
 
-              <div className="flex-1 min-w-0 pr-16 md:pr-24">
+              <div className="flex-1 min-w-0 pr-12 md:pr-20">
                 {i?.suspended && (
                   <div className="mb-1 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.72-1.36 3.485 0l6.518 11.594c.75 1.335-.214 3.007-1.742 3.007H3.48c-1.528 0-2.492-1.672-1.742-3.007L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
