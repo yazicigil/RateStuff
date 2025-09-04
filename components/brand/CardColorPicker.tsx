@@ -53,6 +53,12 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     root.style.setProperty('--brand-chip-bg', chipBg);
     root.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
 
+    // Accent tokens for ItemCard harmony
+    root.style.setProperty('--brand-accent', hex);
+    root.style.setProperty('--brand-accent-weak', hexToRgba(hex, 0.18));
+    root.style.setProperty('--brand-accent-bd', hexToRgba(hex, 0.28));
+    root.style.setProperty('--brand-focus', hexToRgba(hex, 0.42));
+
     // --- Local (hero card) variables — kept for backwards-compat ---
     if (el) {
       el.style.setProperty('--brand-card-bg', bg);
@@ -61,6 +67,11 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.setProperty('--brand-ink-subtle', subtle);
       el.style.setProperty('--brand-chip-bg', chipBg);
       el.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
+      // Accent tokens (local mirrors, optional, for backwards-compat)
+      el.style.setProperty('--brand-accent', hex);
+      el.style.setProperty('--brand-accent-weak', hexToRgba(hex, 0.18));
+      el.style.setProperty('--brand-accent-bd', hexToRgba(hex, 0.28));
+      el.style.setProperty('--brand-focus', hexToRgba(hex, 0.42));
     }
 
     if (shouldPersist) persist(hex);
@@ -78,6 +89,10 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.removeProperty('--brand-ink-subtle');
       el.style.removeProperty('--brand-chip-bg');
       el.style.removeProperty('--brand-items-bg');
+      el.style.removeProperty('--brand-accent');
+      el.style.removeProperty('--brand-accent-weak');
+      el.style.removeProperty('--brand-accent-bd');
+      el.style.removeProperty('--brand-focus');
     }
 
     // Clear global vars
@@ -85,6 +100,10 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     root.style.removeProperty('--brand-ink-subtle');
     root.style.removeProperty('--brand-chip-bg');
     root.style.removeProperty('--brand-items-bg');
+    root.style.removeProperty('--brand-accent');
+    root.style.removeProperty('--brand-accent-weak');
+    root.style.removeProperty('--brand-accent-bd');
+    root.style.removeProperty('--brand-focus');
 
     setColor('#FFFFFF');
     persist(null);

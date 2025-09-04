@@ -201,6 +201,7 @@ export default function ItemCard({
   return (
     <div
       className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
+      style={{ borderColor: 'var(--brand-accent-bd)' }}
     >
       {amAdmin && ((i as any).reportCount ?? 0) > 0 && (
         <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
@@ -213,9 +214,14 @@ export default function ItemCard({
       <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             aria-label="share"
             onClick={handleShareClick}
+            style={{
+              backgroundColor: 'var(--brand-accent-weak)',
+              borderColor: 'var(--brand-accent-bd)',
+              ['--tw-ring-color' as any]: 'var(--brand-focus)'
+            }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -236,9 +242,14 @@ export default function ItemCard({
 
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80"
+            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             onClick={handleMenuClick}
             aria-label="options"
+            style={{
+              backgroundColor: 'var(--brand-accent-weak)',
+              borderColor: 'var(--brand-accent-bd)',
+              ['--tw-ring-color' as any]: 'var(--brand-focus)'
+            }}
           >
             ⋯
           </button>
@@ -363,9 +374,10 @@ export default function ItemCard({
                 <button
                   type="button"
                   onClick={() => onOpenSpotlight(i.id)}
-                  className="rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  className="rounded-lg focus:outline-none focus:ring-2"
                   aria-label={`${i.name} spotlight'ı aç`}
                   title={`${i.name} spotlight'ı aç`}
+                  style={{ ['--tw-ring-color' as any]: 'var(--brand-focus)' }}
                 >
                   <img
                     src={i.imageUrl || '/default-item.svg'}
@@ -380,7 +392,14 @@ export default function ItemCard({
                   />
                 </button>
                 {i.edited && (
-                  <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">
+                  <span
+                    className="text-[11px] px-2 py-0.5 mt-1 rounded-full border"
+                    style={{
+                      backgroundColor: 'var(--brand-chip-bg)',
+                      borderColor: 'var(--brand-accent-bd)',
+                      color: 'var(--brand-ink)'
+                    }}
+                  >
                     düzenlendi
                   </span>
                 )}
@@ -398,9 +417,13 @@ export default function ItemCard({
                   <button
                     type="button"
                     onClick={() => onOpenSpotlight(i.id)}
-                    className="text-left hover:underline underline-offset-2 decoration-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400 rounded"
+                    className="text-left hover:underline underline-offset-2 focus:outline-none focus:ring-2 rounded"
                     aria-label={`${i.name} spotlight'ı aç`}
                     title={`${i.name} spotlight'ı aç`}
+                    style={{
+                      textDecorationColor: 'var(--brand-accent)',
+                      ['--tw-ring-color' as any]: 'var(--brand-focus)'
+                    }}
                   >
                     {i.name}
                   </button>
@@ -488,7 +511,8 @@ export default function ItemCard({
                     <button
                       type="button"
                       onClick={() => onOpenSpotlight(i.id)}
-                      className="text-xs px-3 h-8 rounded-full border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className="text-xs px-3 h-8 rounded-full border hover:bg-gray-50 dark:hover:bg-gray-800"
+                      style={{ borderColor: 'var(--brand-accent-bd)' }}
                     >
                       Tüm yorumları gör
                     </button>

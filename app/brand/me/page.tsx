@@ -76,6 +76,7 @@ export default async function BrandProfilePage() {
       description: true,
       imageUrl: true,
       createdAt: true,
+      tags: { select: { tag: { select: { name: true } } } },
     },
   });
 
@@ -115,10 +116,15 @@ export default async function BrandProfilePage() {
     imageUrl: it.imageUrl ?? null,
     avg: avgMap.get(it.id) ?? null,
     avgRating: avgMap.get(it.id) ?? null,
-    commentsCount: commentsCountMap.get(it.id) ?? 0,
-    commentCount: commentsCountMap.get(it.id) ?? 0, // alias for components expecting `commentCount`
-    ratingsCount: commentsCountMap.get(it.id) ?? 0,
-    tags: (it as any).tags ?? [],
+    // Ratings/comment count normalized for ItemCard/RatingPill
+    count: commentsCountMap.get(it.id) ?? 0,
+    commentsCount: commentsCountMap.get(it.id) ?? 0, // legacy alias
+    commentCount: commentsCountMap.get(it.id) ?? 0,  // legacy alias for some components
+    ratingsCount: commentsCountMap.get(it.id) ?? 0,  // legacy alias
+    // Tags normalized to string[] (from relation)
+    tags: Array.isArray((it as any).tags)
+      ? ((it as any).tags.map((t: any) => t?.tag?.name).filter(Boolean))
+      : [],
     createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
   }));
 
@@ -171,6 +177,7 @@ export default async function BrandProfilePage() {
           className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
+            backgroundColor: 'var(--brand-items-bg)'
           }}
         >
           {/* Avatar editor directly (renders avatar + edit UI) */}
