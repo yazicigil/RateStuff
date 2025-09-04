@@ -17,10 +17,24 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 :root {
   --rs-header-bg: rgba(255, 255, 255, 0.70);
   --rs-header-border: rgba(0, 0, 0, 0.12);
+
+  /* Brand surface tokens (defaults) */
+  --brand-surface-weak: #f7f6fb;          /* light background tint under header/sections */
+  --brand-items-bg: #ffffff;              /* hero/item cards default background */
+  --brand-chip-bg: rgba(255,255,255,.60); /* soft chips background */
+  --brand-elev-bd: rgba(0,0,0,.06);       /* elevated borders on light */
+  --brand-ink-subtle: rgba(0,0,0,.62);    /* secondary text color on light */
 }
 .dark {
   --rs-header-bg: rgba(11, 18, 32, 0.60); /* #0b1220 @ 60% */
   --rs-header-border: rgba(255, 255, 255, 0.10);
+
+  /* Brand tokens (dark defaults) */
+  --brand-surface-weak: #0b1220;
+  --brand-items-bg: #0b1220;
+  --brand-chip-bg: rgba(255,255,255,.06);
+  --brand-elev-bd: rgba(255,255,255,.10);
+  --brand-ink-subtle: rgba(255,255,255,.68);
 }
 /* === RateStuff Button Primitives === */
 :root{
@@ -32,6 +46,10 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
          text-neutral-800 hover:bg-black/5
          transition-colors;
   border-color: rgb(229 231 235 / 0.70);       /* border-neutral-200/70 */
+  outline: none;
+}
+.btn-chip:focus-visible{
+  @apply ring-2 ring-offset-2 ring-blue-500/60 dark:ring-blue-400/60 ring-offset-white dark:ring-offset-gray-900;
 }
 .dark .btn-chip{
   @apply text-neutral-100 hover:bg-white/5;
@@ -41,9 +59,11 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 /* states / varyasyonlar */
 .btn-chip--danger{
   @apply text-red-600 hover:bg-red-500/10;
+  border-color: rgb(239 68 68 / .35);   /* red-500 @ 35% */
 }
 .dark .btn-chip--danger{
   @apply text-red-400 hover:bg-red-500/10;
+  border-color: rgb(248 113 113 / .40); /* red-400 @ 40% */
 }
 
 .btn-chip--ghost{

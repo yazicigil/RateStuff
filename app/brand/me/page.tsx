@@ -20,7 +20,7 @@ function VerifiedBadge() {
   return (
     <svg
       width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"
-      className="inline-block ml-1 w-5 h-5 align-middle"
+      className="inline-block ml-1 w-[18px] h-[18px] align-middle"
     >
       <circle cx="12" cy="12" r="9" className="fill-[#3B82F6] dark:fill-[#3B82F6]" />
       <path d="M8.5 12.5l2 2 4-4"
@@ -139,7 +139,7 @@ export default async function BrandProfilePage() {
     >
       {/* Inline Header */}
       <div
-        className="sticky top-0 z-[9999] backdrop-blur-sm border-b"
+        className="sticky top-0 z-[9999] backdrop-blur-sm border-b supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-[#0b1220]/60"
         style={{
           backgroundColor: 'var(--rs-header-bg)',
           borderColor: 'var(--rs-header-border)',
