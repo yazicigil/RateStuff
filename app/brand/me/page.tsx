@@ -160,32 +160,13 @@ export default async function BrandProfilePage() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
         <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111827] shadow-sm p-6 sm:p-8 pt-6 md:pt-8 pl-40 md:pl-48 relative">
-          {/* Avatar wrapper: show avatar image and overlay the edit trigger at bottom-right */}
+          {/* Avatar editor directly (renders avatar + edit UI) */}
           <div className="absolute -top-16 left-6">
-            <div className="relative w-32 h-32">
-              {user.avatarUrl ? (
-                <Image
-                  src={user.avatarUrl}
-                  alt={user.name ?? user.email ?? "Avatar"}
-                  width={128}
-                  height={128}
-                  className="w-32 h-32 rounded-full object-cover ring-4 ring-purple-500"
-                  priority
-                />
-              ) : (
-                <div className="w-32 h-32 rounded-full ring-4 ring-purple-500 bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-2xl font-semibold">
-                  {(user.name ?? user.email ?? "B").slice(0, 1).toUpperCase()}
-                </div>
-              )}
-              {/* Edit button overlay (opens modal) */}
-              <div className="absolute -bottom-1 -right-1">
-                <EditAvatar
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 shadow hover:shadow-md transition"
-                  initialUrl={user.avatarUrl ?? null}
-                  name={user.name ?? user.email ?? "Brand"}
-                />
-              </div>
-            </div>
+            <EditAvatar
+              className="w-32 h-32 rounded-full ring-4 ring-purple-500"
+              initialUrl={user.avatarUrl ?? null}
+              name={user.name ?? user.email ?? "Brand"}
+            />
           </div>
           <div className="mt-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
             <div className="flex flex-col gap-2">
