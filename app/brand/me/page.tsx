@@ -121,9 +121,9 @@ export default async function BrandProfilePage() {
   }));
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#111827] text-neutral-900 dark:text-neutral-100">
+    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100">
       {/* Inline Header */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-4 pb-3">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2 sticky top-0 z-20 backdrop-blur-sm bg-white/70 dark:bg-[#0b1220]/60 border-b border-neutral-200/60 dark:border-white/10">
         <div className="flex items-center justify-between">
           <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
             {/* Public SVG logo rendered as Image; color-adapt via className */}
@@ -145,7 +145,7 @@ export default async function BrandProfilePage() {
           {brand?.coverImageUrl ? (
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-black/0 via-black/0 to-black/10 dark:from-black/0 dark:to-black/20" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-black/0 dark:from-black/30 dark:via-black/0 dark:to-black/0" />
             </>
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-indigo-200 via-pink-200 to-amber-200 dark:from-indigo-900/40 dark:via-fuchsia-900/40 dark:to-amber-900/40" />
@@ -159,11 +159,11 @@ export default async function BrandProfilePage() {
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-sm p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0">
+        <div className="rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-[#0b1220]/60 backdrop-blur-xl shadow-lg p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0">
           {/* Avatar editor directly (renders avatar + edit UI) */}
           <div className="absolute -top-10 sm:-top-16 left-4 sm:left-6">
             <EditAvatar
-              className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0b1220] shadow-xl"
+              className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-4 ring-white/70 dark:ring-white/10 shadow-xl"
               initialUrl={user.avatarUrl ?? null}
               name={user.name ?? user.email ?? "Brand"}
             />
@@ -197,11 +197,11 @@ export default async function BrandProfilePage() {
 
           {/* Meta row (compact) */}
           <div className="mt-3 flex flex-wrap gap-2">
-            <div className="inline-flex items-center gap-2 rounded-lg px-3 py-2 bg-neutral-100/60 dark:bg-white/5">
+            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-neutral-200/60 dark:border-white/10 bg-white/60 dark:bg-white/5">
               <span className="text-[11px] uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün</span>
               <span className="text-sm font-semibold">{itemsCount}</span>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-lg px-3 py-2 bg-neutral-100/60 dark:bg-white/5">
+            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-neutral-200/60 dark:border-white/10 bg-white/60 dark:bg-white/5">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-yellow-500">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
@@ -211,7 +211,8 @@ export default async function BrandProfilePage() {
           </div>
         </div>
 
-        <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
+        <h2 className="mt-6 sm:mt-8 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
+        <div className="mt-2 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
         {/* ItemsTab client section */}
         <div className="mt-4 sm:mt-5">
           <ItemsCardClient
