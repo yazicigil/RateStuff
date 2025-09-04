@@ -5,6 +5,7 @@ import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import { constantTimeEqual, hashNonce } from "@/lib/crypto-lite";
+import type { User } from "@prisma/client";
 
 // basit in-memory guard (dev/prod serverless'ta cold startta sıfırlanır, yine de duplicate'i azaltır)
 const g: any = globalThis as any;
@@ -162,7 +163,9 @@ export const authOptions: NextAuthOptions = {
 export function auth() {
   return getServerSession(authOptions);
 }
-
+export function isAdmin(user: Pick<User, "isAdmin"> | null | undefined): boolean {
+  return !!user?.isAdmin;
+}
 // App genelinde kısa yol
 export async function getSessionUser() {
   const session = await auth();

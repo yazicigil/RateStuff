@@ -14,6 +14,7 @@ const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline")
 const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr: false });
 
 const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
+const SocialBar = dynamic(() => import("@/components/brand/SocialBar"), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -233,9 +234,7 @@ export default async function BrandProfilePage() {
               <VerifiedBadge />
             </div>
 
-            <a href={`mailto:${user.email}`} className="text-xs sm:text-sm hover:underline w-fit max-w-full truncate" style={{ color: 'var(--brand-ink-subtle)' }}>
-              {user.email}
-            </a>
+            <SocialBar userId={user.id} className="pt-1" />
 
             {/* Bio inline view/edit */}
             <div className="pt-1 text-sm leading-6 max-w-prose">
