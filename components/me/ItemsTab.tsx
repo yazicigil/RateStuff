@@ -214,7 +214,7 @@ export default function ItemsTab({
           <Skeleton rows={4} />
         ) : items.length === 0 ? (
           <div className="grid md:grid-cols-2 gap-4">
-            {isBrandProfile ? (
+            {(isBrandProfile || brandTheme) ? (
               <QuickAddCard
                 onSubmit={handleQuickAddSubmit}
                 trending={trending}
@@ -223,6 +223,7 @@ export default function ItemsTab({
                 signedIn={!!myId}
                 signInHref="/signin"
                 prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                isBrandProfile
               />
             ) : (
               <Link
@@ -269,7 +270,7 @@ export default function ItemsTab({
             <div className="flex flex-col gap-5 lg:hidden">
               {itemsWithAdd.map((it: any, ix: number) => (
                 it?.__add ? (
-                  isBrandProfile ? (
+                  (isBrandProfile || brandTheme) ? (
                     <QuickAddCard
                       key={`add-m-${ix}`}
                       onSubmit={handleQuickAddSubmit}
@@ -279,6 +280,7 @@ export default function ItemsTab({
                       signedIn={!!myId}
                       signInHref="/signin"
                       prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                      isBrandProfile
                     />
                   ) : (
                     <Link
@@ -350,7 +352,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
-                    isBrandProfile ? (
+                    (isBrandProfile || brandTheme) ? (
                       <QuickAddCard
                         key={`add-left-${ix}`}
                         onSubmit={handleQuickAddSubmit}
@@ -360,6 +362,7 @@ export default function ItemsTab({
                         signedIn={!!myId}
                         signInHref="/signin"
                         prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                        isBrandProfile
                       />
                     ) : (
                       <Link
@@ -428,7 +431,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
-                    isBrandProfile ? (
+                    (isBrandProfile || brandTheme) ? (
                       <QuickAddCard
                         key={`add-right-${ix}`}
                         onSubmit={handleQuickAddSubmit}
@@ -438,6 +441,7 @@ export default function ItemsTab({
                         signedIn={!!myId}
                         signInHref="/signin"
                         prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                        isBrandProfile
                       />
                     ) : (
                       <Link
