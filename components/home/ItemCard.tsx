@@ -200,7 +200,7 @@ export default function ItemCard({
 
   return (
     <div
-      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
+      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
       style={{
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
       }}
@@ -230,15 +230,17 @@ export default function ItemCard({
               <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
-          <SharePopover
-            open={openShareId === i.id}
-            itemId={i.id}
-            itemName={i.name}
-            onClose={() => setOpenShareId(null)}
-            onCopy={onCopyShare}
-            onShare={onNativeShare}
-            copiedShareId={copiedShareId}
-          />
+          <div className="[--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
+            <SharePopover
+              open={openShareId === i.id}
+              itemId={i.id}
+              itemName={i.name}
+              onClose={() => setOpenShareId(null)}
+              onCopy={onCopyShare}
+              onShare={onNativeShare}
+              copiedShareId={copiedShareId}
+            />
+          </div>
         </div>
 
         <div className="relative">
@@ -253,20 +255,22 @@ export default function ItemCard({
           >
             ⋯
           </button>
-          <OptionsPopover
-            open={openMenuId === i.id}
-            itemId={i.id}
-            amAdmin={!!amAdmin}
-            isSaved={saved}
-            isOwner={!!isOwner}
-            onEdit={() => setEditing(true)}
-            onClose={() => setOpenMenuId(null)}
-            onDelete={(id) => onDelete?.(id)}
-            onToggleSave={(id) => onToggleSave(id)}
-            onReport={(id) => onReport(id)}
-            onShowInList={() => {}}
-            hideShowInList
-          />
+          <div className="[--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
+            <OptionsPopover
+              open={openMenuId === i.id}
+              itemId={i.id}
+              amAdmin={!!amAdmin}
+              isSaved={saved}
+              isOwner={!!isOwner}
+              onEdit={() => setEditing(true)}
+              onClose={() => setOpenMenuId(null)}
+              onDelete={(id) => onDelete?.(id)}
+              onToggleSave={(id) => onToggleSave(id)}
+              onReport={(id) => onReport(id)}
+              onShowInList={() => {}}
+              hideShowInList
+            />
+          </div>
         </div>
       </div>
 

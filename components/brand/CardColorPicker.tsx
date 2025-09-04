@@ -21,6 +21,17 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialColor, targetId]);
 
+  // Re-apply on theme (class) toggles so black/white adaptation follows light/dark instantly
+  useEffect(() => {
+    const root = document.documentElement;
+    const observer = new MutationObserver(() => {
+      apply(color, false);
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [color, targetId]);
+
   async function persist(hex: string | null) {
     await fetch('/api/brand/color', {
       method: 'POST',
@@ -38,14 +49,23 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     const bg = hexToRgba(hex, 0.65);       // kept for optional glass uses
     const border = hexToRgba(hex, 0.35);
 
-    // PURE HEX (no blending): derive rgb channels
     const raw = hex.replace('#', '');
-    const r = parseInt(raw.slice(0, 2), 16);
-    const g = parseInt(raw.slice(2, 4), 16);
-    const b = parseInt(raw.slice(4, 6), 16);
+    const baseR = parseInt(raw.slice(0, 2), 16);
+    const baseG = parseInt(raw.slice(2, 4), 16);
+    const baseB = parseInt(raw.slice(4, 6), 16);
 
-    // Subtle surface wash from the same hex (theme‑aware alpha)
     const isDark = document.documentElement.classList.contains('dark');
+    const hexUpper = hex.toUpperCase();
+
+    // If user picks pure white/black, adapt by theme so surfaces stay legible
+    let r = baseR, g = baseG, b = baseB;
+    if (hexUpper === '#FFFFFF' && isDark) {
+      r = 0; g = 0; b = 0; // show black in dark mode instead of white
+    } else if (hexUpper === '#000000' && !isDark) {
+      r = 255; g = 255; b = 255; // show white in light mode instead of black
+    }
+
+    // Subtle surface wash from the (effective) color
     const surfaceAlpha = isDark ? 0.18 : 0.10; // stronger wash for better harmony
     const surfaceWeak = `rgba(${r}, ${g}, ${b}, ${surfaceAlpha})`;
 
@@ -138,7 +158,7 @@ root.style.removeProperty('--brand-elev-bd');
 
   return (
     <div className={['mt-3 flex items-center gap-2 flex-wrap', className].filter(Boolean).join(' ')}>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400">Marka rengi:</span>
+      <span className="text-xs" style={{ color: 'var(--brand-ink-subtle, var(--brand-ink, currentColor))' }}>Marka rengi:</span>
 
       {/* Hızlı palet */}
       {PALETTE.map((c) => (

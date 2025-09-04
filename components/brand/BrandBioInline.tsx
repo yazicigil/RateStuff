@@ -44,23 +44,27 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
 
   if (!isOwner) {
     return (
-      <p className="text-sm text-neutral-800 dark:text-neutral-200">{bio || 'Açıklama ekle'}</p>
+      <p className="text-sm" style={{ color: 'var(--brand-ink, currentColor)' }}>
+        {bio || 'Açıklama ekle'}
+      </p>
     );
   }
 
   return (
-    <div className="text-sm text-neutral-800 dark:text-neutral-200">
+    <div className="text-sm" style={{ color: 'var(--brand-ink, currentColor)' }}>
       {isEditing ? (
         <div className="flex flex-col space-y-2">
           <textarea
-            className="border border-neutral-300 dark:border-neutral-700 rounded p-2 resize-none bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500"
+            className="border rounded p-2 resize-none bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100"
             rows={3}
             value={draftBio}
             onChange={(e) => setDraftBio(e.target.value)}
             disabled={isSaving}
             maxLength={240}
+            style={{ color: 'var(--brand-ink)', backgroundColor: 'transparent', borderColor: 'var(--brand-elev-bd)', caretColor: 'var(--brand-ink)' }}
+            placeholder="Açıklama ekle"
           />
-          <div className="text-xs text-neutral-500 dark:text-neutral-400 text-right">
+          <div className="text-xs text-right" style={{ color: 'var(--brand-ink-subtle, var(--brand-ink, currentColor))' }}>
             {draftBio.length} / 240
           </div>
           <div className="flex space-x-2">
