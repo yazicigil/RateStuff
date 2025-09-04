@@ -14,7 +14,12 @@ const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline")
 const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr: false });
 
 const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
-const SocialBar = dynamic(() => import("@/components/brand/SocialBar"), { ssr: false });
+const SocialBar = dynamic<{
+  userId: string;
+  className?: string;
+  canEdit?: boolean;
+  size?: number;
+}>(() => import("@/components/brand/SocialBar"), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -225,29 +230,31 @@ export default async function BrandProfilePage() {
           }}
         >
 
-          {/* Top row: name, email, bio */}
-          <div className="mt-0 flex flex-col gap-2 md:pr-2">
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
+          {/* Top section (grid to reserve gutter under avatar on mobile) */}
+          <div className="grid grid-cols-[4.75rem,1fr] sm:grid-cols-1 gap-x-3 md:pr-2">
+            {/* gutter spacer under avatar for mobile only */}
+            <div className="sm:hidden" />
+            {/* title row */}
+            <div className="col-start-2 sm:col-start-auto flex items-center flex-wrap gap-x-2 gap-y-1">
               <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 {brand?.displayName ?? user.name ?? user.email}
               </h1>
               <VerifiedBadge />
             </div>
-
-            {/* Below the title, allow content to extend under avatar on mobile */}
-            <div className="-ml-16 sm:ml-0 pl-1 sm:pl-0 mt-1 sm:mt-0">
-              <SocialBar userId={user.id} canEdit className="pt-1" />
-              {/* Bio inline view/edit */}
-              <div className="pt-1 text-sm leading-6 max-w-prose">
-                <BrandBioInline
-                  brandId={brand?.id as string}
-                  initialBio={brand?.bio ?? ""}
-                  isOwner
-                />
-                {brand?.active === false && (
-                  <p className="mt-1 text-xs text-amber-500">(pasif)</p>
-                )}
-              </div>
+            {/* socials */}
+            <div className="col-start-2 sm:col-start-auto">
+              <SocialBar userId={user.id} canEdit className="pt-1" size={24} />
+            </div>
+            {/* bio */}
+            <div className="col-start-2 sm:col-start-auto pt-1 text-sm leading-6 max-w-prose">
+              <BrandBioInline
+                brandId={brand?.id as string}
+                initialBio={brand?.bio ?? ""}
+                isOwner
+              />
+              {brand?.active === false && (
+                <p className="mt-1 text-xs text-amber-500">(pasif)</p>
+              )}
             </div>
           </div>
 
