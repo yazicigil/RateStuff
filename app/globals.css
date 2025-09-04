@@ -22,3 +22,55 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
   --rs-header-bg: rgba(11, 18, 32, 0.60); /* #0b1220 @ 60% */
   --rs-header-border: rgba(255, 255, 255, 0.10);
 }
+/* === RateStuff Button Primitives === */
+:root{
+  --rs-chip-radius: 1rem;           /* ~rounded-2xl */
+  --rs-border-n: 1px solid rgba(0,0,0,.12);    /* fallback */
+}
+.btn-chip{
+  @apply h-9 w-9 grid place-items-center rounded-2xl border bg-transparent
+         text-neutral-800 hover:bg-black/5
+         transition-colors;
+  border-color: rgb(229 231 235 / 0.70);       /* border-neutral-200/70 */
+}
+.dark .btn-chip{
+  @apply text-neutral-100 hover:bg-white/5;
+  border-color: rgb(255 255 255 / 0.10);       /* dark:border-white/10 */
+}
+
+/* states / varyasyonlar */
+.btn-chip--danger{
+  @apply text-red-600 hover:bg-red-500/10;
+}
+.dark .btn-chip--danger{
+  @apply text-red-400 hover:bg-red-500/10;
+}
+
+.btn-chip--ghost{
+  @apply border-transparent hover:bg-black/5;
+}
+.dark .btn-chip--ghost{
+  @apply hover:bg-white/5;
+}
+
+/* Daha geniş butonlar için (metinli) */
+.btn-outline{
+  @apply h-9 px-3 inline-flex items-center gap-2 rounded-2xl border
+         text-sm hover:bg-black/5 text-neutral-900;
+  border-color: rgb(229 231 235 / 0.70);
+}
+.dark .btn-outline{
+  @apply text-neutral-100 hover:bg-white/5;
+  border-color: rgb(255 255 255 / 0.10);
+}
+
+.btn-soft{
+  @apply h-9 px-3 inline-flex items-center gap-2 rounded-2xl text-sm;
+}
+.btn-soft--brand{
+  @apply text-white;
+  background: #6827CD;              /* sabit mor yumuşak arka plan */
+}
+.btn-soft--danger{
+  @apply text-red-700 hover:bg-red-500/10;
+}
