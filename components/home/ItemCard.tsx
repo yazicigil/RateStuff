@@ -229,18 +229,16 @@ export default function ItemCard({
             href={productUrl as string}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="inline-flex items-center gap-2 h-8 px-3 rounded-full border text-sm font-medium shadow-sm hover:-translate-y-0.5 transition will-change-transform focus:outline-none focus:ring-2"
+            className="w-8 h-8 grid place-items-center rounded-lg shadow focus:outline-none focus:ring-2 hover:-translate-y-0.5 transition will-change-transform"
             style={{
-              backgroundColor: 'var(--brand-elev-strong)',
-              borderColor: 'var(--brand-elev-bd)',
-              color: 'var(--brand-ink)',
-              ['--tw-ring-color' as any]: 'var(--brand-focus)'
+              backgroundColor: '#6827CD',
+              color: '#fff',
+              ['--tw-ring-color' as any]: '#6827CD'
             }}
             aria-label="Ürüne git"
             title="Ürüne git"
           >
-            <img src="/assets/icon/shop.svg" alt="" className="w-4 h-4" />
-            <span className="hidden sm:inline">Ürüne git</span>
+            <img src="/assets/icon/shop.svg" alt="" className="w-4 h-4 filter invert" />
           </a>
         )}
         <div className="relative">
