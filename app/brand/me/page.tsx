@@ -14,12 +14,7 @@ const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline")
 const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr: false });
 
 const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
-const SocialBar = dynamic<{
-  userId: string;
-  className?: string;
-  canEdit?: boolean;
-  size?: number;
-}>(() => import("@/components/brand/SocialBar"), { ssr: false });
+const SocialBar = dynamic(() => import("@/components/brand/SocialBar"), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -223,30 +218,26 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
           }}
         >
 
-          {/* Top section (grid to reserve gutter under avatar on mobile) */}
-          <div className="grid grid-cols-[4.75rem,1fr] sm:grid-cols-1 gap-x-3 md:pr-2">
-            {/* gutter spacer under avatar for mobile only */}
-            <div className="sm:hidden" />
-            {/* title row */}
-            <div className="col-start-2 sm:col-start-auto flex items-center flex-wrap gap-x-2 gap-y-1">
+          {/* Top row: name, email, bio */}
+          <div className="mt-0 flex flex-col gap-2 md:pr-2">
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
               <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 {brand?.displayName ?? user.name ?? user.email}
               </h1>
               <VerifiedBadge />
             </div>
-            {/* socials */}
-            <div className="col-start-2 sm:col-start-auto">
-              <SocialBar userId={user.id} canEdit className="pt-1" size={24} />
-            </div>
-            {/* bio */}
-            <div className="col-start-2 sm:col-start-auto pt-1 text-sm leading-6 max-w-prose">
+
+            <SocialBar userId={user.id} canEdit className="pt-1" />
+
+            {/* Bio inline view/edit */}
+            <div className="pt-1 text-sm leading-6 max-w-prose">
               <BrandBioInline
                 brandId={brand?.id as string}
                 initialBio={brand?.bio ?? ""}
