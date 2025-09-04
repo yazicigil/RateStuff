@@ -35,23 +35,31 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     const root = document.documentElement; // <-- write vars here so scope is global
 
     // If we cannot find the target element, we still proceed with global vars
-    const bg = hexToRgba(hex, 0.65);
+    const bg = hexToRgba(hex, 0.65);       // kept for optional glass uses
     const border = hexToRgba(hex, 0.35);
 
-    // Compute effective background from the hero card (or document body if missing)
-    const base = el ? getEffectiveBackground(el) : getEffectiveBackground(document.body as HTMLElement);
-    const finalBg = blendRgbaOver(bg, base); // {r,g,b}
+    // PURE HEX (no blending): derive rgb channels
+    const raw = hex.replace('#', '');
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
 
-    // Pick best ink color (white or dark) based on WCAG contrast
-    const ink = pickInk(finalBg); // '#0B1220' or '#FFFFFF'
+    // Subtle surface wash from the same hex (theme‑aware alpha)
+    const isDark = document.documentElement.classList.contains('dark');
+    const surfaceAlpha = isDark ? 0.12 : 0.06;
+    const surfaceWeak = `rgba(${r}, ${g}, ${b}, ${surfaceAlpha})`;
+
+    // Pick best ink color (white or dark) AGAINST the pure hex background
+    const ink = pickInk({ r, g, b }); // '#0B1220' or '#FFFFFF'
     const subtle = withAlpha(ink, 0.7);
-    const chipBg = `rgba(${finalBg.r},${finalBg.g},${finalBg.b},0.08)`;
+    const chipBg = `rgba(${r}, ${g}, ${b}, 0.08)`;
 
     // --- GLOBAL (root) variables — used by ItemsTab & others ---
     root.style.setProperty('--brand-ink', ink);
     root.style.setProperty('--brand-ink-subtle', subtle);
     root.style.setProperty('--brand-chip-bg', chipBg);
-    root.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
+    root.style.setProperty('--brand-items-bg', `rgb(${r}, ${g}, ${b})`);
+    root.style.setProperty('--brand-surface-weak', surfaceWeak);
 
     // Accent tokens for ItemCard harmony
     root.style.setProperty('--brand-accent', hex);
@@ -66,12 +74,13 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.setProperty('--brand-ink', ink);
       el.style.setProperty('--brand-ink-subtle', subtle);
       el.style.setProperty('--brand-chip-bg', chipBg);
-      el.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
+      el.style.setProperty('--brand-items-bg', `rgb(${r}, ${g}, ${b})`);
       // Accent tokens (local mirrors, optional, for backwards-compat)
       el.style.setProperty('--brand-accent', hex);
       el.style.setProperty('--brand-accent-weak', hexToRgba(hex, 0.18));
       el.style.setProperty('--brand-accent-bd', hexToRgba(hex, 0.28));
       el.style.setProperty('--brand-focus', hexToRgba(hex, 0.42));
+      el.style.setProperty('--brand-surface-weak', surfaceWeak);
     }
 
     if (shouldPersist) persist(hex);
@@ -93,6 +102,7 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.removeProperty('--brand-accent-weak');
       el.style.removeProperty('--brand-accent-bd');
       el.style.removeProperty('--brand-focus');
+      el.style.removeProperty('--brand-surface-weak');
     }
 
     // Clear global vars
@@ -104,6 +114,7 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     root.style.removeProperty('--brand-accent-weak');
     root.style.removeProperty('--brand-accent-bd');
     root.style.removeProperty('--brand-focus');
+    root.style.removeProperty('--brand-surface-weak');
 
     setColor('#FFFFFF');
     persist(null);

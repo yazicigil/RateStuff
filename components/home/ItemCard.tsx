@@ -202,7 +202,6 @@ export default function ItemCard({
     <div
       className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
       style={{
-        borderColor: 'var(--brand-accent-bd)',
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
       }}
     >
