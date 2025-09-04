@@ -11,6 +11,7 @@ export type MyItem = {
   name: string;
   description: string;
   imageUrl?: string | null;
+    productUrl?: string | null; // brand CTA için
   avg: number | null;
   avgRating?: number | null;   // eski/yeni payload uyumu
   count?: number;
@@ -74,6 +75,9 @@ export default function ItemsTab({
   amAdmin?: boolean;       // <-- eklendi
   isBrandProfile?: boolean; // <-- yeni
 }) {
+  // Local state for optimistic items
+  const [itemsLocal, setItemsLocal] = useState<MyItem[]>(items);
+  useEffect(() => { setItemsLocal(items); }, [items]);
   const [itemsSelected, setItemsSelected] = useState<Set<string>>(new Set());
 
   // Router and item card UI state
@@ -122,27 +126,35 @@ export default function ItemsTab({
     rating: number;
     comment: string;
     imageUrl: string | null;
+      productUrl: string | null; // <-- yeni
+
   }) => {
     try {
       const res = await fetch('/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: payload.name,
-          description: payload.desc,
-          tags: payload.tags,
-          rating: payload.rating,
-          comment: payload.comment,
-          imageUrl: payload.imageUrl,
-        }),
+  name: payload.name,
+  description: payload.desc,
+  tags: payload.tags,
+  rating: payload.rating,
+  comment: payload.comment,
+  imageUrl: payload.imageUrl,
+  productUrl: payload.productUrl, // NEW
+}),
       });
       if (!res.ok) {
         const msg = await res.text().catch(() => 'Eklenemedi');
         notifyFn(msg || 'Eklenemedi');
         return false;
       }
+      const created = await res.json().catch(() => null);
+      if (created && created.id) {
+        setItemsLocal(prev => [created as MyItem, ...prev]);
+      }
       notifyFn('Eklendi');
-      await onReload?.();
+      // Arka planda senkronizasyon: parent fetch ediyorsa güncellenecek
+      onReload?.();
       return true; // QuickAddCard form reset + toast için
     } catch (e: any) {
       notifyFn(e?.message || 'Hata oluştu');
@@ -172,29 +184,29 @@ export default function ItemsTab({
       }
 
       notifyFn('Gönderi silindi');
+      setItemsLocal(prev => prev.filter(it => it.id !== id));
       await onReload?.();
     } catch (e: any) {
       notifyFn(e?.message || 'Hata oluştu');
     }
   }, [notifyFn, onReload]);
 
-  // Derive tag list from items
+  // Derive tag list from itemsLocal
   const itemsTags = useMemo(() => {
     const s = new Set<string>();
-    for (const it of items) (it.tags || []).forEach(t => s.add(t));
+    for (const it of itemsLocal) (it.tags || []).forEach(t => s.add(t));
     return Array.from(s).sort();
-  }, [items]);
+  }, [itemsLocal]);
 
   // Filtered items by selected tags (AND)
   const filteredItems = useMemo(() => {
-    if (itemsSelected.size === 0) return items;
-    return items.filter(it => {
+    if (itemsSelected.size === 0) return itemsLocal;
+    return itemsLocal.filter(it => {
       const tags = new Set(it.tags || []);
       for (const t of itemsSelected) if (!tags.has(t)) return false;
       return true;
     });
-  }, [items, itemsSelected]);
-
+  }, [itemsLocal, itemsSelected]);
 
   // Items with "add" card and row-major two-column split for desktop
   const itemsWithAdd = useMemo(() => [{ __add: true } as any, ...filteredItems], [filteredItems]);
@@ -215,7 +227,7 @@ export default function ItemsTab({
       <div className="px-4 pb-4 pt-3 space-y-3">
         {loading ? (
           <Skeleton rows={4} />
-        ) : items.length === 0 ? (
+        ) : itemsLocal.length === 0 ? (
           <div className="grid md:grid-cols-2 gap-4">
             {(isBrandProfile || brandTheme) ? (
               qaOpen ? (

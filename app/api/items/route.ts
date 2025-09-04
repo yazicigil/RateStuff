@@ -23,6 +23,7 @@ function shapeItem(i: any, meId?: string | null) {
     name: i.name,
     description: i.description,
     imageUrl: i.imageUrl,
+    productUrl: i.productUrl ?? null,
     avg,
     avgRating: avg,
     count,
@@ -166,7 +167,7 @@ export async function POST(req: Request) {
     if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({} as any));
-    const { name, description, imageUrl } = body;
+    const { name, description, imageUrl, productUrl } = body;
     const tagsCsv: string = body.tagsCsv || '';
     const ratingRaw = Number(body.rating);
     const commentText = typeof body.comment === 'string' ? body.comment : '';
@@ -192,6 +193,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'banned-word-in-tag' }, { status: 400 });
     }
 
+    // productUrl validation and normalization
+    let safeProductUrl: string | null = null;
+    if (typeof productUrl === 'string' && productUrl.trim() !== '') {
+      try {
+        const u = new URL(productUrl.trim());
+        if (u.protocol === 'http:' || u.protocol === 'https:') {
+          safeProductUrl = u.toString();
+        } else {
+          return NextResponse.json({ ok: false, error: 'invalid-product-url-protocol' }, { status: 400 });
+        }
+      } catch {
+        return NextResponse.json({ ok: false, error: 'invalid-product-url' }, { status: 400 });
+      }
+    }
+
     const newId = await prisma.$transaction(async (tx) => {
       const item = await tx.item.create({
         data: {
@@ -199,6 +215,7 @@ export async function POST(req: Request) {
           description: typeof description === 'string' ? description.trim() : '',
           imageUrl: imageUrl || null,
           createdById: me.id,
+          productUrl: safeProductUrl,
         },
       });
 
@@ -230,7 +247,20 @@ export async function POST(req: Request) {
       console.error('[notify:tag-peers]', e);
     }
 
-    return NextResponse.json({ ok: true, id: newId }, { status: 201 });
+    const include = {
+      comments: {
+        orderBy: { createdAt: 'desc' as const },
+        include: {
+          user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
+          votes: true,
+        },
+      },
+      tags: { include: { tag: true } },
+      createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
+    } as const;
+    const createdFull = await prisma.item.findUnique({ where: { id: newId }, include });
+    if (!createdFull) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 500 });
+    return NextResponse.json(shapeItem(createdFull, me.id), { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }

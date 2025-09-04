@@ -14,6 +14,7 @@ export type SpotlightItem = {
   name: string;
   description?: string;
   imageUrl?: string | null;
+  productUrl?: string | null;
   avg?: number | null;
   avgRating?: number | null;
   count?: number;
@@ -120,6 +121,8 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
   const avg = (item.avgRating ?? item.avg ?? 0) as number;
   const ratingCount = item.count ?? 0;
+  const isBrand = String(item.createdBy?.kind || "").toUpperCase() === "BRAND";
+  const showProductCta = isBrand && typeof item.productUrl === 'string' && (item.productUrl || '').length > 0;
 
   // mount'ta görünen comment alanlarını ölç
   useEffect(() => {
@@ -324,6 +327,23 @@ export default function SpotlightCard(props: SpotlightCardProps) {
               <Stars rating={avg} readOnly />
               <RatingPill avg={avg} count={ratingCount} />
             </div>
+            {showProductCta && (
+              <div className="mt-2 flex items-center justify-end">
+                <a
+                  href={item.productUrl as string}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="inline-flex items-center gap-2 px-3 h-8 rounded-lg border bg-white/80 dark:bg-gray-800/80 dark:border-gray-700 focus:outline-none focus:ring-2"
+                  title="Ürüne git"
+                >
+                  Ürüne git
+                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+                    <path d="M14 3h7v7M21 3l-9 9" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <path d="M5 21l9-9" stroke="currentColor" strokeWidth="2" fill="none"/>
+                  </svg>
+                </a>
+              </div>
+            )}
           </div>
         </div>
 

@@ -68,6 +68,7 @@ type ItemVM = {
   name: string;
   description: string;
   imageUrl?: string | null;
+    productUrl?: string | null;
   avg: number | null;
   avgRating?: number | null;
   count: number;

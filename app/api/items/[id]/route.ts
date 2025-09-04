@@ -21,6 +21,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
     name: i.name,
     description: i.description,
     imageUrl: i.imageUrl,
+    productUrl: i.productUrl ?? null,
     avg,
     avgRating: avg,
     count,
@@ -36,6 +37,7 @@ function shapeItem(i: any, currentUserId?: string | null) {
               ? (i.createdBy.name || 'Anonim')
               : (i.createdBy.maskedName ?? (i.createdBy.name ? maskName(i.createdBy.name) : 'Anonim')),
           avatarUrl: i.createdBy.avatarUrl ?? null,
+          kind: (i.createdBy as any)?.kind ?? null,
           verified: (i.createdBy as any)?.email === ADMIN_EMAIL,
         }
       : null,
@@ -70,9 +72,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const i = await prisma.item.findUnique({
       where: { id: params.id },
       include: {
-        comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } } } },
+        comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } } } },
         tags: { include: { tag: true } },
-        createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+        createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
       },
     });
     if (!i) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });

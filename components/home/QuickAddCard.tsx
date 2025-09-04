@@ -18,6 +18,7 @@ type QuickAddCardProps = {
     rating: number;
     comment: string;
     imageUrl: string | null;
+    productUrl: string | null; 
   }) => Promise<boolean> | boolean;
 
   /** etiket havuzları (trend + tüm etiketler); chip önerileri bunlardan gelir */
@@ -72,7 +73,8 @@ export default function QuickAddCard({
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-
+const [productUrl, setProductUrl] = useState<string>('');
+const isValidUrl = (u: string) => /^https?:\/\//i.test(u);
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [showSug, setShowSug] = useState(false);
@@ -83,6 +85,7 @@ export default function QuickAddCard({
   const [justAdded, setJustAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  
   // ---- rating pill text (same as CommentBox)
   const ratingPillText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
 
@@ -158,8 +161,12 @@ export default function QuickAddCard({
     containsBannedWord(comment) ||
     tags.some((t) => containsBannedWord(t));
 
-  const valid = name.trim().length > 0 && tags.length > 0 && (!ratingRequired || rating > 0) && !blocked;
-
+const valid =
+  name.trim().length > 0 &&
+  tags.length > 0 &&
+  (!ratingRequired || rating > 0) &&
+  !blocked &&
+  (productUrl.trim() === '' || isValidUrl(productUrl.trim()));
   // autofocus
   useEffect(() => {
     if (!open) return;
@@ -216,12 +223,19 @@ export default function QuickAddCard({
       containsBannedWord(name) ||
       containsBannedWord(comment) ||
       nextTags.some((t) => containsBannedWord(t));
+const pUrl = productUrl.trim();
+const badUrl = pUrl !== '' && !isValidUrl(pUrl);
+    const validNow =
+  name.trim().length > 0 &&
+  nextTags.length > 0 &&
+  (!ratingRequired || rating > 0) &&
+  !blockedNow &&
+  !badUrl;
 
-    const validNow = name.trim().length > 0 && nextTags.length > 0 && (!ratingRequired || rating > 0) && !blockedNow;
-    if (!validNow) {
-      setError('Zorunlu alanları doldurmalısın.');
-      return;
-    }
+if (!validNow) {
+  setError(badUrl ? 'Lütfen http(s) ile başlayan geçerli bir ürün linki gir.' : 'Zorunlu alanları doldurmalısın.');
+  return;
+}
     if (bannedPending) {
       setError('Etikette yasaklı kelime kullanılamaz.');
       // devam edelim; yasaklı olanları atlayıp kalanları alıyoruz
@@ -233,17 +247,18 @@ export default function QuickAddCard({
       setTags(nextTags);
       setTagInput('');
 
-      const ok = await onSubmit({
-        name: name.trim(),
-        desc: desc.trim(),
-        tags: nextTags,
-        rating,
-        comment: comment.trim(),
-        imageUrl,
-      });
+   const ok = await onSubmit({
+  name: name.trim(),
+  desc: desc.trim(),
+  tags: nextTags,
+  rating,
+  comment: comment.trim(),
+  imageUrl,
+  productUrl: pUrl || null,
+});
       if (ok) {
         formRef.current?.reset();
-        setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput('');
+       setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput(''); setProductUrl('');
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 1600);
         onClose?.();
@@ -312,7 +327,27 @@ export default function QuickAddCard({
               placeholder="kısa açıklama"
             />
           </div>
-
+{isBrandProfile && (
+  <div>
+    <label className="block text-sm font-medium mb-1">
+      Ürün linki <span className="opacity-60">(opsiyonel)</span>
+    </label>
+    <input
+      value={productUrl}
+      onChange={(e) => { setProductUrl(e.target.value); if (error) setError(null); }}
+      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent ${
+        productUrl && !isValidUrl(productUrl)
+          ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
+          : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'
+      }`}
+      placeholder="https://…"
+      inputMode="url"
+    />
+    {productUrl && !isValidUrl(productUrl) && (
+      <span className="text-xs text-red-600">Lütfen http(s) ile başlayan geçerli bir URL gir.</span>
+    )}
+  </div>
+)}
           <div>
             <label className="block text-sm font-medium mb-2">Görsel ekle <span className="opacity-60">(opsiyonel)</span></label>
             <ImageUploader value={imageUrl} onChange={setImageUrl} />
