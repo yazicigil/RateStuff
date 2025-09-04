@@ -49,7 +49,7 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
     <>
       {/* Avatar + pencil trigger */}
       <div className="relative inline-block">
-        <div className={clsx("rounded-full ring-4 ring-purple-500 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden", className)}>
+        <div className={clsx("rounded-full ring-4 ring-[var(--brand-accent)] shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden", className)}>
           {url ? (
             <Image src={url} alt={name ?? "Avatar"} fill className="object-cover rounded-full" />
           ) : (
@@ -88,7 +88,7 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
             aria-hidden="true"
           />
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="w-full max-w-md rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xl p-5">
+            <div className="w-full max-w-md rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold">Avatarı Düzenle</h3>
                 <button

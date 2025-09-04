@@ -190,18 +190,11 @@ export default async function BrandProfilePage() {
           }}
         >
           {/* Avatar editor directly (renders avatar + edit UI) */}
-          <div className="absolute -top-10 sm:-top-16 left-4 sm:left-6">
-            <div
-              className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-4 shadow-xl"
-              style={{ ['--tw-ring-color' as any]: 'var(--brand-accent)' }}
-            >
-              <EditAvatar
-                className="w-full h-full rounded-full"
-                initialUrl={user.avatarUrl ?? null}
-                name={user.name ?? user.email ?? "Brand"}
-              />
-            </div>
-          </div>
+          <EditAvatar
+            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
+            initialUrl={user.avatarUrl ?? null}
+            name={user.name ?? user.email ?? "Brand"}
+          />
 
           {/* Top row: name, email, bio */}
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
