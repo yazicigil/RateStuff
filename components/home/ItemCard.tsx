@@ -527,26 +527,30 @@ export default function ItemCard({
                         {(creatorName || 'u').charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <span className="flex-1 min-w-0 truncate">{creatorName}</span>
-                    {isVerified && (
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                        className="shrink-0 inline-block ml-1 w-4 h-4 align-middle"
-                      >
-                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                        <path
-                          d="M8.5 12.5l2 2 4-4"
-                          fill="none"
-                          stroke="#fff"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <span className="inline-flex flex-wrap items-baseline gap-1 min-w-0 max-w-full">
+                        <span className="whitespace-normal break-words">{creatorName}</span>
+                        {isVerified && (
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            className="shrink-0 inline-block -ml-0.5 w-4 h-4 align-middle"
+                          >
+                            <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                            <path
+                              d="M8.5 12.5l2 2 4-4"
+                              fill="none"
+                              stroke="#fff"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                      </span>
+                    </div>
                   </div>
                 )}
 
