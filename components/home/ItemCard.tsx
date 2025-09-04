@@ -59,8 +59,22 @@ export default function ItemCard({
   showCommentBox = true,
 }: ItemCardProps) {
   const avg = i?.avgRating ?? i?.avg ?? 0;
-  const isBrand = String((i?.createdBy as any)?.kind || "").toUpperCase() === "BRAND";
-  const isVerified = Boolean(i?.createdBy?.verified) || isBrand;
+  // be resilient to various API shapes (some lists don't include createdBy.kind directly)
+  const createdByAny = (i as any)?.createdBy || (i as any)?.user || {};
+  const rawKind =
+    (createdByAny?.kind) ??
+    (i as any)?.createdByKind ??
+    (i as any)?.user?.kind ??
+    (i as any)?.kind ??
+    null;
+  const isBrand =
+    typeof rawKind === 'string'
+      ? rawKind.toUpperCase() === 'BRAND'
+      : !!(createdByAny?.isBrand === true); // allow boolean flags if present
+  const isVerified =
+    Boolean(createdByAny?.verified) ||
+    isBrand ||
+    Boolean((i as any)?.createdByVerified === true);
   const productUrl: string | null = (i as any)?.productUrl || null;
   const showProductCta = isBrand && typeof productUrl === 'string' && productUrl.length > 0;
   const ownerId = (
