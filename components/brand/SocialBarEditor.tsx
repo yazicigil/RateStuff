@@ -39,9 +39,16 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url, label: label || undefined, visible: true, order: links.length }),
     });
+    const data = await res.json().catch(() => ({}));
     setSaving(false);
-    setUrl(""); setLabel("");
-    if (res.ok) load();
+    if (res.ok && data?.ok) {
+      setUrl(""); 
+      setLabel("");
+      load();
+    } else {
+      console.error("Add social link failed:", data);
+      alert("Bağlantı eklenemedi: " + (data?.error ?? res.statusText));
+    }
   }
 
   async function toggleVisibility(id: string, visible: boolean) {
