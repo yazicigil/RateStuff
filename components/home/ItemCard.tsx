@@ -514,39 +514,39 @@ export default function ItemCard({
                 {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
 
                 {(i.createdBy || creatorNameRaw) && (
-                  <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+                  <div className="mt-2 flex items-center gap-2 text-xs opacity-80 min-w-0">
                     {creatorAvatarRaw ? (
                       <img
                         src={creatorAvatarRaw}
                         alt={creatorName || 'u'}
-                        className="w-5 h-5 rounded-full object-cover"
+                        className="shrink-0 w-5 h-5 rounded-full object-cover"
                         title={creatorName || 'u'}
                       />
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={creatorName || 'u'}>
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]" title={creatorName || 'u'}>
                         {(creatorName || 'u').charAt(0).toUpperCase()}
                       </div>
                     )}
-                <span>{creatorName}</span>
-                {isVerified && (
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                    className="inline-block ml-1 w-4 h-4 align-middle"
-                  >
-                    <circle cx="12" cy="12" r="9" fill="#3B82F6" />
-                    <path
-                      d="M8.5 12.5l2 2 4-4"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                )}
+                    <span className="flex-1 truncate">{creatorName}</span>
+                    {isVerified && (
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        className="shrink-0 inline-block ml-1 w-4 h-4 align-middle"
+                      >
+                        <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                        <path
+                          d="M8.5 12.5l2 2 4-4"
+                          fill="none"
+                          stroke="#fff"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
                   </div>
                 )}
 

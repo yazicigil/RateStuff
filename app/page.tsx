@@ -1221,6 +1221,7 @@ if (!already) {
   <QuickAddCard
     open
     variant="rich"
+    autoCloseOnSuccess={true}
     prefill={{
       name: (qCommitted || qInput).trim() || undefined,
       tags: selectedTags.size ? Array.from(selectedTags) : undefined,

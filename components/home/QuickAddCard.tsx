@@ -47,6 +47,8 @@ type QuickAddCardProps = {
   };
   /** brand profillerinde rating opsiyonel olmalı */
   isBrandProfile?: boolean;
+  /** başarılı submit sonrası otomatik kapat (ana sayfada kullanılır) */
+  autoCloseOnSuccess?: boolean;
 };
 
 export default function QuickAddCard({
@@ -60,9 +62,11 @@ export default function QuickAddCard({
   signInHref = '/signin',
   prefill,
   isBrandProfile = false,
+  autoCloseOnSuccess = false,
 }: QuickAddCardProps & {
   prefill?: { name?: string; tags?: string[]; rating?: number };
   isBrandProfile?: boolean;
+  autoCloseOnSuccess?: boolean;
 }) {
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
@@ -258,10 +262,12 @@ if (!validNow) {
 });
       if (ok) {
         formRef.current?.reset();
-       setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput(''); setProductUrl('');
+        setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput(''); setProductUrl('');
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 1600);
-        onClose?.();
+        if (autoCloseOnSuccess) {
+          onClose?.();
+        }
       }
     } finally { setSubmitting(false); }
   }
