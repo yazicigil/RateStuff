@@ -48,21 +48,22 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
   return (
     <>
       {/* Avatar + pencil trigger */}
-      <div className={clsx("rounded-full ring-4 ring-purple-500 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden relative", className)}>
-        {url ? (
-          <Image src={url} alt={name ?? "Avatar"} fill className="object-cover rounded-full" />
-        ) : (
-          <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
-            {displayLetter}
-          </div>
-        )}
-
+      <div className="relative inline-block">
+        <div className={clsx("rounded-full ring-4 ring-purple-500 shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden", className)}>
+          {url ? (
+            <Image src={url} alt={name ?? "Avatar"} fill className="object-cover rounded-full" />
+          ) : (
+            <div className="w-full h-full grid place-items-center text-3xl font-semibold text-neutral-600 dark:text-neutral-400 rounded-full">
+              {displayLetter}
+            </div>
+          )}
+        </div>
         {/* Pencil button */}
         <button
           type="button"
           aria-label="Avatarı düzenle"
           onClick={() => setOpen(true)}
-          className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full grid place-items-center bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-900 backdrop-blur-sm"
+          className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full grid place-items-center bg-white/90 dark:bg-neutral-900/90 border border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-900 backdrop-blur-sm"
         >
           {/* inline pencil svg */}
           <svg width="16" height="16" viewBox="0 0 24 24" className="text-neutral-800 dark:text-neutral-100">
