@@ -1,4 +1,3 @@
-// components/brand/CardColorPicker.tsx
 'use client';
 import { useEffect, useId, useState } from 'react';
 
@@ -52,6 +51,8 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.setProperty('--brand-ink', ink);
       el.style.setProperty('--brand-ink-subtle', subtle);
       el.style.setProperty('--brand-chip-bg', chipBg);
+      // Expose a background color for item lists
+      el.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
     }
     if (shouldPersist) persist(hex);
   }
@@ -64,6 +65,7 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.removeProperty('--brand-ink');
       el.style.removeProperty('--brand-ink-subtle');
       el.style.removeProperty('--brand-chip-bg');
+      el.style.removeProperty('--brand-items-bg');
     }
     setColor('#FFFFFF');
     persist(null);
@@ -71,7 +73,7 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
 
   return (
     <div className={['mt-3 flex items-center gap-2 flex-wrap', className].filter(Boolean).join(' ')}>
-      <span className="text-xs text-neutral-500 dark:text-neutral-400">Kart rengi:</span>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400">Marka rengi:</span>
 
       {/* Hızlı palet */}
       {PALETTE.map((c) => (

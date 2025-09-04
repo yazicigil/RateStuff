@@ -125,19 +125,21 @@ export default async function BrandProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100">
       {/* Inline Header */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2 sticky top-0 z-20 backdrop-blur-sm bg-white/70 dark:bg-[#0b1220]/60 border-b border-neutral-200/60 dark:border-white/10">
-        <div className="flex items-center justify-between">
-          <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
-            {/* Public SVG logo rendered as Image; color-adapt via className */}
-            <Image
-              src="/forbrandslogo.svg"
-              alt="RateStuff for Brands"
-              priority
-              className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
-            />
-          </Link>
-          <div className="flex items-center gap-2">
-            <NotificationsDropdown />
+      <div className="sticky top-0 z-20 backdrop-blur-sm bg-white/70 dark:bg-[#0b1220]/60 border-b border-neutral-200/60 dark:border-white/10">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
+          <div className="flex items-center justify-between">
+            <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
+              {/* Public SVG logo rendered as Image; color-adapt via className */}
+              <Image
+                src="/forbrandslogo.svg"
+                alt="RateStuff for Brands"
+                priority
+                className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
+              />
+            </Link>
+            <div className="flex items-center gap-2">
+              <NotificationsDropdown />
+            </div>
           </div>
         </div>
       </div>
@@ -163,10 +165,8 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="rounded-3xl border border-white/60 dark:border-white/10 bg-white/70 dark:bg-[#0b1220]/60 backdrop-blur-xl shadow-lg p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0"
+          className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0"
           style={{
-            backgroundColor: 'var(--brand-card-bg, rgba(255,255,255,0.7))',
-            borderColor: 'var(--brand-card-border, rgba(255,255,255,0.6))',
             color: 'var(--brand-ink, inherit)',
           }}
         >

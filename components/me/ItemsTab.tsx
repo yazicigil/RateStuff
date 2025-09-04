@@ -148,7 +148,13 @@ export default function ItemsTab({
 
 
   return (
-    <section className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+    <section
+      className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden"
+      style={{
+        backgroundColor: 'var(--brand-items-bg, transparent)',
+        color: 'var(--brand-ink, inherit)'
+      }}
+    >
       <div className="px-4 pb-4 pt-3 space-y-3">
         {loading ? (
           <Skeleton rows={4} />
