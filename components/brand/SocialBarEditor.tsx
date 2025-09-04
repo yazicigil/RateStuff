@@ -11,7 +11,7 @@ type SocialLink = {
   visible: boolean;
 };
 
-export default function SocialBarEditor({ userId }: { userId: string }) {
+export default function SocialBarEditor({ userId, onPreview, onClose }: { userId: string; onPreview?: (links: SocialLink[]) => void; onClose?: () => void }) {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [url, setUrl] = useState("");
   const [label, setLabel] = useState("");
@@ -25,7 +25,10 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
   async function load() {
     const res = await fetch(`/api/users/${userId}/socials`, { cache: "no-store" });
     const data = await res.json();
-    if (data?.ok) setLinks(data.items);
+    if (data?.ok) {
+      setLinks(data.items);
+      onPreview?.(data.items as SocialLink[]);
+    }
   }
 
   useEffect(() => { load(); }, [userId]);
@@ -44,6 +47,7 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
     if (res.ok && data?.ok) {
       setUrl(""); 
       setLabel("");
+      onPreview?.([{ id: data.item.id, url: data.item.url, label: data.item.label, platform: data.item.platform, order: data.item.order, visible: data.item.visible }, ...links]);
       load();
     } else {
       console.error("Add social link failed:", data);
@@ -57,11 +61,21 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ visible }),
     });
+    setLinks(prev => {
+      const next = prev.map(x => x.id === id ? { ...x, visible } : x);
+      onPreview?.(next);
+      return next;
+    });
     load();
   }
 
   async function remove(id: string) {
     await fetch(`/api/socials/${id}`, { method: "DELETE" });
+    setLinks(prev => {
+      const next = prev.filter(x => x.id !== id);
+      onPreview?.(next);
+      return next;
+    });
     load();
   }
 
@@ -76,6 +90,7 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
     const copy = [...sorted];
     [copy[idx].order, copy[swapIdx].order] = [copy[swapIdx].order, copy[idx].order];
     setLinks(copy);
+    onPreview?.(copy);
 
     // persist both items
     await Promise.all([
@@ -99,18 +114,34 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(fields),
     });
+    setLinks(prev => {
+      const next = prev.map(x => x.id === id ? { ...x, ...fields } : x);
+      onPreview?.(next);
+      return next;
+    });
     load();
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 rounded-xl border border-zinc-300/40 p-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium opacity-80">Sosyal bağlantılar</h3>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { onClose?.(); }}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm border border-zinc-300/50 hover:border-zinc-300/80 hover:bg-zinc-200/20 transition"
+          >
+            <span>Kaydet</span>
+          </button>
+        </div>
+      </div>
       <form onSubmit={addLink} className="flex flex-wrap items-end gap-3">
         <div className="flex-1 min-w-60">
           <label className="text-sm opacity-70">URL</label>
           <input
             type="url"
             required
-            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none"
+            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none focus:ring-1 focus:ring-emerald-500/40"
             placeholder="https://instagram.com/marka"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
@@ -119,7 +150,7 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
         <div className="w-56">
           <label className="text-sm opacity-70">Etiket (opsiyonel)</label>
           <input
-            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none"
+            className="w-full rounded-xl border border-zinc-300/50 bg-white/5 px-3 py-2 outline-none focus:ring-1 focus:ring-emerald-500/40"
             placeholder="Instagram"
             value={label}
             onChange={(e) => setLabel(e.target.value)}
@@ -162,19 +193,19 @@ export default function SocialBarEditor({ userId }: { userId: string }) {
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => move(l.id, -1)}
-                  className="rounded-lg px-2 py-1 border border-zinc-300/50"
+                  className="rounded-lg px-2 py-1 border border-zinc-300/50 hover:bg-zinc-200/20"
                   aria-label="Yukarı taşı"
                   disabled={i === 0}
                 >↑</button>
                 <button
                   onClick={() => move(l.id, +1)}
-                  className="rounded-lg px-2 py-1 border border-zinc-300/50"
+                  className="rounded-lg px-2 py-1 border border-zinc-300/50 hover:bg-zinc-200/20"
                   aria-label="Aşağı taşı"
                   disabled={i === sorted.length - 1}
                 >↓</button>
                 <button
                   onClick={() => toggleVisibility(l.id, !l.visible)}
-                  className={`rounded-lg px-2 py-1 border ${l.visible ? "border-amber-500/60" : "border-zinc-300/50"}`}
+                  className={`rounded-lg px-2 py-1 border ${l.visible ? "border-amber-500/60" : "border-zinc-300/50 hover:bg-zinc-200/20"}`}
                   aria-label={l.visible ? "Gizle" : "Göster"}
                 >
                   {l.visible ? "Gizle" : "Göster"}
