@@ -200,7 +200,7 @@ export default function ItemCard({
 
   return (
     <div
-      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
+      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 text-neutral-900 dark:text-neutral-100 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
       style={{
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
       }}
@@ -230,7 +230,7 @@ export default function ItemCard({
               <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
-          <div className="[--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
+          <div className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
             <SharePopover
               open={openShareId === i.id}
               itemId={i.id}
@@ -255,7 +255,7 @@ export default function ItemCard({
           >
             ⋯
           </button>
-          <div className="[--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
+          <div className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
             <OptionsPopover
               open={openMenuId === i.id}
               itemId={i.id}
@@ -398,10 +398,7 @@ export default function ItemCard({
                 {i.edited && (
                   <span
                     className="text-[11px] px-2 py-0.5 mt-1 rounded-full"
-                    style={{
-                      backgroundColor: 'var(--brand-chip-bg)',
-                      color: 'var(--brand-ink)'
-                    }}
+                    style={{ backgroundColor: 'var(--brand-chip-bg)' }}
                   >
                     düzenlendi
                   </span>
