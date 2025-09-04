@@ -147,39 +147,36 @@ export default async function BrandProfilePage() {
         }}
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
-          <div className="relative flex items-center justify-between">
-            {/* Left cluster (arrow + logo). On mobile, logo centered via absolute positioning */}
-            <div className="flex items-center gap-2">
+          <div className="flex items-center">
+            {/* Left: back button (fixed width so center never overlaps) */}
+            <div className="shrink-0 w-10 flex items-center">
               <Link href="/" aria-label="Ana sayfa" className="p-2 rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
               </Link>
-              {/* Logo: left aligned on >=sm, centered on mobile */}
-              <Link
-                href="/brand"
-                className="flex items-center"
-                aria-label="RateStuff for Brands"
-              >
+            </div>
+
+            {/* Center: logo (centered on mobile, left-aligned from sm up) */}
+            <div className="flex-1 flex justify-center sm:justify-start">
+              <Link href="/brand" className="flex items-center" aria-label="RateStuff for Brands">
                 <Image
                   src="/forbrandslogo.svg"
                   alt="RateStuff for Brands"
                   priority
-                  className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert absolute left-1/2 -translate-x-1/2 sm:static sm:translate-x-0"
+                  className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
                 />
               </Link>
             </div>
 
-            {/* Right actions */}
-            <div className="flex items-center gap-2">
+            {/* Right: actions (fixed width cluster) */}
+            <div className="shrink-0 flex items-center gap-2 w-auto">
               <NotificationsDropdown />
-              {/* Sign out – same style silhouette, red themed */}
               <Link
                 href="/api/auth/signout?callbackUrl=/"
                 aria-label="Çıkış yap"
                 title="Çıkış yap"
-                className="h-9 w-9 grid place-items-center rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-red-50 dark:hover:bg-red-500/10"
-                style={{ color: '#b91c1c' }}
+                className="h-9 w-9 grid place-items-center rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-red-500/10 text-red-600 dark:text-red-400"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
