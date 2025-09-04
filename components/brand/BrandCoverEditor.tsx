@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import dynamic from "next/dynamic";
 
 // ImageUploader lives at components/common/ImageUploader per user request
@@ -20,6 +21,9 @@ export default function BrandCoverEditor({
   const [coverUrl, setCoverUrl] = useState(initialCoverUrl);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   async function save() {
     if (!brandId) { setOpen(false); return; }
@@ -63,8 +67,7 @@ export default function BrandCoverEditor({
           </svg>
       </button>
 
-      {/* Modal */}
-      {open && (
+      {open && mounted && createPortal(
         <>
           <div className="fixed inset-0 z-[10020] bg-black/50 backdrop-blur-sm" aria-hidden="true" onClick={() => setOpen(false)} />
           <div className="fixed inset-0 z-[10030] flex items-center justify-center">
@@ -101,7 +104,8 @@ export default function BrandCoverEditor({
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   );

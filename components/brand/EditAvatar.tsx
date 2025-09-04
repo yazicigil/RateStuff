@@ -3,6 +3,7 @@ import * as React from "react";
 import Image from "next/image";
 import clsx from "clsx";
 import ImageUploader from "@/components/common/ImageUploader";
+import { createPortal } from "react-dom";
 
 type Props = {
   className?: string;
@@ -45,6 +46,9 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
     setOpen(false);
   };
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
   return (
     <>
       {/* Avatar + pencil trigger */}
@@ -80,7 +84,7 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
       </div>
 
       {/* Modal */}
-      {open && (
+      {open && mounted && createPortal(
         <>
           <div
             className="fixed inset-0 z-[10040] bg-black/50 backdrop-blur-sm"
@@ -136,7 +140,8 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
               </div>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </>
   );
