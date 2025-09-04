@@ -147,26 +147,41 @@ export default async function BrandProfilePage() {
         }}
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
-          <div className="flex items-center justify-between">
-            <Link href="/" aria-label="Ana sayfa">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-2 text-neutral-700 dark:text-neutral-200">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-            <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
-              {/* Public SVG logo rendered as Image; color-adapt via className */}
-              <Image
-                src="/forbrandslogo.svg"
-                alt="RateStuff for Brands"
-                priority
-                className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
-              />
-            </Link>
+          <div className="relative flex items-center justify-between">
+            {/* Left cluster (arrow + logo). On mobile, logo centered via absolute positioning */}
+            <div className="flex items-center gap-2">
+              <Link href="/" aria-label="Ana sayfa" className="p-2 rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </Link>
+              {/* Logo: left aligned on >=sm, centered on mobile */}
+              <Link
+                href="/brand"
+                className="flex items-center"
+                aria-label="RateStuff for Brands"
+              >
+                <Image
+                  src="/forbrandslogo.svg"
+                  alt="RateStuff for Brands"
+                  priority
+                  className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert absolute left-1/2 -translate-x-1/2 sm:static sm:translate-x-0"
+                />
+              </Link>
+            </div>
+
+            {/* Right actions */}
             <div className="flex items-center gap-2">
               <NotificationsDropdown />
-              {/* Sign out */}
-              <Link href="/api/auth/signout?callbackUrl=/" aria-label="Çıkış yap" title="Çıkış yap" className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
+              {/* Sign out – same style silhouette, red themed */}
+              <Link
+                href="/api/auth/signout?callbackUrl=/"
+                aria-label="Çıkış yap"
+                title="Çıkış yap"
+                className="h-9 w-9 grid place-items-center rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-red-50 dark:hover:bg-red-500/10"
+                style={{ color: '#b91c1c' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9l3 3m0 0-3 3m3-3H3"/>
                 </svg>
