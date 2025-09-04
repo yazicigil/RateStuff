@@ -218,7 +218,7 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
@@ -234,18 +234,20 @@ export default async function BrandProfilePage() {
               <VerifiedBadge />
             </div>
 
-            <SocialBar userId={user.id} canEdit className="pt-1" />
-
-            {/* Bio inline view/edit */}
-            <div className="pt-1 text-sm leading-6 max-w-prose">
-              <BrandBioInline
-                brandId={brand?.id as string}
-                initialBio={brand?.bio ?? ""}
-                isOwner
-              />
-              {brand?.active === false && (
-                <p className="mt-1 text-xs text-amber-500">(pasif)</p>
-              )}
+            {/* Below the title, allow content to extend under avatar on mobile */}
+            <div className="-ml-16 sm:ml-0 pl-1 sm:pl-0 mt-1 sm:mt-0">
+              <SocialBar userId={user.id} canEdit className="pt-1" />
+              {/* Bio inline view/edit */}
+              <div className="pt-1 text-sm leading-6 max-w-prose">
+                <BrandBioInline
+                  brandId={brand?.id as string}
+                  initialBio={brand?.bio ?? ""}
+                  isOwner
+                />
+                {brand?.active === false && (
+                  <p className="mt-1 text-xs text-amber-500">(pasif)</p>
+                )}
+              </div>
             </div>
           </div>
 
