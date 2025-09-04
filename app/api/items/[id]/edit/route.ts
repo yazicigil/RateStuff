@@ -25,6 +25,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const nextImageUrl =
       rawImage === undefined ? undefined : rawImage === "" ? null : String(rawImage);
 
+    // productUrl: undefined => dokunma, "" or null => kaldır (null), string => validate
+    const rawProduct = body.productUrl;
+    const nextProductUrl =
+      rawProduct === undefined
+        ? undefined
+        : rawProduct === "" || rawProduct === null
+        ? null
+        : String(rawProduct);
+
     // Basit validasyon
     if (typeof description === "string" && description.length > 500) {
       return NextResponse.json(
@@ -37,6 +46,28 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         { ok: false, error: "imageUrl çok uzun (≤1024 karakter)" },
         { status: 400 }
       );
+    }
+    if (typeof nextProductUrl === "string") {
+      if (nextProductUrl.length > 2048) {
+        return NextResponse.json(
+          { ok: false, error: "productUrl çok uzun (≤2048 karakter)" },
+          { status: 400 }
+        );
+      }
+      try {
+        const u = new URL(nextProductUrl);
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          return NextResponse.json(
+            { ok: false, error: "productUrl protokolü http/https olmalı" },
+            { status: 400 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { ok: false, error: "geçersiz productUrl" },
+          { status: 400 }
+        );
+      }
     }
 
     // Yetki + mevcut görsel bilgisi
@@ -54,6 +85,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const data: Record<string, any> = {};
     if (description !== undefined) data.description = description;
     if (nextImageUrl !== undefined) data.imageUrl = nextImageUrl;
+    if (nextProductUrl !== undefined) data.productUrl = nextProductUrl;
     if (Object.keys(data).length) data.editedAt = new Date();
 
     await prisma.$transaction(async (tx) => {

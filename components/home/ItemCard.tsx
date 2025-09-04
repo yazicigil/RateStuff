@@ -103,6 +103,8 @@ export default function ItemCard({
   const [err, setErr] = useState<string | null>(null);
   // Tag editor input (Android/IME friendly)
   const [tagEditInput, setTagEditInput] = useState('');
+  const [productUrlDraft, setProductUrlDraft] = useState<string>(i?.productUrl ?? "");
+  const isValidUrl = useCallback((u: string) => /^https?:\/\//i.test(u), []);
 
   const addTag = useCallback((t: string) => {
     const v = t.trim().toLowerCase();
@@ -173,7 +175,11 @@ export default function ItemCard({
         }
       }
 
-      const body = { description: descDraft, tags: nextTags, imageUrl: imgDraft };
+      const pUrl = productUrlDraft.trim();
+      if (pUrl && !isValidUrl(pUrl)) {
+        throw new Error('Geçerli bir ürün linki gir (http/https).');
+      }
+      const body = { description: descDraft, tags: nextTags, imageUrl: imgDraft, productUrl: pUrl || "" };
       const res = await fetch(`/api/items/${i.id}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -186,6 +192,8 @@ export default function ItemCard({
       // state'i eşitle ve inputu temizle
       setTagsDraft(nextTags);
       setTagEditInput('');
+      // server state güncellendi, draftları eşitle
+      setProductUrlDraft(pUrl);
       setEditing(false);
       onItemChanged && onItemChanged();
     } catch (e: any) {
@@ -193,7 +201,7 @@ export default function ItemCard({
     } finally {
       setSaving(false);
     }
-  }, [descDraft, tagsDraft, tagEditInput, imgDraft, i?.id, onItemChanged]);
+  }, [descDraft, tagsDraft, tagEditInput, imgDraft, productUrlDraft, isValidUrl, i?.id, onItemChanged]);
 
   const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
@@ -216,6 +224,25 @@ export default function ItemCard({
 
       {/* TOP RIGHT: Share + Options (buttons) */}
       <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
+        {showProductCta && (
+          <a
+            href={productUrl as string}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="inline-flex items-center gap-2 h-8 px-3 rounded-full border text-sm font-medium shadow-sm hover:-translate-y-0.5 transition will-change-transform focus:outline-none focus:ring-2"
+            style={{
+              backgroundColor: 'var(--brand-elev-strong)',
+              borderColor: 'var(--brand-elev-bd)',
+              color: 'var(--brand-ink)',
+              ['--tw-ring-color' as any]: 'var(--brand-focus)'
+            }}
+            aria-label="Ürüne git"
+            title="Ürüne git"
+          >
+            <img src="/assets/icon/shop.svg" alt="" className="w-4 h-4" />
+            <span className="hidden sm:inline">Ürüne git</span>
+          </a>
+        )}
         <div className="relative">
           <button
             className="w-8 h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
@@ -245,7 +272,6 @@ export default function ItemCard({
             />
           </div>
         </div>
-
         <div className="relative">
           <button
             className="w-8 h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
@@ -311,6 +337,29 @@ export default function ItemCard({
               <div className="mt-1 text-[11px] opacity-60">{descDraft.length}/140</div>
             </div>
 
+            {/* Product URL (optional) */}
+            {isBrand && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium mb-1">
+                  Ürün linki <span className="opacity-60">(opsiyonel)</span>
+                </label>
+                <input
+                  value={productUrlDraft}
+                  onChange={(e) => { setProductUrlDraft(e.target.value); if (err) setErr(null); }}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 ${
+                    productUrlDraft && !isValidUrl(productUrlDraft)
+                      ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
+                      : 'focus:ring-2 focus:ring-emerald-400'
+                  }`}
+                  placeholder="https://…"
+                  inputMode="url"
+                />
+                {productUrlDraft && !isValidUrl(productUrlDraft) && (
+                  <div className="mt-1 text-xs text-red-600 dark:text-red-400">Lütfen http(s) ile başlayan geçerli bir URL gir.</div>
+                )}
+              </div>
+            )}
+
             {/* Tags (QuickAddCard style; no suggestions) */}
             <div className="mt-3">
               <label className="block text-sm font-medium mb-1">Etiketler</label>
@@ -360,6 +409,7 @@ export default function ItemCard({
                   setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
                   setImgDraft(i?.imageUrl ?? '');
                   setTagEditInput('');
+                  setProductUrlDraft(i?.productUrl ?? '');
                 }}
               >
                 İptal
@@ -479,28 +529,6 @@ export default function ItemCard({
                   <Stars rating={avg} readOnly />
                   <RatingPill avg={i.avgRating ?? i.avg} count={i.count} />
                 </div>
-                {showProductCta && (
-                  <div className="mt-2 flex items-center justify-end">
-                    <a
-                      href={productUrl as string}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      className="inline-flex items-center gap-2 px-3 h-8 rounded-lg border focus:outline-none focus:ring-2"
-                      style={{
-                        backgroundColor: 'var(--brand-elev-strong)',
-                        borderColor: 'var(--brand-elev-bd)',
-                        color: 'var(--brand-ink)',
-                        ['--tw-ring-color' as any]: 'var(--brand-focus)'
-                      }}
-                    >
-                      Ürüne git
-                      <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
-                        <path d="M14 3h7v7M21 3l-9 9" stroke="currentColor" strokeWidth="2" fill="none"/>
-                        <path d="M5 21l9-9" stroke="currentColor" strokeWidth="2" fill="none"/>
-                      </svg>
-                    </a>
-                  </div>
-                )}
               </div>
             </div>
 

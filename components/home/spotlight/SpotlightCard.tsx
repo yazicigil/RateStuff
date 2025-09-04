@@ -163,6 +163,25 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
       {/* Share / Options (yeni popoverlar) */}
       <div className="rs-pop absolute top-12 right-3 z-20 flex flex-col gap-2">
+        {showProductCta && (
+          <a
+            href={item.productUrl as string}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className="inline-flex items-center gap-2 h-8 px-3 rounded-full border text-sm font-medium shadow-sm hover:-translate-y-0.5 transition will-change-transform focus:outline-none focus:ring-2"
+            style={{
+              backgroundColor: 'var(--brand-elev-strong)',
+              borderColor: 'var(--brand-elev-bd)',
+              color: 'var(--brand-ink)',
+              ['--tw-ring-color' as any]: 'var(--brand-focus)'
+            }}
+            aria-label="Ürüne git"
+            title="Ürüne git"
+          >
+            <img src="/assets/icon/shop.svg" alt="" className="w-4 h-4" />
+            <span className="hidden sm:inline">Ürüne git</span>
+          </a>
+        )}
         {/* Share */}
         <div className="relative">
           <button
@@ -327,23 +346,6 @@ export default function SpotlightCard(props: SpotlightCardProps) {
               <Stars rating={avg} readOnly />
               <RatingPill avg={avg} count={ratingCount} />
             </div>
-            {showProductCta && (
-              <div className="mt-2 flex items-center justify-end">
-                <a
-                  href={item.productUrl as string}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-2 px-3 h-8 rounded-lg border bg-white/80 dark:bg-gray-800/80 dark:border-gray-700 focus:outline-none focus:ring-2"
-                  title="Ürüne git"
-                >
-                  Ürüne git
-                  <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
-                    <path d="M14 3h7v7M21 3l-9 9" stroke="currentColor" strokeWidth="2" fill="none"/>
-                    <path d="M5 21l9-9" stroke="currentColor" strokeWidth="2" fill="none"/>
-                  </svg>
-                </a>
-              </div>
-            )}
           </div>
         </div>
 
