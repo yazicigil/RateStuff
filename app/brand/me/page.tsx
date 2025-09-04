@@ -75,6 +75,7 @@ export default async function BrandProfilePage() {
       name: true,
       description: true,
       imageUrl: true,
+      productUrl: true,
       createdAt: true,
       tags: { select: { tag: { select: { name: true } } } },
     },
@@ -114,6 +115,7 @@ export default async function BrandProfilePage() {
     name: it.name,
     description: it.description ?? '',
     imageUrl: it.imageUrl ?? null,
+    productUrl: (it as any).productUrl ?? null,
     avg: avgMap.get(it.id) ?? null,
     avgRating: avgMap.get(it.id) ?? null,
     // Ratings/comment count normalized for ItemCard/RatingPill
@@ -163,7 +165,7 @@ export default async function BrandProfilePage() {
       </div>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
-        <div className="relative mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
+        <div className="relative z-20 mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
           {brand?.coverImageUrl ? (
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
@@ -183,18 +185,20 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-24 sm:pl-36 md:pl-40 relative -translate-y-1 sm:translate-y-0"
+          className="relative z-10 rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
           }}
         >
           {/* Avatar editor directly (renders avatar + edit UI) */}
-          <EditAvatar
-            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
-            initialUrl={user.avatarUrl ?? null}
-            name={user.name ?? user.email ?? "Brand"}
-          />
+          <div className="absolute -top-10 sm:-top-12 md:-top-14 left-4 sm:left-6 md:left-8 z-30">
+            <EditAvatar
+              className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
+              initialUrl={user.avatarUrl ?? null}
+              name={user.name ?? user.email ?? "Brand"}
+            />
+          </div>
 
           {/* Top row: name, email, bio */}
           <div className="mt-0 flex flex-col gap-2 md:pr-2">

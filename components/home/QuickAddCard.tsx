@@ -480,19 +480,28 @@ if (!validNow) {
                     pageNext();
                     return;
                   }
+                  // Enter veya virgül: mevcut davranış
                   if ((e.key === 'Enter' || e.key === ',') && tags.length < 3) {
                     e.preventDefault();
                     addTagsFromInput();
                     setShowSug(false);
+                    return;
                   } else if (e.key === 'Enter' || e.key === ',') {
                     e.preventDefault();
-                  } else if (e.key === 'Escape') {
+                    return;
+                  }
+                  if (e.key === 'Escape') {
                     setShowSug(false);
                   } else if (e.key === 'Backspace' && tagInput.trim() === '' && tags.length > 0) {
                     // boşken backspace ile son etiketi kaldır
                     setTags((prev) => prev.slice(0, -1));
-                    // girişte bir şey olmadığından default backspace davranışı gereksiz
                     e.preventDefault();
+                  }
+                }}
+                onBlur={() => {
+                  if (tagInput.trim() && tags.length < 3) {
+                    addTagsFromInput();
+                    setShowSug(false);
                   }
                 }}
                 onFocus={() => setShowSug(true)}
