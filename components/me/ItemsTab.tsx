@@ -82,6 +82,23 @@ export default function ItemsTab({
   // Optimistic removal for delete
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
+  // Brand theme detection
+  const [brandTheme, setBrandTheme] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const compute = () => {
+      const cs = getComputedStyle(root);
+      const a = cs.getPropertyValue('--brand-accent').trim();
+      const b = cs.getPropertyValue('--brand-items-bg').trim();
+      setBrandTheme(Boolean(a || b));
+    };
+    compute();
+    const mo = new MutationObserver(compute);
+    mo.observe(root, { attributes: true, attributeFilter: ['style'] });
+    return () => mo.disconnect();
+  }, []);
+
   const notifyFn = React.useCallback((msg: string) => {
     try {
       if (typeof notify === 'function') return notify(msg);
@@ -162,11 +179,12 @@ export default function ItemsTab({
             <Link
               href="/#quick-add"
               prefetch={false}
-              className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}              aria-label="Hızlı ekle"
+              className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+              style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+              aria-label="Hızlı ekle"
               title="Hızlı ekle"
             >
-              <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
+              <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
                 <span className="text-5xl leading-none">+</span>
                 <span className="text-base font-medium">Ekle</span>
               </div>
@@ -190,6 +208,7 @@ style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-
                     })
                   }
                   onClear={() => setItemsSelected(new Set())}
+                  brandTheme={brandTheme}
                 />
               </div>
             )}
@@ -204,11 +223,12 @@ style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-
                     key={`add-m-${ix}`}
                     href="/#quick-add"
                     prefetch={false}
-                    className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                    aria-label="Hızlı ekle"
+                    className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                    style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                    aria-label="Hızlı ekle"
                     title="Hızlı ekle"
                   >
-                    <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
+                    <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
                       <span className="text-4xl leading-none">+</span>
                       <span className="text-sm font-medium">Ekle</span>
                     </div>
@@ -271,11 +291,12 @@ style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-
                       key={`add-left-${ix}`}
                       href="/#quick-add"
                       prefetch={false}
-                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                      aria-label="Hızlı ekle"
+                      className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                      style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                      aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
-                      <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
+                      <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
                         <span className="text-4xl leading-none">+</span>
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
@@ -335,11 +356,12 @@ style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-
                       key={`add-right-${ix}`}
                       href="/#quick-add"
                       prefetch={false}
-                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                      aria-label="Hızlı ekle"
+                      className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                      style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                      aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
-                      <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
+                      <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
                         <span className="text-4xl leading-none">+</span>
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
@@ -417,12 +439,14 @@ function TagPager({
   selected,
   onToggle,
   onClear,
+  brandTheme = false,
 }: {
   tags: string[];
   trending: string[];
   selected: Set<string>;
   onToggle: (t: string) => void;
   onClear: () => void;
+  brandTheme?: boolean;
 }) {
   const [page, setPage] = React.useState(0);
   const [pages, setPages] = React.useState<string[][]>([]);
@@ -560,14 +584,14 @@ function TagPager({
       <div className="pr-12 min-h-[32px] transition-[padding] duration-150 ease-out" ref={containerRef} style={{ paddingLeft: canPrev ? 48 : 0 }}>
         <div className="flex items-center gap-2 overflow-hidden">
           <button
-            className="h-8 px-3 py-0 rounded-full border text-xs shrink-0"
+            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (selected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             onClick={onClear}
             onDoubleClick={onClear}
-            style={
-  selected.size === 0
-    ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-    : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-}
+            style={ brandTheme ? (
+              selected.size === 0
+                ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+                : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+            ) : undefined }
           >
             Hepsi
           </button>
@@ -579,14 +603,14 @@ function TagPager({
               return (
                 <button
                   key={t}
-                  className="inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0"
+                  className={`inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (isSel ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
                   onClick={() => onToggle(t)}
                   title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                 style={
-  isSel
-    ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-    : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-}
+                  style={ brandTheme ? (
+                    isSel
+                      ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+                      : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+                  ) : undefined }
                 >
                   <span>#{t}</span>
                 </button>
