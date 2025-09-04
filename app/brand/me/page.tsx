@@ -192,16 +192,16 @@ export default async function BrandProfilePage() {
             recommendText="Önerilen boyut: 1600x400px (JPG/PNG, max 2MB)"
           />
         </div>
-      </div>
-      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
-        {/* Avatar: positioned relative to container, overlapping cover & hero */}
-        <div className="absolute left-4 sm:left-6 md:left-8 top-56 sm:top-64 md:top-72 lg:top-80 -translate-y-1/2 z-30">
+        {/* Avatar anchored to the cover bottom-left */}
+        <div className="absolute left-4 sm:left-6 md:left-8 bottom-0 translate-y-1/2 z-30">
           <EditAvatar
             className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
             initialUrl={user.avatarUrl ?? null}
             name={user.name ?? user.email ?? "Brand"}
           />
         </div>
+      </div>
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
         <div
           id="brand-hero-card"
