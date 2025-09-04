@@ -12,3 +12,13 @@
 
 /* page container defaults */
 body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
+
+/* Header theme variables */
+:root {
+  --rs-header-bg: rgba(255, 255, 255, 0.70);
+  --rs-header-border: rgba(0, 0, 0, 0.12);
+}
+.dark {
+  --rs-header-bg: rgba(11, 18, 32, 0.60); /* #0b1220 @ 60% */
+  --rs-header-border: rgba(255, 255, 255, 0.10);
+}

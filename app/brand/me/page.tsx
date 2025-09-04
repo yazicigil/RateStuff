@@ -125,7 +125,10 @@ export default async function BrandProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100">
       {/* Inline Header */}
-      <div className="sticky top-0 z-20 backdrop-blur-sm bg-white/70 dark:bg-[#0b1220]/60 border-b border-neutral-200/60 dark:border-white/10">
+      <div
+        className="sticky top-0 z-20 backdrop-blur-sm border-b"
+        style={{ backgroundColor: 'var(--rs-header-bg)', borderColor: 'var(--rs-header-border)' }}
+      >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
           <div className="flex items-center justify-between">
             <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">

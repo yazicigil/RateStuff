@@ -32,33 +32,45 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
   function apply(hex: string, shouldPersist = true) {
     setColor(hex);
     const el = document.getElementById(targetId);
+    const root = document.documentElement; // <-- write vars here so scope is global
+
+    // If we cannot find the target element, we still proceed with global vars
+    const bg = hexToRgba(hex, 0.65);
+    const border = hexToRgba(hex, 0.35);
+
+    // Compute effective background from the hero card (or document body if missing)
+    const base = el ? getEffectiveBackground(el) : getEffectiveBackground(document.body as HTMLElement);
+    const finalBg = blendRgbaOver(bg, base); // {r,g,b}
+
+    // Pick best ink color (white or dark) based on WCAG contrast
+    const ink = pickInk(finalBg); // '#0B1220' or '#FFFFFF'
+    const subtle = withAlpha(ink, 0.7);
+    const chipBg = `rgba(${finalBg.r},${finalBg.g},${finalBg.b},0.08)`;
+
+    // --- GLOBAL (root) variables — used by ItemsTab & others ---
+    root.style.setProperty('--brand-ink', ink);
+    root.style.setProperty('--brand-ink-subtle', subtle);
+    root.style.setProperty('--brand-chip-bg', chipBg);
+    root.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
+
+    // --- Local (hero card) variables — kept for backwards-compat ---
     if (el) {
-      // Base glass variables
-      const bg = hexToRgba(hex, 0.65);
-      const border = hexToRgba(hex, 0.35);
       el.style.setProperty('--brand-card-bg', bg);
       el.style.setProperty('--brand-card-border', border);
-
-      // Compute effective background and blended card color
-      const base = getEffectiveBackground(el); // {r,g,b}
-      const finalBg = blendRgbaOver(bg, base); // {r,g,b}
-
-      // Pick best ink color (white or dark) based on WCAG contrast
-      const ink = pickInk(finalBg); // '#0B1220' or '#FFFFFF'
-      const subtle = withAlpha(ink, 0.7);
-      const chipBg = `rgba(${finalBg.r},${finalBg.g},${finalBg.b},0.08)`;
-
       el.style.setProperty('--brand-ink', ink);
       el.style.setProperty('--brand-ink-subtle', subtle);
       el.style.setProperty('--brand-chip-bg', chipBg);
-      // Expose a background color for item lists
       el.style.setProperty('--brand-items-bg', `rgb(${finalBg.r},${finalBg.g},${finalBg.b})`);
     }
+
     if (shouldPersist) persist(hex);
   }
 
   function reset() {
     const el = document.getElementById(targetId);
+    const root = document.documentElement;
+
+    // Clear local (hero) vars
     if (el) {
       el.style.removeProperty('--brand-card-bg');
       el.style.removeProperty('--brand-card-border');
@@ -67,6 +79,13 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.removeProperty('--brand-chip-bg');
       el.style.removeProperty('--brand-items-bg');
     }
+
+    // Clear global vars
+    root.style.removeProperty('--brand-ink');
+    root.style.removeProperty('--brand-ink-subtle');
+    root.style.removeProperty('--brand-chip-bg');
+    root.style.removeProperty('--brand-items-bg');
+
     setColor('#FFFFFF');
     persist(null);
   }
