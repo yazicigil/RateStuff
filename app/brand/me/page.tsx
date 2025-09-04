@@ -139,7 +139,7 @@ export default async function BrandProfilePage() {
     >
       {/* Inline Header */}
       <div
-        className="sticky top-0 z-20 backdrop-blur-sm border-b"
+        className="sticky top-0 z-[9999] backdrop-blur-sm border-b"
         style={{
           backgroundColor: 'var(--rs-header-bg)',
           borderColor: 'var(--rs-header-border)',
@@ -148,6 +148,11 @@ export default async function BrandProfilePage() {
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
           <div className="flex items-center justify-between">
+            <Link href="/" aria-label="Ana sayfa">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-2 text-neutral-700 dark:text-neutral-200">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </Link>
             <Link href="/brand" className="flex items-center gap-2" aria-label="RateStuff for Brands">
               {/* Public SVG logo rendered as Image; color-adapt via className */}
               <Image
@@ -159,13 +164,20 @@ export default async function BrandProfilePage() {
             </Link>
             <div className="flex items-center gap-2">
               <NotificationsDropdown />
+              {/* Sign out */}
+              <Link href="/api/auth/signout?callbackUrl=/" aria-label="Çıkış yap" title="Çıkış yap" className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9l3 3m0 0-3 3m3-3H3"/>
+                </svg>
+              </Link>
             </div>
           </div>
         </div>
       </div>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
-        <div className="relative z-20 mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-neutral-200/40 dark:bg-neutral-800/40">
+        <div className="relative z-20 mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden shadow-md bg-neutral-200/40 dark:bg-neutral-800/40">
           {brand?.coverImageUrl ? (
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
@@ -181,7 +193,15 @@ export default async function BrandProfilePage() {
           />
         </div>
       </div>
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
+      <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
+        {/* Avatar: positioned relative to container, overlapping cover & hero */}
+        <div className="absolute left-4 sm:left-6 md:left-8 top-56 sm:top-64 md:top-72 lg:top-80 -translate-y-1/2 z-30">
+          <EditAvatar
+            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
+            initialUrl={user.avatarUrl ?? null}
+            name={user.name ?? user.email ?? "Brand"}
+          />
+        </div>
         {/* Hero */}
         <div
           id="brand-hero-card"
@@ -191,14 +211,6 @@ export default async function BrandProfilePage() {
             backgroundColor: 'var(--brand-items-bg)'
           }}
         >
-          {/* Avatar editor directly (renders avatar + edit UI) */}
-          <div className="absolute -top-10 sm:-top-12 md:-top-14 left-4 sm:left-6 md:left-8 z-30">
-            <EditAvatar
-              className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
-              initialUrl={user.avatarUrl ?? null}
-              name={user.name ?? user.email ?? "Brand"}
-            />
-          </div>
 
           {/* Top row: name, email, bio */}
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
@@ -244,10 +256,10 @@ export default async function BrandProfilePage() {
           <CardColorPicker initialColor={brand?.cardColor ?? null} targetId="brand-hero-card" />
         </div>
 
-        <h2 className="mt-6 sm:mt-8 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
-        <div className="mt-2 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
+        <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
+        <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
         {/* ItemsTab client section */}
-        <div className="mt-4 sm:mt-5">
+        <div className="mt-3 sm:mt-4">
           <ItemsCardClient
             items={itemsForClient as any}
             trending={[]}
