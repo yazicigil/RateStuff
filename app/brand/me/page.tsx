@@ -190,7 +190,7 @@ export default async function BrandProfilePage() {
       </div>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
-        <div className="relative z-20 mb-0 h-56 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden shadow-md bg-neutral-200/40 dark:bg-neutral-800/40">
+        <div className="relative z-20 mb-0 h-40 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden shadow-md bg-neutral-200/40 dark:bg-neutral-800/40">
           {brand?.coverImageUrl ? (
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
@@ -208,7 +208,7 @@ export default async function BrandProfilePage() {
         {/* Avatar anchored to the cover bottom-left */}
         <div className="absolute left-4 sm:left-6 md:left-8 bottom-0 translate-y-1/2 z-30">
           <EditAvatar
-            className="w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32"
+            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220]"
             initialUrl={user.avatarUrl ?? null}
             name={user.name ?? user.email ?? "Brand"}
           />
@@ -218,7 +218,7 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-10 md:pt-9 pl-28 sm:pl-40 md:pl-44 -translate-y-1 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-12 md:pt-9 pl-24 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
@@ -228,16 +228,16 @@ export default async function BrandProfilePage() {
           {/* Top row: name, email, bio */}
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
-              <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 {brand?.displayName ?? user.name ?? user.email}
               </h1>
               <VerifiedBadge />
             </div>
 
-            <SocialBar userId={user.id} canEdit className="pt-1" />
+            <SocialBar userId={user.id} canEdit className="pt-1 -ml-1 scale-90 sm:scale-100" />
 
             {/* Bio inline view/edit */}
-            <div className="pt-1 text-sm leading-6 max-w-prose">
+            <div className="pt-1 text-[13px] sm:text-sm leading-6 max-w-prose">
               <BrandBioInline
                 brandId={brand?.id as string}
                 initialBio={brand?.bio ?? ""}
@@ -251,20 +251,21 @@ export default async function BrandProfilePage() {
 
           {/* Meta row (compact) */}
           <div className="mt-3 flex flex-wrap gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-neutral-200/60 dark:border-white/10" style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)' }}>
-              <span className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--brand-ink-subtle)' }}>Ürün</span>
-              <span className="text-sm font-semibold">{itemsCount}</span>
+            <div className="inline-flex items-center gap-2 rounded-full px-2.5 py-1 border border-neutral-200/60 dark:border-white/10" style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)' }}>
+              <span className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--brand-ink-subtle)' }}>Ürün</span>
+              <span className="text-sm font-semibold leading-none">{itemsCount}</span>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 border border-neutral-200/60 dark:border-white/10" style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)' }}>
+            <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border border-neutral-200/60 dark:border-white/10" style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)' }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-yellow-500">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span className="text-sm font-semibold">{avgRating ? avgRating.toFixed(2) : "—"}</span>
-              <span className="text-xs" style={{ color: 'var(--brand-ink-subtle)' }}>/ 5</span>
+              <span className="text-sm font-semibold leading-none">{avgRating ? avgRating.toFixed(2) : "—"}</span>
+              <span className="text-[11px] leading-none" style={{ color: 'var(--brand-ink-subtle)' }}>/ 5</span>
             </div>
           </div>
-          {/* Renk seçici */}
-          <CardColorPicker initialColor={brand?.cardColor ?? null} targetId="brand-hero-card" />
+          <div className="mt-3 sm:mt-4">
+            <CardColorPicker initialColor={brand?.cardColor ?? null} targetId="brand-hero-card" />
+          </div>
         </div>
 
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
