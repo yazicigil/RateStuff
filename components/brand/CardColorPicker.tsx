@@ -46,21 +46,28 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
 
     // Subtle surface wash from the same hex (theme‑aware alpha)
     const isDark = document.documentElement.classList.contains('dark');
-    const surfaceAlpha = isDark ? 0.12 : 0.06;
+    const surfaceAlpha = isDark ? 0.18 : 0.10; // stronger wash for better harmony
     const surfaceWeak = `rgba(${r}, ${g}, ${b}, ${surfaceAlpha})`;
 
     // Pick best ink color (white or dark) AGAINST the pure hex background
     const ink = pickInk({ r, g, b }); // '#0B1220' or '#FFFFFF'
     const subtle = withAlpha(ink, 0.7);
     const chipBg = `rgba(${r}, ${g}, ${b}, 0.08)`;
-
+// Elevation tokens derived from the ink (contrast color)
+const elevBaseIsWhite = ink === '#FFFFFF';
+const elevRGB = elevBaseIsWhite ? { r: 255, g: 255, b: 255 } : { r: 0, g: 0, b: 0 };
+const elevBg     = `rgba(${elevRGB.r}, ${elevRGB.g}, ${elevRGB.b}, ${elevBaseIsWhite ? 0.18 : 0.08})`;
+const elevStrong = `rgba(${elevRGB.r}, ${elevRGB.g}, ${elevRGB.b}, ${elevBaseIsWhite ? 0.28 : 0.16})`;
+const elevBd     = `rgba(${elevRGB.r}, ${elevRGB.g}, ${elevRGB.b}, ${elevBaseIsWhite ? 0.28 : 0.12})`;
     // --- GLOBAL (root) variables — used by ItemsTab & others ---
     root.style.setProperty('--brand-ink', ink);
     root.style.setProperty('--brand-ink-subtle', subtle);
     root.style.setProperty('--brand-chip-bg', chipBg);
     root.style.setProperty('--brand-items-bg', `rgb(${r}, ${g}, ${b})`);
     root.style.setProperty('--brand-surface-weak', surfaceWeak);
-
+root.style.setProperty('--brand-elev-bg', elevBg);
+root.style.setProperty('--brand-elev-strong', elevStrong);
+root.style.setProperty('--brand-elev-bd', elevBd);
     // Accent tokens for ItemCard harmony
     root.style.setProperty('--brand-accent', hex);
     root.style.setProperty('--brand-accent-weak', hexToRgba(hex, 0.18));
@@ -81,6 +88,9 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.setProperty('--brand-accent-bd', hexToRgba(hex, 0.28));
       el.style.setProperty('--brand-focus', hexToRgba(hex, 0.42));
       el.style.setProperty('--brand-surface-weak', surfaceWeak);
+      el.style.setProperty('--brand-elev-bg', elevBg);
+el.style.setProperty('--brand-elev-strong', elevStrong);
+el.style.setProperty('--brand-elev-bd', elevBd);
     }
 
     if (shouldPersist) persist(hex);
@@ -103,6 +113,9 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
       el.style.removeProperty('--brand-accent-bd');
       el.style.removeProperty('--brand-focus');
       el.style.removeProperty('--brand-surface-weak');
+      el.style.removeProperty('--brand-elev-bg');
+el.style.removeProperty('--brand-elev-strong');
+el.style.removeProperty('--brand-elev-bd');
     }
 
     // Clear global vars
@@ -115,6 +128,9 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     root.style.removeProperty('--brand-accent-bd');
     root.style.removeProperty('--brand-focus');
     root.style.removeProperty('--brand-surface-weak');
+    root.style.removeProperty('--brand-elev-bg');
+root.style.removeProperty('--brand-elev-strong');
+root.style.removeProperty('--brand-elev-bd');
 
     setColor('#FFFFFF');
     persist(null);

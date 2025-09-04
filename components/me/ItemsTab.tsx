@@ -164,8 +164,7 @@ export default function ItemsTab({
               href="/#quick-add"
               prefetch={false}
               className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-              style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
-              aria-label="Hızlı ekle"
+style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}              aria-label="Hızlı ekle"
               title="Hızlı ekle"
             >
               <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
@@ -207,8 +206,7 @@ export default function ItemsTab({
                     href="/#quick-add"
                     prefetch={false}
                     className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                    style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
-                    aria-label="Hızlı ekle"
+style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                    aria-label="Hızlı ekle"
                     title="Hızlı ekle"
                   >
                     <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
@@ -275,8 +273,7 @@ export default function ItemsTab({
                       href="/#quick-add"
                       prefetch={false}
                       className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                      style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
-                      aria-label="Hızlı ekle"
+style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                      aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
                       <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
@@ -340,8 +337,7 @@ export default function ItemsTab({
                       href="/#quick-add"
                       prefetch={false}
                       className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                      style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
-                      aria-label="Hızlı ekle"
+style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' }}                      aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
                       <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
@@ -569,10 +565,10 @@ function TagPager({
             onClick={onClear}
             onDoubleClick={onClear}
             style={
-              selected.size === 0
-                ? { backgroundColor: 'var(--brand-accent)', borderColor: 'var(--brand-accent)', color: '#ffffff' }
-                : { backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-accent-bd)', color: 'var(--brand-ink)' }
-            }
+  selected.size === 0
+    ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+    : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+}
           >
             Hepsi
           </button>
@@ -587,11 +583,11 @@ function TagPager({
                   className="inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0"
                   onClick={() => onToggle(t)}
                   title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                  style={
-                    isSel
-                      ? { backgroundColor: 'var(--brand-accent)', borderColor: 'var(--brand-accent)', color: '#ffffff' }
-                      : { backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-accent-bd)', color: 'var(--brand-ink)' }
-                  }
+                 style={
+  isSel
+    ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+    : { backgroundColor: 'var(--brand-elev-bg)',     borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+}
                 >
                   <span>#{t}</span>
                 </button>

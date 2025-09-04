@@ -216,12 +216,11 @@ export default function ItemCard({
       <div className="rs-pop absolute top-3 right-3 z-20 flex flex-col gap-2">
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-8 h-8 grid place-items-center rounded-lg bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             aria-label="share"
             onClick={handleShareClick}
             style={{
               backgroundColor: 'var(--brand-accent-weak)',
-              borderColor: 'var(--brand-accent-bd)',
               ['--tw-ring-color' as any]: 'var(--brand-focus)'
             }}
           >
@@ -244,12 +243,11 @@ export default function ItemCard({
 
         <div className="relative">
           <button
-            className="w-8 h-8 grid place-items-center rounded-lg border dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+            className="w-8 h-8 grid place-items-center rounded-lg bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             onClick={handleMenuClick}
             aria-label="options"
             style={{
               backgroundColor: 'var(--brand-accent-weak)',
-              borderColor: 'var(--brand-accent-bd)',
               ['--tw-ring-color' as any]: 'var(--brand-focus)'
             }}
           >
@@ -395,10 +393,9 @@ export default function ItemCard({
                 </button>
                 {i.edited && (
                   <span
-                    className="text-[11px] px-2 py-0.5 mt-1 rounded-full border"
+                    className="text-[11px] px-2 py-0.5 mt-1 rounded-full"
                     style={{
                       backgroundColor: 'var(--brand-chip-bg)',
-                      borderColor: 'var(--brand-accent-bd)',
                       color: 'var(--brand-ink)'
                     }}
                   >

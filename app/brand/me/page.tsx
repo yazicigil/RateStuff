@@ -129,11 +129,20 @@ export default async function BrandProfilePage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100">
+    <div
+      className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
+      style={{
+        backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))'
+      }}
+    >
       {/* Inline Header */}
       <div
         className="sticky top-0 z-20 backdrop-blur-sm border-b"
-        style={{ backgroundColor: 'var(--rs-header-bg)', borderColor: 'var(--rs-header-border)' }}
+        style={{
+          backgroundColor: 'var(--rs-header-bg)',
+          borderColor: 'var(--rs-header-border)',
+          backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
+        }}
       >
         <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
           <div className="flex items-center justify-between">
