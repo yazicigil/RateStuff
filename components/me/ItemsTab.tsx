@@ -163,11 +163,12 @@ export default function ItemsTab({
             <Link
               href="/#quick-add"
               prefetch={false}
-              className="rounded-2xl border border-green-300 bg-green-50 hover:bg-green-100 text-green-700 dark:text-green-300 dark:border-green-600 dark:bg-green-900/10 dark:hover:bg-green-900/20 grid place-items-center h-56 sm:h-64 transition"
+              className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+              style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
               aria-label="Hızlı ekle"
               title="Hızlı ekle"
             >
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
                 <span className="text-5xl leading-none">+</span>
                 <span className="text-base font-medium">Ekle</span>
               </div>
@@ -205,11 +206,12 @@ export default function ItemsTab({
                     key={`add-m-${ix}`}
                     href="/#quick-add"
                     prefetch={false}
-                    className="rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                    className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                    style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
                     aria-label="Hızlı ekle"
                     title="Hızlı ekle"
                   >
-                    <div className="flex flex-col items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                    <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
                       <span className="text-4xl leading-none">+</span>
                       <span className="text-sm font-medium">Ekle</span>
                     </div>
@@ -272,11 +274,12 @@ export default function ItemsTab({
                       key={`add-left-${ix}`}
                       href="/#quick-add"
                       prefetch={false}
-                      className="rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                      style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
                       aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
-                      <div className="flex flex-col items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
                         <span className="text-4xl leading-none">+</span>
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
@@ -336,11 +339,12 @@ export default function ItemsTab({
                       key={`add-right-${ix}`}
                       href="/#quick-add"
                       prefetch={false}
-                      className="rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                      style={{ backgroundColor: 'var(--brand-accent-weak)', borderColor: 'var(--brand-accent-bd)' }}
                       aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
-                      <div className="flex flex-col items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <div className="flex flex-col items-center gap-2" style={{ color: 'var(--brand-ink)' }}>
                         <span className="text-4xl leading-none">+</span>
                         <span className="text-sm font-medium">Ekle</span>
                       </div>
@@ -561,13 +565,14 @@ function TagPager({
       <div className="pr-12 min-h-[32px] transition-[padding] duration-150 ease-out" ref={containerRef} style={{ paddingLeft: canPrev ? 48 : 0 }}>
         <div className="flex items-center gap-2 overflow-hidden">
           <button
-            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${
-              selected.size === 0
-                ? 'bg-black text-white border-black'
-                : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-            }`}
+            className="h-8 px-3 py-0 rounded-full border text-xs shrink-0"
             onClick={onClear}
             onDoubleClick={onClear}
+            style={
+              selected.size === 0
+                ? { backgroundColor: 'var(--brand-accent)', borderColor: 'var(--brand-accent)', color: '#ffffff' }
+                : { backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-accent-bd)', color: 'var(--brand-ink)' }
+            }
           >
             Hepsi
           </button>
@@ -576,21 +581,17 @@ function TagPager({
           <div key={`page-${page}`} className="flex items-center gap-2 animate-[sugIn_.22s_ease_both]">
             {visibleTags.map((t) => {
               const isSel = selected.has(t);
-              const isTrend = trending.includes(t);
-              const base = 'inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0';
-              const className = isSel
-                ? isTrend
-                  ? `${base} bg-violet-600 text-white border-violet-600`
-                  : `${base} bg-black text-white border-black`
-                : isTrend
-                  ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                  : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
               return (
                 <button
                   key={t}
-                  className={className}
+                  className="inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0"
                   onClick={() => onToggle(t)}
                   title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
+                  style={
+                    isSel
+                      ? { backgroundColor: 'var(--brand-accent)', borderColor: 'var(--brand-accent)', color: '#ffffff' }
+                      : { backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-accent-bd)', color: 'var(--brand-ink)' }
+                  }
                 >
                   <span>#{t}</span>
                 </button>
@@ -602,7 +603,7 @@ function TagPager({
 
       <style jsx>{`
         @keyframes sugIn { from { opacity:.0; transform: translateX(8px); } to { opacity:1; transform: translateX(0); } }
-        .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, #e5e7eb); background: var(--rs-bg, #fff); color: var(--rs-fg, #111827); opacity: .95; z-index: 10; pointer-events: auto; }
+        .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, var(--brand-accent-bd, #e5e7eb)); background: var(--rs-bg, var(--brand-chip-bg, #fff)); color: var(--rs-fg, var(--brand-ink, #111827)); opacity: .95; z-index: 10; pointer-events: auto; }
         .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
         .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
         .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }

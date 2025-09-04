@@ -201,7 +201,10 @@ export default function ItemCard({
   return (
     <div
       className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
-      style={{ borderColor: 'var(--brand-accent-bd)' }}
+      style={{
+        borderColor: 'var(--brand-accent-bd)',
+        backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
+      }}
     >
       {amAdmin && ((i as any).reportCount ?? 0) > 0 && (
         <div className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] border bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/40">
