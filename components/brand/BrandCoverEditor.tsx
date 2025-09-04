@@ -65,40 +65,43 @@ export default function BrandCoverEditor({
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">Kapak görseli</h3>
-              <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Kapat">
-                <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.41 4.3 19.71 2.89 18.3 9.17 12 2.89 5.71 4.3 4.29l6.29 6.3 6.29-6.3z"/></svg>
-              </button>
-            </div>
-
-            <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">{recommendText}</div>
-
-            <div className="space-y-4">
-              {/* @ts-ignore dynamic component; project-local props */}
-              <ImageUploader
-                value={coverUrl}
-                onChange={(url: string | null) => setCoverUrl(url ?? "")}
-                className="rounded-md"
-              />
-
-              {err && <div className="text-xs text-red-600 dark:text-red-400">{err}</div>}
-
-              <div className="flex justify-end gap-2 pt-1">
-                <button onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-md border border-neutral-300 dark:border-neutral-700 text-sm">İptal</button>
-                <button
-                  onClick={save}
-                  disabled={saving}
-                  className="px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 text-sm disabled:opacity-60"
-                >
-                  {saving ? "Kaydediliyor..." : "Kaydet"}
+        <>
+          <div className="fixed inset-0 z-[10020] bg-black/50 backdrop-blur-sm" aria-hidden="true" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-[10030] flex items-center justify-center">
+            <div className="w-[min(96vw,560px)] rounded-xl bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg p-4 sm:p-5">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium">Kapak görseli</h3>
+                <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Kapat">
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.41 4.3 19.71 2.89 18.3 9.17 12 2.89 5.71 4.3 4.29l6.29 6.3 6.29-6.3z"/></svg>
                 </button>
+              </div>
+
+              <div className="text-xs text-neutral-500 dark:text-neutral-400 mb-2">{recommendText}</div>
+
+              <div className="space-y-4">
+                {/* @ts-ignore dynamic component; project-local props */}
+                <ImageUploader
+                  value={coverUrl}
+                  onChange={(url: string | null) => setCoverUrl(url ?? "")}
+                  className="rounded-md"
+                />
+
+                {err && <div className="text-xs text-red-600 dark:text-red-400">{err}</div>}
+
+                <div className="flex justify-end gap-2 pt-1">
+                  <button onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-md border border-neutral-300 dark:border-neutral-700 text-sm">İptal</button>
+                  <button
+                    onClick={save}
+                    disabled={saving}
+                    className="px-3 py-1.5 rounded-md bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 text-sm disabled:opacity-60"
+                  >
+                    {saving ? "Kaydediliyor..." : "Kaydet"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );

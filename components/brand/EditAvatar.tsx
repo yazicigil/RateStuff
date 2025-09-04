@@ -81,13 +81,13 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 z-50">
+        <>
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[10040] bg-black/50 backdrop-blur-sm"
             onClick={onCancel}
             aria-hidden="true"
           />
-          <div className="absolute inset-0 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10050] flex items-center justify-center p-4">
             <div className="w-full max-w-md rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-xl p-5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-semibold">Avatarı Düzenle</h3>
@@ -136,7 +136,7 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
