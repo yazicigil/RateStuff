@@ -18,8 +18,8 @@ const NotificationsDropdown = dynamic(() => import("@/components/header/notifica
 function VerifiedBadge() {
   return (
     <svg
-      width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"
-      className="inline-block ml-1 w-4 h-4 align-middle"
+      width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"
+      className="inline-block ml-1 w-5 h-5 align-middle"
     >
       <circle cx="12" cy="12" r="9" className="fill-[#3B82F6] dark:fill-[#3B82F6]" />
       <path d="M8.5 12.5l2 2 4-4"
@@ -159,56 +159,62 @@ export default async function BrandProfilePage() {
       </div>
       <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
-        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111827] shadow-sm p-6 sm:p-8 pt-6 md:pt-8 pl-40 md:pl-48 relative">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-sm p-6 sm:p-8 pt-8 md:pt-10 pl-32 sm:pl-40 md:pl-48 relative">
           {/* Avatar editor directly (renders avatar + edit UI) */}
           <div className="absolute -top-16 left-6">
             <EditAvatar
-              className="w-32 h-32 rounded-full ring-4 ring-purple-500"
+              className="w-28 h-28 sm:w-32 sm:h-32 rounded-full ring-4 ring-white dark:ring-[#0b1220] shadow-lg"
               initialUrl={user.avatarUrl ?? null}
               name={user.name ?? user.email ?? "Brand"}
             />
           </div>
-          <div className="mt-0 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
-                  {brand?.displayName ?? user.name ?? user.email}
-                </h1>
-                <VerifiedBadge />
-              </div>
-              <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{user.email}</p>
-              {/* Bio inline view/edit: boşsa "Açıklama ekle", doluysa metin + küçük kalem ikonu */}
-              <BrandBioInline brandId={brand?.id as string} initialBio={brand?.bio ?? ""} isOwner />
+
+          {/* Top row: name, email, bio */}
+          <div className="mt-0 flex flex-col gap-2 md:pr-2">
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-tight">
+                {brand?.displayName ?? user.name ?? user.email}
+              </h1>
+              <VerifiedBadge />
+            </div>
+
+            <a href={`mailto:${user.email}`} className="text-sm text-neutral-600 dark:text-neutral-300 hover:underline w-fit">
+              {user.email}
+            </a>
+
+            {/* Bio inline view/edit */}
+            <div className="pt-1">
+              <BrandBioInline
+                brandId={brand?.id as string}
+                initialBio={brand?.bio ?? ""}
+                isOwner
+              />
               {brand?.active === false && (
                 <p className="mt-1 text-xs text-amber-500">(pasif)</p>
               )}
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 md:gap-5 md:w-auto w-full md:justify-end">
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-[#111827]">
-                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
-                <div className="mt-1 text-2xl font-semibold">{itemsCount}</div>
-              </div>
-              <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-5 py-4 bg-white dark:bg-[#111827]">
-                <div className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
-                <div className="mt-1 text-2xl font-semibold flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    className="inline-block w-5 h-5 text-yellow-500 mr-1"
-                  >
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  {avgRating ? avgRating.toFixed(2) : "—"}
-                  <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
-                </div>
+          {/* Divider */}
+          <div className="my-5 border-t border-neutral-200 dark:border-neutral-800" />
+
+          {/* Stats row */}
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-5 w-full">
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-4 sm:px-5 py-3 sm:py-4 bg-white dark:bg-[#0b1220]">
+              <div className="text-[11px] sm:text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ürün sayısı</div>
+              <div className="mt-1 text-xl sm:text-2xl font-semibold">{itemsCount}</div>
+            </div>
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 px-4 sm:px-5 py-3 sm:py-4 bg-white dark:bg-[#0b1220]">
+              <div className="text-[11px] sm:text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">Ortalama puan</div>
+              <div className="mt-1 text-xl sm:text-2xl font-semibold flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="inline-block w-5 h-5 text-yellow-500 mr-1">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                {avgRating ? avgRating.toFixed(2) : "—"}
+                <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">/ 5</span>
               </div>
             </div>
           </div>
-
-          
         </div>
 
         <h2 className="mt-6 sm:mt-8 text-lg sm:text-xl font-semibold tracking-tight">Ürünlerim</h2>
