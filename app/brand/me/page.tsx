@@ -234,7 +234,7 @@ export default async function BrandProfilePage() {
               <VerifiedBadge />
             </div>
 
-            <SocialBar userId={user.id} className="pt-1" />
+            <SocialBar userId={user.id} canEdit className="pt-1" />
 
             {/* Bio inline view/edit */}
             <div className="pt-1 text-sm leading-6 max-w-prose">
