@@ -44,6 +44,8 @@ type QuickAddCardProps = {
     tags?: string[];
     rating?: number;
   };
+  /** brand profillerinde rating opsiyonel olmalı */
+  isBrandProfile?: boolean;
 };
 
 export default function QuickAddCard({
@@ -56,8 +58,10 @@ export default function QuickAddCard({
   signedIn = true,
   signInHref = '/signin',
   prefill,
+  isBrandProfile = false,
 }: QuickAddCardProps & {
   prefill?: { name?: string; tags?: string[]; rating?: number };
+  isBrandProfile?: boolean;
 }) {
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
@@ -81,6 +85,8 @@ export default function QuickAddCard({
 
   // ---- rating pill text (same as CommentBox)
   const ratingPillText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
+
+  const ratingRequired = !isBrandProfile;
 
   // ---- helpers
   function normalizeTag(s: string) {
@@ -152,7 +158,7 @@ export default function QuickAddCard({
     containsBannedWord(comment) ||
     tags.some((t) => containsBannedWord(t));
 
-  const valid = name.trim().length > 0 && tags.length > 0 && rating > 0 && !blocked;
+  const valid = name.trim().length > 0 && tags.length > 0 && (!ratingRequired || rating > 0) && !blocked;
 
   // autofocus
   useEffect(() => {
@@ -211,7 +217,7 @@ export default function QuickAddCard({
       containsBannedWord(comment) ||
       nextTags.some((t) => containsBannedWord(t));
 
-    const validNow = name.trim().length > 0 && nextTags.length > 0 && rating > 0 && !blockedNow;
+    const validNow = name.trim().length > 0 && nextTags.length > 0 && (!ratingRequired || rating > 0) && !blockedNow;
     if (!validNow) {
       setError('Zorunlu alanları doldurmalısın.');
       return;
@@ -465,7 +471,9 @@ export default function QuickAddCard({
 
           {/* Puan */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">Puanın <span className="opacity-60">*</span>:</label>
+            <label className="text-sm font-medium">
+              Puanın {ratingRequired && <span className="opacity-60">*</span>}:
+            </label>
             <Stars value={rating} onRate={(n) => setRating(n)} />
             {rating > 0 && (
               <span className="inline-block text-xs rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20">
