@@ -1,5 +1,3 @@
-
-
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -8,31 +6,66 @@ type Props = {
   brandEmail: string;
   ownerUserId: string;
   className?: string;
+  // optional fast-path if caller already knows current user
+  currentUserEmail?: string | null;
+  currentUserId?: string | null;
 };
 
-export default function OwnerSettings({ brandEmail, ownerUserId, className }: Props) {
+type MeShape = { email?: string | null; id?: string | null } | null;
+
+async function getMe(): Promise<MeShape> {
+  // 1) Try custom /api/me
+  try {
+    const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
+    if (res.ok) {
+      const j = await res.json();
+      return { email: j?.email ?? null, id: j?.id ?? null };
+    }
+  } catch {}
+  // 2) Try NextAuth session fallback
+  try {
+    const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
+    if (res.ok) {
+      const j = await res.json();
+      return { email: j?.user?.email ?? null, id: j?.user?.id ?? null };
+    }
+  } catch {}
+  return null;
+}
+
+export default function OwnerSettings({
+  brandEmail,
+  ownerUserId,
+  className,
+  currentUserEmail,
+  currentUserId,
+}: Props) {
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
-        if (!res.ok) return;
-        const me = await res.json();
-        const meEmail = (me?.email || "").toLowerCase?.() || "";
-        const ok =
-          (!!meEmail && meEmail === (brandEmail || "").toLowerCase?.()) ||
-          (!!me?.id && me.id === ownerUserId);
-        if (!cancelled) setIsOwner(!!ok);
-      } catch {
-        // ignore errors
+      const meEmailProp = (currentUserEmail || "").toLowerCase().trim();
+      const meIdProp = (currentUserId || "").trim();
+      const brandEmailLc = (brandEmail || "").toLowerCase().trim();
+      const ownerId = (ownerUserId || "").trim();
+
+      let ok = false;
+      if (meEmailProp || meIdProp) {
+        ok = (!!meEmailProp && meEmailProp === brandEmailLc) || (!!meIdProp && meIdProp === ownerId);
       }
+      if (!ok) {
+        const me = await getMe();
+        const meEmail = (me?.email || "").toLowerCase().trim();
+        const meId = (me?.id || "").trim();
+        ok = (!!meEmail && meEmail === brandEmailLc) || (!!meId && meId === ownerId);
+      }
+      if (!cancelled) setIsOwner(!!ok);
     })();
     return () => {
       cancelled = true;
     };
-  }, [brandEmail, ownerUserId]);
+  }, [brandEmail, ownerUserId, currentUserEmail, currentUserId]);
 
   if (!isOwner) return null;
 
