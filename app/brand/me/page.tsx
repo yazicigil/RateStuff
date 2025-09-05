@@ -140,18 +140,18 @@ export default async function BrandProfilePage() {
     >
       {/* Inline Header */}
       <div
-        className="sticky top-0 z-[9999] backdrop-blur-sm border-b supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-[#0b1220]/60"
+        className="sticky top-0 z-[9999] backdrop-blur-sm border-b border-transparent bg-transparent supports-[backdrop-filter]:bg-white/10 dark:supports-[backdrop-filter]:bg-black/10 text-white"
         style={{
           backgroundColor: 'var(--rs-header-bg)',
           borderColor: 'var(--rs-header-border)',
           backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
         }}
       >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
+        <div className="mx-auto max-w-6xl px-3 sm:px-6 pt-2 pb-1 sm:pt-3 sm:pb-2">
           <div className="flex items-center">
             {/* Left: back button (fixed width so center never overlaps) */}
             <div className="shrink-0 w-10 flex items-center">
-              <Link href="/" aria-label="Ana sayfa" className="p-2 rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5">
+              <Link href="/" aria-label="Ana sayfa" className="p-1.5 sm:p-2 rounded-2xl ring-1 ring-white/30 hover:bg-white/10">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
@@ -165,7 +165,7 @@ export default async function BrandProfilePage() {
                   src="/forbrandslogo.svg"
                   alt="RateStuff for Brands"
                   priority
-                  className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
+                  className="h-7 sm:h-9 w-auto select-none dark:invert drop-shadow-[0_1px_1px_rgba(0,0,0,0.6)]"
                 />
               </Link>
             </div>
@@ -195,6 +195,7 @@ export default async function BrandProfilePage() {
             <>
               <Image src={brand.coverImageUrl} alt="Kapak" fill className="object-cover" priority />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-black/0 dark:from-black/30 dark:via-black/0 dark:to-black/0" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
             </>
           ) : (
             <div className="w-full h-full bg-gradient-to-r from-indigo-200 via-pink-200 to-amber-200 dark:from-indigo-900/40 dark:via-fuchsia-900/40 dark:to-amber-900/40" />
@@ -207,18 +208,23 @@ export default async function BrandProfilePage() {
         </div>
         {/* Avatar anchored to the cover bottom-left */}
         <div className="absolute left-4 sm:left-6 md:left-8 bottom-0 translate-y-1/2 z-30">
-          <EditAvatar
-            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220]"
-            initialUrl={user.avatarUrl ?? null}
-            name={user.name ?? user.email ?? "Brand"}
-          />
+          <div
+            className="rounded-full p-[3px]"
+            style={{ backgroundColor: 'var(--brand-card-color, var(--brand-primary, #3B82F6))' }}
+          >
+            <EditAvatar
+              className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220]"
+              initialUrl={user.avatarUrl ?? null}
+              name={user.name ?? user.email ?? "Brand"}
+            />
+          </div>
         </div>
       </div>
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-0 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
