@@ -50,6 +50,23 @@ function computeBrandVars(hex?: string | null) {
     return {};
   }
 }
+function computeChipSoftVars(hex?: string | null) {
+  if (!hex) return {} as React.CSSProperties;
+  try {
+    const rgb = hexToRgb(hex);
+    const L = luminance(rgb);
+    const elevBd = toRgbStr(darken(rgb, 0.25));
+    // softer chip background than computeBrandVars (lower alpha)
+    const chipSoft = withAlpha(lighten(rgb, L > 0.5 ? 0.06 : 0.20), 0.12);
+    return {
+      ['--brand-elev-bd' as any]: elevBd,
+      ['--brand-chip-bg' as any]: chipSoft,
+      // intentionally DO NOT set --brand-items-bg / --brand-ink, to avoid solid look
+    } as React.CSSProperties;
+  } catch {
+    return {} as React.CSSProperties;
+  }
+}
 // --- end brand theme helpers ---
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
@@ -156,7 +173,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
-        <div className="mt-3 sm:mt-4" style={computeBrandVars(brand.cardColor || undefined)}>
+        <div className="mt-3 sm:mt-4" style={computeChipSoftVars(brand.cardColor || undefined)}>
           <ItemsCardClient
             items={itemsForClient}
             trending={[]}
