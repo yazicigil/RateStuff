@@ -7,6 +7,47 @@ import EditBrandModal from "@/components/admin/EditBrandModal";
 import { redirect } from "next/navigation";
 import CreatedFlash from "@/components/admin/CreatedFlash";
 
+// ---- slug helpers (TR-friendly) ----
+function slugifyTr(input: string) {
+  const s = (input || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/ı/g, "i")
+    .replace(/İ/g, "i")
+    .replace(/ç/g, "c")
+    .replace(/ğ/g, "g")
+    .replace(/ö/g, "o")
+    .replace(/ş/g, "s")
+    .replace(/ü/g, "u")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+  return s || "brand";
+}
+
+async function ensureUniqueSlug(baseRaw: string) {
+  const base = slugifyTr(baseRaw);
+  // fetch existing slugs that start with base
+  const existing = await prisma.brandAccount.findMany({
+    where: { slug: { startsWith: base } },
+    select: { slug: true },
+  });
+  if (existing.length === 0) return base;
+
+  // compute next available suffix
+  let max = 1;
+  const re = new RegExp(`^${base}(?:-(\\d+))?$`);
+  for (const { slug } of existing) {
+    const m = slug.match(re);
+    if (m) {
+      const n = m[1] ? parseInt(m[1], 10) : 1;
+      if (n >= max) max = n + 1;
+    }
+  }
+  return max === 1 ? base : `${base}-${max}`;
+}
+// ---- end slug helpers ----
+
 async function toggleActive(id: string, active: boolean) {
   "use server";
   await prisma.brandAccount.update({ where: { id }, data: { active } });
@@ -73,11 +114,16 @@ async function updateBrand(formData: FormData) {
     where: { id },
     select: { email: true },
   });
+  let newSlug: string | undefined = undefined;
+  if (displayName) {
+    newSlug = await ensureUniqueSlug(displayName);
+  }
   await prisma.brandAccount.update({
     where: { id },
     data: {
       ...(email ? { email } : {}),
       displayName,
+      ...(newSlug ? { slug: newSlug } : {}),
     },
   });
   // User tablosunda avatar ve isim (name) senkronize edilir
@@ -107,10 +153,15 @@ async function createBrand(formData: FormData) {
   const avatarUrlRaw = String(formData.get("avatarUrl") || "").trim();
   const avatarUrl = avatarUrlRaw.length ? avatarUrlRaw : null;
   if (!email) return;
+  // slug: displayName varsa ondan, yoksa email local-part'tan üret
+  const baseForSlug = displayName ?? (email.includes("@") ? email.split("@")[0] : email);
+  const slug = await ensureUniqueSlug(baseForSlug);
+
   await prisma.brandAccount.create({
     data: {
       email,
       displayName,
+      slug,       // NEW
       active: true,
     },
   });
