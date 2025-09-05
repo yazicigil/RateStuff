@@ -14,21 +14,13 @@ type Props = {
 type MeShape = { email?: string | null; id?: string | null; sub?: string | null } | null;
 
 async function getMe(): Promise<MeShape> {
-  // 1) Try custom /api/me
   try {
     const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
-    if (res.ok) {
-      const j = await res.json();
-      return { email: j?.email ?? null, id: j?.id ?? null, sub: j?.sub ?? null };
-    }
-  } catch {}
-  // 2) Try NextAuth session fallback
-  try {
-    const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
-    if (res.ok) {
-      const j = await res.json();
-      return { email: j?.user?.email ?? null, id: (j?.user?.id ?? j?.user?.sub ?? j?.sub ?? null) };
-    }
+    if (!res.ok) return null;
+    let j: any = null;
+    try { j = await res.json(); } catch { return null; }
+    const m = j?.me ?? j;
+    return { email: m?.email ?? null, id: m?.id ?? null, sub: m?.sub ?? null };
   } catch {}
   return null;
 }
@@ -45,22 +37,27 @@ export default function OwnerSettings({
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const meEmailProp = (currentUserEmail || "").toLowerCase().trim();
-      const meIdProp = (currentUserId || "").trim();
-      const brandEmailLc = (brandEmail || "").toLowerCase().trim();
-      const ownerId = (ownerUserId || "").trim();
+      try {
+        const meEmailProp = String(currentUserEmail ?? "").toLowerCase().trim();
+        const meIdProp = String(currentUserId ?? "").toString().trim();
+        const brandEmailLc = String(brandEmail ?? "").toLowerCase().trim();
+        const ownerId = String(ownerUserId ?? "").toString().trim();
 
-      let ok = false;
-      if (meEmailProp || meIdProp) {
-        ok = (!!meEmailProp && meEmailProp === brandEmailLc) || (!!meIdProp && meIdProp === ownerId);
+        let ok = false;
+        if (meEmailProp || meIdProp) {
+          ok = (!!meEmailProp && meEmailProp === brandEmailLc) || (!!meIdProp && meIdProp === ownerId);
+        }
+        if (!ok) {
+          const me = await getMe();
+          const meEmail = String(me?.email ?? "").toLowerCase().trim();
+          const meId = String((me?.id ?? me?.sub ?? "")).trim();
+          ok = (!!meEmail && meEmail === brandEmailLc) || (!!meId && meId === ownerId);
+        }
+        if (!cancelled) setIsOwner(!!ok);
+      } catch (err) {
+        console.warn('[OwnerSettings] owner check failed', err);
+        if (!cancelled) setIsOwner(false);
       }
-      if (!ok) {
-        const me = await getMe();
-        const meEmail = (me?.email || "").toLowerCase().trim();
-        const meId = (me?.id || me?.sub || "").toString().trim();
-        ok = (!!meEmail && meEmail === brandEmailLc) || (!!meId && meId === ownerId);
-      }
-      if (!cancelled) setIsOwner(!!ok);
     })();
     return () => {
       cancelled = true;

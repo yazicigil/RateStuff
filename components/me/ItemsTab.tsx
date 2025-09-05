@@ -95,6 +95,13 @@ export default function ItemsTab({
   // Brand theme detection
   const [brandTheme, setBrandTheme] = useState(false);
 
+  // Public brand profile detection (hide Add on /brand/[slug])
+  const isPublicBrandPage = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const p = window.location?.pathname || '';
+    return p.startsWith('/brand/') && p !== '/brand/me';
+  }, []);
+
   // Infer list owner from items (first item with a creator id)
   const listOwnerId = useMemo(() => {
     for (const it of itemsLocal) {
@@ -106,6 +113,8 @@ export default function ItemsTab({
 
   // Show Quick Add only when user is viewing their own items
   const isOwnList = useMemo(() => !!myId && !!listOwnerId && myId === listOwnerId, [myId, listOwnerId]);
+
+  const canShowAdd = isOwnList && !isPublicBrandPage;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -241,7 +250,7 @@ export default function ItemsTab({
           <Skeleton rows={4} />
         ) : itemsLocal.length === 0 ? (
           <div className="grid md:grid-cols-2 gap-4">
-            {isOwnList ? (
+            {canShowAdd ? (
               qaOpen ? (
                 <QuickAddCard
                   open
@@ -315,7 +324,7 @@ export default function ItemsTab({
             <div className="flex flex-col gap-5 lg:hidden">
               {itemsWithAdd.map((it: any, ix: number) => (
                 it?.__add ? (
-                  isOwnList ? (
+                  canShowAdd ? (
                     qaOpen ? (
                       <QuickAddCard
                         key={`add-m-${ix}`}
@@ -415,7 +424,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
-                    isOwnList ? (
+                    canShowAdd ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-left-${ix}`}
@@ -512,7 +521,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
-                    isOwnList ? (
+                    canShowAdd ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-right-${ix}`}
