@@ -264,18 +264,16 @@ export default function Header({ controls }: { controls?: Controls }) {
   function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
 
 
-  const logoClass = USE_CURRENTCOLOR
+  const logoClassDefault = USE_CURRENTCOLOR
     ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
     : 'h-14 w-auto dark:invert';
+  const logoClassBrand = USE_CURRENTCOLOR
+    ? 'h-8 w-auto text-gray-900 dark:text-gray-100'
+    : 'h-8 w-auto dark:invert';
 
   return (
     <header
       className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800"
-      style={isBrandProfile ? {
-        backgroundColor: 'var(--brand-surface-weak, rgba(255,255,255,0.70))',
-        borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.08))',
-        color: 'var(--brand-ink, inherit)'
-      } : undefined}
     >
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
@@ -287,7 +285,6 @@ export default function Header({ controls }: { controls?: Controls }) {
               title="Geri"
               aria-label="Geri"
               className="shrink-0 h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
-              style={isBrandProfile ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.12))', color: 'var(--brand-ink-subtle, inherit)' } : undefined}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                 <polyline fill="none" stroke="currentColor" strokeWidth="2" points="15 18 9 12 15 6" />
@@ -300,7 +297,7 @@ export default function Header({ controls }: { controls?: Controls }) {
             title="Anasayfa"
             onClick={(e) => { e.preventDefault(); window.location.href = '/' }}
           >
-            <img src={isBrandMe ? "/forbrandslogo.svg" : "/logo.svg"} alt="RateStuff" className={logoClass} />
+            <img src={isBrandMe ? "/forbrandslogo.svg" : "/logo.svg"} alt="RateStuff" className={isBrandMe ? logoClassBrand : logoClassDefault} />
           </Link>
           {/* Mobil sağ blok */}
           <div className="flex items-center gap-2 md:hidden">

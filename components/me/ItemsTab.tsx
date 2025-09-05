@@ -95,6 +95,18 @@ export default function ItemsTab({
   // Brand theme detection
   const [brandTheme, setBrandTheme] = useState(false);
 
+  // Infer list owner from items (first item with a creator id)
+  const listOwnerId = useMemo(() => {
+    for (const it of itemsLocal) {
+      const cid = it?.createdBy?.id;
+      if (cid) return cid;
+    }
+    return null as string | null;
+  }, [itemsLocal]);
+
+  // Show Quick Add only when user is viewing their own items
+  const isOwnList = useMemo(() => !!myId && !!listOwnerId && myId === listOwnerId, [myId, listOwnerId]);
+
   useEffect(() => {
     const root = document.documentElement;
     const compute = () => {
@@ -229,7 +241,7 @@ export default function ItemsTab({
           <Skeleton rows={4} />
         ) : itemsLocal.length === 0 ? (
           <div className="grid md:grid-cols-2 gap-4">
-            {(isBrandProfile || brandTheme) ? (
+            {isOwnList ? (
               qaOpen ? (
                 <QuickAddCard
                   open
@@ -303,7 +315,7 @@ export default function ItemsTab({
             <div className="flex flex-col gap-5 lg:hidden">
               {itemsWithAdd.map((it: any, ix: number) => (
                 it?.__add ? (
-                  (isBrandProfile || brandTheme) ? (
+                  isOwnList ? (
                     qaOpen ? (
                       <QuickAddCard
                         key={`add-m-${ix}`}
@@ -403,7 +415,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
-                    (isBrandProfile || brandTheme) ? (
+                    isOwnList ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-left-${ix}`}
@@ -500,7 +512,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
-                    (isBrandProfile || brandTheme) ? (
+                    isOwnList ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-right-${ix}`}
