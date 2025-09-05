@@ -252,54 +252,58 @@ export default function ItemsTab({
         {loading ? (
           <Skeleton rows={4} />
         ) : itemsLocal.length === 0 ? (
-          <div className="grid md:grid-cols-2 gap-4">
-            {canShowAdd ? (
-              qaOpen ? (
-                <QuickAddCard
-                  open
-                  onClose={() => setQaOpen(false)}
-                  onSubmit={handleQuickAddSubmit}
-                  trending={trending}
-                  allTags={itemsTags}
-                  variant="rich"
-                  signedIn={!!myId}
-                  signInHref="/signin"
-                  prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                  isBrandProfile
-                />
+          isPublicBrandPage ? (
+            <div className="py-10 text-center text-sm text-gray-500 dark:text-gray-400">Ürün yok</div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {canShowAdd ? (
+                qaOpen ? (
+                  <QuickAddCard
+                    open
+                    onClose={() => setQaOpen(false)}
+                    onSubmit={handleQuickAddSubmit}
+                    trending={trending}
+                    allTags={itemsTags}
+                    variant="rich"
+                    signedIn={!!myId}
+                    signInHref="/signin"
+                    prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                    isBrandProfile
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setQaOpen(true)}
+                    className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                    style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                    aria-label="Hızlı ekle"
+                    title="Hızlı ekle"
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-5xl leading-none">+</span>
+                      <span className="text-base font-medium">Ekle</span>
+                    </div>
+                  </button>
+                )
               ) : (
-                <button
-                  type="button"
-                  onClick={() => setQaOpen(true)}
-                  className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                  style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
-                  aria-label="Hızlı ekle"
-                  title="Hızlı ekle"
-                >
-                  <div className="flex flex-col items-center gap-2">
-                    <span className="text-5xl leading-none">+</span>
-                    <span className="text-base font-medium">Ekle</span>
-                  </div>
-                </button>
-              )
-            ) : (
-              !effectiveHideAdd ? (
-                <Link
-                  href="/#quick-add"
-                  prefetch={false}
-                  className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                  style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                  aria-label="Hızlı ekle"
-                  title="Hızlı ekle"
-                >
-                  <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                    <span className="text-5xl leading-none">+</span>
-                    <span className="text-base font-medium">Ekle</span>
-                  </div>
-                </Link>
-              ) : null
-            )}
-          </div>
+                !effectiveHideAdd ? (
+                  <Link
+                    href="/#quick-add"
+                    prefetch={false}
+                    className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                    style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                    aria-label="Hızlı ekle"
+                    title="Hızlı ekle"
+                  >
+                    <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                      <span className="text-5xl leading-none">+</span>
+                      <span className="text-base font-medium">Ekle</span>
+                    </div>
+                  </Link>
+                ) : null
+              )}
+            </div>
+          )
         ) : (
           <>
             {/* Tag filter — QuickAddCard tarzı: 4'lük sayfa, oklar, + ikonlu chip, dots */}
