@@ -116,7 +116,8 @@ export default function ItemsTab({
   // Show Quick Add only when user is viewing their own items
   const isOwnList = useMemo(() => !!myId && !!listOwnerId && myId === listOwnerId, [myId, listOwnerId]);
 
-  const canShowAdd = isOwnList && !hideAdd;
+  const effectiveHideAdd = hideAdd || isPublicBrandPage;
+  const canShowAdd = isOwnList && !effectiveHideAdd;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -282,7 +283,7 @@ export default function ItemsTab({
                 </button>
               )
             ) : (
-              !hideAdd ? (
+              !effectiveHideAdd ? (
                 <Link
                   href="/#quick-add"
                   prefetch={false}
@@ -359,7 +360,7 @@ export default function ItemsTab({
                       </button>
                     )
                   ) : (
-                    !hideAdd ? (
+                    !effectiveHideAdd ? (
                       <Link
                         key={`add-m-${ix}`}
                         href="/#quick-add"
@@ -461,7 +462,7 @@ export default function ItemsTab({
                         </button>
                       )
                     ) : (
-                      !hideAdd ? (
+                      !effectiveHideAdd ? (
                         <Link
                           key={`add-left-${ix}`}
                           href="/#quick-add"
@@ -560,7 +561,7 @@ export default function ItemsTab({
                         </button>
                       )
                     ) : (
-                      !hideAdd ? (
+                      !effectiveHideAdd ? (
                         <Link
                           key={`add-right-${ix}`}
                           href="/#quick-add"
