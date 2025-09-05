@@ -4,6 +4,54 @@ import SocialBar from "@/components/brand/SocialBar"; // mevcutsa
 import dynamic from "next/dynamic";
 import { getBrandPublicView } from "@/lib/brand";
 
+// --- brand theme helpers (local-only) ---
+function hexToRgb(hex: string) {
+  const h = hex.replace('#','').trim();
+  const v = h.length === 3
+    ? h.split('').map(c => c + c).join('')
+    : h.padEnd(6, '0');
+  const num = parseInt(v, 16);
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+function luminance({r,g,b}:{r:number;g:number;b:number}) {
+  const srgb = [r,g,b].map(v => {
+    const s = v/255;
+    return s <= 0.03928 ? s/12.92 : Math.pow((s+0.055)/1.055, 2.4);
+  });
+  return 0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
+}
+function mix(a:number,b:number,t:number){ return a + (b-a)*t; }
+function toRgbStr({r,g,b}:{r:number;g:number;b:number}) { return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`; }
+function withAlpha({r,g,b}:{r:number;g:number;b:number}, alpha:number){ return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`; }
+function darken({r,g,b}:{r:number;g:number;b:number}, t:number){ return { r: mix(r,0,t), g: mix(g,0,t), b: mix(b,0,t) }; }
+function lighten({r,g,b}:{r:number;g:number;b:number}, t:number){ return { r: mix(r,255,t), g: mix(g,255,t), b: mix(b,255,t) }; }
+function computeBrandVars(hex?: string | null) {
+  if (!hex) return {};
+  try {
+    const rgb = hexToRgb(hex);
+    const L = luminance(rgb);
+    // pick high-contrast ink color
+    const ink = L > 0.5 ? 'rgb(20,23,28)' : 'rgb(245,247,250)'; // dark text on light bg, or light text on dark bg
+    const inkSubtle = L > 0.5 ? 'rgba(20,23,28,0.7)' : 'rgba(245,247,250,0.7)';
+    // subtle surfaces/borders relative to brand color
+    const elevBd = toRgbStr(darken(rgb, 0.25));
+    const chipBg = withAlpha(lighten(rgb, L > 0.5 ? 0.04 : 0.18), 0.18);
+    const surfaceWeak = withAlpha(rgb, 0.10);
+    return {
+      // consumed by the template via CSS vars
+      ['--brand-items-bg' as any]: toRgbStr(rgb),
+      ['--brand-elev-bd' as any]: elevBd,
+      ['--brand-chip-bg' as any]: chipBg,
+      ['--brand-ink' as any]: ink,
+      ['--brand-ink-subtle' as any]: inkSubtle,
+      ['--brand-surface-weak' as any]: surfaceWeak,
+    } as React.CSSProperties;
+  } catch {
+    return {};
+  }
+}
+// --- end brand theme helpers ---
+
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 const ItemsCardClient = dynamic(() => import("@/components/brand/ItemsCardClient"), { ssr: false }) as any;
 
@@ -29,6 +77,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
       style={{
+        ...computeBrandVars(brand.cardColor || undefined),
         backgroundImage:
           "linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))",
       }}
@@ -65,7 +114,12 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <div
           id="brand-hero-card"
           className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
-          style={{ color: "var(--brand-ink, inherit)", backgroundColor: "var(--brand-items-bg)" }}
+          style={{
+            ...computeBrandVars(brand.cardColor || undefined),
+            color: "var(--brand-ink, inherit)",
+            backgroundColor: "var(--brand-items-bg)",
+            borderColor: "var(--brand-elev-bd)",
+          }}
         >
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
