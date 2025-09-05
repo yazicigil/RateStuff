@@ -59,7 +59,7 @@ function computeChipSoftVars(hex?: string | null) {
     const inkSubtle = L > 0.5 ? 'rgba(20,23,28,0.7)' : 'rgba(245,247,250,0.7)';
     const elevBd = toRgbStr(darken(rgb, 0.25));
     // Unselected chips: softer bg (low alpha). Selected chips use --brand-items-bg (solid) like in /brand/me
-    const chipSoft = withAlpha(lighten(rgb, L > 0.5 ? 0.06 : 0.20), 0.12);
+    const chipSoft = withAlpha(lighten(rgb, L > 0.5 ? 0.06 : 0.20), 0.08);
     return {
       ['--brand-items-bg' as any]: toRgbStr(rgb),
       ['--brand-elev-bd' as any]: elevBd,
