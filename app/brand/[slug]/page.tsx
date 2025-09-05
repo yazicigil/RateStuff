@@ -55,13 +55,18 @@ function computeChipSoftVars(hex?: string | null) {
   try {
     const rgb = hexToRgb(hex);
     const L = luminance(rgb);
+    const ink = L > 0.5 ? 'rgb(20,23,28)' : 'rgb(245,247,250)';
+    const inkSubtle = L > 0.5 ? 'rgba(20,23,28,0.7)' : 'rgba(245,247,250,0.7)';
     const elevBd = toRgbStr(darken(rgb, 0.25));
-    // softer chip background than computeBrandVars (lower alpha)
+    // Unselected chips: softer bg (low alpha). Selected chips use --brand-items-bg (solid) like in /brand/me
     const chipSoft = withAlpha(lighten(rgb, L > 0.5 ? 0.06 : 0.20), 0.12);
     return {
+      ['--brand-items-bg' as any]: toRgbStr(rgb),
       ['--brand-elev-bd' as any]: elevBd,
       ['--brand-chip-bg' as any]: chipSoft,
-      // intentionally DO NOT set --brand-items-bg / --brand-ink, to avoid solid look
+      ['--brand-ink' as any]: ink,
+      ['--brand-ink-subtle' as any]: inkSubtle,
+      // NOTE: we intentionally do NOT set --brand-surface-weak here
     } as React.CSSProperties;
   } catch {
     return {} as React.CSSProperties;
