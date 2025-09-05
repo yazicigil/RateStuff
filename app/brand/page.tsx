@@ -1,10 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import LearnMoreModal from "@/components/brand/LearnMore";
 
 export default function BrandLoginPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const kind = (session as any)?.user?.kind || (session as any)?.user?.role || (session as any)?.user?.type;
+    if (kind === "brand") {
+      router.replace("/brand/me");
+    }
+  }, [status, session, router]);
+
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -12,6 +25,7 @@ export default function BrandLoginPage() {
   const [err, setErr] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
   const [remember, setRemember] = useState(false);
+  const [openLearnMore, setOpenLearnMore] = useState(false);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -78,6 +92,10 @@ export default function BrandLoginPage() {
       setErr("Giriş başarısız. Tekrar deneyin.");
       setBusy(false);
     }
+  }
+
+  if (status === "authenticated" && ((session as any)?.user?.kind === "brand" || (session as any)?.user?.role === "brand" || (session as any)?.user?.type === "brand")) {
+    return null;
   }
 
   return (
@@ -196,12 +214,20 @@ export default function BrandLoginPage() {
 
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-6 text-center">
             Markan RateStuff’ta gösterilsin mi?{" "}
-            <Link href="#" className="text-[#011a3d] dark:text-white font-medium hover:underline">
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); setOpenLearnMore(true); }}
+              className="text-[#011a3d] dark:text-white font-medium hover:underline"
+            >
               Daha fazla bilgi al
-            </Link>
+            </a>
           </p>
         </div>
       </div>
+      <LearnMoreModal
+        open={openLearnMore}
+        onClose={() => setOpenLearnMore(false)}
+      />
     </div>
   );
 }
