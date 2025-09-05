@@ -196,7 +196,7 @@ export default function LearnMoreModal({
       {/* Panel */}
       <div
         ref={dialogRef}
-        className="absolute left-1/2 top-1/2 w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/10 bg-[rgba(20,23,28,0.9)] p-0 shadow-2xl ring-1 ring-black/10 dark:bg-[rgba(10,12,16,0.95)]"
+        className="absolute left-1/2 top-1/2 w-[92vw] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-black/10 bg-white p-0 shadow-2xl ring-1 ring-black/10 dark:border-white/10 dark:bg-[rgba(10,12,16,0.95)]"
         onMouseDown={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -206,7 +206,7 @@ export default function LearnMoreModal({
               Bize markanızdan bahsedin
             </h2>
             <p id="learnmore-desc" className="mt-1 text-sm text-white/70">
-              Formu gönderdiğinizde bilgileriniz <strong>brand@ratestuff.net</strong> adresine iletilecek. En kısa zamanda dönüş yapılacaktır.
+            En kısa zamanda dönüş yapılacaktır.
             </p>
           </div>
           <button
