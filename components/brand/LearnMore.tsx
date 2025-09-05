@@ -95,8 +95,9 @@ export default function LearnMoreModal({
   const brandValid = data.brandName.trim().length >= 2;
   const categoryIsOther = (data.category || "").toLowerCase() === "diğer";
   const categoryValid = data.category !== "" && (!categoryIsOther || (data.customCategory || "").trim().length >= 2);
-
-  const formValid = emailValid && brandValid && categoryValid;
+  const contactValid = (data.contact || "").trim().length > 0;
+  const aboutValid = (data.about || "").trim().length > 0;
+  const formValid = emailValid && brandValid && categoryValid && contactValid && aboutValid;
 
   const setField = <K extends keyof LearnMoreFormData>(key: K, value: LearnMoreFormData[K]) => {
     setData((d) => ({ ...d, [key]: value }));
@@ -205,8 +206,11 @@ export default function LearnMoreModal({
             <h2 id="learnmore-title" className="text-xl font-semibold tracking-tight">
               Bize markanızdan bahsedin
             </h2>
-            <p id="learnmore-desc" className="mt-1 text-sm text-white/70">
-            En kısa zamanda dönüş yapılacaktır.
+            <p
+              id="learnmore-desc"
+              className="mt-1 text-sm text-neutral-600 dark:text-white/70"
+            >
+              En kısa zamanda dönüş yapılacaktır.
             </p>
           </div>
           <button
@@ -267,6 +271,7 @@ export default function LearnMoreModal({
                 <label className="mb-1.5 block text-sm font-medium">Diğer kategori</label>
                 <input
                   type="text"
+                  required
                   value={data.customCategory || ""}
                   onChange={(e) => setField("customCategory", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, customCategory: true }))}
@@ -280,6 +285,7 @@ export default function LearnMoreModal({
                 <input
                   type="url"
                   inputMode="url"
+                  required
                   value={data.contact || ""}
                   onChange={(e) => setField("contact", e.target.value)}
                   onBlur={() => setTouched((t) => ({ ...t, contact: true }))}
@@ -297,6 +303,7 @@ export default function LearnMoreModal({
               <input
                 type="url"
                 inputMode="url"
+                required
                 value={data.contact || ""}
                 onChange={(e) => setField("contact", e.target.value)}
                 onBlur={() => setTouched((t) => ({ ...t, contact: true }))}
@@ -311,6 +318,7 @@ export default function LearnMoreModal({
             <label className="mb-1.5 block text-sm font-medium">Markanızdan kısaca bahsedin</label>
             <textarea
               rows={4}
+              required
               value={data.about || ""}
               onChange={(e) => setField("about", e.target.value)}
               onBlur={() => setTouched((t) => ({ ...t, about: true }))}
@@ -384,8 +392,11 @@ export default function LearnMoreModal({
 
 function inputCls(invalid: boolean) {
   const base =
-    "w-full rounded-lg border bg-white/5 px-3 py-2.5 text-sm outline-none transition placeholder:text-white/40 " +
-    "focus:ring-2 focus:ring-white/20 focus:border-white/20 border-white/15";
+    "w-full rounded-lg border px-3 py-2.5 text-sm outline-none transition " +
+    "placeholder:text-neutral-400 " +
+    "border-neutral-300 focus:border-black/30 focus:ring-2 focus:ring-black/10 " +
+    "dark:border-white/15 dark:bg-white/5 dark:placeholder:text-white/40 " +
+    "dark:focus:ring-white/20 dark:focus:border-white/20";
   const err = invalid ? " border-red-400/40 ring-0 focus:ring-red-400/30 focus:border-red-400/50" : "";
   return base + err;
 }

@@ -85,7 +85,7 @@ export default function BrandLoginPage() {
       } catch {}
       await signIn("brand-otp", {
         email, nonce: data.nonce,
-        redirect: true, callbackUrl: "/",
+        redirect: true, callbackUrl: "/brand/me",
         remember,
       });
     } catch {
