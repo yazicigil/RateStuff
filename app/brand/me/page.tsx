@@ -207,16 +207,11 @@ export default async function BrandProfilePage() {
         </div>
         {/* Avatar anchored to the cover bottom-left */}
         <div className="absolute left-4 sm:left-6 md:left-8 bottom-0 translate-y-1/2 z-30">
-          <div
-            className="rounded-full p-[4px] shadow-md"
-            style={{ backgroundColor: 'var(--brand-card-color, var(--brand-primary, #6D28D9))' }}
-          >
-            <EditAvatar
-              className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220]"
-              initialUrl={user.avatarUrl ?? null}
-              name={user.name ?? user.email ?? "Brand"}
-            />
-          </div>
+          <EditAvatar
+            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220]"
+            initialUrl={user.avatarUrl ?? null}
+            name={user.name ?? user.email ?? "Brand"}
+          />
         </div>
       </div>
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
