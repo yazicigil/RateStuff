@@ -189,20 +189,20 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
   }
 
   return (
-    <div className="space-y-4 rounded-xl border border-zinc-300/40 p-3">
+    <div className="space-y-4 rounded-xl border border-zinc-300/40 p-3 overflow-hidden">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium opacity-80">Sosyal bağlantılar</h3>
         <div className="flex items-center gap-2">
           <button
             onClick={() => { onClose?.(); }}
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm border border-zinc-300/50 hover:border-zinc-300/80 hover:bg-zinc-200/20 transition"
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm border border-zinc-300/50 hover:border-zinc-300/80 hover:bg-zinc-200/20 transition shrink-0"
           >
             <span>Kaydet</span>
           </button>
         </div>
       </div>
       <form onSubmit={addLink} className="flex flex-wrap items-end gap-2">
-        <div className="flex-1 min-w-60">
+        <div className="flex-1 min-w-0 basis-full sm:basis-auto">
           <label className="sr-only">URL</label>
           <input
             type="url"
@@ -213,7 +213,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
             onChange={(e) => setUrl(e.target.value)}
           />
         </div>
-        <div className="w-56">
+        <div className="w-full sm:w-56">
           <label className="sr-only">Etiket</label>
           <input
             className="w-full rounded-full border border-zinc-300/40 bg-white/5 px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-emerald-500/40"
@@ -225,7 +225,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
         </div>
         <button
           disabled={saving}
-          className="rounded-full px-4 py-2 text-sm border border-emerald-500/60 text-emerald-600 hover:bg-emerald-500/10 disabled:opacity-60"
+          className="rounded-full px-4 py-2 text-sm border border-emerald-500/60 text-emerald-600 hover:bg-emerald-500/10 disabled:opacity-60 shrink-0"
         >
           {saving ? "Ekleniyor…" : "Ekle"}
         </button>
@@ -243,7 +243,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
               onDragOver={(e) => onDragOver(e, l.id)}
               onDrop={onDrop}
               onDragLeave={onDragLeave}
-              className={`relative flex items-center gap-2 rounded-lg border border-zinc-300/30 p-1.5 hover:bg-zinc-200/10 transition
+              className={`relative flex flex-col sm:flex-row items-stretch sm:items-center gap-2 rounded-lg border border-zinc-300/30 p-1.5 hover:bg-zinc-200/10 transition
     ${dragId === l.id ? "opacity-70 scale-[0.99] shadow-sm" : ""}`}
             >
               {(overId === l.id && dragId) && (
@@ -253,18 +253,18 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
                   <div className="mx-1 h-full rounded-full bg-emerald-500 animate-pulse" />
                 </div>
               )}
-              <div className="shrink-0">
-                <SocialIcon url={l.url} style={{ height: 24, width: 24 }} />
+              <div className="shrink-0 mt-1 sm:mt-0">
+                <SocialIcon url={l.url} style={{ height: 22, width: 22 }} />
               </div>
 
               <input
-                className="flex-1 min-w-60 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
+                className="flex-1 min-w-0 w-full rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
                 value={l.url}
                 onChange={(e) => setLinks(prev => prev.map(x => x.id === l.id ? { ...x, url: e.target.value } : x))}
                 onBlur={(e) => saveInline(l.id, { url: e.target.value })}
               />
               <input
-                className="w-44 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
+                className="w-full sm:w-44 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
                 value={l.label ?? ""}
                 placeholder="Etiket"
                 onChange={(e) => setLinks(prev => prev.map(x => x.id === l.id ? { ...x, label: e.target.value } : x))}
@@ -272,7 +272,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
                 maxLength={30}
               />
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {/* Drag handle */}
                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-zinc-300/40 text-zinc-500 cursor-grab select-none">
                   <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">

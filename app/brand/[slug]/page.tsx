@@ -140,7 +140,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             alt={`${user.name ?? brand.displayName}`}
             width={128}
             height={128}
-            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-2 ring-white dark:ring-[#0b1220] object-cover"
+            className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full ring-4 ring-white dark:ring-[#0b1220] object-cover"
           />
         </div>
       </div>

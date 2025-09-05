@@ -222,14 +222,14 @@ export default async function BrandProfilePage() {
               href={`/brand/${brand.slug}`}
               aria-label="Herkese açık profili görüntüle"
               title="Herkese açık profili görüntüle"
-              className="absolute right-4 bottom-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm border transition"
+              className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm border transition shadow-sm"
               style={{
                 borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.12))',
                 backgroundColor: 'var(--brand-chip-bg, rgba(0,0,0,0.04))',
                 color: 'var(--brand-ink, inherit)',
               }}
             >
-              <span>Herkese açık profili görüntüle</span>
+              <span>Herkese açık profili gör</span>
               <svg
                 viewBox="0 0 24 24"
                 width="16"

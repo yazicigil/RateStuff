@@ -277,7 +277,7 @@ export default function Header({ controls }: { controls?: Controls }) {
     >
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
-        <div className="flex items-center justify-between md:justify-start gap-2">
+        <div className="flex items-center gap-2">
           {isProfile && (
             <button
               type="button"
@@ -300,27 +300,29 @@ export default function Header({ controls }: { controls?: Controls }) {
             <img src={isBrandMe ? "/forbrandslogo.svg" : "/logo.svg"} alt="RateStuff" className={isBrandMe ? logoClassBrand : logoClassDefault} />
           </Link>
           {/* Mobil sağ blok */}
-          <div className="flex items-center gap-2 md:hidden">
-            <div className="relative h-9">
-              <select
-                value={theme}
-                onChange={(e) => changeTheme(e.target.value as ThemePref)}
-                title="Tema"
-                className="h-9 w-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent p-0"
-              >
-                <option value="light">🌞 Light</option>
-                <option value="dark">🌙 Dark</option>
-                <option value="system">🖥️ Auto</option>
-              </select>
-              <span className="pointer-events-none absolute inset-0 grid place-items-center">
-                <span aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
-              </span>
-              <span className="pointer-events-none absolute inset-y-0 right-1 w-4 grid place-items-center text-gray-500 dark:text-gray-300 opacity-70">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </span>
-            </div>
+          <div className="flex items-center gap-2 md:hidden ml-auto">
+            {!isBrandMe && (
+              <div className="relative h-9">
+                <select
+                  value={theme}
+                  onChange={(e) => changeTheme(e.target.value as ThemePref)}
+                  title="Tema"
+                  className="h-9 w-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent p-0"
+                >
+                  <option value="light">🌞 Light</option>
+                  <option value="dark">🌙 Dark</option>
+                  <option value="system">🖥️ Auto</option>
+                </select>
+                <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                  <span aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
+                </span>
+                <span className="pointer-events-none absolute inset-y-0 right-1 w-4 grid place-items-center text-gray-500 dark:text-gray-300 opacity-70">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </span>
+              </div>
+            )}
 
             {!loading && !me && (
               <button
@@ -353,23 +355,25 @@ export default function Header({ controls }: { controls?: Controls }) {
 
         {/* Desktop sağ: tema + auth */}
         <nav className="hidden md:flex ml-auto items-center gap-2.5 relative z-50">
-          <div className="relative h-9">
-            <select
-              value={theme}
-              onChange={(e) => changeTheme(e.target.value as ThemePref)}
-              title="Tema"
-              className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
-            >
-              <option value="light">🌞 Light</option>
-              <option value="dark">🌙 Dark</option>
-              <option value="system">🖥️ Auto</option>
-            </select>
-            <span className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center text-gray-500 dark:text-gray-300">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </span>
-          </div>
+          {!isBrandMe && (
+            <div className="relative h-9">
+              <select
+                value={theme}
+                onChange={(e) => changeTheme(e.target.value as ThemePref)}
+                title="Tema"
+                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
+              >
+                <option value="light">🌞 Light</option>
+                <option value="dark">🌙 Dark</option>
+                <option value="system">🖥️ Auto</option>
+              </select>
+              <span className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center text-gray-500 dark:text-gray-300">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </div>
+          )}
 
           {!loading && !me && (
             <button
