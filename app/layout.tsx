@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import Providers from "@/components/common/Providers";
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "react-hot-toast";
+import Header from "@/components/header/Header";
+import { usePathname } from "next/navigation";
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -97,6 +99,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const hideHeader = pathname === "/" || pathname?.startsWith("/brand");
   
   const orgLD = {
     "@context": "https://schema.org",
@@ -141,6 +145,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className="min-h-screen antialiased">
+                {!hideHeader && <Header />}
+
          <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
         <Providers>{children}</Providers>
           <Analytics />
