@@ -410,34 +410,9 @@ const body: any = {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 overflow-x-hidden">
-      {/* Header */}
-      <header className="fixed top-0 inset-x-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
-        <div className="relative max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex items-center gap-2 md:gap-3">
-          <div className="flex items-center gap-2 flex-1">
-            <Link
-              href="/"
-              className="p-2 rounded-xl border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 transition"
-              aria-label="Anasayfa"
-              title="Anasayfa"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path fillRule="evenodd" d="M12.78 4.22a.75.75 0 0 1 0 1.06L8.56 9.5l4.22 4.22a.75.75 0 1 1-1.06 1.06l-4.75-4.75a.75.75 0 0 1 0-1.06l4.75-4.75a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
-              </svg>
-            </Link>
-            <span className="text-lg font-semibold">Profil</span>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            {me && <NotificationsDropdown />}
-          </div>
-          <div className="absolute left-1/2 -translate-x-1/2">
-            <Link href="/" aria-label="Anasayfa" title="Anasayfa">
-              <img src="/logo.svg" alt="RateStuff" loading="lazy" decoding="async" className="h-11 w-auto dark:invert hover:opacity-90 transition" />
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* Header removed */}
 
-      <main className="max-w-6xl mx-auto px-4 pt-16 py-6 space-y-6">
+      <main className="max-w-6xl mx-auto px-4 pt-6 space-y-6">
         {/* ÜSTTE: Profil kartı */}
         <section className="relative rounded-2xl border p-5 shadow-sm bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-gray-900 dark:to-gray-900 dark:border-gray-800 flex items-center gap-4">
           <div className="relative">

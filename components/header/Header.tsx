@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 import NotificationsDropdown from '@/components/header/notifications/Dropdown';
@@ -226,6 +226,11 @@ export default function Header({ controls }: { controls?: Controls }) {
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemePref>('system');
   const router = useRouter();
+  const pathname = usePathname();
+  const cleanPath = (pathname || '').split('?')[0];
+  const isProfile = /^\/(?:me|brand(?:\/me|\/[^\/]+))$/.test(cleanPath);
+  const isBrandProfile = /^\/brand(?:\/me|\/[^\/]+)$/.test(cleanPath);
+  const isBrandMe = cleanPath === '/brand/me';
 
 
   async function refetchMe() {
@@ -264,17 +269,38 @@ export default function Header({ controls }: { controls?: Controls }) {
     : 'h-14 w-auto dark:invert';
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800">
+    <header
+      className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800"
+      style={isBrandProfile ? {
+        backgroundColor: 'var(--brand-surface-weak, rgba(255,255,255,0.70))',
+        borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.08))',
+        color: 'var(--brand-ink, inherit)'
+      } : undefined}
+    >
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
         <div className="flex items-center justify-between md:justify-start gap-2">
+          {isProfile && (
+            <button
+              type="button"
+              onClick={() => { if (window.history.length > 1) { router.back(); } else { router.push('/'); } }}
+              title="Geri"
+              aria-label="Geri"
+              className="shrink-0 h-9 w-9 grid place-items-center rounded-xl border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10"
+              style={isBrandProfile ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.12))', color: 'var(--brand-ink-subtle, inherit)' } : undefined}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <polyline fill="none" stroke="currentColor" strokeWidth="2" points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
           <Link
             href="/"
             className="shrink-0"
             title="Anasayfa"
             onClick={(e) => { e.preventDefault(); window.location.href = '/' }}
           >
-            <img src="/logo.svg" alt="RateStuff" className={logoClass} />
+            <img src={isBrandMe ? "/forbrandslogo.svg" : "/logo.svg"} alt="RateStuff" className={logoClass} />
           </Link>
           {/* Mobil sağ blok */}
           <div className="flex items-center gap-2 md:hidden">
@@ -283,12 +309,15 @@ export default function Header({ controls }: { controls?: Controls }) {
                 value={theme}
                 onChange={(e) => changeTheme(e.target.value as ThemePref)}
                 title="Tema"
-                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
+                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-9 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent"
               >
                 <option value="light">🌞 Light</option>
                 <option value="dark">🌙 Dark</option>
                 <option value="system">🖥️ Auto</option>
               </select>
+              <span className="pointer-events-none absolute inset-y-0 left-2 grid place-items-center">
+                <span aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
+              </span>
               <span className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center text-gray-500 dark:text-gray-300">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9" />
@@ -320,8 +349,8 @@ export default function Header({ controls }: { controls?: Controls }) {
           </div>
         </div>
 
-        {/* Desktop: arama + sıralama ortada */}
-        {controls && (
+        {/* Desktop: arama + sıralama ortada (profil sayfalarında gizli) */}
+        {controls && !isProfile && (
           <SearchWithSuggestions controls={controls} />
         )}
 

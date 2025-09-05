@@ -63,6 +63,7 @@ export default async function BrandProfilePage() {
       coverImageUrl: true,
       bio: true,
       cardColor: true,
+      slug: true,
     },
   });
 
@@ -138,56 +139,6 @@ export default async function BrandProfilePage() {
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))'
       }}
     >
-      {/* Inline Header */}
-      <div
-        className="sticky top-0 z-[9999] backdrop-blur-sm border-b supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-[#0b1220]/60"
-        style={{
-          backgroundColor: 'var(--rs-header-bg)',
-          borderColor: 'var(--rs-header-border)',
-          backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
-        }}
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 pt-3 pb-2">
-          <div className="flex items-center">
-            {/* Left: back button (fixed width so center never overlaps) */}
-            <div className="shrink-0 w-10 flex items-center">
-              <Link href="/" aria-label="Ana sayfa" className="p-2 rounded-2xl border border-neutral-200/70 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
-              </Link>
-            </div>
-
-            {/* Center: logo (centered on mobile, left-aligned from sm up) */}
-            <div className="flex-1 flex justify-center sm:justify-start">
-              <Link href="/brand" className="flex items-center" aria-label="RateStuff for Brands">
-                <Image
-                  src="/forbrandslogo.svg"
-                  alt="RateStuff for Brands"
-                  priority
-                  className="h-8 sm:h-9 w-auto select-none text-[#011a3d] dark:brightness-0 dark:invert"
-                />
-              </Link>
-            </div>
-
-            {/* Right: actions (fixed width cluster) */}
-            <div className="shrink-0 flex items-center gap-2 w-auto">
-              <NotificationsDropdown />
-              <Link
-                href="/api/auth/signout?callbackUrl=/"
-                aria-label="Çıkış yap"
-                title="Çıkış yap"
-                className="btn-chip btn-chip--danger"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9l3 3m0 0-3 3m3-3H3"/>
-                </svg>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
         <div className="relative z-20 mb-0 h-40 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden shadow-md bg-neutral-200/40 dark:bg-neutral-800/40">
@@ -266,6 +217,35 @@ export default async function BrandProfilePage() {
           <div className="mt-3 sm:mt-4">
             <CardColorPicker initialColor={brand?.cardColor ?? null} targetId="brand-hero-card" />
           </div>
+          {brand?.slug ? (
+            <Link
+              href={`/brand/${brand.slug}`}
+              aria-label="Herkese açık profili görüntüle"
+              title="Herkese açık profili görüntüle"
+              className="absolute right-4 bottom-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm border transition"
+              style={{
+                borderColor: 'var(--brand-elev-bd, rgba(0,0,0,0.12))',
+                backgroundColor: 'var(--brand-chip-bg, rgba(0,0,0,0.04))',
+                color: 'var(--brand-ink, inherit)',
+              }}
+            >
+              <span>Herkese açık profili görüntüle</span>
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                aria-hidden="true"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="opacity-80"
+              >
+                <path d="M7 17L17 7M17 7H9M17 7v8" />
+              </svg>
+            </Link>
+          ) : null}
         </div>
 
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>

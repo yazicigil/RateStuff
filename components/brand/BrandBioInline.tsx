@@ -43,9 +43,11 @@ export default function BrandBioInline({ initialBio, brandId, isOwner }: BrandBi
   };
 
   if (!isOwner) {
+    // Public görünüm: bio boşsa hiç göstermeyelim
+    if (!bio || bio.trim().length === 0) return null;
     return (
       <p className="text-sm" style={{ color: 'var(--brand-ink, currentColor)' }}>
-        {bio || 'Açıklama ekle'}
+        {bio}
       </p>
     );
   }

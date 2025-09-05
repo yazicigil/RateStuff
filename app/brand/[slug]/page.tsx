@@ -54,6 +54,7 @@ function computeBrandVars(hex?: string | null) {
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 const ItemsCardClient = dynamic(() => import("@/components/brand/ItemsCardClient"), { ssr: false }) as any;
+const OwnerSettings = dynamic(() => import("@/components/brand/OwnerSettings"), { ssr: false });
 
 // verified badge – me sayfasındakiyle aynı
 function VerifiedBadge() {
@@ -126,18 +127,19 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
               <h1 className="text-2xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 {brand.displayName}
               </h1>
-              {/* verified => kamuya açıkta gerçekten verified ise göster */}
-              {/* user tablosunda verified alanı yoksa şimdilik gizli kalsın veya koşulu kaldır */}
-              {/* {user.verified ? <VerifiedBadge/> : null} */}
+              <VerifiedBadge />
+              <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
             </div>
 
             {/* SocialBar read-only */}
             <SocialBar userId={user.id} canEdit={false} className="pt-1" />
 
-            {/* Bio read-only */}
-            <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose">
-              <BrandBioInline brandId={brand.id} initialBio={brand.bio || ""} isOwner={false} />
-            </div>
+            {/* Bio read-only (public: sadece bio varsa göster) */}
+            { (brand.bio && brand.bio.trim().length > 0) ? (
+              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose">
+                <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
+              </div>
+            ) : null }
           </div>
 
           {/* Meta row */}

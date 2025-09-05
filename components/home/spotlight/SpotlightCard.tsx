@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import Tag from '@/components/common/Tag';
 import Stars from '@/components/common/Stars';
 import RatingPill from '@/components/common/RatingPill';
@@ -47,6 +48,23 @@ function maskName(s?: string | null, isBrand?: boolean) {
   if (!raw) return 'Anonim';
   const parts = raw.split(/\s+/).filter(Boolean);
   return parts.map((p) => p.charAt(0).toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
+}
+
+function slugifyTr(input?: string | null) {
+  const s = (input || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/ı/g, "i")
+    .replace(/İ/g, "i")
+    .replace(/ç/g, "c")
+    .replace(/ğ/g, "g")
+    .replace(/ö/g, "o")
+    .replace(/ş/g, "s")
+    .replace(/ü/g, "u")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+  return s || "brand";
 }
 
 export type SpotlightCardProps = {
@@ -123,6 +141,15 @@ export default function SpotlightCard(props: SpotlightCardProps) {
   const ratingCount = item.count ?? 0;
   const isBrand = String(item.createdBy?.kind || "").toUpperCase() === "BRAND";
   const showProductCta = isBrand && typeof item.productUrl === 'string' && (item.productUrl || '').length > 0;
+
+  const createdBySlug: string | null =
+    (item.createdBy as any)?.slug ??
+    (item as any)?.createdBySlug ??
+    (item as any)?.brandSlug ??
+    null;
+  const brandSlug: string | null = isBrand
+    ? (createdBySlug || slugifyTr(item.createdBy?.name))
+    : null;
 
   // mount'ta görünen comment alanlarını ölç
   useEffect(() => {
@@ -330,11 +357,20 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                   </div>
                 )}
                 {(() => {
-                  const isBrand = String(item.createdBy?.kind || "").toUpperCase() === "BRAND";
                   const display = isBrand ? (item.createdBy?.name || "Anonim") : maskName(item.createdBy?.name);
                   return (
                     <>
-                      <span>{display}</span>
+                      {isBrand && brandSlug ? (
+                        <Link
+                          href={`/brand/${brandSlug}`}
+                          className="hover:underline underline-offset-2"
+                          title={`${display} profiline git`}
+                        >
+                          {display}
+                        </Link>
+                      ) : (
+                        <span>{display}</span>
+                      )}
                       {isBrand && (
                         <svg
                           width="14"

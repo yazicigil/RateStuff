@@ -8,6 +8,7 @@ import OptionsPopover from '@/components/common/popovers/OptionsPopover';
 import CommentList from '@/components/comments/CommentList';
 import CommentBox from '@/components/comments/CommentBox';
 import ImageUploader from '@/components/common/ImageUploader';
+import Link from 'next/link';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
@@ -48,6 +49,23 @@ function maskName(s?: string | null, isBrand?: boolean, isVerified?: boolean) {
   if (!s) return 'Anonim';
   const parts = String(s).trim().split(/\s+/).filter(Boolean);
   return parts.map(p => p[0]?.toUpperCase() + '*'.repeat(Math.max(1, p.length - 1))).join(' ');
+}
+
+function slugifyTr(input?: string | null) {
+  const s = (input || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/ı/g, "i")
+    .replace(/İ/g, "i")
+    .replace(/ç/g, "c")
+    .replace(/ğ/g, "g")
+    .replace(/ö/g, "o")
+    .replace(/ş/g, "s")
+    .replace(/ü/g, "u")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-");
+  return s || "brand";
 }
 
 export default function ItemCard({
@@ -100,6 +118,16 @@ export default function ItemCard({
     i?.createdBy?.avatarUrl ??
     (i as any)?.createdByAvatarUrl ??
     null;
+
+  // public brand profile slug (prefer backend-provided, fallback to name)
+  const createdBySlug: string | null =
+    (createdByAny as any)?.slug ??
+    (i as any)?.createdBySlug ??
+    (i as any)?.brandSlug ??
+    null;
+  const brandSlug: string | null = isBrand
+    ? (createdBySlug || (creatorNameRaw ? slugifyTr(creatorNameRaw) : null))
+    : null;
 
   const handleShareClick = () => { setOpenShareId(openShareId === i.id ? null : i.id); setOpenMenuId(null); };
   const handleMenuClick  = () => { setOpenMenuId(openMenuId === i.id ? null : i.id); setOpenShareId(null); };
@@ -529,7 +557,17 @@ export default function ItemCard({
                     )}
                     <div className="flex-1 min-w-0">
                       <span className="inline-flex items-center gap-1 min-w-0 max-w-full align-middle">
-                        <span className="truncate min-w-0">{creatorName}</span>
+                        {isBrand && brandSlug ? (
+                          <Link
+                            href={`/brand/${brandSlug}`}
+                            className="truncate min-w-0 hover:underline underline-offset-2"
+                            title={`${creatorName} profiline git`}
+                          >
+                            {creatorName}
+                          </Link>
+                        ) : (
+                          <span className="truncate min-w-0">{creatorName}</span>
+                        )}
                         {isVerified && (
                           <svg
                             width="14"
