@@ -73,6 +73,18 @@ function computeChipSoftVars(hex?: string | null) {
     return {} as React.CSSProperties;
   }
 }
+function computeSurfaceWeakVars(hex?: string | null) {
+  if (!hex) return {} as React.CSSProperties;
+  try {
+    const rgb = hexToRgb(hex);
+    const surfaceWeak = withAlpha(rgb, 0.10); // subtle page tint
+    return {
+      ['--brand-surface-weak' as any]: surfaceWeak,
+    } as React.CSSProperties;
+  } catch {
+    return {} as React.CSSProperties;
+  }
+}
 // --- end brand theme helpers ---
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
@@ -100,6 +112,11 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
+      style={{
+        ...computeSurfaceWeakVars(brand.cardColor || undefined),
+        backgroundImage:
+          "linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))",
+      }}
     >
       {/* Universal Header zaten app/layout.tsx içinde render ediliyor */}
 
