@@ -64,6 +64,7 @@ export default function ItemsTab({
   myId,            // <-- eklendi
   amAdmin,         // <-- eklendi
   isBrandProfile = false,  // <-- yeni
+  hideAdd = false,            // <-- yeni
 }: {
   items: MyItem[];
   trending: string[];
@@ -74,6 +75,7 @@ export default function ItemsTab({
   myId?: string | null;    // <-- eklendi
   amAdmin?: boolean;       // <-- eklendi
   isBrandProfile?: boolean; // <-- yeni
+  hideAdd?: boolean;
 }) {
   // Local state for optimistic items
   const [itemsLocal, setItemsLocal] = useState<MyItem[]>(items);
@@ -114,7 +116,7 @@ export default function ItemsTab({
   // Show Quick Add only when user is viewing their own items
   const isOwnList = useMemo(() => !!myId && !!listOwnerId && myId === listOwnerId, [myId, listOwnerId]);
 
-  const canShowAdd = isOwnList && !isPublicBrandPage;
+  const canShowAdd = isOwnList && !hideAdd;
 
   useEffect(() => {
     const root = document.documentElement;
@@ -230,7 +232,7 @@ export default function ItemsTab({
   }, [itemsLocal, itemsSelected]);
 
   // Items with "add" card and row-major two-column split for desktop
-  const itemsWithAdd = useMemo(() => [{ __add: true } as any, ...filteredItems], [filteredItems]);
+  const itemsWithAdd = useMemo(() => (canShowAdd ? [{ __add: true } as any, ...filteredItems] : filteredItems), [filteredItems, canShowAdd]);
   const [colLeft, colRight] = useMemo(() => {
     const L: any[] = []; const R: any[] = [];
     itemsWithAdd.forEach((it, idx) => ((idx % 2 === 0) ? L : R).push(it));
@@ -280,19 +282,21 @@ export default function ItemsTab({
                 </button>
               )
             ) : (
-              <Link
-                href="/#quick-add"
-                prefetch={false}
-                className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                aria-label="Hızlı ekle"
-                title="Hızlı ekle"
-              >
-                <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                  <span className="text-5xl leading-none">+</span>
-                  <span className="text-base font-medium">Ekle</span>
-                </div>
-              </Link>
+              !hideAdd ? (
+                <Link
+                  href="/#quick-add"
+                  prefetch={false}
+                  className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                  style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                  aria-label="Hızlı ekle"
+                  title="Hızlı ekle"
+                >
+                  <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                    <span className="text-5xl leading-none">+</span>
+                    <span className="text-base font-medium">Ekle</span>
+                  </div>
+                </Link>
+              ) : null
             )}
           </div>
         ) : (
@@ -355,20 +359,22 @@ export default function ItemsTab({
                       </button>
                     )
                   ) : (
-                    <Link
-                      key={`add-m-${ix}`}
-                      href="/#quick-add"
-                      prefetch={false}
-                      className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                      style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                      aria-label="Hızlı ekle"
-                      title="Hızlı ekle"
-                    >
-                      <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                        <span className="text-4xl leading-none">+</span>
-                        <span className="text-sm font-medium">Ekle</span>
-                      </div>
-                    </Link>
+                    !hideAdd ? (
+                      <Link
+                        key={`add-m-${ix}`}
+                        href="/#quick-add"
+                        prefetch={false}
+                        className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                        aria-label="Hızlı ekle"
+                        title="Hızlı ekle"
+                      >
+                        <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                          <span className="text-4xl leading-none">+</span>
+                          <span className="text-sm font-medium">Ekle</span>
+                        </div>
+                      </Link>
+                    ) : null
                   )
                 ) : removedIds.has(it.id) ? null : (
                   <div key={it.id}>
@@ -455,20 +461,22 @@ export default function ItemsTab({
                         </button>
                       )
                     ) : (
-                      <Link
-                        key={`add-left-${ix}`}
-                        href="/#quick-add"
-                        prefetch={false}
-                        className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                        aria-label="Hızlı ekle"
-                        title="Hızlı ekle"
-                      >
-                        <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                          <span className="text-4xl leading-none">+</span>
-                          <span className="text-sm font-medium">Ekle</span>
-                        </div>
-                      </Link>
+                      !hideAdd ? (
+                        <Link
+                          key={`add-left-${ix}`}
+                          href="/#quick-add"
+                          prefetch={false}
+                          className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                          aria-label="Hızlı ekle"
+                          title="Hızlı ekle"
+                        >
+                          <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                            <span className="text-4xl leading-none">+</span>
+                            <span className="text-sm font-medium">Ekle</span>
+                          </div>
+                        </Link>
+                      ) : null
                     )
                   ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>
@@ -552,20 +560,22 @@ export default function ItemsTab({
                         </button>
                       )
                     ) : (
-                      <Link
-                        key={`add-right-${ix}`}
-                        href="/#quick-add"
-                        prefetch={false}
-                        className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                        aria-label="Hızlı ekle"
-                        title="Hızlı ekle"
-                      >
-                        <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                          <span className="text-4xl leading-none">+</span>
-                          <span className="text-sm font-medium">Ekle</span>
-                        </div>
-                      </Link>
+                      !hideAdd ? (
+                        <Link
+                          key={`add-right-${ix}`}
+                          href="/#quick-add"
+                          prefetch={false}
+                          className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                          aria-label="Hızlı ekle"
+                          title="Hızlı ekle"
+                        >
+                          <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                            <span className="text-4xl leading-none">+</span>
+                            <span className="text-sm font-medium">Ekle</span>
+                          </div>
+                        </Link>
+                      ) : null
                     )
                   ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>

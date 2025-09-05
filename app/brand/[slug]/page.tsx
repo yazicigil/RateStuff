@@ -163,6 +163,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             loading={false}
             myId={null}         // owner algısı oluşmasın
             amAdmin={false}     // admin aksiyonları kapanır
+            hideAdd={true}
             // ideal: mode="public" showQuickAdd={false} showOwnerActions={false}
           />
         </div>
