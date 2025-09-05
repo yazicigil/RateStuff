@@ -218,7 +218,7 @@ export default async function BrandProfilePage() {
         {/* Hero */}
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-12 md:pt-9 pl-24 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
+          className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-0 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
             backgroundColor: 'var(--brand-items-bg)'
@@ -228,16 +228,16 @@ export default async function BrandProfilePage() {
           {/* Top row: name, email, bio */}
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
                 {brand?.displayName ?? user.name ?? user.email}
               </h1>
               <VerifiedBadge />
             </div>
 
-            <SocialBar userId={user.id} canEdit className="pt-1 -ml-1 scale-90 sm:scale-100" />
+            <SocialBar userId={user.id} canEdit className="pt-1" />
 
             {/* Bio inline view/edit */}
-            <div className="pt-1 text-[13px] sm:text-sm leading-6 max-w-prose">
+            <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose">
               <BrandBioInline
                 brandId={brand?.id as string}
                 initialBio={brand?.bio ?? ""}

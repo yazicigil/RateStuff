@@ -76,7 +76,7 @@ export default function SocialBar({ userId, className = "", canEdit = false }: {
               >
                 <SocialIcon url={l.url} style={{ height: 28, width: 28 }} />
                 {l.label ? (
-                  <span className="text-sm opacity-80 group-hover:opacity-100 transition-opacity">
+                  <span className="hidden sm:inline text-sm opacity-80 group-hover:opacity-100 transition-opacity">
                     {l.label}
                   </span>
                 ) : null}
