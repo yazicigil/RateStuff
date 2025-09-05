@@ -806,7 +806,7 @@ function TagPager({
             style={ brandTheme ? (
               selected.size === 0
                 ? { backgroundColor: 'var(--brand-items-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-                : { backgroundColor: 'var(--brand-chip-bg, var(--brand-elev-bg))', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+                : { backgroundColor: 'var(--brand-elev-bg)',   borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
             ) : undefined }
           >
             Hepsi
@@ -825,7 +825,7 @@ function TagPager({
                   style={ brandTheme ? (
                     isSel
                       ? { backgroundColor: 'var(--brand-items-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-                      : { backgroundColor: 'var(--brand-chip-bg, var(--brand-elev-bg))', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
+                      : { backgroundColor: 'var(--brand-elev-bg)',   borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
                   ) : undefined }
                 >
                   <span>#{t}</span>

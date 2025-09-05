@@ -64,6 +64,7 @@ function computeChipSoftVars(hex?: string | null) {
       ['--brand-items-bg' as any]: toRgbStr(rgb),
       ['--brand-elev-bd' as any]: elevBd,
       ['--brand-chip-bg' as any]: chipSoft,
+      ['--brand-elev-bg' as any]: chipSoft,
       ['--brand-ink' as any]: ink,
       ['--brand-ink-subtle' as any]: inkSubtle,
       // NOTE: we intentionally do NOT set --brand-surface-weak here
