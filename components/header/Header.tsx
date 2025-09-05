@@ -306,17 +306,17 @@ export default function Header({ controls }: { controls?: Controls }) {
                 value={theme}
                 onChange={(e) => changeTheme(e.target.value as ThemePref)}
                 title="Tema"
-                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-9 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent"
+                className="h-9 w-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent p-0"
               >
                 <option value="light">🌞 Light</option>
                 <option value="dark">🌙 Dark</option>
                 <option value="system">🖥️ Auto</option>
               </select>
-              <span className="pointer-events-none absolute inset-y-0 left-2 grid place-items-center">
+              <span className="pointer-events-none absolute inset-0 grid place-items-center">
                 <span aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
               </span>
-              <span className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center text-gray-500 dark:text-gray-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <span className="pointer-events-none absolute inset-y-0 right-1 w-4 grid place-items-center text-gray-500 dark:text-gray-300 opacity-70">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </span>
