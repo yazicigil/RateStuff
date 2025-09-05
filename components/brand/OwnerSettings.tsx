@@ -11,7 +11,7 @@ type Props = {
   currentUserId?: string | null;
 };
 
-type MeShape = { email?: string | null; id?: string | null } | null;
+type MeShape = { email?: string | null; id?: string | null; sub?: string | null } | null;
 
 async function getMe(): Promise<MeShape> {
   // 1) Try custom /api/me
@@ -19,7 +19,7 @@ async function getMe(): Promise<MeShape> {
     const res = await fetch("/api/me", { credentials: "include", cache: "no-store" });
     if (res.ok) {
       const j = await res.json();
-      return { email: j?.email ?? null, id: j?.id ?? null };
+      return { email: j?.email ?? null, id: j?.id ?? null, sub: j?.sub ?? null };
     }
   } catch {}
   // 2) Try NextAuth session fallback
@@ -27,7 +27,7 @@ async function getMe(): Promise<MeShape> {
     const res = await fetch("/api/auth/session", { credentials: "include", cache: "no-store" });
     if (res.ok) {
       const j = await res.json();
-      return { email: j?.user?.email ?? null, id: j?.user?.id ?? null };
+      return { email: j?.user?.email ?? null, id: (j?.user?.id ?? j?.user?.sub ?? j?.sub ?? null) };
     }
   } catch {}
   return null;
@@ -57,7 +57,7 @@ export default function OwnerSettings({
       if (!ok) {
         const me = await getMe();
         const meEmail = (me?.email || "").toLowerCase().trim();
-        const meId = (me?.id || "").trim();
+        const meId = (me?.id || me?.sub || "").toString().trim();
         ok = (!!meEmail && meEmail === brandEmailLc) || (!!meId && meId === ownerId);
       }
       if (!cancelled) setIsOwner(!!ok);
