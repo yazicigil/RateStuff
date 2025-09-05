@@ -54,7 +54,7 @@ export default function EditAvatar({ className, initialUrl = "", name }: Props) 
     <>
       {/* Avatar + pencil trigger */}
       <div className="relative inline-block">
-        <div className={clsx("rounded-full bg-neutral-200 dark:bg-neutral-800 overflow-hidden", className)}>
+        <div className={clsx("rounded-full ring-4 ring-[var(--brand-accent)] shadow-lg bg-neutral-200 dark:bg-neutral-800 overflow-hidden", className)}>
           {url ? (
             <Image src={url} alt={name ?? "Avatar"} fill className="object-cover rounded-full" />
           ) : (
