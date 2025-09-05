@@ -156,7 +156,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
-        <div className="mt-3 sm:mt-4">
+        <div className="mt-3 sm:mt-4" style={computeBrandVars(brand.cardColor || undefined)}>
           <ItemsCardClient
             items={itemsForClient}
             trending={[]}
@@ -164,6 +164,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             myId={null}         // owner algısı oluşmasın
             amAdmin={false}     // admin aksiyonları kapanır
             hideAdd={true}
+            isBrandProfile      // ItemsTab içinde brand temalı stilleri aktive et
             // ideal: mode="public" showQuickAdd={false} showOwnerActions={false}
           />
         </div>
