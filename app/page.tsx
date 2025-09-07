@@ -403,9 +403,18 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   useEffect(() => {
     function onExternalReload() {
       try {
+        // Quick Add ve Spotlight kapansın
         setShowQuickAdd(false);
         setSharedItem(null);
         setSharedId(null);
+        // Filtreleri ve aramayı temizle
+        setSelectedTags(new Set());
+        setStarBuckets(new Set());
+        setOrder('new');
+        setQInput('');
+        setQCommitted('');
+        // Yukarı kaydır
+        try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch { window.scrollTo(0, 0); }
       } catch {}
       load();
     }
