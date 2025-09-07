@@ -30,7 +30,7 @@ async function nativeShare(id: string, name: string) {
     }
   } catch {}
 }
-import QuickAddCard from '@/components/home/QuickAddCard';
+import QuickAddCard, { QuickAddHome } from '@/components/home/QuickAddCard';
 import ItemCard from '@/components/home/ItemCard';
 import Head from 'next/head';
 import SpotlightCard from '@/components/home/spotlight/SpotlightCard';
@@ -1254,7 +1254,7 @@ if (!already) {
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
 {showQuickAdd && (
-  <QuickAddCard
+  <QuickAddHome
     open
     variant="rich"
     autoCloseOnSuccess={true}

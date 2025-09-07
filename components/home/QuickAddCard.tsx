@@ -5,7 +5,7 @@ import ImageUploader from '@/components/common/ImageUploader';
 import Stars from '@/components/common/Stars';
 import { containsBannedWord } from '@/lib/bannedWords';
 
-type QuickAddCardProps = {
+export type QuickAddCardProps = {
   /** panel göstergesi – dışarıdan yönetebilirsin, istersen hep açık da bırakılabilir */
   open?: boolean;
   /** kapatma ikonu ve dış olaylar için */
@@ -605,4 +605,9 @@ if (!validNow) {
       `}</style>
     </div>
   );
+}
+
+// --- Lightweight wrapper for homepage (non-brand) use
+export function QuickAddHome(props: Omit<QuickAddCardProps, 'isBrandProfile'>) {
+  return <QuickAddCard {...props} isBrandProfile={false} />;
 }
