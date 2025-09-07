@@ -30,7 +30,7 @@ async function nativeShare(id: string, name: string) {
     }
   } catch {}
 }
-import QuickAddCard, { QuickAddHome } from '@/components/home/QuickAddCard';
+import QuickAddHome from '@/components/home/QuickAddHome';
 import ItemCard from '@/components/home/ItemCard';
 import Head from 'next/head';
 import SpotlightCard from '@/components/home/spotlight/SpotlightCard';
