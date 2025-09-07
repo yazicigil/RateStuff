@@ -2,6 +2,7 @@
 
 import React from 'react';
 import TagFilterBar from '@/components/common/TagFilterBar';
+import ItemCard from '@/components/home/ItemCard';
 
 export type ProductsListItem = {
   id: string;
@@ -25,7 +26,7 @@ export type ProductsListProps<T extends ProductsListItem = ProductsListItem> = {
   initialSelectedTags?: string[];
   /** Marka teması: CSS değişkenleri (var(--brand-*)) tanımlıysa otomatik uyar */
   brandTheme?: boolean;
-  /** Ürün kartını nasıl çizeceğimizi belirten render prop (yoksa basit bir kart çizer) */
+  /** Ürün kartını nasıl çizeceğimizi belirten render prop (yoksa ItemCard kullanılır) */
   renderItem?: (item: T) => React.ReactNode;
   /** Liste boş ise gösterilecek JSX */
   emptyState?: React.ReactNode;
@@ -34,9 +35,42 @@ export type ProductsListProps<T extends ProductsListItem = ProductsListItem> = {
   /** Dışarıya değişiklikleri bildirmek isterseniz */
   onFilterChange?: (state: { q: string; selected: Set<string> }) => void;
   className?: string;
+
+  /** ItemCard entegrasyonu için opsiyoneller (ItemsTab ile eşleşecek şekilde) */
+  me?: any;
+  amAdmin?: boolean;
+  myId?: string | null;
+  savedIds?: Set<string> | string[];
+  copiedShareId?: string | null;
+
+  onDeleted?: (id: string) => void;            // legacy name
+  onDelete?: (id: string) => void;             // preferred forward
+  onSavedChanged?: (id: string, saved: boolean) => void;
+  onItemChanged?: (id: string) => void;
+
+  onOpenSpotlight?: (id: string) => void;
+  onToggleSave?: (id: string) => void;
+  onReport?: (id: string) => void;
+  onCopyShare?: (id: string) => void;
+  onNativeShare?: (id: string, name?: string) => void;
+  onShowInList?: (id: string) => void;
+  onVoteComment?: (commentId: string, v?: number) => void;
+
+  showComments?: boolean;
+  showCommentBox?: boolean;
+
+  /** Tag etkileşimleri */
+  selectedTagsExternal?: Set<string>;  // dışarıdan kontrol etmek istersen
+  onToggleTag?: (t: string) => void;
+  onResetTags?: () => void;
+
+  /** Ekstra ItemCard prop'larını doğrudan geçmek istersen */
+  itemCardProps?: any;
 };
 
-export default function ProductsList<T extends ProductsListItem = ProductsListItem>({
+export default function ProductsList<
+  T extends ProductsListItem = ProductsListItem
+>({
   items,
   trending = [],
   allTags,
@@ -47,10 +81,42 @@ export default function ProductsList<T extends ProductsListItem = ProductsListIt
   searchPlaceholder = 'Ürün ara…',
   onFilterChange,
   className = '',
+  me,
+  amAdmin,
+  myId,
+  savedIds,
+  copiedShareId,
+  onDeleted,
+  onDelete,
+  onSavedChanged,
+  onItemChanged,
+  onOpenSpotlight,
+  onToggleSave,
+  onReport,
+  onCopyShare,
+  onNativeShare,
+  onShowInList,
+  onVoteComment,
+  showComments = false,
+  showCommentBox = false,
+  selectedTagsExternal,
+  onToggleTag,
+  onResetTags,
+  itemCardProps,
 }: ProductsListProps<T>) {
   // State
   const [q, setQ] = React.useState('');
-  const [selected, setSelected] = React.useState<Set<string>>(new Set(initialSelectedTags));
+  const [internalSelected, setInternalSelected] = React.useState<Set<string>>(new Set(initialSelectedTags));
+  const selected = selectedTagsExternal ?? internalSelected;
+  const setSelected = (updater: (prev: Set<string>) => Set<string>) => {
+    if (selectedTagsExternal) {
+      // dışarıdan yönetiliyorsa sadece callback tetikle
+      const next = updater(new Set(selectedTagsExternal));
+      onToggleTag?.([...next][next.size - 1] ?? ''); // son değişen tag'ı üstte zaten handle ediyorsun
+      return;
+    }
+    setInternalSelected((prev) => updater(prev));
+  };
 
   // Tüm etiketler: verilmişse onu kullan; yoksa item'lardan topla
   const tags = React.useMemo(() => {
@@ -75,6 +141,17 @@ export default function ProductsList<T extends ProductsListItem = ProductsListIt
     onFilterChange?.({ q, selected });
   }, [q, selected, onFilterChange]);
 
+  // ItemCard kontrol durumları
+  const [openShareId, setOpenShareId] = React.useState<string | null>(null);
+  const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
+  const [copiedId, setCopiedId] = React.useState<string | null>(copiedShareId ?? null);
+  React.useEffect(() => setCopiedId(copiedShareId ?? null), [copiedShareId]);
+
+  const savedSet = React.useMemo(() => {
+    if (!savedIds) return new Set<string>();
+    return savedIds instanceof Set ? savedIds : new Set(savedIds);
+  }, [savedIds]);
+
   // Stil: marka teması varsa CSS değişkenlerini kullan
   const tone = brandTheme
     ? {
@@ -95,14 +172,18 @@ export default function ProductsList<T extends ProductsListItem = ProductsListIt
             tags={tags}
             trending={trending}
             selected={selected}
-            onToggle={(t) =>
-              setSelected((prev) => {
+            onToggle={(t) => {
+              if (onToggleTag) onToggleTag(t);
+              else setSelected((prev) => {
                 const next = new Set(prev);
                 if (next.has(t)) next.delete(t); else next.add(t);
                 return next;
-              })
-            }
-            onClear={() => setSelected(new Set())}
+              });
+            }}
+            onClear={() => {
+              if (onResetTags) onResetTags();
+              else setSelected(() => new Set());
+            }}
           />
         </div>
       )}
@@ -148,38 +229,42 @@ export default function ProductsList<T extends ProductsListItem = ProductsListIt
               {renderItem ? (
                 renderItem(it)
               ) : (
-                <BasicProductCard item={it} brandTheme={brandTheme} />
+                <ItemCard
+                  item={it as any}
+                  me={me}
+                  saved={savedSet.has(it.id)}
+                  amAdmin={!!amAdmin}
+                  myId={myId ?? null}
+                  showComments={!!showComments}
+                  showCommentBox={!!showCommentBox}
+
+                  openShareId={openShareId}
+                  setOpenShareId={setOpenShareId}
+                  openMenuId={openMenuId}
+                  setOpenMenuId={setOpenMenuId}
+                  copiedShareId={copiedId}
+
+                  onOpenSpotlight={onOpenSpotlight}
+                  onToggleSave={onToggleSave ?? (() => {})}
+                  onReport={onReport ?? (() => {})}
+                  onDelete={onDelete ?? onDeleted}
+                  onCopyShare={onCopyShare ?? ((id: string) => setCopiedId(id))}
+                  onNativeShare={onNativeShare ?? (() => {})}
+                  onShowInList={onShowInList ?? (() => {})}
+                  onVoteComment={onVoteComment ?? (() => {})}
+                  onItemChanged={onItemChanged}
+
+                  selectedTags={selected}
+                  onToggleTag={onToggleTag ?? (() => {})}
+                  onResetTags={onResetTags ?? (() => {})}
+
+                  {...(itemCardProps as any)}
+                />
               )}
             </div>
           ))}
         </div>
       )}
     </section>
-  );
-}
-
-// Basit default kart (kendi ItemCard'ınız varsa renderItem ile geçiniz)
-function BasicProductCard({ item, brandTheme }: { item: ProductsListItem; brandTheme?: boolean }) {
-  return (
-    <article
-      className={`rounded-2xl border p-3 shadow-sm ${brandTheme ? '' : 'bg-white/70 dark:bg-gray-900/40 border-gray-200 dark:border-gray-800'}`}
-      style={brandTheme ? { background: 'var(--brand-elev-strong, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.08))' } : undefined}
-    >
-      {item.imageUrl && (
-        <div className="mb-2 overflow-hidden rounded-xl aspect-[4/3] bg-black/5 dark:bg-white/5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-        </div>
-      )}
-      <h3 className="text-sm font-semibold line-clamp-2">{item.name}</h3>
-      {item.desc && <p className="text-xs opacity-70 line-clamp-2 mt-0.5">{item.desc}</p>}
-      {Array.isArray(item.tags) && item.tags.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1">
-          {item.tags.slice(0, 4).map((t) => (
-            <span key={t} className="inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] dark:border-gray-700">#{t}</span>
-          ))}
-        </div>
-      )}
-    </article>
   );
 }
