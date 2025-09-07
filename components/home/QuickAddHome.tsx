@@ -18,7 +18,7 @@ export type QuickAddHomeProps = {
     rating: number; // her zaman zorunlu
     comment: string;
     imageUrl: string | null;
-  }) => Promise<boolean> | boolean;
+  }) => Promise<boolean | { ok: boolean; duplicate?: boolean; error?: string }> | boolean | { ok: boolean; duplicate?: boolean; error?: string };
 
   /** etiket havuzları (trend + tüm etiketler); chip önerileri bunlardan gelir */
   trending?: string[];
@@ -225,28 +225,35 @@ export default function QuickAddHome({
       setTags(nextTags);
       setTagInput('');
 
-      const ok = await onSubmit({
+      const res = await onSubmit({
         name: name.trim(),
         desc: desc.trim(),
         tags: nextTags,
         rating,
         comment: comment.trim(),
         imageUrl,
-      });
+      }) as any;
+
+      const ok: boolean = typeof res === 'boolean' ? res : !!res?.ok;
+      const duplicate: boolean = typeof res === 'object' && !!res?.duplicate;
+      const errMsg: string | undefined = typeof res === 'object' ? res?.error : undefined;
 
       if (ok) {
         formRef.current?.reset();
         setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput('');
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 1600);
-        try {
-          window.dispatchEvent(new CustomEvent('ratestuff:items:reload'));
-        } catch {}
-        try {
-          (window as any).ratestuff?.reload?.();
-          (window as any).ratestuff?.load?.();
-        } catch {}
+        try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
+        try { (window as any).ratestuff?.reload?.(); (window as any).ratestuff?.load?.(); } catch {}
         if (autoCloseOnSuccess) onClose?.();
+      } else {
+        if (duplicate) {
+          setError('Bu adla zaten bir öğe var.');
+        } else if (errMsg) {
+          setError(errMsg);
+        } else {
+          setError('Kaydedilemedi. Lütfen tekrar dene.');
+        }
       }
     } finally {
       setSubmitting(false);

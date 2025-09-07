@@ -610,7 +610,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
 
   async function addItem(form: FormData) {
     setAdding(true);
-   
     try {
       const payload = {
         name: String(form.get('name') || ''),
@@ -618,7 +617,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         tagsCsv: String(form.get('tags') || ''),
         rating: Number(form.get('rating') || '0'),
         comment: String(form.get('comment') || ''),
-        imageUrl: String(form.get('imageUrl') || '') || null, // ImageUploader, hidden input ile bunu dolduruyor
+        imageUrl: String(form.get('imageUrl') || '') || null,
       };
       const res = await fetchOrSignin('/api/items', {
         method: 'POST',
@@ -626,28 +625,31 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         body: JSON.stringify(payload),
       });
       if (!res) return false;
-      const j = await res.json().catch(()=>null);
-      if (j?.ok) {
-  setQInput('');
-  setQCommitted('');
-  await load();
-      
-        return true;
-     } else {
-   const err = String(j?.error || '');
-   const isDuplicate =
-     res.status === 409 ||
-     /P2002/.test(err) ||
-     /Unique constraint/i.test(err) ||
-     (/unique/i.test(err) && /name/i.test(err));
-   if (isDuplicate) {
-    
-     return false;
-   }
-
-   return false;
-}
-    } finally { setAdding(false); }
+      let j: any = null;
+      try { j = await res.json(); } catch { j = null; }
+      // success if HTTP 2xx and either {ok:true} OR no explicit ok:false in payload
+      const httpOk = res.ok;
+      const okFlag = typeof j?.ok === 'boolean' ? j.ok : undefined;
+      const success = httpOk && (okFlag !== false);
+      if (success) {
+        setQInput('');
+        setQCommitted('');
+        await load();
+        return { ok: true };
+      }
+      const err = String(j?.error || '');
+      const isDuplicate =
+        res.status === 409 ||
+        /P2002/.test(err) ||
+        /Unique constraint/i.test(err) ||
+        (/unique/i.test(err) && /name/i.test(err));
+      if (isDuplicate) {
+        return { ok: false, duplicate: true, error: 'Bu adla zaten bir öğe var.' };
+      }
+      return { ok: false, error: err || `${res.status} ${res.statusText}` };
+    } finally {
+      setAdding(false);
+    }
   }
 
   async function deleteComment(commentId: string) {
