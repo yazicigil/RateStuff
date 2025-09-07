@@ -165,7 +165,14 @@ export default function ProductsList<
 
   return (
     <section className={`w-full ${className}`} style={tone}>
-      {/* Tag Filter */}
+      <div
+        className="rounded-3xl border shadow-sm p-3 sm:p-4 md:p-5"
+        style={brandTheme ? {
+          background: 'var(--brand-items-bg, var(--brand-elev-weak, transparent))',
+          borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.08))',
+        } : undefined}
+      >
+        {/* Tag Filter */}
       {tags.length > 0 && (
         <div className="mb-3">
           <TagFilterBar
@@ -277,6 +284,7 @@ export default function ProductsList<
           ))}
         </div>
       )}
+      </div>
     </section>
   );
 }
