@@ -62,7 +62,7 @@ export default function QuickAddCard({
   signInHref = '/signin',
   prefill,
   isBrandProfile = false,
-  autoCloseOnSuccess = false,
+  autoCloseOnSuccess = true,
 }: QuickAddCardProps & {
   prefill?: { name?: string; tags?: string[]; rating?: number };
   isBrandProfile?: boolean;
@@ -265,6 +265,14 @@ if (!validNow) {
         setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput(''); setProductUrl('');
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 1600);
+        try {
+          window.dispatchEvent(new CustomEvent('ratestuff:items:reload'));
+        } catch {}
+        try {
+          // optional globally-exposed refresher if available
+          (window as any).ratestuff?.reload?.();
+          (window as any).ratestuff?.load?.();
+        } catch {}
         if (autoCloseOnSuccess) {
           onClose?.();
         }

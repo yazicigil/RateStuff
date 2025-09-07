@@ -385,6 +385,19 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }
 
   useEffect(() => { load(); loadSavedIds(); }, []);
+  // Dışarıdan (QuickAdd vs.) gelen listeyi yenile sinyali
+  useEffect(() => {
+    function onExternalReload() {
+      try {
+        setShowQuickAdd(false);
+        setSharedItem(null);
+        setSharedId(null);
+      } catch {}
+      load();
+    }
+    window.addEventListener('ratestuff:items:reload', onExternalReload as any);
+    return () => window.removeEventListener('ratestuff:items:reload', onExternalReload as any);
+  }, []);
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       // close both menus if any is open and click is not on a menu button or popover
