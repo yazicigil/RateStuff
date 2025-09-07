@@ -15,6 +15,7 @@ export type TagFilterBarProps = {
   onClear: () => void;
   /** Opsiyonel sınıf isimleri */
   className?: string;
+  brandTheme?: boolean;
 };
 
 /**
@@ -23,7 +24,7 @@ export type TagFilterBarProps = {
  * - Oklarla sayfalar arası geçiş
  * - Trend/Seçili renk varyantları
  */
-export default function TagFilterBar({ tags, trending = [], selected, onToggle, onClear, className = '' }: TagFilterBarProps) {
+export default function TagFilterBar({ tags, trending = [], selected, onToggle, onClear, className = '', brandTheme = false }: TagFilterBarProps) {
   const [page, setPage] = React.useState(0);
   const [pages, setPages] = React.useState<string[][]>([]);
   const containerRef = React.useRef<HTMLDivElement | null>(null);

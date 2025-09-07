@@ -184,6 +184,7 @@ export default function ProductsList<
               if (onResetTags) onResetTags();
               else setSelected(() => new Set());
             }}
+            brandTheme={brandTheme}
           />
         </div>
       )}
@@ -224,11 +225,19 @@ export default function ProductsList<
         </div>
       ) : (
         <div
-          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4"
+          // column-count yerine column-width kullan: uygun genişliğe göre otomatik sütun sayısı oluşturur.
+          className="columns-[18rem] sm:columns-[20rem] lg:columns-[22rem]"
           style={{ columnGap: '0.75rem' }} // ~gap-3
         >
           {filtered.map((it) => (
-            <div key={it.id} className="inline-block w-full min-w-0 break-inside-avoid mb-3">
+            <div
+              key={it.id}
+              className="inline-block w-full min-w-0 break-inside-avoid-column mb-3 align-top rounded-2xl"
+              style={brandTheme ? {
+                background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
+                border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.08))',
+              } : undefined}
+            >
               {renderItem ? (
                 renderItem(it)
               ) : (
