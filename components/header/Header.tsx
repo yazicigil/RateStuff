@@ -39,7 +39,7 @@ type Controls = {
 
 const USE_CURRENTCOLOR = false;
 
-function ProfileDropdown({ me }: { me: Me }) {
+function ProfileDropdown({ me, theme, onCycleTheme }: { me: Me; theme: ThemePref; onCycleTheme: () => void }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -114,6 +114,15 @@ function ProfileDropdown({ me }: { me: Me }) {
               Profilim
             </Link>
           )}
+          <button
+            role="menuitem"
+            type="button"
+            className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+            onClick={() => { onCycleTheme(); }}
+          >
+            <span className="shrink-0" aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
+            <span>Tema: {theme === 'dark' ? 'Koyu' : (theme === 'light' ? 'Açık' : 'Otomatik')}</span>
+          </button>
           <button
             role="menuitem"
             className="flex items-center gap-2 w-full text-left px-3 py-2 rounded-lg text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
@@ -262,6 +271,11 @@ export default function Header({ controls }: { controls?: Controls }) {
     router.prefetch('/me');
   }, [router]);
   function changeTheme(next: ThemePref) { setTheme(next); applyTheme(next); }
+  function cycleTheme() {
+    const next = theme === 'system' ? 'dark' : (theme === 'dark' ? 'light' : 'system');
+    setTheme(next);
+    applyTheme(next);
+  }
 
 
   const logoClassDefault = USE_CURRENTCOLOR
@@ -301,29 +315,6 @@ export default function Header({ controls }: { controls?: Controls }) {
           </Link>
           {/* Mobil sağ blok */}
           <div className="flex items-center gap-2 md:hidden ml-auto">
-            {!isBrandMe && (
-              <div className="relative h-9">
-                <select
-                  value={theme}
-                  onChange={(e) => changeTheme(e.target.value as ThemePref)}
-                  title="Tema"
-                  className="h-9 w-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none text-transparent p-0"
-                >
-                  <option value="light">🌞 Light</option>
-                  <option value="dark">🌙 Dark</option>
-                  <option value="system">🖥️ Auto</option>
-                </select>
-                <span className="pointer-events-none absolute inset-0 grid place-items-center">
-                  <span aria-hidden="true">{theme === 'dark' ? '🌙' : (theme === 'light' ? '🌞' : '🖥️')}</span>
-                </span>
-                <span className="pointer-events-none absolute inset-y-0 right-1 w-4 grid place-items-center text-gray-500 dark:text-gray-300 opacity-70">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </span>
-              </div>
-            )}
-
             {!loading && !me && (
               <button
                 onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
@@ -342,7 +333,7 @@ export default function Header({ controls }: { controls?: Controls }) {
             )}
 
             {me && (
-              <ProfileDropdown me={me} />
+              <ProfileDropdown me={me} theme={theme} onCycleTheme={cycleTheme} />
             )}
             {me && <NotificationsDropdown />}
           </div>
@@ -355,26 +346,6 @@ export default function Header({ controls }: { controls?: Controls }) {
 
         {/* Desktop sağ: tema + auth */}
         <nav className="hidden md:flex ml-auto items-center gap-2.5 relative z-50">
-          {!isBrandMe && (
-            <div className="relative h-9">
-              <select
-                value={theme}
-                onChange={(e) => changeTheme(e.target.value as ThemePref)}
-                title="Tema"
-                className="h-9 border border-gray-300 dark:border-gray-700 rounded-xl bg-transparent pl-2 pr-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/10 dark:focus-visible:ring-white/10 appearance-none"
-              >
-                <option value="light">🌞 Light</option>
-                <option value="dark">🌙 Dark</option>
-                <option value="system">🖥️ Auto</option>
-              </select>
-              <span className="pointer-events-none absolute inset-y-0 right-2 grid place-items-center text-gray-500 dark:text-gray-300">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </span>
-            </div>
-          )}
-
           {!loading && !me && (
             <button
               onClick={() => signIn('google', { callbackUrl: '/', prompt: 'select_account' })}
@@ -393,7 +364,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           )}
 
           {me && (
-            <ProfileDropdown me={me} />
+            <ProfileDropdown me={me} theme={theme} onCycleTheme={cycleTheme} />
           )}
           {me && <NotificationsDropdown />}
         </nav>
