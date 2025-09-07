@@ -223,9 +223,12 @@ export default function ProductsList<
           {emptyState ?? <span>Kayıt bulunamadı.</span>}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4"
+          style={{ columnGap: '0.75rem' }} // ~gap-3
+        >
           {filtered.map((it) => (
-            <div key={it.id} className="min-w-0">
+            <div key={it.id} className="inline-block w-full min-w-0 break-inside-avoid mb-3">
               {renderItem ? (
                 renderItem(it)
               ) : (
