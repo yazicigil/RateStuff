@@ -53,15 +53,42 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
     // Chip ölçüm helper
     const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
       const base = 'inline-flex items-center gap-1 h-7 px-2 py-0 rounded-full border text-[11px] shrink-0 sm:h-8 sm:px-3 sm:text-xs';
-      const className = isSel
-        ? isTrend
-          ? `${base} bg-violet-600 text-white border-violet-600`
-          : `${base} bg-black text-white border-black`
-        : isTrend
-          ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
-          : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
+      let className = '';
+      let styles: any | undefined;
+
+      if (brandTheme) {
+        className = base;
+        styles = {};
+        if (isSel && isTrend) {
+          styles.background = 'var(--brand-accent,#7c3aed)';
+          styles.borderColor = 'var(--brand-accent,#7c3aed)';
+          styles.color = 'var(--brand-accent-ink,#fff)';
+        } else if (isSel && !isTrend) {
+          styles.background = 'var(--brand-ink,#000)';
+          styles.borderColor = 'var(--brand-ink,#000)';
+          styles.color = 'var(--brand-elev,#fff)';
+        } else if (!isSel && isTrend) {
+          styles.background = 'var(--brand-accent-weak,rgba(124,58,237,.12))';
+          styles.borderColor = 'var(--brand-accent-bd,rgba(124,58,237,.35))';
+          styles.color = 'var(--brand-accent,#7c3aed)';
+        } else {
+          styles.background = 'var(--brand-elev-weak,rgba(0,0,0,.03))';
+          styles.borderColor = 'var(--brand-elev-bd,rgba(0,0,0,.08))';
+          styles.color = 'var(--brand-ink,#111827)';
+        }
+      } else {
+        className = isSel
+          ? (isTrend
+              ? `${base} bg-violet-600 text-white border-violet-600`
+              : `${base} bg-black text-white border-black`)
+          : (isTrend
+              ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
+              : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
+      }
+
       const btn = document.createElement('button');
       btn.className = className;
+      if (styles) Object.assign(btn.style, styles);
       btn.innerHTML = `<span>#${label}</span>`;
       return btn;
     };
@@ -97,7 +124,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
 
     setPages(newPages);
     setPage((prev) => (prev >= newPages.length ? 0 : prev));
-  }, [tags, trending, selected]);
+  }, [tags, trending, selected, brandTheme]);
 
   React.useEffect(() => {
     rebuildPages();
@@ -149,11 +176,13 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
       <div className="pr-12 min-h-[32px] transition-[padding] duration-150 ease-out" ref={containerRef} style={{ paddingLeft: canPrev ? 48 : 0 }}>
         <div className="flex items-center gap-2 overflow-hidden">
           <button
-            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${
-              selected.size === 0
-                ? 'bg-black text-white border-black'
-                : 'bg-white dark:bg-gray-900 dark:border-gray-800'
-            }`}
+            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (selected.size === 0
+              ? 'bg-black text-white border-black'
+              : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
+            style={brandTheme ? (selected.size === 0
+              ? { background: 'var(--brand-ink,#000)', borderColor: 'var(--brand-ink,#000)', color: 'var(--brand-elev,#fff)' }
+              : { background: 'var(--brand-elev-weak,rgba(0,0,0,.03))', borderColor: 'var(--brand-elev-bd,rgba(0,0,0,.08))', color: 'var(--brand-ink,#111827)' }
+            ) : undefined}
             onClick={onClear}
             onDoubleClick={onClear}
           >
@@ -161,22 +190,34 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           </button>
 
           {/* sayfa animasyonu */}
-          <div key={`page-${page}`} className="flex flex-wrap items-center gap-2 animate-[sugIn_.22s_ease_both]">
+          <div key={`page-${page}`} className="flex items-center gap-2 animate-[sugIn_.22s_ease_both]">
             {visibleTags.map((t) => {
               const isSel = selected.has(t);
               const isTrend = trending.includes(t);
               const base = 'inline-flex items-center gap-1 h-7 px-2 py-0 rounded-full border text-[11px] shrink-0 sm:h-8 sm:px-3 sm:text-xs';
-              const className = isSel
-                ? isTrend
-                  ? `${base} bg-violet-600 text-white border-violet-600`
-                  : `${base} bg-black text-white border-black`
-                : isTrend
-                  ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
-                  : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
+              const classNameChip = brandTheme
+                ? base
+                : (isSel
+                    ? (isTrend
+                        ? `${base} bg-violet-600 text-white border-violet-600`
+                        : `${base} bg-black text-white border-black`)
+                    : (isTrend
+                        ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
+                        : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
+              const styleChip = brandTheme ? (
+                isSel && isTrend
+                  ? { background: 'var(--brand-accent,#7c3aed)', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
+                  : isSel && !isTrend
+                  ? { background: 'var(--brand-ink,#000)', borderColor: 'var(--brand-ink,#000)', color: 'var(--brand-elev,#fff)' }
+                  : !isSel && isTrend
+                  ? { background: 'var(--brand-accent-weak,rgba(124,58,237,.12))', borderColor: 'var(--brand-accent-bd,rgba(124,58,237,.35))', color: 'var(--brand-accent,#7c3aed)' }
+                  : { background: 'var(--brand-elev-weak,rgba(0,0,0,.03))', borderColor: 'var(--brand-elev-bd,rgba(0,0,0,.08))', color: 'var(--brand-ink,#111827)' }
+              ) : undefined;
               return (
                 <button
                   key={t}
-                  className={className}
+                  className={classNameChip}
+                  style={styleChip as any}
                   onClick={() => onToggle(t)}
                   title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
                 >
