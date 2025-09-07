@@ -3,6 +3,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ItemCard from '@/components/home/ItemCard';
 import QuickAddCard from '@/components/home/QuickAddCard';
+import TagFilterBar from '@/components/common/TagFilterBar';
 import { useRouter } from 'next/navigation';
 
 /** — Tipler — */
@@ -97,13 +98,6 @@ export default function ItemsTab({
   // Brand theme detection
   const [brandTheme, setBrandTheme] = useState(false);
 
-  // Public brand profile detection (hide Add on /brand/[slug])
-  const isPublicBrandPage = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    const p = window.location?.pathname || '';
-    return p.startsWith('/brand/') && p !== '/brand/me';
-  }, []);
-
   // Infer list owner from items (first item with a creator id)
   const listOwnerId = useMemo(() => {
     for (const it of itemsLocal) {
@@ -113,11 +107,11 @@ export default function ItemsTab({
     return null as string | null;
   }, [itemsLocal]);
 
-  // Show Quick Add only when user is viewing their own items
+  // We no longer hide the Add card: it is always visible regardless of page or ownership
   const isOwnList = useMemo(() => !!myId && !!listOwnerId && myId === listOwnerId, [myId, listOwnerId]);
-
-  const effectiveHideAdd = hideAdd || isPublicBrandPage;
-  const canShowAdd = isOwnList && !effectiveHideAdd;
+  const isPublicBrandPage = false; // previously used to hide Add on /brand/[slug]
+  const effectiveHideAdd = false;  // force-show Add card in all cases
+  const canShowAdd = true;         // always inject the Add card
 
   useEffect(() => {
     const root = document.documentElement;
@@ -287,19 +281,34 @@ export default function ItemsTab({
                 )
               ) : (
                 !effectiveHideAdd ? (
-                  <Link
-                    href="/#quick-add"
-                    prefetch={false}
-                    className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                    style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
-                    aria-label="Hızlı ekle"
-                    title="Hızlı ekle"
-                  >
-                    <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
-                      <span className="text-5xl leading-none">+</span>
-                      <span className="text-base font-medium">Ekle</span>
-                    </div>
-                  </Link>
+                  qaOpen ? (
+                    <QuickAddCard
+                      open
+                      onClose={() => setQaOpen(false)}
+                      onSubmit={handleQuickAddSubmit}
+                      trending={trending}
+                      allTags={itemsTags}
+                      variant="rich"
+                      signedIn={!!myId}
+                      signInHref="/signin"
+                      prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                      isBrandProfile={!!isBrandProfile}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setQaOpen(true)}
+                      className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
+                      style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
+                      aria-label="Hızlı ekle"
+                      title="Hızlı ekle"
+                    >
+                      <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                        <span className="text-5xl leading-none">+</span>
+                        <span className="text-base font-medium">Ekle</span>
+                      </div>
+                    </button>
+                  )
                 ) : null
               )}
             </div>
@@ -309,7 +318,7 @@ export default function ItemsTab({
             {/* Tag filter — QuickAddCard tarzı: 4'lük sayfa, oklar, + ikonlu chip, dots */}
             {itemsTags.length > 0 && (
               <div className="mb-3">
-                <TagPager
+                <TagFilterBar
                   tags={itemsTags}
                   trending={trending}
                   selected={itemsSelected}
@@ -322,7 +331,6 @@ export default function ItemsTab({
                     })
                   }
                   onClear={() => setItemsSelected(new Set())}
-                  brandTheme={brandTheme}
                 />
               </div>
             )}
@@ -333,7 +341,7 @@ export default function ItemsTab({
             <div className="flex flex-col gap-5 lg:hidden">
               {itemsWithAdd.map((it: any, ix: number) => (
                 it?.__add ? (
-                  canShowAdd ? (
+                  !effectiveHideAdd ? (
                     qaOpen ? (
                       <QuickAddCard
                         key={`add-m-${ix}`}
@@ -346,31 +354,14 @@ export default function ItemsTab({
                         signedIn={!!myId}
                         signInHref="/signin"
                         prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                        isBrandProfile
+                        isBrandProfile={!!isBrandProfile}
                       />
                     ) : (
                       <button
                         type="button"
                         onClick={() => setQaOpen(true)}
-                        className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                        style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
-                        aria-label="Hızlı ekle"
-                        title="Hızlı ekle"
-                      >
-                        <div className="flex flex-col items-center gap-2">
-                          <span className="text-4xl leading-none">+</span>
-                          <span className="text-sm font-medium">Ekle</span>
-                        </div>
-                      </button>
-                    )
-                  ) : (
-                    !effectiveHideAdd ? (
-                      <Link
-                        key={`add-m-${ix}`}
-                        href="/#quick-add"
-                        prefetch={false}
                         className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
                         aria-label="Hızlı ekle"
                         title="Hızlı ekle"
                       >
@@ -378,9 +369,9 @@ export default function ItemsTab({
                           <span className="text-4xl leading-none">+</span>
                           <span className="text-sm font-medium">Ekle</span>
                         </div>
-                      </Link>
-                    ) : null
-                  )
+                      </button>
+                    )
+                  ) : null
                 ) : removedIds.has(it.id) ? null : (
                   <div key={it.id}>
                     <ItemCard
@@ -435,7 +426,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
-                    canShowAdd ? (
+                    !effectiveHideAdd ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-left-${ix}`}
@@ -448,31 +439,14 @@ export default function ItemsTab({
                           signedIn={!!myId}
                           signInHref="/signin"
                           prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                          isBrandProfile
+                          isBrandProfile={!!isBrandProfile}
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
-                          className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                          style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
-                          aria-label="Hızlı ekle"
-                          title="Hızlı ekle"
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <span className="text-4xl leading-none">+</span>
-                            <span className="text-sm font-medium">Ekle</span>
-                          </div>
-                        </button>
-                      )
-                    ) : (
-                      !effectiveHideAdd ? (
-                        <Link
-                          key={`add-left-${ix}`}
-                          href="/#quick-add"
-                          prefetch={false}
                           className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
                           aria-label="Hızlı ekle"
                           title="Hızlı ekle"
                         >
@@ -480,9 +454,9 @@ export default function ItemsTab({
                             <span className="text-4xl leading-none">+</span>
                             <span className="text-sm font-medium">Ekle</span>
                           </div>
-                        </Link>
-                      ) : null
-                    )
+                        </button>
+                      )
+                    ) : null
                   ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>
                       <ItemCard
@@ -534,7 +508,7 @@ export default function ItemsTab({
               <div className="flex flex-col gap-5">
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
-                    canShowAdd ? (
+                    !effectiveHideAdd ? (
                       qaOpen ? (
                         <QuickAddCard
                           key={`add-right-${ix}`}
@@ -547,31 +521,14 @@ export default function ItemsTab({
                           signedIn={!!myId}
                           signInHref="/signin"
                           prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                          isBrandProfile
+                          isBrandProfile={!!isBrandProfile}
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
-                          className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                          style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
-                          aria-label="Hızlı ekle"
-                          title="Hızlı ekle"
-                        >
-                          <div className="flex flex-col items-center gap-2">
-                            <span className="text-4xl leading-none">+</span>
-                            <span className="text-sm font-medium">Ekle</span>
-                          </div>
-                        </button>
-                      )
-                    ) : (
-                      !effectiveHideAdd ? (
-                        <Link
-                          key={`add-right-${ix}`}
-                          href="/#quick-add"
-                          prefetch={false}
                           className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)' } : undefined}
+                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
                           aria-label="Hızlı ekle"
                           title="Hızlı ekle"
                         >
@@ -579,9 +536,9 @@ export default function ItemsTab({
                             <span className="text-4xl leading-none">+</span>
                             <span className="text-sm font-medium">Ekle</span>
                           </div>
-                        </Link>
-                      ) : null
-                    )
+                        </button>
+                      )
+                    ) : null
                   ) : removedIds.has(it.id) ? null : (
                     <div key={it.id}>
                       <ItemCard
@@ -645,204 +602,6 @@ function Skeleton({ rows = 3 }: { rows?: number }) {
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="h-16 rounded-xl border dark:border-gray-800 bg-gray-100 dark:bg-gray-800/50 animate-pulse" />
       ))}
-    </div>
-  );
-}
-
-function TagPager({
-  tags,
-  trending,
-  selected,
-  onToggle,
-  onClear,
-  brandTheme = false,
-}: {
-  tags: string[];
-  trending: string[];
-  selected: Set<string>;
-  onToggle: (t: string) => void;
-  onClear: () => void;
-  brandTheme?: boolean;
-}) {
-  const [page, setPage] = React.useState(0);
-  const [pages, setPages] = React.useState<string[][]>([]);
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const measureRef = React.useRef<HTMLDivElement | null>(null);
-
-  // Build pages to fit as many chips as the container can hold (responsive)
-  const rebuildPages = React.useCallback(() => {
-    const root = containerRef.current;
-    const meas = measureRef.current;
-    if (!root || !meas) return;
-
-    const contentWidth = root.clientWidth; // width of row content area (inside px-12)
-
-    // Create measurables: Hepsi + each tag as a chip with exact classes
-    meas.innerHTML = '';
-    // Hepsi button
-    const hepsi = document.createElement('button');
-    hepsi.className = 'h-8 px-3 py-0 rounded-full border text-xs shrink-0';
-    hepsi.textContent = 'Hepsi';
-    meas.appendChild(hepsi);
-    const hepsiW = hepsi.getBoundingClientRect().width;
-
-    // gap between items is gap-2 => 0.5rem (~8px). Read from computed style for safety
-    const gapPx = 8; // tailwind gap-2
-
-    // Available width for chips = contentWidth - (left+right padding used by px-12) - Hepsi - a single gap between Hepsi and first chip
-    // We are inside a row with padding already applied externally. Here, we measure inside containerRef which is the row (no extra padding), so only subtract Hepsi and first gap.
-    const avail = Math.max(0, contentWidth - hepsiW - gapPx);
-
-    // Measure each tag chip width
-    const chipWidths: number[] = [];
-    const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
-      const base = 'inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0';
-      const className = isSel
-        ? isTrend
-          ? `${base} bg-violet-600 text-white border-violet-600`
-          : `${base} bg-black text-white border-black`
-        : isTrend
-          ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
-          : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`;
-      const btn = document.createElement('button');
-      btn.className = className;
-      btn.innerHTML = `<span>#${label}</span>`;
-      return btn;
-    };
-
-    tags.forEach((t) => {
-      const isSel = selected.has(t);
-      const isTrend = trending.includes(t);
-      const el = makeChip(t, isTrend, isSel);
-      meas.appendChild(el);
-      const w = el.getBoundingClientRect().width;
-      chipWidths.push(w);
-    });
-
-    // Pack chips into pages based on available width and gap
-    const newPages: string[][] = [];
-    let i = 0;
-    while (i < tags.length) {
-      let used = 0; // width used by chips on this page
-      const pageTags: string[] = [];
-      while (i < tags.length) {
-        const w = chipWidths[i];
-        const nextUsed = pageTags.length === 0 ? w : used + gapPx + w;
-        if (nextUsed <= avail) {
-          used = nextUsed;
-          pageTags.push(tags[i]);
-          i++;
-        } else {
-          break;
-        }
-      }
-      if (pageTags.length === 0) {
-        // Fallback to avoid infinite loop on extremely narrow widths
-        pageTags.push(tags[i]);
-        i++;
-      }
-      newPages.push(pageTags);
-    }
-
-    setPages(newPages);
-    // Reset page to 0 if current page overflows
-    setPage((p) => (p >= newPages.length ? 0 : p));
-  }, [tags, trending, selected]);
-
-  // Rebuild on mount and when deps/size change
-  React.useEffect(() => {
-    rebuildPages();
-    const ro = new ResizeObserver(() => rebuildPages());
-    if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
-  }, [rebuildPages]);
-
-  // If selected tags are not visible in current page, jump to the first page
-  React.useEffect(() => {
-    if (!pages.length) return;
-    const visible = new Set(pages[page] || []);
-    const anyVisible = Array.from(selected).some((t) => visible.has(t));
-    if (!anyVisible && selected.size > 0) setPage(0);
-  }, [pages, page, selected]);
-
-  const canPrev = page > 0;
-  const canNext = page < Math.max(0, pages.length - 1);
-  const visibleTags = pages[page] || tags.slice(0, 1);
-
-  return (
-    <div className="relative">
-      {/* hidden measurer */}
-      <div ref={measureRef} style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', zIndex: -1 }} />
-
-      {/* Oklar */}
-      {canPrev && (
-        <button
-          type="button"
-          className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
-          onClick={() => setPage((p) => Math.max(0, p - 1))}
-          aria-label="Önceki"
-        >
-          ‹
-        </button>
-      )}
-      {canNext && (
-        <button
-          type="button"
-          className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
-          onClick={() => setPage((p) => Math.min(pages.length - 1, p + 1))}
-          aria-label="Sonraki"
-        >
-          ›
-        </button>
-      )}
-
-      {/* İçerik (Hepsi + görünür chipler) */}
-      <div className="pr-12 min-h-[32px] transition-[padding] duration-150 ease-out" ref={containerRef} style={{ paddingLeft: canPrev ? 48 : 0 }}>
-        <div className="flex items-center gap-2 overflow-hidden">
-          <button
-            className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (selected.size === 0 ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
-            onClick={onClear}
-            onDoubleClick={onClear}
-            style={ brandTheme ? (
-              selected.size === 0
-                ? { backgroundColor: 'var(--brand-items-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-                : { backgroundColor: 'var(--brand-elev-bg)',   borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-            ) : undefined }
-          >
-            Hepsi
-          </button>
-
-          {/* sayfa animasyonu */}
-          <div key={`page-${page}`} className="flex items-center gap-2 animate-[sugIn_.22s_ease_both]">
-            {visibleTags.map((t) => {
-              const isSel = selected.has(t);
-              return (
-                <button
-                  key={t}
-                  className={`inline-flex items-center gap-1 h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (isSel ? 'bg-black text-white border-black' : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
-                  onClick={() => onToggle(t)}
-                  title={isSel ? 'Filtreden kaldır' : 'Filtreye ekle'}
-                  style={ brandTheme ? (
-                    isSel
-                      ? { backgroundColor: 'var(--brand-items-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-                      : { backgroundColor: 'var(--brand-elev-bg)',   borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }
-                  ) : undefined }
-                >
-                  <span>#{t}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes sugIn { from { opacity:.0; transform: translateX(8px); } to { opacity:1; transform: translateX(0); } }
-        .rs-sug-nav { width: 32px; height: 32px; border-radius: 9999px; border: 1px solid var(--rs-bd, var(--brand-accent-bd, #e5e7eb)); background: var(--rs-bg, var(--brand-chip-bg, #fff)); color: var(--rs-fg, var(--brand-ink, #111827)); opacity: .95; z-index: 10; pointer-events: auto; }
-        .dark .rs-sug-nav { --rs-bg: rgba(17, 24, 39, .92); --rs-bd: #374151; --rs-fg: #e5e7eb; }
-        .rs-sug-nav:hover { transform: translateY(-50%) scale(1.02); }
-        .rs-sug-nav:active { transform: translateY(-50%) scale(.98); }
-      `}</style>
     </div>
   );
 }
