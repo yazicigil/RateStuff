@@ -65,10 +65,10 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           styles.borderColor = 'var(--brand-accent,#7c3aed)';
           styles.color = 'var(--brand-accent-ink,#fff)';
         } else {
-          // Seçili değilken: brand rengine uyumlu açık ton + full-opacity outline
-          styles.background = 'var(--brand-accent-weak, rgba(124,58,237,.12))';
-          styles.borderColor = 'var(--brand-accent,#7c3aed)';
-          styles.color = 'var(--brand-accent,#7c3aed)';
+          // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
+          styles.background = 'var(--brand-accent-weak, rgba(124,58,237,.18))';
+          styles.borderColor = 'rgba(255,255,255,.55)';
+          styles.color = 'var(--brand-accent-ink,#fff)';
         }
       } else {
         className = isSel
@@ -174,8 +174,10 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               ? 'bg-black text-white border-black'
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             style={brandTheme ? (selected.size === 0
-              ? { background: 'var(--brand-ink,#000)', borderColor: 'var(--brand-ink,#000)', color: 'var(--brand-elev,#fff)' }
-              : { background: 'var(--brand-elev-weak,rgba(0,0,0,.03))', borderColor: 'var(--brand-elev-bd,rgba(0,0,0,.08))', color: 'var(--brand-ink,#111827)' }
+              // Hepsi seçiliyken (tüm filtreler kapalı): seçili chip stili
+              ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
+              // Hepsi seçili değilken: unselected chip stili (yüksek kontrast)
+              : { background: 'var(--brand-accent-weak, rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
             ) : undefined}
             onClick={onClear}
             onDoubleClick={onClear}
@@ -201,7 +203,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               const styleChip = brandTheme ? (
                 isSel
                   ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
-                  : { background: 'var(--brand-accent-weak,rgba(124,58,237,.12))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent,#7c3aed)' }
+                  : { background: 'var(--brand-accent-weak,rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
               ) : undefined;
               return (
                 <button
