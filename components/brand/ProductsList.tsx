@@ -107,6 +107,7 @@ export default function ProductsList<
   // State
   const [q, setQ] = React.useState('');
   const [internalSelected, setInternalSelected] = React.useState<Set<string>>(new Set(initialSelectedTags));
+  const [order, setOrder] = React.useState<'new' | 'top'>('new');
   const selected = selectedTagsExternal ?? internalSelected;
   const setSelected = (updater: (prev: Set<string>) => Set<string>) => {
     if (selectedTagsExternal) {
@@ -130,12 +131,22 @@ export default function ProductsList<
   const filtered = React.useMemo(() => {
     const hasSel = selected.size > 0;
     const qn = q.trim().toLowerCase();
-    return items.filter((it) => {
+    const base = items.filter((it) => {
       const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
       const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
       return matchTags && matchQ;
     });
-  }, [items, selected, q]);
+    // Sort
+    if (order === 'top') {
+      const score = (it: any) => {
+        const s = it.rating ?? it.avgRating ?? it.avg ?? 0;
+        return typeof s === 'number' ? s : parseFloat(s) || 0;
+      };
+      return [...base].sort((a, b) => score(b) - score(a));
+    }
+    // 'new' -> keep incoming order (assumed newest first)
+    return base;
+  }, [items, selected, q, order]);
 
   React.useEffect(() => {
     onFilterChange?.({ q, selected });
@@ -199,29 +210,69 @@ export default function ProductsList<
       {/* Search Bar */}
       <div className="mb-4">
         <div
-          className={`flex items-center gap-2 rounded-2xl border px-3 py-2 shadow-sm backdrop-blur-sm
+          className={`flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 shadow-sm backdrop-blur-sm
           ${brandTheme ? '' : 'bg-white/70 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800'}
         `}
-          style={brandTheme ? { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.08))' } : undefined}
+          style={brandTheme ? { background: 'var(--brand-elev-weak, transparent)', borderColor: 'rgba(255,255,255,.55)' } : undefined}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-            <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder={searchPlaceholder}
-            className="flex-1 bg-transparent outline-none text-sm py-1"
-          />
-          {q && (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
+              <path d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={searchPlaceholder}
+              className="flex-1 bg-transparent outline-none text-sm py-1"
+            />
+            {q && (
+              <button
+                type="button"
+                onClick={() => setQ('')}
+                className="rounded-lg px-2 py-1 text-xs border hover:bg-black/5 dark:hover:bg-white/10"
+              >
+                Temizle
+              </button>
+            )}
+          </div>
+          {/* Sort control */}
+          <div className="hidden sm:flex items-center gap-1 ml-2 shrink-0">
             <button
               type="button"
-              onClick={() => setQ('')}
-              className="rounded-lg px-2 py-1 text-xs border hover:bg-black/5 dark:hover:bg-white/10"
+              onClick={() => setOrder('new')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
+              style={brandTheme ? (order==='new'
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
+                : { background: 'var(--brand-accent-weak, rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+              ) : undefined}
             >
-              Temizle
+              En yeni
             </button>
-          )}
+            <button
+              type="button"
+              onClick={() => setOrder('top')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
+              style={brandTheme ? (order==='top'
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
+                : { background: 'var(--brand-accent-weak, rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+              ) : undefined}
+            >
+              En yüksek puan
+            </button>
+          </div>
+          {/* Mobile: use a compact select */}
+          <div className="sm:hidden ml-2 shrink-0">
+            <select
+              value={order}
+              onChange={(e) => setOrder(e.target.value as 'new' | 'top')}
+              className="text-xs rounded-lg border px-2 py-1 bg-transparent"
+              style={brandTheme ? { borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' } : undefined}
+              aria-label="Sırala"
+            >
+              <option value="new">En yeni</option>
+              <option value="top">En yüksek puan</option>
+            </select>
+          </div>
         </div>
       </div>
 
