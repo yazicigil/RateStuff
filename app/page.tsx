@@ -385,6 +385,20 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }
 
   useEffect(() => { load(); loadSavedIds(); }, []);
+  // Global yardımcı: diğer bileşenler listayı tetikleyebilsin
+  useEffect(() => {
+    try {
+      (window as any).ratestuff = {
+        load,
+        reload: load,
+        closeQuickAdd: () => setShowQuickAdd(false),
+        refreshAndCloseQuickAdd: () => { setShowQuickAdd(false); load(); },
+      };
+    } catch {}
+    return () => {
+      try { delete (window as any).ratestuff; } catch {}
+    };
+  }, [load]);
   // Dışarıdan (QuickAdd vs.) gelen listeyi yenile sinyali
   useEffect(() => {
     function onExternalReload() {
