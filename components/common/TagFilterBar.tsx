@@ -59,22 +59,16 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
       if (brandTheme) {
         className = base;
         styles = {};
-        if (isSel && isTrend) {
-          styles.background = 'var(--brand-accent,#7c3aed)';
+        if (isSel) {
+          // Seçiliyken: daha koyu brand tonu
+          styles.background = 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))';
           styles.borderColor = 'var(--brand-accent,#7c3aed)';
           styles.color = 'var(--brand-accent-ink,#fff)';
-        } else if (isSel && !isTrend) {
-          styles.background = 'var(--brand-ink,#000)';
-          styles.borderColor = 'var(--brand-ink,#000)';
-          styles.color = 'var(--brand-elev,#fff)';
-        } else if (!isSel && isTrend) {
-          styles.background = 'var(--brand-accent-weak,rgba(124,58,237,.12))';
-          styles.borderColor = 'var(--brand-accent-bd,rgba(124,58,237,.35))';
-          styles.color = 'var(--brand-accent,#7c3aed)';
         } else {
-          styles.background = 'var(--brand-elev-weak,rgba(0,0,0,.03))';
-          styles.borderColor = 'var(--brand-elev-bd,rgba(0,0,0,.08))';
-          styles.color = 'var(--brand-ink,#111827)';
+          // Seçili değilken: brand rengine uyumlu açık ton + full-opacity outline
+          styles.background = 'var(--brand-accent-weak, rgba(124,58,237,.12))';
+          styles.borderColor = 'var(--brand-accent,#7c3aed)';
+          styles.color = 'var(--brand-accent,#7c3aed)';
         }
       } else {
         className = isSel
@@ -205,13 +199,9 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                         ? `${base} bg-violet-100 text-violet-900 border-violet-300 hover:bg-violet-200 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700 dark:hover:bg-violet-800/60`
                         : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
               const styleChip = brandTheme ? (
-                isSel && isTrend
-                  ? { background: 'var(--brand-accent,#7c3aed)', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
-                  : isSel && !isTrend
-                  ? { background: 'var(--brand-ink,#000)', borderColor: 'var(--brand-ink,#000)', color: 'var(--brand-elev,#fff)' }
-                  : !isSel && isTrend
-                  ? { background: 'var(--brand-accent-weak,rgba(124,58,237,.12))', borderColor: 'var(--brand-accent-bd,rgba(124,58,237,.35))', color: 'var(--brand-accent,#7c3aed)' }
-                  : { background: 'var(--brand-elev-weak,rgba(0,0,0,.03))', borderColor: 'var(--brand-elev-bd,rgba(0,0,0,.08))', color: 'var(--brand-ink,#111827)' }
+                isSel
+                  ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
+                  : { background: 'var(--brand-accent-weak,rgba(124,58,237,.12))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent,#7c3aed)' }
               ) : undefined;
               return (
                 <button
