@@ -39,7 +39,7 @@ import ScrollToTop from "@/components/common/ScrollToTop";
 import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Header from '@/components/header/Header';
 import { useSession } from 'next-auth/react';
 import ReportModal from '@/components/common/ReportModal';
@@ -109,6 +109,16 @@ export default function HomePage() {
   const [qInput, setQInput] = useState('');
   const [qCommitted, setQCommitted] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  const handleOnQ = useCallback((v: any) => {
+    const s = typeof v === 'string' ? v : (v?.target?.value ?? '');
+    setQInput(s);
+  }, []);
+
+  const handleOnCommit = useCallback((v?: any) => {
+    const s = typeof v === 'string' ? v : qInput;
+    setQCommitted(s);
+  }, [qInput]);
 
   const [order, setOrder] = useState<'new' | 'top'>('new');
   const [items, setItems] = useState<ItemVM[]>([]);
@@ -1009,14 +1019,15 @@ if (!already) {
   useEffect(() => {
     const detail = {
       q: qInput,
-      onQ: setQInput,
+      onQ: handleOnQ,
       order,
       onOrder: setOrder,
       starBuckets: Array.from(starBuckets),
       onStarBuckets: (arr: number[]) => setStarBuckets(new Set(arr)),
-      onCommit: () => setQCommitted(qInput),
+      onCommit: handleOnCommit,
+      onSearch: handleOnCommit,
       suggestions,
-      onClickSuggestion: (s: string) => { setQInput(s); setQCommitted(s); },
+      onClickSuggestion: (s: string) => { handleOnQ(s); handleOnCommit(s); },
       tagMatches: tagHits,
       onClickTagMatch: (t: string) => {
         if (!t) return;
@@ -1029,7 +1040,7 @@ if (!already) {
       showSuggestions: qInput !== qCommitted,
     };
     window.dispatchEvent(new CustomEvent('rs:setHeaderControls', { detail }));
-  }, [qInput, qCommitted, order, starBuckets, suggestions, tagHits]);
+  }, [qInput, qCommitted, order, starBuckets, suggestions, tagHits, handleOnQ, handleOnCommit]);
 
   // --- SEO: JSON-LD (WebSite + Organization) ---
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
