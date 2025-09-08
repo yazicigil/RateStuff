@@ -7,7 +7,6 @@ import { signIn, signOut } from 'next-auth/react';
 import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 import NotificationsDropdown from '@/components/header/notifications/Dropdown';
 import SearchWithSuggestions from '@/components/header/search/SearchWithSuggestions';
-import { useHeaderControlsStore } from '@/lib/headerControlsStore';
 
 type Me = {
   id: string;
@@ -265,39 +264,9 @@ export default function Header({ controls }: { controls?: Controls }) {
   const isBrandMe = cleanPath === '/brand/me';
   const isHome = cleanPath === '/';
 
-  // Global header controls from Zustand store
-  const {
-    qInput,
-    qCommitted,
-    setQInput,
-    setQCommitted,
-    order,
-    setOrder,
-    starBuckets,
-    setStarBuckets,
-    suggestions,
-    tagMatches,
-    addTag,
-  } = useHeaderControlsStore();
-
-  const effectiveControls: Controls = {
-    q: qInput,
-    onQ: setQInput,
-    order,
-    onOrder: setOrder,
-    starBuckets,
-    onStarBuckets: setStarBuckets,
-    onCommit: () => setQCommitted(qInput),
-    suggestions,
-    onClickSuggestion: (s: string) => { setQInput(s); setQCommitted(s); },
-    tagMatches,
-    onClickTagMatch: (t: string) => {
-      if (!t) return;
-      addTag(t);
-      setQCommitted(qInput);
-    },
-    showSuggestions: qInput !== qCommitted,
-  };
+  // Prefer context-provided controls; fall back to props for backward compatibility
+  const ctxControls = useHeaderControls();
+  const effectiveControls = ctxControls ?? controls;
 
 
   async function refetchMe() {
