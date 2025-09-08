@@ -129,6 +129,7 @@ export default async function BrandProfilePage() {
     tags: Array.isArray((it as any).tags)
       ? ((it as any).tags.map((t: any) => t?.tag?.name).filter(Boolean))
       : [],
+    createdById: user.id,
     createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
   }));
 
@@ -269,6 +270,8 @@ export default async function BrandProfilePage() {
             trending={trendingTags}
             brandTheme
             searchPlaceholder="Ürün veya açıklama ara..."
+            myId={user.id}
+            amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
           />
         </div>
       </div>

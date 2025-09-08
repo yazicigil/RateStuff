@@ -242,8 +242,8 @@ export default function ProductsList<
               onClick={() => setOrder('new')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
               style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
-                : { background: 'var(--brand-accent-weak, rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
+                : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
               ) : undefined}
             >
               En yeni
@@ -253,8 +253,8 @@ export default function ProductsList<
               onClick={() => setOrder('top')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
               style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent,#7c3aed))', borderColor: 'var(--brand-accent,#7c3aed)', color: 'var(--brand-accent-ink,#fff)' }
-                : { background: 'var(--brand-accent-weak, rgba(124,58,237,.18))', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
+                : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
               ) : undefined}
             >
               En yüksek puan
@@ -279,18 +279,18 @@ export default function ProductsList<
       {/* Grid */}
       {filtered.length === 0 ? (
         <div className="grid place-items-center h-32 text-sm opacity-70">
-          {emptyState ?? <span>Kayıt bulunamadı.</span>}
+          {emptyState ?? <span>Henüz ürün eklenmemiş.</span>}
         </div>
       ) : (
         <div
-          // column-count yerine column-width kullan: uygun genişliğe göre otomatik sütun sayısı oluşturur.
-          className="columns-[18rem] sm:columns-[20rem] lg:columns-[22rem]"
-          style={{ columnGap: '0.75rem' }} // ~gap-3
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible"
         >
-          {filtered.map((it) => (
+          {filtered.map((it) => {
+            const isElevated = openShareId === it.id || openMenuId === it.id;
+            return (
             <div
               key={it.id}
-              className="inline-block w-full min-w-0 break-inside-avoid-column mb-3 align-top rounded-2xl"
+              className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''}`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
                 border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.08))',
@@ -332,7 +332,8 @@ export default function ProductsList<
                 />
               )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
       </div>

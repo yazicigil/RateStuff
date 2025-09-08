@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import SocialBar from "@/components/brand/SocialBar"; // mevcutsa
 import dynamic from "next/dynamic";
 import { getBrandPublicView } from "@/lib/brand";
+import { auth } from "@/lib/auth";
 
 // --- brand theme helpers (local-only) ---
 function hexToRgb(hex: string) {
@@ -104,6 +105,9 @@ function VerifiedBadge() {
 export const revalidate = 60;
 
 export default async function BrandPublicPage({ params }: { params: { slug: string } }) {
+  const session = await auth();
+  const viewerId = (session as any)?.user?.id ?? null;
+  const viewerIsAdmin = Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com');
   const data = await getBrandPublicView(params.slug);
   if (!data) notFound();
 
@@ -199,11 +203,16 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <div className="mt-3 sm:mt-4" style={{ ...computeChipSoftVars(brand.cardColor || undefined), color: 'var(--brand-ink)' }}>
           <ProductsList
             // ProductsList arayüzü, ItemsCardClient’teki item’ları doğrudan kabul eder
-            items={itemsForClient as any}
+            items={(itemsForClient as any).map((it: any) => ({
+              ...it,
+              createdById: it.createdById ?? it.createdBy?.id ?? user.id,
+            }))}
             trending={[]}
             brandTheme
+            myId={viewerId}
+            amAdmin={viewerIsAdmin}
             // allTags verilmezse item'lardan derlenir
-            // renderItem vermezsek basic kartı kullanır; istersen özel kart geçirilebilir
+            // renderItem vermezsek basic kartı kullanılır; istersen özel kart geçirilebilir
           />
         </div>
       </div>

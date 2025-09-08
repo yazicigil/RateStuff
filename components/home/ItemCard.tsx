@@ -1,5 +1,6 @@
 'use client';
 import React, { useMemo, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Stars from '@/components/common/Stars';
 import Tag from '@/components/common/Tag';
 import RatingPill from '@/components/common/RatingPill';
@@ -251,6 +252,36 @@ export default function ItemCard({
   const otherComments = myId ? allComments.filter((c: any) => c?.user?.id !== myId) : allComments;
   const showMore = otherComments.length > 3;
 
+  // --- Popover portal anchors & positions ---
+  const shareAnchorRef = React.useRef<HTMLDivElement | null>(null);
+  const menuAnchorRef = React.useRef<HTMLDivElement | null>(null);
+  const [sharePos, setSharePos] = useState<{ top: number; left: number } | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+
+  const computePos = useCallback((el: HTMLElement | null) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    // Align to the right edge under the button with a small offset
+    return { top: Math.round(r.bottom + 6), left: Math.round(r.right) };
+  }, []);
+
+  // Recompute positions when popovers open, and on scroll/resize
+  React.useEffect(() => {
+    if (openShareId === i.id) setSharePos(computePos(shareAnchorRef.current));
+    if (openMenuId === i.id) setMenuPos(computePos(menuAnchorRef.current));
+
+    function onWin() {
+      if (openShareId === i.id) setSharePos(computePos(shareAnchorRef.current));
+      if (openMenuId === i.id) setMenuPos(computePos(menuAnchorRef.current));
+    }
+    window.addEventListener('scroll', onWin, true);
+    window.addEventListener('resize', onWin);
+    return () => {
+      window.removeEventListener('scroll', onWin, true);
+      window.removeEventListener('resize', onWin);
+    };
+  }, [openShareId, openMenuId, i.id, computePos]);
+
   return (
     <div
       className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 text-neutral-900 dark:text-neutral-100 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] ${i?.suspended ? 'opacity-60 grayscale' : ''}`}
@@ -297,7 +328,7 @@ export default function ItemCard({
             </svg>
           </a>
         )}
-        <div className="relative">
+        <div className="relative" ref={shareAnchorRef}>
           <button
             className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             aria-label="share"
@@ -314,19 +345,25 @@ export default function ItemCard({
               <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
           </button>
-          <div className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
-            <SharePopover
-              open={openShareId === i.id}
-              itemId={i.id}
-              itemName={i.name}
-              onClose={() => setOpenShareId(null)}
-              onCopy={onCopyShare}
-              onShare={onNativeShare}
-              copiedShareId={copiedShareId}
-            />
-          </div>
+          {typeof window !== 'undefined' && openShareId === i.id && sharePos && createPortal(
+            <div
+              className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
+              style={{ position: 'fixed', top: sharePos.top, left: sharePos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+            >
+              <SharePopover
+                open
+                itemId={i.id}
+                itemName={i.name}
+                onClose={() => setOpenShareId(null)}
+                onCopy={onCopyShare}
+                onShare={onNativeShare}
+                copiedShareId={copiedShareId}
+              />
+            </div>,
+            document.body
+          )}
         </div>
-        <div className="relative">
+        <div className="relative" ref={menuAnchorRef}>
           <button
             className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
             onClick={handleMenuClick}
@@ -339,22 +376,28 @@ export default function ItemCard({
           >
             ⋯
           </button>
-          <div className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]">
-            <OptionsPopover
-              open={openMenuId === i.id}
-              itemId={i.id}
-              amAdmin={!!amAdmin}
-              isSaved={saved}
-              isOwner={!!isOwner}
-              onEdit={() => setEditing(true)}
-              onClose={() => setOpenMenuId(null)}
-              onDelete={(id) => onDelete?.(id)}
-              onToggleSave={(id) => onToggleSave(id)}
-              onReport={(id) => onReport(id)}
-              onShowInList={() => {}}
-              hideShowInList
-            />
-          </div>
+          {typeof window !== 'undefined' && openMenuId === i.id && menuPos && createPortal(
+            <div
+              className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
+              style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+            >
+              <OptionsPopover
+                open
+                itemId={i.id}
+                amAdmin={!!amAdmin}
+                isSaved={saved}
+                isOwner={!!isOwner}
+                onEdit={() => setEditing(true)}
+                onClose={() => setOpenMenuId(null)}
+                onDelete={(id) => onDelete?.(id)}
+                onToggleSave={(id) => onToggleSave(id)}
+                onReport={(id) => onReport(id)}
+                onShowInList={() => {}}
+                hideShowInList
+              />
+            </div>,
+            document.body
+          )}
         </div>
       </div>
 
