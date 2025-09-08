@@ -262,6 +262,7 @@ export default function Header({ controls }: { controls?: Controls }) {
   const isProfile = /^\/(?:me|brand(?:\/me|\/[^\/]+))$/.test(cleanPath);
   const isBrandProfile = /^\/brand(?:\/me|\/[^\/]+)$/.test(cleanPath);
   const isBrandMe = cleanPath === '/brand/me';
+  const isHome = cleanPath === '/';
 
   // Prefer context-provided controls; fall back to props for backward compatibility
   const ctxControls = useHeaderControls();
@@ -365,8 +366,8 @@ export default function Header({ controls }: { controls?: Controls }) {
           </div>
         </div>
 
-        {/* Desktop: arama + sıralama ortada (profil sayfalarında gizli) */}
-        {effectiveControls && !isProfile && (
+        {/* Desktop: arama + sıralama sadece ana sayfada */}
+        {effectiveControls && isHome && (
           <SearchWithSuggestions controls={effectiveControls} />
         )}
 
