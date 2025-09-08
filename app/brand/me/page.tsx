@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
-import ItemsCardClient from '@/components/brand/ItemsCardClient';
+import ProductsList from '@/components/brand/ProductsList';
 import CardColorPicker from '@/components/brand/CardColorPicker';
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
@@ -132,6 +132,18 @@ export default async function BrandProfilePage() {
     createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
   }));
 
+  // Trending tags (brand scope): most frequent tags from this brand's items
+  const tagFreq = new Map<string, number>();
+  for (const it of itemsForClient) {
+    for (const t of it.tags as string[]) {
+      tagFreq.set(t, (tagFreq.get(t) || 0) + 1);
+    }
+  }
+  const trendingTags = Array.from(tagFreq.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([name]) => name);
+
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
@@ -250,14 +262,13 @@ export default async function BrandProfilePage() {
 
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
-        {/* ItemsTab client section */}
+        {/* ProductsList section (brand-themed, same as slug page) */}
         <div className="mt-3 sm:mt-4">
-          <ItemsCardClient
+          <ProductsList
             items={itemsForClient as any}
-            trending={[]}
-            loading={false}
-            myId={user.id}
-            amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
+            trending={trendingTags}
+            brandTheme
+            searchPlaceholder="Ürün veya açıklama ara..."
           />
         </div>
       </div>
