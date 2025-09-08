@@ -6,7 +6,7 @@ import Providers from "@/components/common/Providers";
 import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "react-hot-toast";
 import HeaderGate from "@/components/header/HeaderGate";
-import { HeaderControlsProvider } from "@/components/header/Header";
+import HeaderControlsWrapper from "@/components/header/HeaderControlsWrapper";
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -139,15 +139,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLD) }}
         />
-        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />æ
+        <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className="min-h-screen antialiased">
-        <HeaderControlsProvider value={{} as any}>
+        <HeaderControlsWrapper>
           <HeaderGate />
 
           <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
           <Providers>{children}</Providers>
-        </HeaderControlsProvider>
+        </HeaderControlsWrapper>
           <Analytics />
         <Script id="presence-heartbeat" strategy="afterInteractive">
           {`(function(){
