@@ -40,7 +40,7 @@ import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useHeaderControlsStore } from '@/lib/headerControlsStore';
+import Header, { HeaderControlsProvider } from '@/components/header/Header';
 import { useSession } from 'next-auth/react';
 import ReportModal from '@/components/common/ReportModal';
 import TrendingTagsCard from '@/components/home/TrendingTagsCard';
@@ -199,54 +199,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
   // Hızlı ekle spotlight kontrolü
   const [showQuickAdd, setShowQuickAdd] = useState(false);
-
-  // ---- Bridge local page state with global header store ----
-  // --- Select only stable setter refs from the Zustand store ---
-  const setQInputStore       = useHeaderControlsStore(s => s.setQInput);
-  const setQCommittedStore   = useHeaderControlsStore(s => s.setQCommitted);
-  const setOrderStore        = useHeaderControlsStore(s => s.setOrder);
-  const setStarBucketsStore  = useHeaderControlsStore(s => s.setStarBuckets);
-
-  const setSuggestionsStore  = useHeaderControlsStore(s => s.setSuggestions);
-  const setTagMatchesStore   = useHeaderControlsStore(s => s.setTagMatches);
-  const setSelectedTagsStore = useHeaderControlsStore(s => s.setSelectedTags);
-
-  // Initial hydrate on mount
-  useEffect(() => {
-    setQInputStore(qInput);
-    setQCommittedStore(qCommitted);
-    setOrderStore(order);
-    setStarBucketsStore(Array.from(starBuckets));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Push derived data from page into store
-  useEffect(() => { setSuggestionsStore(suggestions ?? []); }, [setSuggestionsStore, suggestions]);
-  useEffect(() => { setTagMatchesStore(tagHits ?? []); }, [setTagMatchesStore, tagHits]);
-  useEffect(() => { setSelectedTagsStore(Array.from(selectedTags)); }, [setSelectedTagsStore, selectedTags]);
-
-  // Listen store → reflect into page state (so list reacts to header input)
-  useEffect(() => {
-    const unsub = useHeaderControlsStore.subscribe((s) => {
-      setQInput(prev => (prev !== s.qInput ? s.qInput : prev));
-      setQCommitted(prev => (prev !== s.qCommitted ? s.qCommitted : prev));
-      setOrder(prev => (prev !== s.order ? (s.order as 'new' | 'top') : prev));
-      setStarBuckets(prev => {
-        const sbLocal = Array.from(prev);
-        if (JSON.stringify(s.starBuckets) !== JSON.stringify(sbLocal)) {
-          return new Set(s.starBuckets);
-        }
-        return prev;
-      });
-      // selectedTags'i iki yönlü senkronlamak istersen guard'lı olarak burada da set edebilirsin
-      // setSelectedTags(prev => {
-      //   const cur = Array.from(prev);
-      //   if (JSON.stringify(cur) !== JSON.stringify(s.selectedTags)) return new Set(s.selectedTags);
-      //   return prev;
-      // });
-    });
-    return unsub;
-  }, []);
 
 
   function measureTruncation(id: string) {
@@ -1099,6 +1051,31 @@ if (!already) {
           <link rel="canonical" href={canonicalShareUrl} />
         </Head>
       )}
+     <HeaderControlsProvider value={{
+  q: qInput,
+  onQ: setQInput,
+  order,
+  onOrder: setOrder,
+  starBuckets: Array.from(starBuckets),
+  onStarBuckets: (arr) => setStarBuckets(new Set(arr)),
+  onCommit: () => setQCommitted(qInput),
+  suggestions,
+  onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
+  tagMatches: tagHits,
+  onClickTagMatch: (t: string) => {
+    if (!t) return;
+    setSelectedTags(prev => {
+      const next = new Set(prev);
+      next.add(t);
+      return next;
+    });
+    setQCommitted(qInput);
+    setShowQuickAdd(false);
+    setSharedItem(null);
+    setSharedId(null);
+  },
+  showSuggestions: qInput !== qCommitted,
+}}>
      
      
      <style jsx global>{`
@@ -1707,7 +1684,7 @@ if (!already) {
           <ScrollToTop />
         </section>
       </main>
-    
+    </HeaderControlsProvider>
     </div>
   );
 }
