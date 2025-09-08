@@ -229,9 +229,12 @@ export default function ProductsList<
               <button
                 type="button"
                 onClick={() => setQ('')}
-                className="rounded-lg px-2 py-1 text-xs border hover:bg-black/5 dark:hover:bg-white/10"
+                className="rounded-lg p-1 border hover:bg-black/5 dark:hover:bg-white/10"
+                aria-label="Temizle"
               >
-                Temizle
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
               </button>
             )}
           </div>
@@ -290,7 +293,7 @@ export default function ProductsList<
             return (
             <div
               key={it.id}
-              className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''}`}
+              className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
                 border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.08))',
@@ -300,6 +303,7 @@ export default function ProductsList<
                 renderItem(it)
               ) : (
                 <ItemCard
+                  className="h-full"
                   item={it as any}
                   me={me}
                   saved={savedSet.has(it.id)}
