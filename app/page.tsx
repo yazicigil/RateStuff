@@ -40,7 +40,7 @@ import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Header, { HeaderControlsProvider } from '@/components/header/Header';
+import Header from '@/components/header/Header';
 import { useSession } from 'next-auth/react';
 import ReportModal from '@/components/common/ReportModal';
 import TrendingTagsCard from '@/components/home/TrendingTagsCard';
@@ -1005,6 +1005,32 @@ if (!already) {
 
 
 
+  // Dispatch header controls to layout when dependencies change
+  useEffect(() => {
+    const detail = {
+      q: qInput,
+      onQ: setQInput,
+      order,
+      onOrder: setOrder,
+      starBuckets: Array.from(starBuckets),
+      onStarBuckets: (arr: number[]) => setStarBuckets(new Set(arr)),
+      onCommit: () => setQCommitted(qInput),
+      suggestions,
+      onClickSuggestion: (s: string) => { setQInput(s); setQCommitted(s); },
+      tagMatches: tagHits,
+      onClickTagMatch: (t: string) => {
+        if (!t) return;
+        setSelectedTags(prev => { const next = new Set(prev); next.add(t); return next; });
+        setQCommitted(qInput);
+        setShowQuickAdd(false);
+        setSharedItem(null);
+        setSharedId(null);
+      },
+      showSuggestions: qInput !== qCommitted,
+    };
+    window.dispatchEvent(new CustomEvent('rs:setHeaderControls', { detail }));
+  }, [qInput, qCommitted, order, starBuckets, suggestions, tagHits]);
+
   // --- SEO: JSON-LD (WebSite + Organization) ---
   const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://ratestuff.net").replace(/\/+$/, "");
   const websiteLD = {
@@ -1051,31 +1077,7 @@ if (!already) {
           <link rel="canonical" href={canonicalShareUrl} />
         </Head>
       )}
-     <HeaderControlsProvider value={{
-  q: qInput,
-  onQ: setQInput,
-  order,
-  onOrder: setOrder,
-  starBuckets: Array.from(starBuckets),
-  onStarBuckets: (arr) => setStarBuckets(new Set(arr)),
-  onCommit: () => setQCommitted(qInput),
-  suggestions,
-  onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
-  tagMatches: tagHits,
-  onClickTagMatch: (t: string) => {
-    if (!t) return;
-    setSelectedTags(prev => {
-      const next = new Set(prev);
-      next.add(t);
-      return next;
-    });
-    setQCommitted(qInput);
-    setShowQuickAdd(false);
-    setSharedItem(null);
-    setSharedId(null);
-  },
-  showSuggestions: qInput !== qCommitted,
-}}>
+     
      
      
      <style jsx global>{`
@@ -1684,8 +1686,7 @@ if (!already) {
           <ScrollToTop />
         </section>
       </main>
-    </HeaderControlsProvider>
+    
     </div>
   );
 }
-     
