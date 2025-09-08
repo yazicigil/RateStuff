@@ -40,7 +40,7 @@ import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Header, { HeaderControlsProvider } from '@/components/header/Header';
+import { useHeaderControlsStore } from '@/lib/headerControlsStore';
 import { useSession } from 'next-auth/react';
 import ReportModal from '@/components/common/ReportModal';
 import TrendingTagsCard from '@/components/home/TrendingTagsCard';
@@ -199,6 +199,40 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const [spotlightShowCount, setSpotlightShowCount] = useState(7);
   // Hızlı ekle spotlight kontrolü
   const [showQuickAdd, setShowQuickAdd] = useState(false);
+
+  // ---- Bridge local page state with global header store ----
+  const hdr = useHeaderControlsStore();
+
+  // Initial hydrate on mount
+  useEffect(() => {
+    hdr.setQInput(qInput);
+    hdr.setQCommitted(qCommitted);
+    hdr.setOrder(order);
+    hdr.setStarBuckets(Array.from(starBuckets));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Push derived data from page into store
+  useEffect(() => { hdr.setSuggestions(suggestions ?? []); }, [hdr, suggestions]);
+  useEffect(() => { hdr.setTagMatches(tagHits ?? []); }, [hdr, tagHits]);
+  useEffect(() => { hdr.setSelectedTags(Array.from(selectedTags)); }, [hdr, selectedTags]);
+
+  // Listen store → reflect into page state (so list reacts to header input)
+  useEffect(() => {
+    const unsub = useHeaderControlsStore.subscribe((s) => {
+      if (s.qInput !== qInput) setQInput(s.qInput);
+      if (s.qCommitted !== qCommitted) setQCommitted(s.qCommitted);
+      if (s.order !== order) setOrder(s.order as 'new' | 'top');
+      const sbLocal = Array.from(starBuckets);
+      if (JSON.stringify(s.starBuckets) !== JSON.stringify(sbLocal)) {
+        setStarBuckets(new Set(s.starBuckets));
+      }
+      // Not: selectedTags'i iki yönlü senkronlamak istersen burada da bağlayabilirsin
+      // setSelectedTags(new Set(s.selectedTags));
+    });
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qInput, qCommitted, order, starBuckets]);
 
 
   function measureTruncation(id: string) {
@@ -1051,31 +1085,6 @@ if (!already) {
           <link rel="canonical" href={canonicalShareUrl} />
         </Head>
       )}
-     <HeaderControlsProvider value={{
-  q: qInput,
-  onQ: setQInput,
-  order,
-  onOrder: setOrder,
-  starBuckets: Array.from(starBuckets),
-  onStarBuckets: (arr) => setStarBuckets(new Set(arr)),
-  onCommit: () => setQCommitted(qInput),
-  suggestions,
-  onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
-  tagMatches: tagHits,
-  onClickTagMatch: (t: string) => {
-    if (!t) return;
-    setSelectedTags(prev => {
-      const next = new Set(prev);
-      next.add(t);
-      return next;
-    });
-    setQCommitted(qInput);
-    setShowQuickAdd(false);
-    setSharedItem(null);
-    setSharedId(null);
-  },
-  showSuggestions: qInput !== qCommitted,
-}}>
      
      
      <style jsx global>{`
@@ -1684,7 +1693,7 @@ if (!already) {
           <ScrollToTop />
         </section>
       </main>
-    </HeaderControlsProvider>
+    
     </div>
   );
 }
