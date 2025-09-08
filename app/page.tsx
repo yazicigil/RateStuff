@@ -40,7 +40,7 @@ import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Header from '@/components/header/Header';
+import Header, { HeaderControlsProvider } from '@/components/header/Header';
 import { useSession } from 'next-auth/react';
 import ReportModal from '@/components/common/ReportModal';
 import TrendingTagsCard from '@/components/home/TrendingTagsCard';
@@ -1051,13 +1051,13 @@ if (!already) {
           <link rel="canonical" href={canonicalShareUrl} />
         </Head>
       )}
-     <Header controls={{
+     <HeaderControlsProvider value={{
   q: qInput,
   onQ: setQInput,
   order,
   onOrder: setOrder,
   starBuckets: Array.from(starBuckets),
-  onStarBuckets: (arr)=>setStarBuckets(new Set(arr)),
+  onStarBuckets: (arr) => setStarBuckets(new Set(arr)),
   onCommit: () => setQCommitted(qInput),
   suggestions,
   onClickSuggestion: (s) => { setQInput(s); setQCommitted(s); },
@@ -1075,7 +1075,7 @@ if (!already) {
     setSharedId(null);
   },
   showSuggestions: qInput !== qCommitted,
-}} />
+}}>
      
      
      <style jsx global>{`
@@ -1684,6 +1684,7 @@ if (!already) {
           <ScrollToTop />
         </section>
       </main>
+    </HeaderControlsProvider>
     </div>
   );
 }

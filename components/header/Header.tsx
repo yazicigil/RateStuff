@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { signIn, signOut } from 'next-auth/react';
@@ -36,6 +36,28 @@ type Controls = {
   selectedTags?: string[];
   onClickTagRemove?: (t: string) => void;
 };
+
+// ---- Header Controls Context (co-located) ----
+export const HeaderControlsContext = createContext<Controls | null>(null);
+
+export function HeaderControlsProvider({
+  value,
+  children,
+}: {
+  value: Controls;
+  children: React.ReactNode;
+}) {
+  return (
+    <HeaderControlsContext.Provider value={value}>
+      {children}
+    </HeaderControlsContext.Provider>
+  );
+}
+
+export function useHeaderControls() {
+  return useContext(HeaderControlsContext);
+}
+// ---------------------------------------------
 
 const USE_CURRENTCOLOR = false;
 
@@ -241,6 +263,10 @@ export default function Header({ controls }: { controls?: Controls }) {
   const isBrandProfile = /^\/brand(?:\/me|\/[^\/]+)$/.test(cleanPath);
   const isBrandMe = cleanPath === '/brand/me';
 
+  // Prefer context-provided controls; fall back to props for backward compatibility
+  const ctxControls = useHeaderControls();
+  const effectiveControls = ctxControls ?? controls;
+
 
   async function refetchMe() {
     try {
@@ -340,8 +366,8 @@ export default function Header({ controls }: { controls?: Controls }) {
         </div>
 
         {/* Desktop: arama + sıralama ortada (profil sayfalarında gizli) */}
-        {controls && !isProfile && (
-          <SearchWithSuggestions controls={controls} />
+        {effectiveControls && !isProfile && (
+          <SearchWithSuggestions controls={effectiveControls} />
         )}
 
         {/* Desktop sağ: tema + auth */}

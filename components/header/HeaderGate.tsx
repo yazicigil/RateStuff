@@ -4,7 +4,7 @@ import Header from "@/components/header/Header";
 
 export default function HeaderGate() {
   const pathname = usePathname();
-  const hideHeader =pathname === "/item" || pathname === "/" || pathname === "/share" || pathname === "/brand";
+  const hideHeader = pathname === "/brand";
   if (hideHeader) return null;
   return <Header />;
 }
