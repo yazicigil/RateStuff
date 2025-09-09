@@ -73,8 +73,11 @@ export default function OwnerSettings({
       title="Ayarlar"
       className={
         className ??
-        "ml-1 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[var(--brand-elev-bd,rgba(0,0,0,0.08))] text-[var(--brand-ink-subtle,inherit)] hover:text-[var(--brand-ink,inherit)] hover:bg-[var(--brand-chip-bg,rgba(0,0,0,0.05))] hover:bg-opacity-20 transition"
+        "ml-1 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full border border-[var(--brand-elev-bd,rgba(0,0,0,0.08))] text-[var(--brand-ink-subtle,inherit)] hover:text-[var(--brand-ink,inherit)] hover:bg-[var(--os-hover-bg)] transition"
       }
+      style={{
+        ["--os-hover-bg" as any]: "color-mix(in srgb, var(--brand-chip-bg, rgba(0,0,0,0.5)) 20%, transparent)"
+      }}
     >
       <svg
         viewBox="0 0 24 24"
