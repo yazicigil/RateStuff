@@ -379,8 +379,9 @@ export default function ProductsList<
               className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
-                border: `1px solid ${bdByTone}`,
                 color: inkByTone,
+                outline: 'none',
+                boxShadow: 'none',
               } : undefined}
             >
               {renderItem ? (
