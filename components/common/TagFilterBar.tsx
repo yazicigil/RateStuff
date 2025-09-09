@@ -113,9 +113,10 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
         className = base;
         styles = {};
         if (isSel) {
-          // Seçiliyken: daha koyu brand tonu
+          // Seçiliyken: koyu yüzeyde açık, açık yüzeyde koyu kontur
           styles.background = 'var(--brand-accent-strong, var(--brand-accent))';
-          styles.borderColor = 'var(--brand-accent)';
+          styles.borderColor = inkByTone as any;
+          styles.boxShadow = `0 0 0 1px ${inkByTone} inset` as any;
           styles.color = '#fff';
         } else {
           // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
@@ -229,9 +230,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               ? 'bg-black text-white border-black'
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             style={brandTheme ? (selected.size === 0
-              // Hepsi seçiliyken (tüm filtreler kapalı): seçili chip stili
-              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
-              // Hepsi seçili değilken: tone-aware unselected chip stili
+              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
               : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
             ) : undefined}
             onClick={onClear}
@@ -257,7 +256,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                         : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
               const styleChip = brandTheme ? (
                 isSel
-                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
                   : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined;
               return (

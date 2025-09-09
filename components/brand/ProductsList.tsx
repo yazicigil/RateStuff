@@ -310,7 +310,7 @@ export default function ProductsList<
               onClick={() => setOrder('new')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
               style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
                 : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
@@ -321,7 +321,7 @@ export default function ProductsList<
               onClick={() => setOrder('top')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
               style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
                 : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
