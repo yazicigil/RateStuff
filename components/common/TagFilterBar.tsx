@@ -31,6 +31,24 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
   const measureRef = React.useRef<HTMLDivElement | null>(null);
 
   const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
+  const [accentTone, setAccentTone] = React.useState<'light' | 'dark' | null>(null);
+  React.useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    // Create a temp probe element that inherits CSS vars from the root
+    const probe = document.createElement('div');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.pointerEvents = 'none';
+    probe.style.background = 'var(--brand-accent-strong, var(--brand-accent))';
+    root.appendChild(probe);
+    const bg = getComputedStyle(probe).backgroundColor || '';
+    root.removeChild(probe);
+    const rgb = parseRgb(bg);
+    if (!rgb) { setAccentTone(null); return; }
+    const L = relLum(rgb);
+    setAccentTone(L < 0.5 ? 'dark' : 'light');
+  }, [brandTheme, pages.length, page]);
 
   const parseRgb = (s: string) => {
     if (!s) return null;
@@ -82,6 +100,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
 
   const inkByTone = surfaceTone === 'dark' ? '#fff' : 'var(--brand-ink, var(--brand-ink-strong, #111))';
   const bdByTone = surfaceTone === 'dark' ? 'rgba(255,255,255,.28)' : 'var(--brand-elev-bd, rgba(0,0,0,.14))';
+  const selInkByAccent = accentTone === 'dark' ? '#fff' : 'var(--brand-ink, var(--brand-ink-strong, #111))';
 
   const rebuildPages = React.useCallback(() => {
     const root = containerRef.current;
@@ -104,42 +123,42 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
     const avail = Math.max(0, contentWidth - hepsiW - gapPx);
 
     // Chip ölçüm helper
-    const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
-      const base = 'inline-flex items-center gap-1 h-7 px-2 py-0 rounded-full border text-[11px] shrink-0 sm:h-8 sm:px-3 sm:text-xs';
-      let className = '';
-      let styles: any | undefined;
+      const makeChip = (label: string, isTrend: boolean, isSel: boolean) => {
+        const base = 'inline-flex items-center gap-1 h-7 px-2 py-0 rounded-full border text-[11px] shrink-0 sm:h-8 sm:px-3 sm:text-xs';
+        let className = '';
+        let styles: any | undefined;
 
-      if (brandTheme) {
-        className = base;
-        styles = {};
-        if (isSel) {
-          // Seçiliyken: koyu yüzeyde açık, açık yüzeyde koyu kontur
-          styles.background = 'var(--brand-accent-strong, var(--brand-accent))';
-          styles.borderColor = inkByTone as any;
-          styles.boxShadow = `0 0 0 1px ${inkByTone} inset` as any;
-          styles.color = '#fff';
+        if (brandTheme) {
+          className = base;
+          styles = {};
+          if (isSel) {
+            // Seçiliyken: koyu yüzeyde açık, açık yüzeyde koyu kontur
+            styles.background = 'var(--brand-accent-strong, var(--brand-accent))';
+            styles.borderColor = selInkByAccent as any;
+            styles.boxShadow = `0 0 0 1px ${selInkByAccent} inset` as any;
+            styles.color = selInkByAccent as any;
+          } else {
+            // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
+            styles.background = 'var(--brand-elev-weak, transparent)';
+            styles.borderColor = bdByTone;
+            styles.color = inkByTone;
+          }
         } else {
-          // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
-          styles.background = 'var(--brand-elev-weak, transparent)';
-          styles.borderColor = bdByTone;
-          styles.color = inkByTone;
+          className = isSel
+            ? (isTrend
+                ? `${base} bg-violet-600 text-white border-violet-600`
+                : `${base} bg-black text-white border-black`)
+            : (isTrend
+                ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
+                : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
         }
-      } else {
-        className = isSel
-          ? (isTrend
-              ? `${base} bg-violet-600 text-white border-violet-600`
-              : `${base} bg-black text-white border-black`)
-          : (isTrend
-              ? `${base} bg-violet-100 text-violet-900 border-violet-300 dark:bg-violet-800/40 dark:text-violet-100 dark:border-violet-700`
-              : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`);
-      }
 
-      const btn = document.createElement('button');
-      btn.className = className;
-      if (styles) Object.assign(btn.style, styles);
-      btn.innerHTML = `<span>#${label}</span>`;
-      return btn;
-    };
+        const btn = document.createElement('button');
+        btn.className = className;
+        if (styles) Object.assign(btn.style, styles);
+        btn.innerHTML = `<span>#${label}</span>`;
+        return btn;
+      };
 
     const chipWidths: number[] = [];
     tags.forEach((t) => {
@@ -230,7 +249,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               ? 'bg-black text-white border-black'
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             style={brandTheme ? (selected.size === 0
-              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
+              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
               : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
             ) : undefined}
             onClick={onClear}
@@ -256,7 +275,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                         : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
               const styleChip = brandTheme ? (
                 isSel
-                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
+                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
                   : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined;
               return (

@@ -106,6 +106,23 @@ export default function ProductsList<
 }: ProductsListProps<T>) {
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
+  const [accentTone, setAccentTone] = React.useState<'light' | 'dark' | null>(null);
+  React.useEffect(() => {
+    const host = surfaceRef.current;
+    if (!host) return;
+    const probe = document.createElement('div');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.pointerEvents = 'none';
+    probe.style.background = 'var(--brand-accent-strong, var(--brand-accent))';
+    host.appendChild(probe);
+    const bg = getComputedStyle(probe).backgroundColor || '';
+    host.removeChild(probe);
+    const rgb = parseRgb(bg);
+    if (!rgb) { setAccentTone(null); return; }
+    const L = relLum(rgb);
+    setAccentTone(L < 0.5 ? 'dark' : 'light');
+  }, [brandTheme]);
 
   const parseRgb = (s: string) => {
     // expected formats: rgb(a) or hex fallback
@@ -231,6 +248,7 @@ export default function ProductsList<
   const bdByTone = surfaceTone === 'dark'
     ? 'rgba(255,255,255,.28)'
     : 'var(--brand-elev-bd, rgba(0,0,0,.14))';
+  const selInkByAccent = accentTone === 'dark' ? '#fff' : 'var(--brand-ink, var(--brand-ink-strong, #111))';
 
   return (
     <section className={`w-full ${className}`} style={tone} data-surface={surfaceTone ?? undefined}>
@@ -310,7 +328,7 @@ export default function ProductsList<
               onClick={() => setOrder('new')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
               style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
                 : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
@@ -321,7 +339,7 @@ export default function ProductsList<
               onClick={() => setOrder('top')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
               style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: inkByTone, boxShadow: `0 0 0 1px ${inkByTone} inset`, color: '#fff' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
                 : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
