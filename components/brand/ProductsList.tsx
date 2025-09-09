@@ -116,6 +116,10 @@ export default function ProductsList<
   onQuickAddDone,
 }: ProductsListProps<T>) {
   const router = useRouter();
+  const refreshList = React.useCallback(() => {
+    try { router.refresh(); } catch {}
+    try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
+  }, [router]);
   const handleOpenSpotlight = React.useCallback((id: string) => {
     if (onOpenSpotlight) return onOpenSpotlight(id);
     // Spotlight ana sayfada: https://ratestuff.net/?item=<id>
@@ -284,6 +288,40 @@ export default function ProductsList<
   const addCardInk = inkByTone;
   const addCardBg = brandTheme ? 'var(--brand-elev-weak, rgba(0,0,0,.03))' : 'transparent';
 
+  // Default delete handler (if parent doesn't provide one)
+  const handleDelete = React.useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        // try legacy route or surface an error silently
+        console.warn('Delete failed', await res.text().catch(() => ''));
+        return;
+      }
+      // Notify outer world to refresh if needed
+      onDeleted?.(id);
+      onItemChanged?.(id);
+      try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
+      try {
+        (window as any).ratestuff?.reload?.();
+        (window as any).ratestuff?.load?.();
+      } catch {}
+      refreshList();
+    } catch (e) {
+      console.warn('Delete error', e);
+    }
+  }, [onDeleted, onItemChanged, refreshList]);
+
+  const handleItemChanged = React.useCallback((id?: string) => {
+    onItemChanged?.(id as any);
+    refreshList();
+  }, [onItemChanged, refreshList]);
+
+  React.useEffect(() => {
+    const onReload = () => refreshList();
+    window.addEventListener('ratestuff:items:reload', onReload as any);
+    return () => window.removeEventListener('ratestuff:items:reload', onReload as any);
+  }, [refreshList]);
+
   return (
     <section className={`w-full ${className}`} style={tone} data-surface={surfaceTone ?? undefined}>
       <div
@@ -406,18 +444,28 @@ export default function ProductsList<
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible"
         >
           {isOwner && !showQuickAdd && (
-            <button
-              type="button"
-              onClick={() => setShowQuickAdd(true)}
-              className="w-full h-28 sm:h-32 rounded-2xl border flex items-center justify-center text-sm"
-              style={{ borderColor: addCardBorder, color: addCardInk, background: addCardBg }}
-              aria-label="Yeni ürün ekle"
+            <div
+              className="w-full rounded-2xl h-full flex flex-col"
+              style={brandTheme ? {
+                background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
+                color: inkByTone,
+                outline: 'none',
+                boxShadow: 'none',
+              } : undefined}
             >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-2xl leading-none">+</span>
-                <span className="opacity-80">Ekle</span>
-              </div>
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowQuickAdd(true)}
+                className="flex-1 rounded-2xl border flex items-center justify-center text-sm"
+                style={{ borderColor: addCardBorder, color: addCardInk, background: addCardBg }}
+                aria-label="Yeni ürün ekle"
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-2xl leading-none">+</span>
+                  <span className="opacity-80">Ekle</span>
+                </div>
+              </button>
+            </div>
           )}
           {showQuickAdd && isOwner && (
             <div className="col-span-1 sm:col-span-2 lg:col-span-3">
@@ -447,6 +495,8 @@ export default function ProductsList<
                     if (!res.ok) return false;
                     const data = await res.json().catch(() => ({}));
                     const newId = data?.id as (string | undefined);
+                    refreshList();
+                    setShowQuickAdd(false); // close panel after successful create
                     onQuickAddDone?.(newId);
                     return true;
                   } catch {
@@ -491,12 +541,12 @@ export default function ProductsList<
                   onOpenSpotlight={handleOpenSpotlight}
                   onToggleSave={onToggleSave ?? (() => {})}
                   onReport={onReport ?? (() => {})}
-                  onDelete={onDelete ?? onDeleted}
+                  onDelete={onDelete ?? handleDelete}
                   onCopyShare={onCopyShare ?? ((id: string) => setCopiedId(id))}
                   onNativeShare={onNativeShare ?? (() => {})}
                   onShowInList={onShowInList ?? (() => {})}
                   onVoteComment={onVoteComment ?? (() => {})}
-                  onItemChanged={onItemChanged}
+                  onItemChanged={handleItemChanged}
 
                   selectedTags={selected}
                   onToggleTag={onToggleTag ?? (() => {})}
