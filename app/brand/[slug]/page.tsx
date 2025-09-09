@@ -6,6 +6,19 @@ import { getBrandPublicView } from "@/lib/brand";
 import { auth } from "@/lib/auth";
 import { getBrandCSSVars } from "@/lib/brandTheme";
 
+// local helpers for single-file contrast decision
+function hexToRgbLocal(hex: string) {
+  const h = hex?.replace('#','').trim() || 'ffffff';
+  const v = h.length === 3 ? h.split('').map(c=>c+c).join('') : h.padEnd(6,'f');
+  const n = parseInt(v, 16);
+  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+}
+function relLumaLocal({r,g,b}:{r:number;g:number;b:number}) {
+  const toLin = (v:number)=>{ v/=255; return v<=0.04045? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+  const R = toLin(r), G = toLin(g), B = toLin(b);
+  return 0.2126*R + 0.7152*G + 0.0722*B;
+}
+
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 const ProductsList = dynamic(() => import("@/components/brand/ProductsList"), { ssr: false });
 const OwnerSettings = dynamic(() => import("@/components/brand/OwnerSettings"), { ssr: false });
@@ -30,6 +43,14 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
   if (!data) notFound();
 
   const { brand, user, itemsForClient, itemsCount, avgRating } = data;
+  const brandHex = brand.cardColor || "#ffffff";
+  const isLightBrand = (() => {
+    try {
+      return relLumaLocal(hexToRgbLocal(brandHex)) > 0.6;
+    } catch {
+      return true; // fallback to dark text
+    }
+  })();
   const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
 
   return (
@@ -74,7 +95,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
           id="brand-hero-card"
           className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
-            color: "var(--brand-ink, inherit)",
+            color: isLightBrand ? "#111" : "#fff",
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
           }}
