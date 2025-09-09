@@ -161,7 +161,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
-        <div className="mt-3 sm:mt-4" style={{ color: 'var(--brand-ink)' }}>
+        <div className="mt-3 sm:mt-4 brand-slug-scope" style={{ color: 'var(--brand-ink)' }}>
           <ProductsList
             // ProductsList arayüzü, ItemsCardClient’teki item’ları doğrudan kabul eder
             items={(itemsForClient as any).map((it: any) => ({
@@ -169,13 +169,41 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
               createdById: it.createdById ?? it.createdBy?.id ?? user.id,
             }))}
             trending={[]}
-            
+            brandTheme
             myId={viewerId}
             amAdmin={viewerIsAdmin}
             // allTags verilmezse item'lardan derlenir
             // renderItem vermezsek basic kartı kullanılır; istersen özel kart geçirilebilir
           />
         </div>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
+              /* Scope: only affect controls inside ProductsList on the slug page */
+              .brand-slug-scope .rs-chip--selected,
+              .brand-slug-scope .is-selected,
+              .brand-slug-scope [aria-pressed="true"] {
+                background: transparent !important;
+                color: var(--brand-ink) !important;
+                border-color: var(--brand-elev-bd) !important;
+                border-width: 2px !important;
+              }
+              /* Outline/Ghost buttons pressed */
+              .brand-slug-scope .rs-btn--outline[aria-pressed="true"],
+              .brand-slug-scope .rs-btn--ghost[aria-pressed="true"] {
+                background: transparent !important;
+                color: var(--brand-ink) !important;
+                border-color: var(--brand-elev-bd) !important;
+                box-shadow: 0 0 0 1px var(--brand-elev-bd) inset !important;
+              }
+              /* Ensure non-selected chips keep neutral background, not forced white */
+              .brand-slug-scope .rs-chip:not(.rs-chip--selected) {
+                background: var(--brand-elev-bg) !important;
+                border-color: var(--brand-elev-bd) !important;
+              }
+            `,
+          }}
+        />
       </div>
     </div>
   );
