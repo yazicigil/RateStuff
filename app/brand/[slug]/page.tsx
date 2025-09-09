@@ -169,7 +169,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
               createdById: it.createdById ?? it.createdBy?.id ?? user.id,
             }))}
             trending={[]}
-            brandTheme
+            
             myId={viewerId}
             amAdmin={viewerIsAdmin}
             // allTags verilmezse item'lardan derlenir
