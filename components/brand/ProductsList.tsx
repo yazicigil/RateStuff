@@ -108,8 +108,8 @@ export default function ProductsList<
   const router = useRouter();
   const handleOpenSpotlight = React.useCallback((id: string) => {
     if (onOpenSpotlight) return onOpenSpotlight(id);
-    // Spotlight ana sayfada çalışıyor: /item/:id
-    router.push(`/item/${id}`);
+    // Spotlight ana sayfada: https://ratestuff.net/?item=<id>
+    router.push(`/?item=${id}`);
   }, [onOpenSpotlight, router]);
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
