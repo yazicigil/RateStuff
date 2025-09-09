@@ -165,13 +165,10 @@ export default function ProductsList<
 
   // Stil: marka teması varsa CSS değişkenlerini kullan
   const tone = brandTheme
-    ? {
-        // Kart ve kontroller marka renklerine uyum sağlar
-        // Aşağıdaki değişken isimleri projedeki brand theme ile uyumluysa otomatik oturur.
-        // Yoksa bu stil objesini kaldırabilirsiniz.
-        backgroundColor: 'var(--brand-elev, transparent)',
-        color: 'var(--brand-ink, inherit)',
-      } as React.CSSProperties
+    ? ({
+        // Yazı rengi marka temasıyla daima kontrastlı olsun
+        color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
+      } as React.CSSProperties)
     : undefined;
 
   return (
@@ -180,7 +177,8 @@ export default function ProductsList<
         className="rounded-3xl border shadow-sm p-3 sm:p-4 md:p-5"
         style={brandTheme ? {
           background: 'var(--brand-items-bg, var(--brand-elev-weak, transparent))',
-          borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.08))',
+          borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))',
+          color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
         } : undefined}
       >
         {/* Tag Filter */}
@@ -213,7 +211,11 @@ export default function ProductsList<
           className={`flex items-center justify-between gap-2 rounded-2xl border px-3 py-2 shadow-sm backdrop-blur-sm
           ${brandTheme ? '' : 'bg-white/70 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800'}
         `}
-          style={brandTheme ? { background: 'var(--brand-elev-weak, transparent)', borderColor: 'rgba(255,255,255,.55)' } : undefined}
+          style={brandTheme ? {
+            background: 'var(--brand-elev-weak, transparent)',
+            borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))',
+            color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
+          } : undefined}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
@@ -223,14 +225,15 @@ export default function ProductsList<
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={searchPlaceholder}
-              className="flex-1 bg-transparent outline-none text-sm py-1"
+              className="flex-1 bg-transparent outline-none text-sm py-1 placeholder:opacity-60 placeholder:placeholder-current"
             />
             {q && (
               <button
                 type="button"
                 onClick={() => setQ('')}
-                className="rounded-lg p-1 border hover:bg-black/5 dark:hover:bg-white/10"
+                className="rounded-lg p-1 border hover:bg-black/5 dark:hover:bg-white/10 hover:opacity-90"
                 aria-label="Temizle"
+                style={brandTheme ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, currentColor)' } : undefined}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -245,8 +248,8 @@ export default function ProductsList<
               onClick={() => setOrder('new')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
               style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-                : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink, #fff)' }
+                : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
               ) : undefined}
             >
               En yeni
@@ -256,8 +259,8 @@ export default function ProductsList<
               onClick={() => setOrder('top')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
               style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-                : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink, #fff)' }
+                : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
               ) : undefined}
             >
               En yüksek puan
@@ -269,7 +272,7 @@ export default function ProductsList<
               value={order}
               onChange={(e) => setOrder(e.target.value as 'new' | 'top')}
               className="text-xs rounded-lg border px-2 py-1 bg-transparent"
-              style={brandTheme ? { borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' } : undefined}
+              style={brandTheme ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)', background: 'var(--brand-elev-weak, transparent)' } : undefined}
               aria-label="Sırala"
             >
               <option value="new">En yeni</option>
@@ -296,7 +299,8 @@ export default function ProductsList<
               className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
-                border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.08))',
+                border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.12))',
+                color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
               } : undefined}
             >
               {renderItem ? (
