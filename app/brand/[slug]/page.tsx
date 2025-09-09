@@ -55,12 +55,15 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
   const heroSubtle = isLightBrand ? "rgba(17,17,17,.70)" : "rgba(255,255,255,.75)";
   const pillBorder = isLightBrand ? "rgba(17,17,17,.35)" : "rgba(255,255,255,.35)";
   const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
+  const brandRGB = hexToRgbLocal(brandHex);
+  const surfaceWeak = `rgba(${brandRGB.r}, ${brandRGB.g}, ${brandRGB.b}, ${isLightBrand ? 0.08 : 0.12})`;
 
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
       style={{
         ...brandVars,
+        ["--brand-surface-weak" as any]: surfaceWeak,
         backgroundImage:
           "linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))",
       }}
