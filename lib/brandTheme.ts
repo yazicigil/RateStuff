@@ -32,19 +32,26 @@ export function getBrandCSSVars(brandHex?: string) {
   const base = hexToRgb(brandHex);
   const L = relLuma(base);
 
-  // Çok açık renk eşiği (neredeyse beyazlar, #fff dahil)
-  const isTooLight = L > 0.90;
+  // Pick dark ink for medium-light & light brand colors, white ink for dark ones
+  const isLight = L > 0.6;
 
-  // Ink (metin) ve subtle ink için minimum kontrast garantisi
-  const inkRgb   = isTooLight ? BLACK : mix(base, BLACK, 0.6);       // açık renkse direkt siyaha yakın
-  const inkSub   = isTooLight ? mix(BLACK, WHITE, 0.35) : mix(base, BLACK, 0.75);
+  // Inks
+  const inkRgb = isLight ? { r: 17, g: 17, b: 17 } : { r: 255, g: 255, b: 255 };
+  const inkSubRgb = isLight
+    ? mix({ r: 17, g: 17, b: 17 }, WHITE, 0.35)
+    : mix({ r: 255, g: 255, b: 255 }, BLACK, 0.35);
+  // Text for solid brand "items" backgrounds (hero card, solid chips)
+  const onItemsInkRgb = inkRgb;
 
-  // Chip/Elevation zeminleri: açık marka renklerinde nötr yumuşak griye kay
-  const chipBgRgb = isTooLight ? mix(WHITE, BLACK, 0.06) : mix(base, WHITE, 0.92);
-  const elevBgRgb = isTooLight ? mix(WHITE, BLACK, 0.04) : mix(base, WHITE, 0.94);
+  // Backgrounds
+  const chipBgRgb = isLight ? mix(WHITE, BLACK, 0.06) : mix(base, WHITE, 0.15);
+  const elevBgRgb = isLight ? mix(WHITE, BLACK, 0.04) : mix(base, WHITE, 0.12);
 
-  // Border/outline: açık renklerde gri, koyu/orta renklerde markadan türemiş koyu ton
-  const outlineRgb = isTooLight ? mix(WHITE, BLACK, 0.18) : mix(base, BLACK, 0.75);
+  // Borders / outlines
+  const outlineRgb = isLight ? mix(WHITE, BLACK, 0.18) : mix(base, WHITE, 0.28);
+
+  // Subtle page tint used by the gradient overlay
+  const surfaceWeakRgb = isLight ? mix(WHITE, base, 0.10) : mix(BLACK, base, 0.10);
 
   return {
     ['--brand-items-bg' as any]: toRgbStr(base),
@@ -52,6 +59,8 @@ export function getBrandCSSVars(brandHex?: string) {
     ['--brand-chip-bg'  as any]: toRgbStr(chipBgRgb),
     ['--brand-elev-bg'  as any]: toRgbStr(elevBgRgb),
     ['--brand-ink'      as any]: toRgbStr(inkRgb),
-    ['--brand-ink-subtle' as any]: toRgbStr(inkSub),
+    ['--brand-ink-subtle' as any]: toRgbStr(inkSubRgb),
+    ['--brand-on-items-ink' as any]: toRgbStr(onItemsInkRgb),
+    ['--brand-surface-weak' as any]: toRgbStr(surfaceWeakRgb),
   } as React.CSSProperties;
 }
