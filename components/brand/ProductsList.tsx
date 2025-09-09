@@ -1,6 +1,9 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
+
+const QuickAddCard = dynamic(() => import('@/components/home/QuickAddCard'), { ssr: false });
 import { useRouter } from 'next/navigation';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import ItemCard from '@/components/home/ItemCard';
@@ -67,6 +70,11 @@ export type ProductsListProps<T extends ProductsListItem = ProductsListItem> = {
 
   /** Ekstra ItemCard prop'larını doğrudan geçmek istersen */
   itemCardProps?: any;
+
+  /** (Public brand sayfası için) listenin sahibi kullanıcı id'si */
+  ownerId?: string;
+  /** QuickAdd kapandığında veya item oluşturulduğunda tetiklenecek callback */
+  onQuickAddDone?: (newItemId?: string) => void;
 };
 
 export default function ProductsList<
@@ -104,6 +112,8 @@ export default function ProductsList<
   onToggleTag,
   onResetTags,
   itemCardProps,
+  ownerId,
+  onQuickAddDone,
 }: ProductsListProps<T>) {
   const router = useRouter();
   const handleOpenSpotlight = React.useCallback((id: string) => {
@@ -241,6 +251,18 @@ export default function ProductsList<
     return savedIds instanceof Set ? savedIds : new Set(savedIds);
   }, [savedIds]);
 
+  // Owner check (profil sahibinin kendi sayfası mı?)
+  const isOwner = React.useMemo(() => {
+    if (!myId) return false;
+    if (ownerId) return myId === ownerId;
+    // fallback: listedeki item'ların sahibi kontrolü
+    const anyOwner = items.find((it: any) => it?.createdById && it.createdById === myId);
+    return Boolean(anyOwner);
+  }, [myId, ownerId, items]);
+
+  // QuickAdd visibility
+  const [showQuickAdd, setShowQuickAdd] = React.useState(false);
+
   // Stil: marka teması varsa CSS değişkenlerini kullan
   const tone = brandTheme
     ? ({
@@ -256,6 +278,11 @@ export default function ProductsList<
     ? 'rgba(255,255,255,.28)'
     : 'var(--brand-elev-bd, rgba(0,0,0,.14))';
   const selInkByAccent = accentTone === 'dark' ? '#fff' : 'var(--brand-ink, var(--brand-ink-strong, #111))';
+
+  // Add Card style helpers
+  const addCardBorder = bdByTone;
+  const addCardInk = inkByTone;
+  const addCardBg = brandTheme ? 'var(--brand-elev-weak, rgba(0,0,0,.03))' : 'transparent';
 
   return (
     <section className={`w-full ${className}`} style={tone} data-surface={surfaceTone ?? undefined}>
@@ -378,6 +405,57 @@ export default function ProductsList<
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible"
         >
+          {isOwner && !showQuickAdd && (
+            <button
+              type="button"
+              onClick={() => setShowQuickAdd(true)}
+              className="w-full h-28 sm:h-32 rounded-2xl border flex items-center justify-center text-sm"
+              style={{ borderColor: addCardBorder, color: addCardInk, background: addCardBg }}
+              aria-label="Yeni ürün ekle"
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-2xl leading-none">+</span>
+                <span className="opacity-80">Ekle</span>
+              </div>
+            </button>
+          )}
+          {showQuickAdd && isOwner && (
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+              <QuickAddCard
+                open={showQuickAdd}
+                onClose={() => setShowQuickAdd(false)}
+                trending={trending}
+                allTags={tags}
+                variant="rich"
+                signedIn={Boolean(myId)}
+                isBrandProfile
+                autoCloseOnSuccess
+                onSubmit={async (payload) => {
+                  try {
+                    // Client-side create API (adjust endpoint to your API if different)
+                    const res = await fetch('/api/items', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        ...payload,
+                        createdById: myId ?? undefined,
+                        // ownerId bağlamı: brand profili altında eklenen item sahibini belirlemek için
+                        ownerId: ownerId ?? undefined,
+                        source: 'brand-profile-quickadd',
+                      }),
+                    });
+                    if (!res.ok) return false;
+                    const data = await res.json().catch(() => ({}));
+                    const newId = data?.id as (string | undefined);
+                    onQuickAddDone?.(newId);
+                    return true;
+                  } catch {
+                    return false;
+                  }
+                }}
+              />
+            </div>
+          )}
           {filtered.map((it) => {
             const isElevated = openShareId === it.id || openMenuId === it.id;
             return (

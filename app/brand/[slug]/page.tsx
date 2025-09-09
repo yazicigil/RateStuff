@@ -113,19 +113,20 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
                 {brand.displayName}
               </h1>
               <VerifiedBadge />
+              {viewerId === user.id ? <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} /> : null}
             </div>
 
             <div style={{ color: "var(--hero-ink)" }}>
               {/* SocialBar read-only */}
               <SocialBar userId={user.id} canEdit={false} className="pt-1" />
-
-              {/* OwnerSettings */}
-              <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
             </div>
 
             {/* Bio read-only (public: sadece bio varsa göster) */}
             { (brand.bio && brand.bio.trim().length > 0) ? (
-              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose">
+              <div
+                className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose [&_*]:text-[var(--hero-ink)]"
+                style={{ color: "var(--hero-ink)" }}
+              >
                 <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
               </div>
             ) : null }
