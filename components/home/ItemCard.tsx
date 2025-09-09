@@ -95,7 +95,8 @@ export default function ItemCard({
     isBrand ||
     Boolean((i as any)?.createdByVerified === true);
   const productUrl: string | null = (i as any)?.productUrl || null;
-  const showProductCta = isBrand && typeof productUrl === 'string' && productUrl.length > 0;
+  // Show product link CTA whenever a valid URL exists (brand olup olmamasına bakmadan)
+  const showProductCta = typeof productUrl === 'string' && productUrl.length > 0;
   const ownerId = (
     (i as any)?.createdById ??
     (i as any)?.createdByUserId ??

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import ItemCard from '@/components/home/ItemCard';
 
@@ -104,6 +105,11 @@ export default function ProductsList<
   onResetTags,
   itemCardProps,
 }: ProductsListProps<T>) {
+  const router = useRouter();
+  const handleOpenSpotlight = React.useCallback((id: string) => {
+    if (onOpenSpotlight) return onOpenSpotlight(id);
+    router.push(`/share/${id}`);
+  }, [onOpenSpotlight, router]);
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
   const [accentTone, setAccentTone] = React.useState<'light' | 'dark' | null>(null);
@@ -403,7 +409,7 @@ export default function ProductsList<
                   setOpenMenuId={setOpenMenuId}
                   copiedShareId={copiedId}
 
-                  onOpenSpotlight={onOpenSpotlight}
+                  onOpenSpotlight={handleOpenSpotlight}
                   onToggleSave={onToggleSave ?? (() => {})}
                   onReport={onReport ?? (() => {})}
                   onDelete={onDelete ?? onDeleted}
