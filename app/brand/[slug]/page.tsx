@@ -99,8 +99,6 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             color: heroInk,
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
-            // expose hero ink for descendants that don't inherit properly
-            ["--hero-ink" as any]: heroInk,
           }}
         >
           <div className="mt-0 flex flex-col gap-2 md:pr-2">
@@ -109,7 +107,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
                 {brand.displayName}
               </h1>
               <VerifiedBadge />
-              <div className="hero-ink">
+              <div style={{ color: heroInk }}>
                 <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
               </div>
             </div>
@@ -119,7 +117,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
 
             {/* Bio read-only (public: sadece bio varsa göster) */}
             { (brand.bio && brand.bio.trim().length > 0) ? (
-              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose hero-ink">
+              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose" style={{ color: heroInk }}>
                 <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
               </div>
             ) : null }
@@ -140,23 +138,6 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             </div>
           </div>
         </div>
-        <style jsx>{`
-          /* Force icons/text inside hero-ink blocks to use the computed hero ink */
-          :global(#brand-hero-card .hero-ink), 
-          :global(#brand-hero-card .hero-ink *) {
-            color: var(--hero-ink) !important;
-          }
-          /* Ensure SVGs use currentColor */
-          :global(#brand-hero-card .hero-ink svg) {
-            color: var(--hero-ink) !important;
-          }
-          :global(#brand-hero-card .hero-ink svg [fill]:not([fill="none"])) {
-            fill: currentColor !important;
-          }
-          :global(#brand-hero-card .hero-ink svg [stroke]:not([stroke="none"])) {
-            stroke: currentColor !important;
-          }
-        `}</style>
 
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
