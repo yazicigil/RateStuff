@@ -466,7 +466,10 @@ const handleDelete = React.useCallback(async (id: string) => {
             </div>
           )}
           {showQuickAdd && isOwner && (
-            <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+            <div
+              className="brand-quickadd-scope col-span-1 sm:col-span-2 lg:col-span-3"
+              style={{ color: 'var(--brand-ink)' }}
+            >
               <QuickAddCard
                 open={showQuickAdd}
                 onClose={() => setShowQuickAdd(false)}
@@ -562,6 +565,71 @@ return true;
         </div>
       )}
       </div>
+
+      {/* QuickAdd brand theming */}
+      <style jsx global>{`
+        /* Scope all QuickAdd content to brand ink & accents */
+        .brand-quickadd-scope,
+        .brand-quickadd-scope * {
+          color: var(--brand-ink);
+        }
+        /* Icons follow currentColor */
+        .brand-quickadd-scope svg [fill]:not([fill="none"]) { fill: currentColor; }
+        .brand-quickadd-scope svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
+
+        /* Form fields adopt brand surfaces */
+        .brand-quickadd-scope input,
+        .brand-quickadd-scope textarea,
+        .brand-quickadd-scope select {
+          background: var(--brand-elev-bg, var(--brand-items-bg, transparent));
+          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
+          color: var(--brand-ink);
+        }
+        .brand-quickadd-scope input::placeholder,
+        .brand-quickadd-scope textarea::placeholder {
+          color: color-mix(in oklab, var(--brand-ink) 60%, transparent);
+        }
+
+        /* Primary CTA uses brand accent */
+        .brand-quickadd-scope .rs-btn--primary,
+        .brand-quickadd-scope button[data-variant="primary"] {
+          background: var(--brand-accent);
+          border-color: var(--brand-accent-strong, var(--brand-accent));
+          color: var(--brand-accent-ink, #fff);
+        }
+        .brand-quickadd-scope .rs-btn--primary:hover,
+        .brand-quickadd-scope button[data-variant="primary"]:hover {
+          filter: brightness(0.96);
+        }
+
+        /* Outline / Ghost buttons respect brand ink and borders */
+        .brand-quickadd-scope .rs-btn--outline,
+        .brand-quickadd-scope .rs-btn--ghost,
+        .brand-quickadd-scope button[data-variant="outline"],
+        .brand-quickadd-scope button[data-variant="ghost"] {
+          background: transparent;
+          color: var(--brand-ink);
+          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
+        }
+        .brand-quickadd-scope .rs-btn--outline[aria-pressed="true"],
+        .brand-quickadd-scope .rs-btn--ghost[aria-pressed="true"] {
+          box-shadow: 0 0 0 1px var(--brand-elev-bd, rgba(0,0,0,.14)) inset;
+        }
+
+        /* Tag/chip suggestions */
+        .brand-quickadd-scope .rs-chip,
+        .brand-quickadd-scope [data-chip] {
+          background: var(--brand-elev-bg, var(--brand-items-bg, transparent));
+          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
+          color: var(--brand-ink);
+        }
+        .brand-quickadd-scope .rs-chip.rs-chip--selected,
+        .brand-quickadd-scope [data-chip][data-selected="true"] {
+          background: transparent;
+          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
+          color: var(--brand-ink);
+        }
+      `}</style>
     </section>
   );
 }
