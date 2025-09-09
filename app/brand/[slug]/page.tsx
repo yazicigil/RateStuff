@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { getBrandPublicView } from "@/lib/brand";
 import { auth } from "@/lib/auth";
 import { getBrandCSSVars } from "@/lib/brandTheme";
+import ProductsList from "@/components/brand/ProductsList";
 
 // local helpers for single-file contrast decision
 function hexToRgbLocal(hex: string) {
@@ -20,7 +21,6 @@ function relLumaLocal({r,g,b}:{r:number;g:number;b:number}) {
 }
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
-const ProductsList = dynamic(() => import("@/components/brand/ProductsList"), { ssr: false });
 const OwnerSettings = dynamic(() => import("@/components/brand/OwnerSettings"), { ssr: false });
 
 // verified badge – me sayfasındakiyle aynı
@@ -51,7 +51,6 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
       return true; // fallback to dark text
     }
   })();
-  const heroInk = isLightBrand ? "#111" : "#fff";
   const heroSubtle = isLightBrand ? "rgba(17,17,17,.70)" : "rgba(255,255,255,.75)";
   const pillBorder = isLightBrand ? "rgba(17,17,17,.35)" : "rgba(255,255,255,.35)";
   const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
@@ -101,7 +100,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
           id="brand-hero-card"
           className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
-            color: heroInk,
+            color: "var(--brand-ink)",
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
           }}
@@ -112,9 +111,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
                 {brand.displayName}
               </h1>
               <VerifiedBadge />
-              <div data-hero-ink style={{ color: heroInk }}>
-                <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
-              </div>
+              <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
             </div>
 
             {/* SocialBar read-only */}
@@ -122,7 +119,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
 
             {/* Bio read-only (public: sadece bio varsa göster) */}
             { (brand.bio && brand.bio.trim().length > 0) ? (
-              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose" data-hero-ink style={{ color: heroInk }}>
+              <div className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose">
                 <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
               </div>
             ) : null }
@@ -143,21 +140,6 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             </div>
           </div>
         </div>
-        <style
-          dangerouslySetInnerHTML={{
-            __html: `
-              #brand-hero-card [data-hero-ink],
-              #brand-hero-card [data-hero-ink] * {
-                color: ${heroInk} !important;
-              }
-              #brand-hero-card [data-hero-ink] svg path[fill]:not([fill="none"]),
-              #brand-hero-card [data-hero-ink] svg [stroke]:not([stroke="none"]) {
-                fill: currentColor !important;
-                stroke: currentColor !important;
-              }
-            `,
-          }}
-        />
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
