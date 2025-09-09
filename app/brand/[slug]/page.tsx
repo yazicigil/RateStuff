@@ -99,10 +99,11 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
         <div
           id="brand-hero-card"
-          className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
+          className="brand-hero-scope relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
             color: heroInk,
             ["--hero-ink" as any]: heroInk,
+            ["--brand-ink" as any]: heroInk,
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
           }}
@@ -113,7 +114,14 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
                 {brand.displayName}
               </h1>
               <VerifiedBadge />
-              {viewerId === user.id ? <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} /> : null}
+              {viewerId === user.id ? (
+                <span
+                  className="owner-settings-scope inline-flex items-center"
+                  style={{ color: "var(--hero-ink)" }}
+                >
+                  <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
+                </span>
+              ) : null}
             </div>
 
             <div style={{ color: "var(--hero-ink)" }}>
@@ -124,7 +132,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             {/* Bio read-only (public: sadece bio varsa göster) */}
             { (brand.bio && brand.bio.trim().length > 0) ? (
               <div
-                className="pt-2 text-[13px] sm:text-sm leading-6 max-w-prose [&_*]:text-[var(--hero-ink)]"
+                className="bio-scope pt-2 text-[13px] sm:text-sm leading-6 max-w-prose [&_*]:text-[var(--hero-ink)]"
                 style={{ color: "var(--hero-ink)" }}
               >
                 <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
@@ -216,6 +224,27 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
               .brand-slug-scope .rs-chip:not(.rs-chip--selected) {
                 background: var(--brand-elev-bg) !important;
                 border-color: var(--brand-elev-bd) !important;
+              }
+              /* Hero scope: force owner settings & bio to follow hero ink (brand contrast) */
+              .brand-hero-scope .owner-settings-scope,
+              .brand-hero-scope .owner-settings-scope * {
+                color: var(--hero-ink) !important;
+              }
+              .brand-hero-scope .owner-settings-scope svg [fill]:not([fill="none"]) {
+                fill: currentColor !important;
+              }
+              .brand-hero-scope .owner-settings-scope svg [stroke]:not([stroke="none"]) {
+                stroke: currentColor !important;
+              }
+              .brand-hero-scope .bio-scope,
+              .brand-hero-scope .bio-scope * {
+                color: var(--hero-ink) !important;
+              }
+              .brand-hero-scope .bio-scope svg [fill]:not([fill="none"]) {
+                fill: currentColor !important;
+              }
+              .brand-hero-scope .bio-scope svg [stroke]:not([stroke="none"]) {
+                stroke: currentColor !important;
               }
             `,
           }}
