@@ -1,0 +1,23 @@
+/* components/ui/Chip.css */
+.rs-chip {
+  color: var(--brand-ink, var(--rs-ink, #111));
+  border: 1px solid var(--brand-elev-bd, rgba(0,0,0,0.18));
+  background: var(--brand-elev-bg, #f4f5f6);
+}
+.rs-chip--selected {
+  color: var(--brand-ink, #111);
+  border-color: var(--brand-elev-bd, rgba(0,0,0,0.18));
+  background: var(--brand-chip-bg, #eef0f2);
+}
+
+/* components/ui/Button.css (outline/ghost stilleri kritik) */
+.rs-btn--outline {
+  color: var(--brand-ink, var(--rs-ink, #111));
+  border: 1px solid var(--brand-elev-bd, rgba(0,0,0,0.18));
+  background: transparent;
+}
+.rs-btn--ghost[aria-pressed="true"],
+.rs-btn--ghost.is-active {
+  color: var(--brand-ink, var(--rs-ink, #111));
+  outline: 1px solid var(--brand-elev-bd, rgba(0,0,0,0.18));
+}

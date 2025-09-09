@@ -8,6 +8,7 @@ import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
 import ProductsList from '@/components/brand/ProductsList';
 import CardColorPicker from '@/components/brand/CardColorPicker';
+import { getBrandCSSVars } from "@/lib/brandTheme";
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 
@@ -66,6 +67,8 @@ export default async function BrandProfilePage() {
       slug: true,
     },
   });
+
+  const brandVars = getBrandCSSVars(brand?.cardColor ?? "#ffffff");
 
   // İtem örneği: brand kullanıcının paylaştığı son 10 item
   const items = await prisma.item.findMany({
@@ -149,6 +152,7 @@ export default async function BrandProfilePage() {
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
       style={{
+        ...brandVars,
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))'
       }}
     >
@@ -185,7 +189,8 @@ export default async function BrandProfilePage() {
           className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
             color: 'var(--brand-ink, inherit)',
-            backgroundColor: 'var(--brand-items-bg)'
+            backgroundColor: 'var(--brand-items-bg)',
+            borderColor: 'var(--brand-elev-bd)'
           }}
         >
 
@@ -264,7 +269,7 @@ export default async function BrandProfilePage() {
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
         {/* ProductsList section (brand-themed, same as slug page) */}
-        <div className="mt-3 sm:mt-4">
+        <div className="mt-3 sm:mt-4" style={{ color: 'var(--brand-ink)' }}>
           <ProductsList
             items={itemsForClient as any}
             trending={trendingTags}

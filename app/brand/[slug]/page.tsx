@@ -4,89 +4,7 @@ import SocialBar from "@/components/brand/SocialBar"; // mevcutsa
 import dynamic from "next/dynamic";
 import { getBrandPublicView } from "@/lib/brand";
 import { auth } from "@/lib/auth";
-
-// --- brand theme helpers (local-only) ---
-function hexToRgb(hex: string) {
-  const h = hex.replace('#','').trim();
-  const v = h.length === 3
-    ? h.split('').map(c => c + c).join('')
-    : h.padEnd(6, '0');
-  const num = parseInt(v, 16);
-  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
-}
-function luminance({r,g,b}:{r:number;g:number;b:number}) {
-  const srgb = [r,g,b].map(v => {
-    const s = v/255;
-    return s <= 0.03928 ? s/12.92 : Math.pow((s+0.055)/1.055, 2.4);
-  });
-  return 0.2126*srgb[0]+0.7152*srgb[1]+0.0722*srgb[2];
-}
-function mix(a:number,b:number,t:number){ return a + (b-a)*t; }
-function toRgbStr({r,g,b}:{r:number;g:number;b:number}) { return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`; }
-function withAlpha({r,g,b}:{r:number;g:number;b:number}, alpha:number){ return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`; }
-function darken({r,g,b}:{r:number;g:number;b:number}, t:number){ return { r: mix(r,0,t), g: mix(g,0,t), b: mix(b,0,t) }; }
-function lighten({r,g,b}:{r:number;g:number;b:number}, t:number){ return { r: mix(r,255,t), g: mix(g,255,t), b: mix(b,255,t) }; }
-function computeBrandVars(hex?: string | null) {
-  if (!hex) return {};
-  try {
-    const rgb = hexToRgb(hex);
-    const L = luminance(rgb);
-    // pick high-contrast ink color
-    const ink = L > 0.5 ? 'rgb(20,23,28)' : 'rgb(245,247,250)'; // dark text on light bg, or light text on dark bg
-    const inkSubtle = L > 0.5 ? 'rgba(20,23,28,0.7)' : 'rgba(245,247,250,0.7)';
-    // subtle surfaces/borders relative to brand color
-    const elevBd = toRgbStr(darken(rgb, 0.25));
-    const chipBg = withAlpha(lighten(rgb, L > 0.5 ? 0.04 : 0.18), 0.18);
-    const surfaceWeak = withAlpha(rgb, 0.10);
-    return {
-      // consumed by the template via CSS vars
-      ['--brand-items-bg' as any]: toRgbStr(rgb),
-      ['--brand-elev-bd' as any]: elevBd,
-      ['--brand-chip-bg' as any]: chipBg,
-      ['--brand-ink' as any]: ink,
-      ['--brand-ink-subtle' as any]: inkSubtle,
-      ['--brand-surface-weak' as any]: surfaceWeak,
-    } as React.CSSProperties;
-  } catch {
-    return {};
-  }
-}
-function computeChipSoftVars(hex?: string | null) {
-  if (!hex) return {} as React.CSSProperties;
-  try {
-    const rgb = hexToRgb(hex);
-    const L = luminance(rgb);
-    const ink = L > 0.5 ? 'rgb(20,23,28)' : 'rgb(245,247,250)';
-    const inkSubtle = L > 0.5 ? 'rgba(20,23,28,0.7)' : 'rgba(245,247,250,0.7)';
-    const elevBd = toRgbStr(darken(rgb, 0.25));
-    // Unselected chips: softer bg (low alpha). Selected chips use --brand-items-bg (solid) like in /brand/me
-    const chipSoft = withAlpha(lighten(rgb, L > 0.5 ? 0.06 : 0.20), 0.08);
-    return {
-      ['--brand-items-bg' as any]: toRgbStr(rgb),
-      ['--brand-elev-bd' as any]: elevBd,
-      ['--brand-chip-bg' as any]: chipSoft,
-      ['--brand-elev-bg' as any]: chipSoft,
-      ['--brand-ink' as any]: ink,
-      ['--brand-ink-subtle' as any]: inkSubtle,
-      // NOTE: we intentionally do NOT set --brand-surface-weak here
-    } as React.CSSProperties;
-  } catch {
-    return {} as React.CSSProperties;
-  }
-}
-function computeSurfaceWeakVars(hex?: string | null) {
-  if (!hex) return {} as React.CSSProperties;
-  try {
-    const rgb = hexToRgb(hex);
-    const surfaceWeak = withAlpha(rgb, 0.10); // subtle page tint
-    return {
-      ['--brand-surface-weak' as any]: surfaceWeak,
-    } as React.CSSProperties;
-  } catch {
-    return {} as React.CSSProperties;
-  }
-}
-// --- end brand theme helpers ---
+import { getBrandCSSVars } from "@/lib/brandTheme";
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 const ProductsList = dynamic(() => import("@/components/brand/ProductsList"), { ssr: false });
@@ -112,12 +30,13 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
   if (!data) notFound();
 
   const { brand, user, itemsForClient, itemsCount, avgRating } = data;
+  const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
 
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-neutral-50 to-white dark:from-[#0b1220] dark:to-[#0b1220] text-neutral-900 dark:text-neutral-100"
       style={{
-        ...computeSurfaceWeakVars(brand.cardColor || undefined),
+        ...brandVars,
         backgroundImage:
           "linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))",
       }}
@@ -155,7 +74,6 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
           id="brand-hero-card"
           className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
-            ...computeBrandVars(brand.cardColor || undefined),
             color: "var(--brand-ink, inherit)",
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
@@ -200,7 +118,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
-        <div className="mt-3 sm:mt-4" style={{ ...computeChipSoftVars(brand.cardColor || undefined), color: 'var(--brand-ink)' }}>
+        <div className="mt-3 sm:mt-4" style={{ color: 'var(--brand-ink)' }}>
           <ProductsList
             // ProductsList arayüzü, ItemsCardClient’teki item’ları doğrudan kabul eder
             items={(itemsForClient as any).map((it: any) => ({
