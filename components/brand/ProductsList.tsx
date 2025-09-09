@@ -108,7 +108,12 @@ export default function ProductsList<
   const router = useRouter();
   const handleOpenSpotlight = React.useCallback((id: string) => {
     if (onOpenSpotlight) return onOpenSpotlight(id);
-    router.push(`/share/${id}`);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('item', id);
+      window.history.replaceState(null, '', url.toString());
+    }
+    router.refresh();
   }, [onOpenSpotlight, router]);
   const surfaceRef = React.useRef<HTMLDivElement | null>(null);
   const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
