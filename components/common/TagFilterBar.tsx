@@ -65,10 +65,10 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           styles.borderColor = 'var(--brand-accent)';
           styles.color = 'var(--brand-accent-ink,#fff)';
         } else {
-          // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
-          styles.background = 'var(--brand-accent-weak)';
-          styles.borderColor = 'rgba(255,255,255,.55)';
-          styles.color = 'var(--brand-accent-ink,#fff)';
+          // Seçili değilken: brand elev + ink (yüksek okunabilirlik)
+          styles.background = 'var(--brand-elev-weak, transparent)';
+          styles.borderColor = 'var(--brand-elev-bd, rgba(0,0,0,.12))';
+          styles.color = 'var(--brand-ink, inherit)';
         }
       } else {
         className = isSel
@@ -140,7 +140,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
   const visibleTags = pages[page] || tags.slice(0, 1);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} style={brandTheme ? { color: 'var(--brand-ink, var(--brand-ink-strong, inherit))' } : undefined}>
       {/* hidden measurer */}
       <div ref={measureRef} style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', zIndex: -1 }} />
 
@@ -151,6 +151,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => setPage((p) => Math.max(0, p - 1))}
           aria-label="Önceki"
+          style={brandTheme ? { ['--rs-bg' as any]: 'var(--brand-elev-weak, #fff)', ['--rs-bd' as any]: 'var(--brand-elev-bd, rgba(0,0,0,.12))', ['--rs-fg' as any]: 'var(--brand-ink, currentColor)' } : undefined}
         >
           ‹
         </button>
@@ -161,6 +162,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => setPage((p) => Math.min(pages.length - 1, p + 1))}
           aria-label="Sonraki"
+          style={brandTheme ? { ['--rs-bg' as any]: 'var(--brand-elev-weak, #fff)', ['--rs-bd' as any]: 'var(--brand-elev-bd, rgba(0,0,0,.12))', ['--rs-fg' as any]: 'var(--brand-ink, currentColor)' } : undefined}
         >
           ›
         </button>
@@ -174,10 +176,8 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               ? 'bg-black text-white border-black'
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             style={brandTheme ? (selected.size === 0
-              // Hepsi seçiliyken (tüm filtreler kapalı): seçili chip stili
               ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-              // Hepsi seçili değilken: unselected chip stili (yüksek kontrast)
-              : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+              : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
             ) : undefined}
             onClick={onClear}
             onDoubleClick={onClear}
@@ -203,7 +203,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               const styleChip = brandTheme ? (
                 isSel
                   ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-                  : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                  : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
               ) : undefined;
               return (
                 <button
