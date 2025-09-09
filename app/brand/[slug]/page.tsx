@@ -74,7 +74,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
           id="brand-hero-card"
           className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
-            color: "var(--brand-on-items-ink, var(--brand-ink, inherit))",
+            color: "var(--brand-ink, inherit)",
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
           }}
