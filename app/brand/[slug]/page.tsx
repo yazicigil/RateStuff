@@ -51,6 +51,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
       return true; // fallback to dark text
     }
   })();
+  const heroInk = isLightBrand ? "#111" : "#fff";
   const heroSubtle = isLightBrand ? "rgba(17,17,17,.70)" : "rgba(255,255,255,.75)";
   const pillBorder = isLightBrand ? "rgba(17,17,17,.35)" : "rgba(255,255,255,.35)";
   const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
@@ -100,7 +101,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
           id="brand-hero-card"
           className="relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
           style={{
-            color: "var(--brand-ink)",
+            color: heroInk,
             backgroundColor: "var(--brand-items-bg)",
             borderColor: "var(--brand-elev-bd)",
           }}
@@ -164,11 +165,19 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
               /* Scope: only affect controls inside ProductsList on the slug page */
               .brand-slug-scope .rs-chip--selected,
               .brand-slug-scope .is-selected,
-              .brand-slug-scope [aria-pressed="true"] {
+              .brand-slug-scope [aria-pressed="true"],
+              .brand-slug-scope [data-selected="true"] {
                 background: transparent !important;
-                color: var(--brand-ink) !important;
+                color: var(--brand-ink) !important;                /* force text/icon color to ink (dark on light brands) */
                 border-color: var(--brand-elev-bd) !important;
                 border-width: 2px !important;
+              }
+              /* Also enforce descendant icon/text color on selected */
+              .brand-slug-scope .rs-chip--selected *,
+              .brand-slug-scope .is-selected *,
+              .brand-slug-scope [aria-pressed="true"] *,
+              .brand-slug-scope [data-selected="true"] * {
+                color: var(--brand-ink) !important;
               }
               /* Outline/Ghost buttons pressed */
               .brand-slug-scope .rs-btn--outline[aria-pressed="true"],
@@ -177,6 +186,25 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
                 color: var(--brand-ink) !important;
                 border-color: var(--brand-elev-bd) !important;
                 box-shadow: 0 0 0 1px var(--brand-elev-bd) inset !important;
+              }
+              /* Ensure icons follow currentColor */
+              .brand-slug-scope .rs-chip--selected svg,
+              .brand-slug-scope .is-selected svg,
+              .brand-slug-scope [aria-pressed="true"] svg,
+              .brand-slug-scope [data-selected="true"] svg {
+                color: var(--brand-ink) !important;
+              }
+              .brand-slug-scope .rs-chip--selected svg [fill]:not([fill="none"]),
+              .brand-slug-scope .is-selected svg [fill]:not([fill="none"]),
+              .brand-slug-scope [aria-pressed="true"] svg [fill]:not([fill="none"]),
+              .brand-slug-scope [data-selected="true"] svg [fill]:not([fill="none"]) {
+                fill: currentColor !important;
+              }
+              .brand-slug-scope .rs-chip--selected svg [stroke]:not([stroke="none"]),
+              .brand-slug-scope .is-selected svg [stroke]:not([stroke="none"]),
+              .brand-slug-scope [aria-pressed="true"] svg [stroke]:not([stroke="none"]),
+              .brand-slug-scope [data-selected="true"] svg [stroke]:not([stroke="none"]) {
+                stroke: currentColor !important;
               }
               /* Ensure non-selected chips keep neutral background, not forced white */
               .brand-slug-scope .rs-chip:not(.rs-chip--selected) {
