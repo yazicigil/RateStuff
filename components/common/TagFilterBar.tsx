@@ -30,6 +30,59 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const measureRef = React.useRef<HTMLDivElement | null>(null);
 
+  const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
+
+  const parseRgb = (s: string) => {
+    if (!s) return null;
+    if (s.startsWith('rgb')) {
+      const nums = s.match(/rgba?\(([^)]+)\)/i)?.[1]?.split(',').map((v) => parseFloat(v.trim()));
+      if (!nums || nums.length < 3) return null;
+      const [r, g, b, a = 1] = nums as any;
+      return { r, g, b, a };
+    }
+    if (s.startsWith('#')) {
+      const hex = s.replace('#','');
+      const cv = (h: string) => parseInt(h, 16);
+      if (hex.length === 3) {
+        const r = cv(hex[0]+hex[0]);
+        const g = cv(hex[1]+hex[1]);
+        const b = cv(hex[2]+hex[2]);
+        return { r, g, b, a: 1 };
+      }
+      if (hex.length >= 6) {
+        const r = cv(hex.slice(0,2));
+        const g = cv(hex.slice(2,4));
+        const b = cv(hex.slice(4,6));
+        return { r, g, b, a: 1 };
+      }
+    }
+    return null;
+  };
+  const relLum = (rgb: {r:number;g:number;b:number}) => {
+    const srgb = [rgb.r, rgb.g, rgb.b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+  };
+
+  React.useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+    let node: HTMLElement | null = root;
+    let bg = '';
+    while (node) {
+      const cs = getComputedStyle(node);
+      const cand = cs.backgroundColor || cs.background || '';
+      if (cand && !cand.includes('transparent') && cand !== 'rgba(0, 0, 0, 0)') { bg = cand; break; }
+      node = node.parentElement;
+    }
+    const rgb = parseRgb(bg);
+    if (!rgb) { setSurfaceTone(null); return; }
+    const L = relLum(rgb);
+    setSurfaceTone(L < 0.42 ? 'dark' : 'light');
+  }, [brandTheme, pages.length, page]);
+
+  const inkByTone = surfaceTone === 'dark' ? '#fff' : 'var(--brand-ink, var(--brand-ink-strong, #111))';
+  const bdByTone = surfaceTone === 'dark' ? 'rgba(255,255,255,.28)' : 'var(--brand-elev-bd, rgba(0,0,0,.14))';
+
   const rebuildPages = React.useCallback(() => {
     const root = containerRef.current;
     const meas = measureRef.current;
@@ -63,12 +116,12 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           // Seçiliyken: daha koyu brand tonu
           styles.background = 'var(--brand-accent-strong, var(--brand-accent))';
           styles.borderColor = 'var(--brand-accent)';
-          styles.color = 'var(--brand-accent-ink,#fff)';
+          styles.color = '#fff';
         } else {
           // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
-          styles.background = 'var(--brand-accent-weak)';
-          styles.borderColor = 'rgba(255,255,255,.55)';
-          styles.color = 'var(--brand-accent-ink,#fff)';
+          styles.background = 'var(--brand-elev-weak, transparent)';
+          styles.borderColor = bdByTone;
+          styles.color = inkByTone;
         }
       } else {
         className = isSel
@@ -118,7 +171,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
 
     setPages(newPages);
     setPage((prev) => (prev >= newPages.length ? 0 : prev));
-  }, [tags, trending, selected, brandTheme]);
+  }, [tags, trending, selected, brandTheme, bdByTone, inkByTone]);
 
   React.useEffect(() => {
     rebuildPages();
@@ -140,7 +193,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
   const visibleTags = pages[page] || tags.slice(0, 1);
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} style={brandTheme ? { color: inkByTone } : undefined}>
       {/* hidden measurer */}
       <div ref={measureRef} style={{ position: 'absolute', visibility: 'hidden', pointerEvents: 'none', zIndex: -1 }} />
 
@@ -151,6 +204,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           className="rs-sug-nav absolute left-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => setPage((p) => Math.max(0, p - 1))}
           aria-label="Önceki"
+          style={brandTheme ? { ['--rs-bg' as any]: surfaceTone === 'dark' ? 'rgba(255,255,255,.08)' : 'var(--brand-elev-weak, #fff)', ['--rs-bd' as any]: bdByTone, ['--rs-fg' as any]: inkByTone } : undefined}
         >
           ‹
         </button>
@@ -161,6 +215,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           className="rs-sug-nav absolute right-0 top-1/2 -translate-y-1/2 z-10"
           onClick={() => setPage((p) => Math.min(pages.length - 1, p + 1))}
           aria-label="Sonraki"
+          style={brandTheme ? { ['--rs-bg' as any]: surfaceTone === 'dark' ? 'rgba(255,255,255,.08)' : 'var(--brand-elev-weak, #fff)', ['--rs-bd' as any]: bdByTone, ['--rs-fg' as any]: inkByTone } : undefined}
         >
           ›
         </button>
@@ -175,9 +230,9 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
             style={brandTheme ? (selected.size === 0
               // Hepsi seçiliyken (tüm filtreler kapalı): seçili chip stili
-              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-              // Hepsi seçili değilken: unselected chip stili (yüksek kontrast)
-              : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+              // Hepsi seçili değilken: tone-aware unselected chip stili
+              : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
             ) : undefined}
             onClick={onClear}
             onDoubleClick={onClear}
@@ -202,8 +257,8 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                         : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
               const styleChip = brandTheme ? (
                 isSel
-                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink,#fff)' }
-                  : { background: 'var(--brand-accent-weak)', borderColor: 'rgba(255,255,255,.55)', color: 'var(--brand-accent-ink,#fff)' }
+                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                  : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined;
               return (
                 <button

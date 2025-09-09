@@ -264,19 +264,7 @@ export default async function BrandProfilePage() {
         <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
         {/* ProductsList section (brand-themed, same as slug page) */}
-        <div
-          className="mt-3 sm:mt-4"
-          style={{
-            // Bridge brand vars expected by ProductsList/TagFilterBar to slug page vars
-            ['--brand-accent' as any]: 'var(--brand-items-bg)',
-            ['--brand-accent-strong' as any]: 'var(--brand-items-bg)',
-            ['--brand-accent-weak' as any]: 'var(--brand-chip-bg)',
-            ['--brand-accent-ink' as any]: 'var(--brand-ink, #fff)',
-            ['--brand-elev-bd' as any]: 'var(--brand-elev-bd)',
-            ['--brand-ink' as any]: 'var(--brand-ink)',
-            ['--brand-ink-subtle' as any]: 'var(--brand-ink-subtle)',
-          } as React.CSSProperties}
-        >
+        <div className="mt-3 sm:mt-4">
           <ProductsList
             items={itemsForClient as any}
             trending={trendingTags}
