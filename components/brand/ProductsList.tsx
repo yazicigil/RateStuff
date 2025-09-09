@@ -104,6 +104,60 @@ export default function ProductsList<
   onResetTags,
   itemCardProps,
 }: ProductsListProps<T>) {
+  const surfaceRef = React.useRef<HTMLDivElement | null>(null);
+  const [surfaceTone, setSurfaceTone] = React.useState<'light' | 'dark' | null>(null);
+
+  const parseRgb = (s: string) => {
+    // expected formats: rgb(a) or hex fallback
+    if (!s) return null;
+    if (s.startsWith('rgb')) {
+      const nums = s.match(/rgba?\(([^)]+)\)/i)?.[1]?.split(',').map((v) => parseFloat(v.trim()));
+      if (!nums || nums.length < 3) return null;
+      const [r, g, b, a = 1] = nums as any;
+      return { r, g, b, a };
+    }
+    if (s.startsWith('#')) {
+      const hex = s.replace('#','');
+      const cv = (h: string) => parseInt(h, 16);
+      if (hex.length === 3) {
+        const r = cv(hex[0]+hex[0]);
+        const g = cv(hex[1]+hex[1]);
+        const b = cv(hex[2]+hex[2]);
+        return { r, g, b, a: 1 };
+      }
+      if (hex.length >= 6) {
+        const r = cv(hex.slice(0,2));
+        const g = cv(hex.slice(2,4));
+        const b = cv(hex.slice(4,6));
+        return { r, g, b, a: 1 };
+      }
+    }
+    return null;
+  };
+  const relLum = (rgb: {r:number;g:number;b:number}) => {
+    const srgb = [rgb.r, rgb.g, rgb.b].map(v => v/255).map(v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4));
+    return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
+  };
+
+  React.useEffect(() => {
+    const el = surfaceRef.current;
+    if (!el) return;
+    const cs = getComputedStyle(el);
+    let bg = cs.backgroundColor || cs.background || '';
+    // Some themes set transparent; walk up to find a non-transparent bg
+    let node: HTMLElement | null = el;
+    while (node && (!bg || bg.includes('transparent') || bg === 'rgba(0, 0, 0, 0)')) {
+      node = node.parentElement;
+      if (!node) break;
+      const c2 = getComputedStyle(node);
+      bg = c2.backgroundColor || c2.background || bg;
+    }
+    const rgb = parseRgb(bg);
+    if (!rgb) { setSurfaceTone(null); return; }
+    const L = relLum(rgb);
+    setSurfaceTone(L < 0.42 ? 'dark' : 'light');
+  }, [brandTheme, items.length]);
+
   // State
   const [q, setQ] = React.useState('');
   const [internalSelected, setInternalSelected] = React.useState<Set<string>>(new Set(initialSelectedTags));
@@ -171,14 +225,22 @@ export default function ProductsList<
       } as React.CSSProperties)
     : undefined;
 
+  const inkByTone = surfaceTone === 'dark'
+    ? '#fff'
+    : 'var(--brand-ink, var(--brand-ink-strong, #111))';
+  const bdByTone = surfaceTone === 'dark'
+    ? 'rgba(255,255,255,.28)'
+    : 'var(--brand-elev-bd, rgba(0,0,0,.14))';
+
   return (
-    <section className={`w-full ${className}`} style={tone}>
+    <section className={`w-full ${className}`} style={tone} data-surface={surfaceTone ?? undefined}>
       <div
+        ref={surfaceRef}
         className="rounded-3xl border shadow-sm p-3 sm:p-4 md:p-5"
         style={brandTheme ? {
           background: 'var(--brand-items-bg, var(--brand-elev-weak, transparent))',
-          borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))',
-          color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
+          borderColor: bdByTone,
+          color: inkByTone,
         } : undefined}
       >
         {/* Tag Filter */}
@@ -213,8 +275,8 @@ export default function ProductsList<
         `}
           style={brandTheme ? {
             background: 'var(--brand-elev-weak, transparent)',
-            borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))',
-            color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
+            borderColor: bdByTone,
+            color: inkByTone,
           } : undefined}
         >
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -233,7 +295,7 @@ export default function ProductsList<
                 onClick={() => setQ('')}
                 className="rounded-lg p-1 border hover:bg-black/5 dark:hover:bg-white/10 hover:opacity-90"
                 aria-label="Temizle"
-                style={brandTheme ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, currentColor)' } : undefined}
+                style={brandTheme ? { borderColor: bdByTone, color: inkByTone } : undefined}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -248,8 +310,8 @@ export default function ProductsList<
               onClick={() => setOrder('new')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
               style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink, #fff)' }
-                : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
               En yeni
@@ -259,8 +321,8 @@ export default function ProductsList<
               onClick={() => setOrder('top')}
               className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
               style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: 'var(--brand-accent-ink, #fff)' }
-                : { background: 'var(--brand-elev-weak, transparent)', borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)' }
+                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: 'var(--brand-accent)', color: '#fff' }
+                : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
               ) : undefined}
             >
               En yüksek puan
@@ -272,7 +334,7 @@ export default function ProductsList<
               value={order}
               onChange={(e) => setOrder(e.target.value as 'new' | 'top')}
               className="text-xs rounded-lg border px-2 py-1 bg-transparent"
-              style={brandTheme ? { borderColor: 'var(--brand-elev-bd, rgba(0,0,0,.12))', color: 'var(--brand-ink, inherit)', background: 'var(--brand-elev-weak, transparent)' } : undefined}
+              style={brandTheme ? { borderColor: bdByTone, color: inkByTone, background: 'var(--brand-elev-weak, transparent)' } : undefined}
               aria-label="Sırala"
             >
               <option value="new">En yeni</option>
@@ -299,8 +361,8 @@ export default function ProductsList<
               className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
-                border: '1px solid var(--brand-elev-bd, rgba(0,0,0,.12))',
-                color: 'var(--brand-ink, var(--brand-ink-strong, inherit))',
+                border: `1px solid ${bdByTone}`,
+                color: inkByTone,
               } : undefined}
             >
               {renderItem ? (
