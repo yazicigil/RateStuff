@@ -75,6 +75,7 @@ export type ProductsListProps<T extends ProductsListItem = ProductsListItem> = {
   ownerId?: string;
   /** QuickAdd kapandığında veya item oluşturulduğunda tetiklenecek callback */
   onQuickAddDone?: (newItemId?: string) => void;
+  onReload?: () => void | Promise<void>;
 };
 
 export default function ProductsList<
@@ -114,12 +115,9 @@ export default function ProductsList<
   itemCardProps,
   ownerId,
   onQuickAddDone,
+  onReload,
 }: ProductsListProps<T>) {
   const router = useRouter();
-  const refreshList = React.useCallback(() => {
-    try { router.refresh(); } catch {}
-    try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
-  }, [router]);
   const handleOpenSpotlight = React.useCallback((id: string) => {
     if (onOpenSpotlight) return onOpenSpotlight(id);
     // Spotlight ana sayfada: https://ratestuff.net/?item=<id>
@@ -211,34 +209,41 @@ export default function ProductsList<
     setInternalSelected((prev) => updater(prev));
   };
 
+  // ItemsTab modeli: lokal kopya + removedIds ile optimistik güncelleme
+  const [itemsLocal, setItemsLocal] = React.useState(items);
+  React.useEffect(() => { setItemsLocal(items); }, [items]);
+  const [removedIds, setRemovedIds] = React.useState<Set<string>>(new Set());
+
   // Tüm etiketler: verilmişse onu kullan; yoksa item'lardan topla
-  const tags = React.useMemo(() => {
-    if (allTags && allTags.length) return allTags;
-    const s = new Set<string>();
-    for (const it of items) (it.tags || []).forEach((t) => s.add(t));
-    return Array.from(s);
-  }, [allTags, items]);
+ const tags = React.useMemo(() => {
+  if (allTags && allTags.length) return allTags;
+  const s = new Set<string>();
+  for (const it of itemsLocal) {
+    if (removedIds.has(it.id)) continue;
+    (it.tags || []).forEach((t) => s.add(t));
+  }
+  return Array.from(s);
+}, [allTags, itemsLocal, removedIds]);
 
   // Filtreli liste
-  const filtered = React.useMemo(() => {
-    const hasSel = selected.size > 0;
-    const qn = q.trim().toLowerCase();
-    const base = items.filter((it) => {
-      const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
-      const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
-      return matchTags && matchQ;
-    });
-    // Sort
-    if (order === 'top') {
-      const score = (it: any) => {
-        const s = it.rating ?? it.avgRating ?? it.avg ?? 0;
-        return typeof s === 'number' ? s : parseFloat(s) || 0;
-      };
-      return [...base].sort((a, b) => score(b) - score(a));
-    }
-    // 'new' -> keep incoming order (assumed newest first)
-    return base;
-  }, [items, selected, q, order]);
+const filtered = React.useMemo(() => {
+  const hasSel = selected.size > 0;
+  const qn = q.trim().toLowerCase();
+  const base = itemsLocal.filter((it) => {
+    if (removedIds.has(it.id)) return false;
+    const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
+    const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
+    return matchTags && matchQ;
+  });
+  if (order === 'top') {
+    const score = (it: any) => {
+      const s = it.rating ?? it.avgRating ?? it.avg ?? 0;
+      return typeof s === 'number' ? s : parseFloat(s) || 0;
+    };
+    return [...base].sort((a, b) => score(b) - score(a));
+  }
+  return base;
+}, [itemsLocal, removedIds, selected, q, order]);
 
   React.useEffect(() => {
     onFilterChange?.({ q, selected });
@@ -289,38 +294,31 @@ export default function ProductsList<
   const addCardBg = brandTheme ? 'var(--brand-elev-weak, rgba(0,0,0,.03))' : 'transparent';
 
   // Default delete handler (if parent doesn't provide one)
-  const handleDelete = React.useCallback(async (id: string) => {
-    try {
-      const res = await fetch(`/api/items/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        // try legacy route or surface an error silently
-        console.warn('Delete failed', await res.text().catch(() => ''));
-        return;
-      }
-      // Notify outer world to refresh if needed
-      onDeleted?.(id);
-      onItemChanged?.(id);
-      try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
-      try {
-        (window as any).ratestuff?.reload?.();
-        (window as any).ratestuff?.load?.();
-      } catch {}
-      refreshList();
-    } catch (e) {
-      console.warn('Delete error', e);
+const handleDelete = React.useCallback(async (id: string) => {
+  try {
+    // optimistik gizle
+    setRemovedIds(prev => { const next = new Set(prev); next.add(id); return next; });
+    // ItemsTab ile aynı endpoint
+    const res = await fetch(`/api/items/${id}/delete`, { method: 'POST' });
+    if (!res.ok) {
+      // revert
+      setRemovedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      console.warn('Delete failed', await res.text().catch(() => ''));
+      return;
     }
-  }, [onDeleted, onItemChanged, refreshList]);
+    // kalıcı çıkar
+    setItemsLocal(prev => prev.filter(it => (it as any).id !== id));
+    onDeleted?.(id);
+    onItemChanged?.(id);
+    try { await onReload?.(); } catch {}
+  } catch (e) {
+    // revert on unexpected error
+    setRemovedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+    console.warn('Delete error', e);
+  }
+}, [onDeleted, onItemChanged, onReload]);
 
-  const handleItemChanged = React.useCallback((id?: string) => {
-    onItemChanged?.(id as any);
-    refreshList();
-  }, [onItemChanged, refreshList]);
 
-  React.useEffect(() => {
-    const onReload = () => refreshList();
-    window.addEventListener('ratestuff:items:reload', onReload as any);
-    return () => window.removeEventListener('ratestuff:items:reload', onReload as any);
-  }, [refreshList]);
 
   return (
     <section className={`w-full ${className}`} style={tone} data-surface={surfaceTone ?? undefined}>
@@ -493,12 +491,15 @@ export default function ProductsList<
                       }),
                     });
                     if (!res.ok) return false;
-                    const data = await res.json().catch(() => ({}));
-                    const newId = data?.id as (string | undefined);
-                    refreshList();
-                    setShowQuickAdd(false); // close panel after successful create
-                    onQuickAddDone?.(newId);
-                    return true;
+                  const data = await res.json().catch(() => ({}));
+const newId = data?.id as (string | undefined);
+if (data && (data as any).id) {
+  setItemsLocal((prev: any[]) => [{ ...(data as any) }, ...prev]);
+}
+setShowQuickAdd(false);
+try { await onReload?.(); } catch {}
+onQuickAddDone?.(newId);
+return true;
                   } catch {
                     return false;
                   }
@@ -546,7 +547,7 @@ export default function ProductsList<
                   onNativeShare={onNativeShare ?? (() => {})}
                   onShowInList={onShowInList ?? (() => {})}
                   onVoteComment={onVoteComment ?? (() => {})}
-                  onItemChanged={handleItemChanged}
+                  onItemChanged={onItemChanged ?? (async () => { try { await onReload?.(); } catch {} })}
 
                   selectedTags={selected}
                   onToggleTag={onToggleTag ?? (() => {})}
