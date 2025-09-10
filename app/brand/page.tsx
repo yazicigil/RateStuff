@@ -135,7 +135,7 @@ export default function BrandLoginPage() {
             />
           </div>
 
-          <h1 className="text-2xl font-semibold mb-6 font-[poppins] text-[#011a3d] dark:text-white">
+          <h1 className="text-2xl font-semibold mb-6 text-[#011a3d] dark:text-white">
             Marka hesabınla giriş yap
           </h1>
 
