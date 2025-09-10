@@ -1,6 +1,6 @@
-'use client';
+
 import React from "react";
-import ReachUsModal from "@/components/common/ReachUs";
+import ReachUsOpener from "@/components/privacy/ReachUsOpener";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -121,16 +121,10 @@ export default function PrivacyPage() {
         <h2 className="text-lg md:text-xl font-bold mt-8 mb-3">İletişim</h2>
         <p className="mt-2">
           Sorularınız için <a className="underline" href={`mailto:${email}`}>{email}</a> adresine e‑posta gönderebilir
-          veya <button
-            type="button"
-            onClick={() => setReachOpen(true)}
-            className="underline text-purple-600 dark:text-purple-400"
-          >
-            Bize Ulaş
-          </button> formunu kullanabilirsiniz.
+          veya <ReachUsOpener /> formunu kullanabilirsiniz.
         </p>
       </div>
-      <ReachUsModal open={reachOpen} onClose={() => setReachOpen(false)} />
+      
     </main>
   );
 }
