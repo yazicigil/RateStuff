@@ -2,7 +2,6 @@
 import React from "react";
 import ReachUsOpener from "@/components/privacy/ReachUsOpener";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Gizlilik Politikası | RateStuff",
@@ -14,7 +13,6 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   const updatedAt = new Date("2025-09-10"); // gerekli olduğunda güncelle
   const email = "contact@ratestuff.net";
-  const [reachOpen, setReachOpen] = React.useState(false);
 
   return (
     <main className="rs-mobile-edge mx-auto max-w-3xl px-4 py-10">
