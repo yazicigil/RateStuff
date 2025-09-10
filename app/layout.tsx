@@ -7,6 +7,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { Toaster } from "react-hot-toast";
 import HeaderGate from "@/components/header/HeaderGate";
 import HeaderControlsWrapper from "@/components/header/HeaderControlsWrapper";
+import Footer from '@/components/common/Footer';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -157,6 +158,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             document.addEventListener('visibilitychange',function(){ if(!document.hidden) hit(); });
           })();`}
         </Script>
+          <Footer />
+
       </body>
     </html>
   );
