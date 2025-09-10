@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import Image from "next/image";
 import { SocialIcon } from "react-social-icons";
 import React from "react";
 
@@ -15,43 +14,55 @@ export default function Footer() {
 
   return (
     <footer className="mt-10 border-t dark:border-gray-800">
-      <div className="rs-mobile-edge mx-auto max-w-screen-xl px-4 py-8 grid grid-cols-1 gap-6 items-start md:grid-cols-3">
-        {/* Brand left */}
-        <div className="flex flex-col items-start">
-          <Link href="/" className="mb-2">
-            <Image
-              src="/logo.svg"
-              alt="RateStuff"
-              width={96}
-              height={96}
-              className="dark:invert -ml-1 md:-ml-2 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24"
-            />
+      <div className="rs-mobile-edge mx-auto max-w-screen-xl px-4 py-8">
+        {/* Top menu */}
+        <nav
+          className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-300"
+          aria-label="Footer menü"
+        >
+          <button
+            type="button"
+            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
+            aria-disabled="true"
+            title="Yakında"
+          >
+            Hakkımızda
+          </button>
+          <button
+            type="button"
+            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
+            aria-disabled="true"
+            title="Yakında"
+          >
+            Gizlilik
+          </button>
+          <button
+            type="button"
+            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
+            aria-disabled="true"
+            title="Yakında"
+          >
+            Bize ulaş
+          </button>
+          <Link
+            href="/brands"
+            className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
+            title="RateStuff | For Brands"
+          >
+            RateStuff | For Brands
           </Link>
-          <p className="text-sm opacity-70 max-w-sm">
-            Her şeyi puanla, başkalarının deneyimlerinden ilham al.
-          </p>
-        </div>
+        </nav>
 
-        {/* Social middle */}
-        <div className="flex items-center gap-3 mt-3 md:mt-6 md:justify-center">
+        {/* Social icons */}
+        <div className="mt-4 flex items-center justify-center gap-4">
           <SocialIcon url="https://instagram.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
           <SocialIcon url="https://x.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
+          <SocialIcon url="https://github.com/ratestuff" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
           <SocialIcon url="https://www.linkedin.com/company/ratestuff/" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
         </div>
 
-        {/* For Brands right */}
-        <div className="flex flex-col items-center md:items-end md:text-right">
-          <Link href="/brand" aria-label="RateStuff for Brands">
-            <Image
-              src="/forbrandslogo.svg"
-              alt="RateStuff for Brands"
-              width={200}
-              height={200}
-              className="dark:invert dark:brightness-0 w-28 h-auto sm:w-36 md:w-44 lg:w-52"
-            />
-          </Link>
-          <div className="mt-2 text-xs opacity-60 text-center md:text-right">© {year} RateStuff</div>
-        </div>
+        {/* Copyright */}
+        <div className="mt-4 text-center text-xs opacity-60">© {year} RateStuff</div>
       </div>
     </footer>
   );
