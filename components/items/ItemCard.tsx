@@ -222,117 +222,116 @@ export default function ItemCard({
       )}
 
       {/* TOP RIGHT: Share + Options (buttons) */}
-      <div className="rs-pop absolute top-1.5 right-1.5 z-20 flex flex-col gap-1.5">
-        {showProductCta && (
-          <a
-            href={productUrl as string}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg shadow focus:outline-none focus:ring-2"
-            style={{
-              backgroundColor: '#6827CD',
-              color: '#fff',
-              ['--tw-ring-color' as any]: '#6827CD'
-            }}
-            aria-label="Ürüne git"
-            title="Ürüne git"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              className="w-3 h-3"
+      {!editing && (
+        <div className="rs-pop absolute top-1.5 right-1.5 z-20 flex flex-col gap-1.5">
+          {showProductCta && (
+            <a
+              href={productUrl as string}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg shadow focus:outline-none focus:ring-2"
+              style={{
+                backgroundColor: '#6827CD',
+                color: '#fff',
+                ['--tw-ring-color' as any]: '#6827CD'
+              }}
+              aria-label="Ürüne git"
+              title="Ürüne git"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-              />
-            </svg>
-          </a>
-        )}
-        <div className="relative" ref={shareAnchorRef}>
-          <button
-            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
-            aria-label="share"
-            onClick={handleShareClick}
-            style={{
-              backgroundColor: 'var(--brand-accent-weak)',
-              borderColor: 'color-mix(in srgb, var(--brand-ink) 20%, transparent)',
-              ['--tw-ring-color' as any]: 'var(--brand-focus)'
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-3 h-3">
-              <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
-          </button>
-          {typeof window !== 'undefined' && openShareId === i.id && sharePos && createPortal(
-            <div
-              className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
-              style={{ position: 'fixed', top: sharePos.top, left: sharePos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
-            >
-              <SharePopover
-                open
-                itemId={i.id}
-                itemName={i.name}
-                onClose={() => setOpenShareId(null)}
-                onCopy={onCopyShare}
-                onShare={onNativeShare}
-                copiedShareId={copiedShareId}
-              />
-            </div>,
-            document.body
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={1.5}
+                className="w-3 h-3"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                />
+              </svg>
+            </a>
           )}
-        </div>
-        <div className="relative" ref={menuAnchorRef}>
-          <button
-            className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
-            onClick={handleMenuClick}
-            aria-label="options"
-            style={{
-              backgroundColor: 'var(--brand-accent-weak)',
-              borderColor: 'color-mix(in srgb, var(--brand-ink) 20%, transparent)',
-              ['--tw-ring-color' as any]: 'var(--brand-focus)'
-            }}
-          >
-            ⋯
-          </button>
-          {typeof window !== 'undefined' && openMenuId === i.id && menuPos && createPortal(
-            <div
-              className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
-              style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+          <div className="relative" ref={shareAnchorRef}>
+            <button
+              className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+              aria-label="share"
+              onClick={handleShareClick}
+              style={{
+                backgroundColor: 'var(--brand-accent-weak)',
+                borderColor: 'color-mix(in srgb, var(--brand-ink) 20%, transparent)',
+                ['--tw-ring-color' as any]: 'var(--brand-focus)'
+              }}
             >
-              <OptionsPopover
-                open
-                itemId={i.id}
-                amAdmin={!!amAdmin}
-                isSaved={saved}
-                isOwner={!!isOwner}
-                onEdit={() => setEditing(true)}
-                onClose={() => setOpenMenuId(null)}
-                onDelete={(id) => onDelete?.(id)}
-                onToggleSave={(id) => onToggleSave(id)}
-                onReport={(id) => onReport(id)}
-                onShowInList={() => {}}
-                hideShowInList
-              />
-            </div>,
-            document.body
-          )}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="w-3 h-3">
+                <path d="M12 3v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                <path d="M8 7l4-4 4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+            {typeof window !== 'undefined' && openShareId === i.id && sharePos && createPortal(
+              <div
+                className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
+                style={{ position: 'fixed', top: sharePos.top, left: sharePos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+              >
+                <SharePopover
+                  open
+                  itemId={i.id}
+                  itemName={i.name}
+                  onClose={() => setOpenShareId(null)}
+                  onCopy={onCopyShare}
+                  onShare={onNativeShare}
+                  copiedShareId={copiedShareId}
+                />
+              </div>,
+              document.body
+            )}
+          </div>
+          <div className="relative" ref={menuAnchorRef}>
+            <button
+              className="w-[26px] h-[26px] md:w-8 md:h-8 grid place-items-center rounded-lg border bg-white/80 dark:bg-gray-800/80 focus:outline-none focus:ring-2"
+              onClick={handleMenuClick}
+              aria-label="options"
+              style={{
+                backgroundColor: 'var(--brand-accent-weak)',
+                borderColor: 'color-mix(in srgb, var(--brand-ink) 20%, transparent)',
+                ['--tw-ring-color' as any]: 'var(--brand-focus)'
+              }}
+            >
+              ⋯
+            </button>
+            {typeof window !== 'undefined' && openMenuId === i.id && menuPos && createPortal(
+              <div
+                className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
+                style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+              >
+                <OptionsPopover
+                  open
+                  itemId={i.id}
+                  amAdmin={!!amAdmin}
+                  isSaved={saved}
+                  isOwner={!!isOwner}
+                  onEdit={() => setEditing(true)}
+                  onClose={() => setOpenMenuId(null)}
+                  onDelete={(id) => onDelete?.(id)}
+                  onToggleSave={(id) => onToggleSave(id)}
+                  onReport={(id) => onReport(id)}
+                  onShowInList={() => {}}
+                  hideShowInList
+                />
+              </div>,
+              document.body
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* BODY */}
       <div className="flex-1">
         {editing ? (
           <>
-            <h3 className="text-sm font-medium leading-tight title-wrap" title={i.name} lang="tr">
-              {i.name}
-            </h3>
             <ItemEditor
               initial={{
                 imageUrl: i?.imageUrl ?? '',
@@ -350,6 +349,7 @@ export default function ItemCard({
                 setErr(null);
               }}
               onSave={onSaveEditor}
+              title={i?.name ?? ''}
             />
           </>
         ) : (

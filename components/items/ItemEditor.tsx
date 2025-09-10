@@ -26,6 +26,8 @@ type ItemEditorProps = {
   /** Aksiyonlar */
   onSave: (v: ItemEditorValue) => Promise<void> | void;
   onCancel: () => void;
+  /** Opsiyonel başlık (kart başlığı) */
+  title?: string;
 };
 
 function useMaybeControlled<T>(controlled: T | undefined, initial: T) {
@@ -58,6 +60,7 @@ export default function ItemEditor({
   onChange,
   onSave,
   onCancel,
+  title,
 }: ItemEditorProps) {
   // state (controlled/uncontrolled)
   const { value: state, setValue, isControlled } = useMaybeControlled<ItemEditorValue>(value, initial);
@@ -113,6 +116,15 @@ export default function ItemEditor({
 
   return (
     <>
+      {title && (
+        <h3
+          className="title-wrap text-[15px] md:text-[16px] font-semibold leading-snug tracking-tight mb-1"
+          title={title}
+          lang="tr"
+        >
+          {title}
+        </h3>
+      )}
       {/* Image */}
       <div className="mb-3">
         <ImageUploader
