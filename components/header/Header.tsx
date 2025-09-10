@@ -310,7 +310,7 @@ export default function Header({ controls }: { controls?: Controls }) {
     : 'h-14 w-auto dark:invert';
   const logoClassBrand = USE_CURRENTCOLOR
     ? 'h-12 w-auto md:h-10 lg:h-8 text-gray-900 dark:text-gray-100'
-    : 'h-12 w-auto md:h-10 lg:h-8 dark:invert dark:brightness-0';
+    : 'h-12 w-auto md:h-9 lg:h-8 dark:invert dark:brightness-0';
 
   return (
     <header
