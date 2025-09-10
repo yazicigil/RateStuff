@@ -24,6 +24,8 @@ type QuickAddCardProps = {
   /** etiket havuzları (trend + tüm etiketler); chip önerileri bunlardan gelir */
   trending?: string[];
   allTags?: string[];
+  /** allTags boşsa DB'den çekmek için endpoint (GET). Varsayılan: /api/tags?limit=1000 */
+  allTagsEndpoint?: string;
 
   /** yerleşim: “compact” = tek kolon; “rich” = md+ iki kolon */
   variant?: 'compact' | 'rich';
@@ -57,6 +59,7 @@ export default function QuickAddCard({
   onSubmit,
   trending = [],
   allTags = [],
+  allTagsEndpoint = '/api/tags?limit=1000',
   variant = 'rich',
   signedIn = true,
   signInHref = '/signin',
@@ -89,11 +92,61 @@ const isValidUrl = (u: string) => /^https?:\/\//i.test(u);
   const [justAdded, setJustAdded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ---- allTags'i DB'den yükleme (parent boş gönderirse)
+  const [allTagsLocal, setAllTagsLocal] = useState<string[]>([]);
+  const [loadingAllTags, setLoadingAllTags] = useState(false);
+
   
   // ---- rating pill text (same as CommentBox)
   const ratingPillText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
 
   const ratingRequired = !isBrandProfile;
+
+  useEffect(() => {
+    let abort = false;
+    async function loadAll() {
+      if (Array.isArray(allTags) && allTags.length > 0) {
+        // parent already provided full list
+        setAllTagsLocal([]);
+        return;
+      }
+      setLoadingAllTags(true);
+      try {
+        const res = await fetch(allTagsEndpoint, { method: 'GET' });
+        if (!res.ok) throw new Error('Failed to fetch tags');
+        const data = await res.json().catch(() => null);
+        // Accept common shapes: string[], {name:string}[], {tag:{name}}[]
+        const out: string[] = [];
+        if (Array.isArray(data)) {
+          for (const it of data) {
+            if (typeof it === 'string') out.push(it);
+            else if (it && typeof it === 'object') {
+              // try common fields
+              const n = (it.name ?? it.title ?? it.slug ?? it?.tag?.name);
+              if (typeof n === 'string') out.push(n);
+            }
+          }
+        } else if (data && Array.isArray(data?.tags)) {
+          for (const it of data.tags) {
+            if (typeof it === 'string') out.push(it);
+            else if (it && typeof it === 'object' && typeof it.name === 'string') out.push(it.name);
+          }
+        }
+        if (!abort) {
+          // de-dupe & normalize display uniq
+          const uniq = Array.from(new Set(out.map(String).filter(Boolean)));
+          setAllTagsLocal(uniq);
+        }
+      } catch {
+        if (!abort) setAllTagsLocal([]); // fail silently; only trending will appear
+      } finally {
+        if (!abort) setLoadingAllTags(false);
+      }
+    }
+    if (!allTags || allTags.length === 0) loadAll();
+    // if parent later provides allTags, stop using local
+    return () => { abort = true; };
+  }, [allTags, allTagsEndpoint]);
 
   // ---- helpers
   function normalizeTag(s: string) {
@@ -121,7 +174,11 @@ const isValidUrl = (u: string) => /^https?:\/\//i.test(u);
     if (banned) setError('Etikette yasaklı kelime kullanılamaz.');
   }
 
-  const pool = useMemo(() => Array.from(new Set([...(trending || []), ...(allTags || [])])), [trending, allTags]);
+  const effectiveAllTags = (allTags && allTags.length > 0) ? allTags : allTagsLocal;
+  const pool = useMemo(
+    () => Array.from(new Set([...(trending || []), ...(effectiveAllTags || [])])),
+    [trending, effectiveAllTags]
+  );
   const suggestions = useMemo(() => {
     const already = new Set(tags.map(normalizeTag));
     const q = normalizeTag(tagInput);
@@ -374,84 +431,90 @@ if (!validNow) {
           <div>
             <label className="block text-sm font-medium mb-1">Etiketler <span className="opacity-60">*</span></label>
             {/* Öneriler: her zaman görünür; 4'lü sayfalama, sağ-sol oklarla gezinme */}
-            {suggestions.length > 0 && tags.length < 3 && (
+            {(suggestions.length > 0 || loadingAllTags) && tags.length < 3 && (
               <div className="mb-1 flex items-center gap-1 select-none">
-                {(() => {
-                  const pageSize = 4;
-                  const pageCount = Math.max(1, Math.ceil(suggestions.length / pageSize));
-                  const idx = ((sugPage % pageCount) + pageCount) % pageCount;
-                  const start = idx * pageSize;
-                  const visible = suggestions.slice(start, start + pageSize);
-                  const canPage = pageCount > 1;
-                  const hasPrev = canPage && idx > 0;
-                  const hasNext = canPage && idx < pageCount - 1;
-                  return (
-                    <>
-                      {hasPrev && (
-                        <button
-                          type="button"
-                          className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
-                                     enabled:active:scale-95 enabled:hover:-translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          onClick={(e) => { e.preventDefault(); pagePrev(); }}
-                          aria-label="Önceki öneriler"
-                          title="Önceki (←)"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                      )}
-
-                      <div className="relative mx-1 overflow-hidden">
-                        <div className={`flex items-center gap-1 ${sugDir === 'left' ? 'sug-anim-left' : ''} ${sugDir === 'right' ? 'sug-anim-right' : ''}`}>
-                          {visible.map((t) => (
+                {loadingAllTags && suggestions.length === 0 ? (
+                  <span className="text-xs opacity-70 px-2 py-1">Etiketler yükleniyor…</span>
+                ) : (
+                  <>
+                    {(() => {
+                      const pageSize = 4;
+                      const pageCount = Math.max(1, Math.ceil(suggestions.length / pageSize));
+                      const idx = ((sugPage % pageCount) + pageCount) % pageCount;
+                      const start = idx * pageSize;
+                      const visible = suggestions.slice(start, start + pageSize);
+                      const canPage = pageCount > 1;
+                      const hasPrev = canPage && idx > 0;
+                      const hasNext = canPage && idx < pageCount - 1;
+                      return (
+                        <>
+                          {hasPrev && (
                             <button
-                              key={t}
                               type="button"
-                              className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
-                              onMouseDown={(ev) => ev.preventDefault()}
-                              onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
+                              className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
+                                         enabled:active:scale-95 enabled:hover:-translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                              onClick={(e) => { e.preventDefault(); pagePrev(); }}
+                              aria-label="Önceki öneriler"
+                              title="Önceki (←)"
                             >
-                              <span>#{t}</span>
-                              <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
-                                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                               </svg>
                             </button>
-                          ))}
-                        </div>
-                        {/* sayfa göstergesi */}
-                        {canPage && (
-                          <div className="absolute -bottom-4 left-0 right-0 flex justify-center gap-1 pt-1 pointer-events-none">
-                            {Array.from({ length: pageCount }).map((_, i) => {
-                              const dotIdx = ((sugPage % pageCount) + pageCount) % pageCount;
-                              return (
-                                <span
-                                  key={i}
-                                  className={`inline-block w-1.5 h-1.5 rounded-full ${i === dotIdx ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}
-                                />
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
+                          )}
 
-                      {hasNext && (
-                        <button
-                          type="button"
-                          className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
-                                     enabled:active:scale-95 enabled:hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                          onClick={(e) => { e.preventDefault(); pageNext(); }}
-                          aria-label="Sonraki öneriler"
-                          title="Sonraki (→)"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
+                          <div className="relative mx-1 overflow-hidden">
+                            <div className={`flex items-center gap-1 ${sugDir === 'left' ? 'sug-anim-left' : ''} ${sugDir === 'right' ? 'sug-anim-right' : ''}`}>
+                              {visible.map((t) => (
+                                <button
+                                  key={t}
+                                  type="button"
+                                  className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
+                                  onMouseDown={(ev) => ev.preventDefault()}
+                                  onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
+                                >
+                                  <span>#{t}</span>
+                                  <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
+                                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  </svg>
+                                </button>
+                              ))}
+                            </div>
+                            {/* sayfa göstergesi */}
+                            {canPage && (
+                              <div className="absolute -bottom-4 left-0 right-0 flex justify-center gap-1 pt-1 pointer-events-none">
+                                {Array.from({ length: pageCount }).map((_, i) => {
+                                  const dotIdx = ((sugPage % pageCount) + pageCount) % pageCount;
+                                  return (
+                                    <span
+                                      key={i}
+                                      className={`inline-block w-1.5 h-1.5 rounded-full ${i === dotIdx ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+                                    />
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          {hasNext && (
+                            <button
+                              type="button"
+                              className="rs-sug-nav shrink-0 w-8 h-8 grid place-items-center rounded-full border bg-white/70 hover:bg-white dark:bg-gray-900/60 dark:hover:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 transition
+                                         enabled:active:scale-95 enabled:hover:translate-x-0.5 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                              onClick={(e) => { e.preventDefault(); pageNext(); }}
+                              aria-label="Sonraki öneriler"
+                              title="Sonraki (→)"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </>
+                )}
               </div>
             )}
             <div

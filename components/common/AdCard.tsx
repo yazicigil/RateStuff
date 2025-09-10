@@ -40,7 +40,7 @@ export default function AdCard({ slot, className = "", label = "Reklam", style }
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-        data-ad-slot={slot}
+        data-ad-slot=""
         data-ad-format="auto"
         data-full-width-responsive="true"
       />

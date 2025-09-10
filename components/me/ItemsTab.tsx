@@ -252,32 +252,36 @@ export default function ItemsTab({
             <div className="grid md:grid-cols-2 gap-4">
               {canShowAdd ? (
                 qaOpen ? (
-                  <QuickAddCard
-                    open
-                    onClose={() => setQaOpen(false)}
-                    onSubmit={handleQuickAddSubmit}
-                    trending={trending}
-                    allTags={itemsTags}
-                    variant="rich"
-                    signedIn={!!myId}
-                    signInHref="/signin"
-                    prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                    isBrandProfile
-                  />
+                  <div className="md:col-span-2">
+                    <QuickAddCard
+                      open
+                      onClose={() => setQaOpen(false)}
+                      onSubmit={handleQuickAddSubmit}
+                      trending={trending}
+                      allTags={itemsTags}
+                      variant="rich"
+                      signedIn={!!myId}
+                      signInHref="/signin"
+                      prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                      isBrandProfile
+                    />
+                  </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => setQaOpen(true)}
-                    className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                    style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
-                    aria-label="Hızlı ekle"
-                    title="Hızlı ekle"
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-5xl leading-none">+</span>
-                      <span className="text-base font-medium">Ekle</span>
-                    </div>
-                  </button>
+                  <div className="md:col-span-2">
+                    <button
+                      type="button"
+                      onClick={() => setQaOpen(true)}
+                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
+                      style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                      aria-label="Hızlı ekle"
+                      title="Hızlı ekle"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-5xl leading-none">+</span>
+                        <span className="text-base font-medium">Ekle</span>
+                      </div>
+                    </button>
+                  </div>
                 )
               ) : (
                 !effectiveHideAdd ? (
@@ -350,7 +354,7 @@ export default function ItemsTab({
                         onSubmit={handleQuickAddSubmit}
                         trending={trending}
                         allTags={itemsTags}
-                        variant="compact"
+                        variant="rich"
                         signedIn={!!myId}
                         signInHref="/signin"
                         prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
@@ -422,26 +426,28 @@ export default function ItemsTab({
 
             {/* DESKTOP: 2 sütun — bağımsız dikey akış, row‑major */}
             <div className="hidden lg:grid grid-cols-2 gap-5">
+              {qaOpen && (
+                <div className="lg:col-span-2">
+                  <QuickAddCard
+                    open
+                    onClose={() => setQaOpen(false)}
+                    onSubmit={handleQuickAddSubmit}
+                    trending={trending}
+                    allTags={itemsTags}
+                    variant="rich"
+                    signedIn={!!myId}
+                    signInHref="/signin"
+                    prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
+                    isBrandProfile={!!isBrandProfile}
+                  />
+                </div>
+              )}
               {/* Sol sütun */}
               <div className="flex flex-col gap-5">
                 {colLeft.map((it: any, ix: number) => (
                   it?.__add ? (
                     !effectiveHideAdd ? (
-                      qaOpen ? (
-                        <QuickAddCard
-                          key={`add-left-${ix}`}
-                          open
-                          onClose={() => setQaOpen(false)}
-                          onSubmit={handleQuickAddSubmit}
-                          trending={trending}
-                          allTags={itemsTags}
-                          variant="compact"
-                          signedIn={!!myId}
-                          signInHref="/signin"
-                          prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                          isBrandProfile={!!isBrandProfile}
-                        />
-                      ) : (
+                      qaOpen ? null : (
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
@@ -509,21 +515,7 @@ export default function ItemsTab({
                 {colRight.map((it: any, ix: number) => (
                   it?.__add ? (
                     !effectiveHideAdd ? (
-                      qaOpen ? (
-                        <QuickAddCard
-                          key={`add-right-${ix}`}
-                          open
-                          onClose={() => setQaOpen(false)}
-                          onSubmit={handleQuickAddSubmit}
-                          trending={trending}
-                          allTags={itemsTags}
-                          variant="compact"
-                          signedIn={!!myId}
-                          signInHref="/signin"
-                          prefill={{ tags: Array.from(itemsSelected).slice(0, 3) }}
-                          isBrandProfile={!!isBrandProfile}
-                        />
-                      ) : (
+                      qaOpen ? null : (
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
