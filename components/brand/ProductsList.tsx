@@ -473,7 +473,7 @@ const handleDelete = React.useCallback(async (id: string) => {
               <QuickAddCard
                 open={showQuickAdd}
                 onClose={() => setShowQuickAdd(false)}
-                trending={trending}
+                trending={tags}
                 allTagsEndpoint="/api/tags?limit=500"
                 variant="rich"
                 signedIn={Boolean(myId)}
