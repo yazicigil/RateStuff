@@ -78,22 +78,43 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
       if (itemOwner?.createdById && itemOwner.createdById !== me.id) {
         const stars = created.rating ?? rating ?? 0;
-        const displayName = maskName(created.user?.name);
+
+        // Aktör bilgilerini genişlet (kind/verified)
+        const actor = await prisma.user.findUnique({
+          where: { id: me.id },
+          select: { id: true, name: true, maskedName: true, kind: true },
+        });
+        const actorKind = (actor?.kind as any) ?? undefined; // 'BRAND' | 'DEFAULT' | ...
+        const actorVerified = String(actorKind || '').toUpperCase() === 'BRAND' ? true : false;
+        const actorName = actor?.name ?? created.user?.name ?? 'Kullanıcı';
+        const actorMaskedName = created.user?.maskedName ?? maskName(actorName);
+
+        const isBrandActor = String(actorKind || '').toUpperCase() === 'BRAND';
+        const titleName = isBrandActor ? actorName : actorMaskedName;
+
         await prisma.notification.create({
           data: {
             userId: itemOwner.createdById,
-            type: "COMMENT_ON_OWN_ITEM" as any,
-            title: `${displayName} ${stars}★ verdi ve yorum yaptı`,
-            body: `“${(created.text ?? "").slice(0, 80)}” • ${itemOwner.name}`,
+            type: 'COMMENT_ON_OWN_ITEM' as any,
+            title: `${titleName} ${stars}★ verdi ve yorum yaptı`,
+            body: `“${(created.text ?? '').slice(0, 80)}” • ${itemOwner.name}`,
             link: `/share/${itemOwner.id}`,
             image: itemOwner.imageUrl ?? undefined,
-            eventKey: `cmt:${created.id}:${Date.now()}`, // benzersiz
-            data: { itemId: itemOwner.id, rating: stars, actorMaskedName: displayName },
+            eventKey: `cmt:${created.id}:${Date.now()}`,
+            data: {
+              itemId: itemOwner.id,
+              rating: stars,
+              actorId: actor?.id,
+              actorName,
+              actorMaskedName,
+              actorKind,
+              actorVerified,
+            },
           },
         });
       }
     } catch (err) {
-      console.error("[notify:comment-insert-fail]", err);
+      console.error('[notify:comment-insert-fail]', err);
     }
 
     const score = 0; // yeni yorumda oy yok
