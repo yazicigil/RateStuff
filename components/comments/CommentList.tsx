@@ -186,19 +186,9 @@ export default function CommentList({
               isBrand
                 ? (c?.user?.name || "Anonim")
                 : (c?.user?.maskedName || maskName(c?.user?.name, false));
-            // Marka linki: her zaman /brand/{slug} olmalı.
-            // Kaynak: BrandAccount.slug (varsa). Backend farklı alan adları kullanıyorsa aşağıdaki alternatifler de kontrol edilir.
-            const brandSlug =
-              c.user?.brandAccount?.slug ??
-              (c.user as any)?.brand?.slug ??
-              (c.user as any)?.brand_slug ??
-              (c.user as any)?.brandSlug ??
-              (c.user as any)?.slug ?? // BE doğrudan brand slug'ı buraya koyduysa
-              null;
-
-            const hrefBrand = isBrand
-              ? (brandSlug ? `/brand/${brandSlug}` : (resolveBrandHref ? resolveBrandHref(c.user as any) : undefined))
-              : undefined;
+            // Marka linki: yalnızca BrandAccount.slug kullan.
+            const brandSlug = c.user?.brandAccount?.slug || null;
+            const hrefBrand = isBrand && brandSlug ? `/brand/${brandSlug}` : undefined;
 
             const score = typeof c.score === 'number' ? c.score : 0;
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
