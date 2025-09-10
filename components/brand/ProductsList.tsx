@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 const QuickAddCard = dynamic(() => import('@/components/home/QuickAddCard'), { ssr: false });
 import { useRouter } from 'next/navigation';
 import TagFilterBar from '@/components/common/TagFilterBar';
-import ItemCard from '@/components/home/ItemCard';
+import ItemCard from '@/components/items/ItemCard';
 
 export type ProductsListItem = {
   id: string;

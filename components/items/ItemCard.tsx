@@ -4,11 +4,11 @@ import { createPortal } from 'react-dom';
 import Stars from '@/components/common/Stars';
 import Tag from '@/components/common/Tag';
 import RatingPill from '@/components/common/RatingPill';
-import SharePopover from '@/components/common/popovers/SharePopover';
-import OptionsPopover from '@/components/common/popovers/OptionsPopover';
+import SharePopover from '@/components/items/popovers/SharePopover';
+import OptionsPopover from '@/components/items/popovers/OptionsPopover';
 import CommentList from '@/components/comments/CommentList';
 import CommentBox from '@/components/comments/CommentBox';
-import ImageUploader from '@/components/common/ImageUploader';
+import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
 import Link from 'next/link';
 
 export interface ItemCardProps {
@@ -141,90 +141,19 @@ export default function ItemCard({
   }, [creatorNameRaw, isBrand, isVerified, isOwner]);
 
   const [editing, setEditing] = useState(false);
-  const [descDraft, setDescDraft] = useState<string>(i?.description ?? '');
-  const [tagsDraft, setTagsDraft] = useState<string[]>(Array.isArray(i?.tags) ? [...i.tags] : []);
-  const [imgDraft, setImgDraft] = useState<string>(i?.imageUrl ?? '');
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  // Tag editor input (Android/IME friendly)
-  const [tagEditInput, setTagEditInput] = useState('');
-  const [productUrlDraft, setProductUrlDraft] = useState<string>(i?.productUrl ?? "");
-  const isValidUrl = useCallback((u: string) => /^https?:\/\//i.test(u), []);
 
-  const addTag = useCallback((t: string) => {
-    const v = t.trim().toLowerCase();
-    if (!v) return;
-    setTagsDraft(prev => (prev.includes(v) ? prev : [...prev, v]).slice(0, 10));
-  }, []);
-  const removeTag = useCallback((t: string) => {
-    setTagsDraft(prev => prev.filter(x => x !== t));
-  }, []);
-
-  // ---- helpers (align with QuickAddCard behavior)
-  function normalizeTag(s: string) {
-    return s.trim().replace(/^#+/, '').toLowerCase();
-  }
-  function addTagsFromInput(src?: string) {
-    const raw = typeof src === 'string' ? src : tagEditInput;
-    const parts = raw
-      .replace(/\uFF0C/g, ',') // fullwidth comma → normal comma (Android/IME)
-      .split(/[,\n]+/)
-      .map(normalizeTag)
-      .filter(Boolean);
-    if (!parts.length) return;
-    setTagsDraft((prev) => {
-      const set = new Set(prev);
-      for (const p of parts) {
-        if (set.size >= 10) break; // edit ekranında üst sınırı 10 tutuyoruz
-        set.add(p);
-      }
-      return Array.from(set).slice(0, 10);
-    });
-    setTagEditInput('');
-  }
-
-  const handleTagKey = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTagsFromInput(tagEditInput);
-    } else if (e.key === 'Backspace' && tagEditInput.trim() === '' && tagsDraft.length > 0) {
-      // boşken backspace ile son etiketi kaldır (QuickAddCard uyumu)
-      e.preventDefault();
-      setTagsDraft((prev) => prev.slice(0, -1));
-    } else if (e.key === 'Escape') {
-      // öneri olmadığı için sadece inputu temizle
-      setTagEditInput('');
-    }
-  }, [tagEditInput, tagsDraft.length]);
-
-
-  const saveEdit = useCallback(async () => {
+  const onSaveEditor = useCallback(async (v: ItemEditorValue) => {
     try {
       setSaving(true); setErr(null);
-
-      // --- Merge pending tag input into tagsDraft before save
-      let nextTags = tagsDraft;
-      if (tagEditInput.trim().length > 0) {
-        const parts = tagEditInput
-          .replace(/\uFF0C/g, ',')
-          .split(/[,\n]+/)
-          .map(normalizeTag)
-          .filter(Boolean);
-        if (parts.length) {
-          const set = new Set(nextTags);
-          for (const p of parts) {
-            if (set.size >= 10) break;
-            set.add(p);
-          }
-          nextTags = Array.from(set).slice(0, 10);
-        }
-      }
-
-      const pUrl = productUrlDraft.trim();
-      if (pUrl && !isValidUrl(pUrl)) {
-        throw new Error('Geçerli bir ürün linki gir (http/https).');
-      }
-      const body = { description: descDraft, tags: nextTags, imageUrl: imgDraft, productUrl: pUrl || "" };
+      const pUrl = (v.productUrl ?? '').trim();
+      const body = {
+        description: v.description,
+        tags: (v.tags || []).slice(0, 3),
+        imageUrl: v.imageUrl || '',
+        productUrl: pUrl || ""
+      };
       const res = await fetch(`/api/items/${i.id}/edit`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -234,11 +163,6 @@ export default function ItemCard({
         const txt = await res.text().catch(() => '');
         throw new Error(txt || 'Kaydedilemedi');
       }
-      // state'i eşitle ve inputu temizle
-      setTagsDraft(nextTags);
-      setTagEditInput('');
-      // server state güncellendi, draftları eşitle
-      setProductUrlDraft(pUrl);
       setEditing(false);
       onItemChanged && onItemChanged();
     } catch (e: any) {
@@ -246,7 +170,7 @@ export default function ItemCard({
     } finally {
       setSaving(false);
     }
-  }, [descDraft, tagsDraft, tagEditInput, imgDraft, productUrlDraft, isValidUrl, i?.id, onItemChanged]);
+  }, [i?.id, onItemChanged]);
 
   const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
@@ -406,121 +330,27 @@ export default function ItemCard({
       <div className="flex-1">
         {editing ? (
           <>
-            {/* Top: full-width image uploader (preview included); hide left image container while editing */}
-            <div className="mb-3">
-              <ImageUploader
-                {...({} as any)}
-                value={imgDraft}
-                onChange={(url: string) => setImgDraft(url)}
-                className="w-full"
-              />
-            </div>
-
-            {/* Title (name is immutable) */}
             <h3 className="text-sm font-medium leading-tight title-wrap" title={i.name} lang="tr">
               {i.name}
             </h3>
-
-            {/* Description */}
-            <div className="mt-2">
-              <label className="block text-sm font-medium mb-1">Kısa açıklama</label>
-              <textarea
-                className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
-                rows={3}
-                maxLength={140}
-                value={descDraft}
-                onChange={(e) => setDescDraft(e.target.value)}
-                placeholder="kısa açıklama"
-              />
-              <div className="mt-1 text-[11px] opacity-60">{descDraft.length}/140</div>
-            </div>
-
-            {/* Product URL (optional) */}
-            {isBrand && (
-              <div className="mt-3">
-                <label className="block text-sm font-medium mb-1">
-                  Ürün linki <span className="opacity-60">(opsiyonel)</span>
-                </label>
-                <input
-                  value={productUrlDraft}
-                  onChange={(e) => { setProductUrlDraft(e.target.value); if (err) setErr(null); }}
-                  className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 ${
-                    productUrlDraft && !isValidUrl(productUrlDraft)
-                      ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
-                      : 'focus:ring-2 focus:ring-emerald-400'
-                  }`}
-                  placeholder="https://…"
-                  inputMode="url"
-                />
-                {productUrlDraft && !isValidUrl(productUrlDraft) && (
-                  <div className="mt-1 text-xs text-red-600 dark:text-red-400">Lütfen http(s) ile başlayan geçerli bir URL gir.</div>
-                )}
-              </div>
-            )}
-
-            {/* Tags (QuickAddCard style; no suggestions) */}
-            <div className="mt-3">
-              <label className="block text-sm font-medium mb-1">Etiketler</label>
-              <div
-                className="relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700"
-              >
-                {tagsDraft.map((t) => (
-                  <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
-                    #{t}
-                    <button
-                      type="button"
-                      className="ml-1 rounded hover:bg-black/10 dark:hover:bg-white/10"
-                      onClick={() => removeTag(t)}
-                      aria-label={`#${t} etiketini kaldır`}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-                <input
-                  value={tagEditInput}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setTagEditInput(v);
-                    // Android/IME: virgül (`,`, `\uFF0C`) veya yeni satır girildiğinde etiketleri ayıkla
-                    if (/[,\n\uFF0C]/.test(v) && tagsDraft.length < 10) {
-                      addTagsFromInput(v);
-                    }
-                  }}
-                  onKeyDown={handleTagKey}
-                  className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
-                  placeholder={tagsDraft.length ? '' : 'kahve, ekipman'}
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            {err && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{err}</div>}
-            <div className="mt-3 flex items-center gap-2 justify-end">
-              <button
-                type="button"
-                className="px-3 h-8 rounded-full border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                onClick={() => {
-                  setEditing(false);
-                  setErr(null);
-                  setDescDraft(i?.description ?? '');
-                  setTagsDraft(Array.isArray(i?.tags) ? [...i.tags] : []);
-                  setImgDraft(i?.imageUrl ?? '');
-                  setTagEditInput('');
-                  setProductUrlDraft(i?.productUrl ?? '');
-                }}
-              >
-                İptal
-              </button>
-              <button
-                type="button"
-                disabled={saving}
-                className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60"
-                onClick={saveEdit}
-              >
-                {saving ? 'Kaydediliyor…' : 'Kaydet'}
-              </button>
-            </div>
+            <ItemEditor
+              initial={{
+                imageUrl: i?.imageUrl ?? '',
+                description: i?.description ?? '',
+                tags: Array.isArray(i?.tags) ? [...i.tags] : [],
+                productUrl: i?.productUrl ?? '',
+              }}
+              isBrand={isBrand}
+              maxTags={3}
+              maxDesc={140}
+              saving={saving}
+              error={err}
+              onCancel={() => {
+                setEditing(false);
+                setErr(null);
+              }}
+              onSave={onSaveEditor}
+            />
           </>
         ) : (
           // NORMAL MODE: mevcut kart görünümü

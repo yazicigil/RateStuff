@@ -4,7 +4,7 @@ import Link from 'next/link';
 import RatingPill from '@/components/common/RatingPill';
 import Image from 'next/image';
 import bookmarkSlash from '@/assets/icons/bookmarkslash.svg';
-import ItemCard from '@/components/home/ItemCard';
+import ItemCard from '@/components/items/ItemCard';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import { useRouter } from 'next/navigation';
 

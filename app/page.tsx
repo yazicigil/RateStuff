@@ -31,7 +31,7 @@ async function nativeShare(id: string, name: string) {
   } catch {}
 }
 import QuickAddHome from '@/components/home/QuickAddHome';
-import ItemCard from '@/components/home/ItemCard';
+import ItemCard from '@/components/items/ItemCard';
 import Head from 'next/head';
 import SpotlightCard from '@/components/home/spotlight/SpotlightCard';
 import ScrollToTop from "@/components/common/ScrollToTop";

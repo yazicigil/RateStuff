@@ -5,8 +5,8 @@ import Link from 'next/link';
 import Tag from '@/components/common/Tag';
 import Stars from '@/components/common/Stars';
 import RatingPill from '@/components/common/RatingPill';
-import SharePopover from '@/components/common/popovers/SharePopover';
-import OptionsPopover from '@/components/common/popovers/OptionsPopover';
+import SharePopover from '@/components/items/popovers/SharePopover';
+import OptionsPopover from '@/components/items/popovers/OptionsPopover';
 import CommentBox from '@/components/comments/CommentBox';
 import CommentList from '@/components/comments/CommentList';
 

@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import ItemCard from '@/components/home/ItemCard';
+import ItemCard from '@/components/items/ItemCard';
 import QuickAddCard from '@/components/home/QuickAddCard';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import { useRouter } from 'next/navigation';
