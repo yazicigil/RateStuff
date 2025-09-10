@@ -4,12 +4,13 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 
 export type CommentUser = {
   id?: string | null;
-  slug?: string | null; // public profil slug
+  slug?: string | null; // (olabilir) ama marka için öncelik BrandAccount.slug
   name?: string | null;
   maskedName?: string | null;
   avatarUrl?: string | null;
   verified?: boolean;
   kind?: "REGULAR" | "BRAND" | string | null;
+  brandAccount?: { slug?: string | null } | null; // BrandAccount tablosundaki slug
 };
 
 export type SpotComment = {
@@ -185,13 +186,20 @@ export default function CommentList({
               isBrand
                 ? (c?.user?.name || "Anonim")
                 : (c?.user?.maskedName || maskName(c?.user?.name, false));
-            const brandSlug = (c.user as any)?.slug ?? (c.user as any)?.brandSlug;
-            const hrefBrand = isBrand && c.user
-              ? (
-                  resolveBrandHref?.(c.user) ??
-                  (brandSlug ? `/brand/${brandSlug}` : (c.user.id ? `/brand/${c.user.id}` : undefined))
-                )
+            // Marka linki: her zaman /brand/{slug} olmalı.
+            // Kaynak: BrandAccount.slug (varsa). Backend farklı alan adları kullanıyorsa aşağıdaki alternatifler de kontrol edilir.
+            const brandSlug =
+              c.user?.brandAccount?.slug ??
+              (c.user as any)?.brand?.slug ??
+              (c.user as any)?.brand_slug ??
+              (c.user as any)?.brandSlug ??
+              (c.user as any)?.slug ?? // BE doğrudan brand slug'ı buraya koyduysa
+              null;
+
+            const hrefBrand = isBrand
+              ? (brandSlug ? `/brand/${brandSlug}` : (resolveBrandHref ? resolveBrandHref(c.user as any) : undefined))
               : undefined;
+
             const score = typeof c.score === 'number' ? c.score : 0;
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
