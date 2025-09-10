@@ -4,6 +4,7 @@ import React, { useMemo, useEffect, useRef, useState } from 'react';
 
 export type CommentUser = {
   id?: string | null;
+  slug?: string | null; // public profil slug
   name?: string | null;
   maskedName?: string | null;
   avatarUrl?: string | null;
@@ -50,6 +51,9 @@ export interface CommentListProps {
 
   // Kendi yorumunu listede göstermeyi kapat/aç (default: true = gizle)
   hideMyComment?: boolean;
+
+  /** Opsiyonel: Marka kullanıcı için public profil linkini hesapla */
+  resolveBrandHref?: (user: CommentUser) => string | undefined;
 }
 
 /** isim maskeleme (doğrulanmamış kullanıcılar için) */
@@ -75,6 +79,7 @@ export default function CommentList({
   emptyText = 'Henüz yorum yok.',
   totalCount,
   hideMyComment = true,
+  resolveBrandHref,
 }: CommentListProps) {
 
   // Yerel ölçüm ve state fallback'leri (ItemCard içinde parent state gelmeyebilir)
@@ -180,6 +185,13 @@ export default function CommentList({
               isBrand
                 ? (c?.user?.name || "Anonim")
                 : (c?.user?.maskedName || maskName(c?.user?.name, false));
+            const brandSlug = (c.user as any)?.slug ?? (c.user as any)?.brandSlug;
+            const hrefBrand = isBrand && c.user
+              ? (
+                  resolveBrandHref?.(c.user) ??
+                  (brandSlug ? `/brand/${brandSlug}` : (c.user.id ? `/brand/${c.user.id}` : undefined))
+                )
+              : undefined;
             const score = typeof c.score === 'number' ? c.score : 0;
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
@@ -189,22 +201,46 @@ export default function CommentList({
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
                 <div className="flex items-start gap-2 px-1">
                   {/* avatar */}
-                  {c.user?.avatarUrl ? (
-                    <img
-                      src={c.user.avatarUrl}
-                      alt={displayName || 'u'}
-                      className="w-6 h-6 rounded-full object-cover mt-0.5"
-                    />
+                  {hrefBrand ? (
+                    c.user?.avatarUrl ? (
+                      <a href={hrefBrand} className="mt-0.5" aria-label="Marka profiline git">
+                        <img
+                          src={c.user.avatarUrl}
+                          alt={displayName || 'u'}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      </a>
+                    ) : (
+                      <a href={hrefBrand} className="mt-0.5" aria-label="Marka profiline git">
+                        <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center text-[10px]">
+                          {(displayName || 'U').charAt(0).toUpperCase()}
+                        </div>
+                      </a>
+                    )
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center text-[10px] mt-0.5">
-                      {(displayName || 'U').charAt(0).toUpperCase()}
-                    </div>
+                    c.user?.avatarUrl ? (
+                      <img
+                        src={c.user.avatarUrl}
+                        alt={displayName || 'u'}
+                        className="w-6 h-6 rounded-full object-cover mt-0.5"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 grid place-items-center text-[10px] mt-0.5">
+                        {(displayName || 'U').charAt(0).toUpperCase()}
+                      </div>
+                    )
                   )}
 
                   {/* content */}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 text-xs opacity-80">
-                      <span className="truncate">{displayName}</span>
+                      {hrefBrand ? (
+                        <a href={hrefBrand} className="truncate text-emerald-700 hover:underline dark:text-emerald-300" title="Marka profili">
+                          {displayName}
+                        </a>
+                      ) : (
+                        <span className="truncate">{displayName}</span>
+                      )}
                       {isBrand && (
                         <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block align-middle">
                           <circle cx="12" cy="12" r="9" fill="#3B82F6" />
