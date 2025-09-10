@@ -101,6 +101,8 @@ const isValidUrl = (u: string) => /^https?:\/\//i.test(u);
   const ratingPillText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
 
   const ratingRequired = !isBrandProfile;
+  const ratingDisabled = !!isBrandProfile;
+  const commentDisabled = !!isBrandProfile;
 
   useEffect(() => {
     let abort = false;
@@ -595,9 +597,14 @@ if (!validNow) {
             <label className="text-sm font-medium">
               Puanın {ratingRequired && <span className="opacity-60">*</span>}:
             </label>
-            <Stars value={rating} onRate={(n) => setRating(n)} />
+            <span className={ratingDisabled ? 'opacity-60 pointer-events-none select-none' : ''} aria-disabled={ratingDisabled}>
+              <Stars value={rating} onRate={(n) => { if (!ratingDisabled) setRating(n); }} />
+            </span>
             {rating > 0 && (
-              <span className="inline-block text-xs rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20">
+              <span
+                className={`inline-block text-xs rounded-full px-2 py-0.5 border border-emerald-300/60 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 ${ratingDisabled ? 'opacity-60' : ''}`}
+                aria-disabled={ratingDisabled}
+              >
                 {ratingPillText}
               </span>
             )}
@@ -611,10 +618,13 @@ if (!validNow) {
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               maxLength={240}
-              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+              disabled={commentDisabled}
+              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent disabled:opacity-60 disabled:cursor-not-allowed ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
               placeholder="Kısa görüşün…"
             />
-            <div className="mt-1 text-[11px] opacity-60">{comment.length}/240</div>
+            <div className={`mt-1 text-[11px] opacity-60 ${commentDisabled ? 'opacity-40' : ''}`} aria-disabled={commentDisabled}>
+              {comment.length}/240
+            </div>
           </div>
         </div>
 
