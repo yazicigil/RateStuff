@@ -225,6 +225,15 @@ export default function MePage() {
       const data = text ? JSON.parse(text) : null;
       if (!r.ok || !data?.ok) throw new Error(data?.error || `status ${r.status}`);
 
+      // Eğer kullanıcı BRAND ise bu sayfa yerine /brand/me'ye yönlendir
+      try {
+        const k = String(data?.me?.kind || "").toUpperCase();
+        if (k === "BRAND") {
+          window.location.href = "/brand/me";
+          return;
+        }
+      } catch {}
+
       setMe(data.me || null);
       setItems(data.items || []);
       setSaved(data.saved || []);

@@ -594,7 +594,7 @@ if (!validNow) {
 
           {/* Puan */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">
+            <label className={`text-sm font-medium ${ratingDisabled ? 'opacity-60' : ''}`} aria-disabled={ratingDisabled}>
               Puanın {ratingRequired && <span className="opacity-60">*</span>}:
             </label>
             <span className={ratingDisabled ? 'opacity-60 pointer-events-none select-none' : ''} aria-disabled={ratingDisabled}>
@@ -611,8 +611,10 @@ if (!validNow) {
           </div>
 
           {/* Yorum */}
-          <div>
-            <label className="block text-sm font-medium mb-1">Yorum <span className="opacity-60">(opsiyonel)</span></label>
+          <div className={commentDisabled ? 'opacity-60' : ''} aria-disabled={commentDisabled}>
+            <label className={`block text-sm font-medium mb-1 ${commentDisabled ? 'opacity-80' : ''}`}>
+              Yorum <span className="opacity-60">(opsiyonel)</span>
+            </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}

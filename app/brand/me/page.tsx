@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { UserKind } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import clsx from "clsx";
 import BrandCoverEditor from "@/components/brand/BrandCoverEditor";
 import dynamic from "next/dynamic";
@@ -61,8 +62,12 @@ export default async function BrandProfilePage() {
     },
   });
   if (!user) notFound();
-  if (user.kind !== "BRAND") {
-    // regular kullanıcı yanlışlıkla geldiyse 404 ver
+  if (user.kind === UserKind.REGULAR) {
+    // DEFAULT kullanıcılar kendi profil sayfasına yönlendirilsin
+    redirect("https://ratestuff.net/me");
+  }
+  if (user.kind !== UserKind.BRAND) {
+    // BRAND dışındaki türler bu sayfaya erişemesin
     notFound();
   }
 

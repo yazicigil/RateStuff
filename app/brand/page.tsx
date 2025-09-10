@@ -5,6 +5,7 @@ import { signIn, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import LearnMoreModal from "@/components/brand/LearnMore";
+import { UserKind } from "@prisma/client";
 
 export default function BrandLoginPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function BrandLoginPage() {
   useEffect(() => {
     if (status !== "authenticated") return;
     const kind = (session as any)?.user?.kind || (session as any)?.user?.role || (session as any)?.user?.type;
-    if (kind === "brand") {
+    if (kind === "brand" || kind === UserKind.BRAND) {
       router.replace("/brand/me");
     }
   }, [status, session, router]);
@@ -94,7 +95,15 @@ export default function BrandLoginPage() {
     }
   }
 
-  if (status === "authenticated" && ((session as any)?.user?.kind === "brand" || (session as any)?.user?.role === "brand" || (session as any)?.user?.type === "brand")) {
+  if (
+    status === "authenticated" &&
+    (
+      (session as any)?.user?.kind === "brand" ||
+      (session as any)?.user?.role === "brand" ||
+      (session as any)?.user?.type === "brand" ||
+      (session as any)?.user?.kind === UserKind.BRAND
+    )
+  ) {
     return null;
   }
 
