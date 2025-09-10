@@ -69,41 +69,48 @@ export default function Pager({
     if (e.key === 'ArrowRight') { e.preventDefault(); go(page + 1); }
   };
 
-  const arrowBase =
-    'inline-flex items-center justify-center h-9 w-9 rounded-md border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent';
-  const pageBase =
-    'inline-flex items-center justify-center h-9 min-w-9 px-2 rounded-md text-sm';
-  const pageActive =
-    'bg-purple-600 text-white dark:bg-purple-400 dark:text-gray-900';
-  const pageIdle = 'hover:bg-gray-100 dark:hover:bg-gray-800 border';
+  const wrapCls = `flex items-center justify-center gap-3 mt-6 select-none ${className}`;
+  const dotBase = "inline-flex items-center justify-center h-8 min-w-8 px-2 rounded-full text-sm transition";
+  const dotActive = "bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-100";
+  const dotIdle = "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800";
+  const arrowBtn = "inline-flex items-center justify-center h-8 w-8 rounded-full text-sm text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 disabled:opacity-30 disabled:hover:bg-transparent";
 
   return (
     <div
-      className={`flex items-center justify-center gap-1.5 mt-6 select-none ${className}`}
+      className={wrapCls}
       role="navigation"
       aria-label="Sayfalandırma"
       onKeyDown={onKeyDown}
     >
       <button
         type="button"
-        className={arrowBase}
+        className={arrowBtn}
+        onClick={() => go(1)}
+        disabled={disabled || page <= 1}
+        aria-label="İlk sayfa"
+        title="İlk sayfa"
+      >
+        «
+      </button>
+      <button
+        type="button"
+        className={arrowBtn}
         onClick={() => go(page - 1)}
         disabled={disabled || page <= 1}
         aria-label="Önceki sayfa"
+        title="Önceki sayfa"
       >
         ‹
       </button>
 
       {model.map((it, i) =>
         it === '…' ? (
-          <span key={`e-${i}`} className="px-2 text-sm opacity-60">
-            …
-          </span>
+          <span key={`e-${i}`} className="px-1.5 text-sm text-gray-500 dark:text-gray-400 select-none">…</span>
         ) : (
           <button
             key={`p-${it}`}
             type="button"
-            className={`${pageBase} ${it === page ? pageActive : pageIdle}`}
+            className={`${dotBase} ${it === page ? dotActive : dotIdle}`}
             onClick={() => go(it as number)}
             aria-current={it === page ? 'page' : undefined}
             aria-label={`Sayfa ${it}`}
@@ -115,12 +122,23 @@ export default function Pager({
 
       <button
         type="button"
-        className={arrowBase}
+        className={arrowBtn}
         onClick={() => go(page + 1)}
         disabled={disabled || page >= totalPages}
         aria-label="Sonraki sayfa"
+        title="Sonraki sayfa"
       >
         ›
+      </button>
+      <button
+        type="button"
+        className={arrowBtn}
+        onClick={() => go(totalPages)}
+        disabled={disabled || page >= totalPages}
+        aria-label="Son sayfa"
+        title="Son sayfa"
+      >
+        »
       </button>
     </div>
   );
