@@ -235,7 +235,7 @@ export default function CommentList({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 text-xs opacity-80">
                       {hrefBrand ? (
-                        <a href={hrefBrand} className="truncate text-emerald-700 hover:underline dark:text-emerald-300" title="Marka profili">
+                        <a href={hrefBrand} className="truncate hover:underline" title="Marka profili">
                           {displayName}
                         </a>
                       ) : (
