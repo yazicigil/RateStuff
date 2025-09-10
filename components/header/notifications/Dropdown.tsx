@@ -362,10 +362,28 @@ export default function NotificationsDropdown() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium whitespace-normal break-words leading-snug">
-                      {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.actorMaskedName && n.data?.rating ? (
+                      {n.type === "COMMENT_ON_OWN_ITEM" && n.data?.rating ? (
                         <>
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
-                            {n.data.actorMaskedName}
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-neutral-200 bg-neutral-100 text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100">
+                            <span>
+                              {(
+                                n.data?.actorKind === 'BRAND' ||
+                                n.data?.actorType === 'BRAND' ||
+                                (n.data as any)?.actorIsBrand
+                              )
+                                ? (n.data?.actorName ?? n.data?.actorMaskedName ?? 'Marka')
+                                : (n.data?.actorMaskedName ?? 'Kullanıcı')}
+                            </span>
+                            {(
+                              n.data?.actorKind === 'BRAND' ||
+                              n.data?.actorType === 'BRAND' ||
+                              (n.data as any)?.actorIsBrand
+                            ) && ((n.data as any)?.actorVerified ?? true) && (
+                              // verified badge (inline svg)
+                              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" aria-label="Doğrulanmış">
+                                <path fill="currentColor" d="M12 2.25l2.35 1.27 2.62-.1 1.52 2.19 2.41 1.14-.28 2.61 1.33 2.32-1.88 1.93-.5 2.57-2.57.5-1.93 1.88-2.32-1.33-2.61.28-1.14-2.41-2.19-1.52.1-2.62L2.25 12l1.27-2.35-.1-2.62 2.19-1.52 1.14-2.41 2.61.28L12 2.25zm-1.2 11.2l5.2-5.2-1.4-1.4-3.8 3.79-1.6-1.59-1.4 1.41 3 2.99z"/>
+                              </svg>
+                            )}
                           </span>
                           <span className="ml-1 whitespace-nowrap">{n.data.rating}★ verdi ve yorum yaptı</span>
                         </>
