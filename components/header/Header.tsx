@@ -306,11 +306,11 @@ export default function Header({ controls }: { controls?: Controls }) {
 
 
   const logoClassDefault = USE_CURRENTCOLOR
-    ? 'h-14 w-auto text-gray-900 dark:text-gray-100'
-    : 'h-14 w-auto dark:invert';
+    ? 'h-auto max-h-14 w-auto object-contain text-gray-900 dark:text-gray-100'
+    : 'h-auto max-h-14 w-auto object-contain dark:invert';
   const logoClassBrand = USE_CURRENTCOLOR
-    ? 'h-10 w-auto md:h-9 lg:h-8 text-gray-900 dark:text-gray-100'
-    : 'h-10 w-auto md:h-9 lg:h-8 dark:invert dark:brightness-0';
+    ? 'h-auto max-h-12 md:max-h-10 lg:max-h-8 w-auto object-contain text-gray-900 dark:text-gray-100'
+    : 'h-auto max-h-12 md:max-h-10 lg:max-h-8 w-auto object-contain dark:invert dark:brightness-0';
 
   return (
     <header
@@ -334,7 +334,7 @@ export default function Header({ controls }: { controls?: Controls }) {
           )}
           <Link
             href="/"
-            className="shrink-0"
+            className="min-w-0"
             title="Anasayfa"
             onClick={(e) => { e.preventDefault(); window.location.href = '/' }}
           >
