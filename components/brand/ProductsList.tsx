@@ -7,6 +7,7 @@ const QuickAddCard = dynamic(() => import('@/components/home/QuickAddCard'), { s
 import { useRouter } from 'next/navigation';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import ItemCard from '@/components/items/ItemCard';
+import Pager from '@/components/common/Pager';
 
 export type ProductsListItem = {
   id: string;
@@ -198,6 +199,8 @@ export default function ProductsList<
   const [q, setQ] = React.useState('');
   const [internalSelected, setInternalSelected] = React.useState<Set<string>>(new Set(initialSelectedTags));
   const [order, setOrder] = React.useState<'new' | 'top'>('new');
+  const PER_PAGE = 8;
+  const [page, setPage] = React.useState(1);
   const selected = selectedTagsExternal ?? internalSelected;
   const setSelected = (updater: (prev: Set<string>) => Set<string>) => {
     if (selectedTagsExternal) {
@@ -244,6 +247,14 @@ const filtered = React.useMemo(() => {
   }
   return base;
 }, [itemsLocal, removedIds, selected, q, order]);
+
+  // Pagination derived values
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const pageStart = Math.min((page - 1) * PER_PAGE, Math.max(0, (totalPages - 1) * PER_PAGE));
+  const pageItems = filtered.slice(pageStart, pageStart + PER_PAGE);
+
+  React.useEffect(() => { setPage(1); }, [q, order, selected.size, items.length]);
+  React.useEffect(() => { if (page > totalPages) setPage(totalPages); }, [totalPages, page]);
 
   React.useEffect(() => {
     onFilterChange?.({ q, selected });
@@ -581,7 +592,7 @@ return true;
               />
             </div>
           )}
-          {filtered.map((it) => {
+          {pageItems.map((it) => {
             const isElevated = openShareId === it.id || openMenuId === it.id;
             return (
             <div
@@ -635,6 +646,9 @@ return true;
           })}
         </div>
       )}
+      </div>
+      <div className="mt-4">
+        <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
       </div>
 
       {/* QuickAdd brand theming */}

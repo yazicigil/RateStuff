@@ -6,6 +6,7 @@ import Image from 'next/image';
 import bookmarkSlash from '@/assets/icons/bookmarkslash.svg';
 import ItemCard from '@/components/items/ItemCard';
 import TagFilterBar from '@/components/common/TagFilterBar';
+import Pager from '@/components/common/Pager';
 import { useRouter } from 'next/navigation';
 
 /** İsim maskeleme: "Burak Topaç" -> "B**** T****" */
@@ -81,6 +82,8 @@ export default function SavedTab({
 
   /** Etiket filtresi */
   const [savedSelected, setSavedSelected] = useState<Set<string>>(new Set());
+  const PER_PAGE = 8;
+  const [page, setPage] = useState(1);
 
   /** İki adımlı kaldır onayı */
   const [confirmRemoveSaved, setConfirmRemoveSaved] = useState<string | null>(null);
@@ -129,15 +132,21 @@ export default function SavedTab({
       return true;
     });
   }, [localSaved, savedSelected]);
+  // Pagination derived values and effects
+  const totalPages = Math.max(1, Math.ceil(filteredSaved.length / PER_PAGE));
+  const pageStart = Math.min((page - 1) * PER_PAGE, Math.max(0, (totalPages - 1) * PER_PAGE));
+  const pageItems = filteredSaved.slice(pageStart, pageStart + PER_PAGE);
+
+  useEffect(() => { setPage(1); }, [localSaved.length, savedSelected.size]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [totalPages, page]);
+
   // Ana sayfadaki gibi: row‑major iki sütuna böl (1: sol, 2: sağ, 3: sol, 4: sağ ...)
   const [colLeft, colRight] = useMemo(() => {
     const L: MyItem[] = [];
     const R: MyItem[] = [];
-    filteredSaved.forEach((it, idx) => {
-      (idx % 2 === 0 ? L : R).push(it);
-    });
+    pageItems.forEach((it, idx) => ((idx % 2 === 0) ? L : R).push(it));
     return [L, R];
-  }, [filteredSaved]);
+  }, [pageItems]);
 
   /** BE: Kaydedilenden kaldır (optimistic) */
   const removeSaved = useCallback(async (itemId: string) => {
@@ -203,9 +212,9 @@ export default function SavedTab({
 
             {/* Kartlar — mobilde tek sütun (gerçek sıra), md+ iki sütun (row‑major) */}
 
-            {/* MOBILE: tek sütun — filteredSaved sırasını aynen uygula */}
+            {/* MOBILE: tek sütun — pageItems sırasını aynen uygula */}
             <div className="md:hidden flex flex-col gap-5">
-              {filteredSaved.map(it => (
+              {pageItems.map(it => (
                 <div key={it.id}>
                   <ItemCard
                     item={it}
@@ -362,6 +371,9 @@ export default function SavedTab({
                   </div>
                 ))}
               </div>
+            </div>
+            <div className="mt-2">
+              <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           </>
         )}

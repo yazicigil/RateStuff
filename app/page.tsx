@@ -35,6 +35,7 @@ import ItemCard from '@/components/items/ItemCard';
 import Head from 'next/head';
 import SpotlightCard from '@/components/home/spotlight/SpotlightCard';
 import ScrollToTop from "@/components/common/ScrollToTop";
+import Pager from '@/components/common/Pager';
 
 import Lottie, { LottieRefCurrentProps } from 'lottie-react';
 import starLoaderAnim from '@/assets/animations/star-loader.json';
@@ -636,31 +637,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     }
   }
 
-  function Pager() {
-    return (
-      <div className="flex items-center justify-center gap-2 mt-2">
-        <button
-          type="button"
-          className="px-3 h-9 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-          onClick={() => goToPage(page - 1)}
-          disabled={page <= 1}
-        >
-          Önceki
-        </button>
-        <div className="px-2 text-sm tabular-nums">
-          {page} / {totalPages}
-        </div>
-        <button
-          type="button"
-          className="px-3 h-9 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-          onClick={() => goToPage(page + 1)}
-          disabled={page >= totalPages}
-        >
-          Sonraki
-        </button>
-      </div>
-    );
-  }
 
   // Spotlight gezinme: aktif index ve yardımcılar
   const currentIndex = useMemo(
@@ -1535,8 +1511,7 @@ if (!already) {
         </div>
       )}
 
-          {/* PAGER (top) */}
-          <Pager />
+          
 
           {/* KART IZGARASI */}
           <h1 className="text-lg font-semibold mb-2">
@@ -1741,7 +1716,7 @@ if (!already) {
             </div>
           </div>
           {/* PAGER (bottom) */}
-          <Pager />
+          <Pager page={page} totalPages={totalPages} onPageChange={goToPage} />
 
           <ReportModal
             open={reportOpen}

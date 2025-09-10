@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ItemCard from '@/components/items/ItemCard';
 import QuickAddCard from '@/components/home/QuickAddCard';
 import TagFilterBar from '@/components/common/TagFilterBar';
+import Pager from '@/components/common/Pager';
 import { useRouter } from 'next/navigation';
 
 /** — Tipler — */
@@ -82,6 +83,8 @@ export default function ItemsTab({
   const [itemsLocal, setItemsLocal] = useState<MyItem[]>(items);
   useEffect(() => { setItemsLocal(items); }, [items]);
   const [itemsSelected, setItemsSelected] = useState<Set<string>>(new Set());
+  const PER_PAGE = 8;
+  const [page, setPage] = useState(1);
 
   // Router and item card UI state
   const router = useRouter();
@@ -211,8 +214,16 @@ export default function ItemsTab({
     });
   }, [itemsLocal, itemsSelected]);
 
+  // Pagination derived values and effects
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE));
+  const pageStart = Math.min((page - 1) * PER_PAGE, Math.max(0, (totalPages - 1) * PER_PAGE));
+  const pageItems = filteredItems.slice(pageStart, pageStart + PER_PAGE);
+
+  useEffect(() => { setPage(1); }, [itemsLocal.length, itemsSelected.size]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [totalPages, page]);
+
   // Items with "add" card and row-major two-column split for desktop
-  const itemsWithAdd = useMemo(() => (canShowAdd ? [{ __add: true } as any, ...filteredItems] : filteredItems), [filteredItems, canShowAdd]);
+  const itemsWithAdd = useMemo(() => (canShowAdd ? [{ __add: true } as any, ...pageItems] : pageItems), [pageItems, canShowAdd]);
   const [colLeft, colRight] = useMemo(() => {
     const L: any[] = []; const R: any[] = [];
     itemsWithAdd.forEach((it, idx) => ((idx % 2 === 0) ? L : R).push(it));
@@ -558,6 +569,9 @@ export default function ItemsTab({
             </div>
           </>
         )}
+        <div className="mt-2">
+          <Pager page={page} totalPages={totalPages} onPageChange={setPage} />
+        </div>
       </div>
     </section>
   );
