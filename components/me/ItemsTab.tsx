@@ -95,8 +95,6 @@ export default function ItemsTab({
   // Optimistic removal for delete
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
-  // Brand theme detection
-  const [brandTheme, setBrandTheme] = useState(false);
 
   // Infer list owner from items (first item with a creator id)
   const listOwnerId = useMemo(() => {
@@ -113,19 +111,6 @@ export default function ItemsTab({
   const effectiveHideAdd = false;  // force-show Add card in all cases
   const canShowAdd = true;         // always inject the Add card
 
-  useEffect(() => {
-    const root = document.documentElement;
-    const compute = () => {
-      const cs = getComputedStyle(root);
-      const a = cs.getPropertyValue('--brand-accent').trim();
-      const b = cs.getPropertyValue('--brand-items-bg').trim();
-      setBrandTheme(Boolean(a || b));
-    };
-    compute();
-    const mo = new MutationObserver(compute);
-    mo.observe(root, { attributes: true, attributeFilter: ['style'] });
-    return () => mo.disconnect();
-  }, []);
 
   const notifyFn = React.useCallback((msg: string) => {
     try {
@@ -238,9 +223,6 @@ export default function ItemsTab({
   return (
     <section
       className="fade-slide-in rounded-2xl border dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden"
-      style={{
-        backgroundColor: 'var(--brand-items-bg, transparent)'
-      }}
     >
       <div className="px-4 pb-4 pt-3 space-y-3">
         {loading ? (
@@ -271,8 +253,7 @@ export default function ItemsTab({
                     <button
                       type="button"
                       onClick={() => setQaOpen(true)}
-                      className="rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
-                      style={{ backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}
+                      className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-300 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
                       aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
@@ -302,12 +283,11 @@ export default function ItemsTab({
                     <button
                       type="button"
                       onClick={() => setQaOpen(true)}
-                      className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                      style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
+                      className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-300 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
                       aria-label="Hızlı ekle"
                       title="Hızlı ekle"
                     >
-                      <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                      <div className="flex flex-col items-center gap-2">
                         <span className="text-5xl leading-none">+</span>
                         <span className="text-base font-medium">Ekle</span>
                       </div>
@@ -364,12 +344,11 @@ export default function ItemsTab({
                       <button
                         type="button"
                         onClick={() => setQaOpen(true)}
-                        className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                        style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
+                        className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-300 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
                         aria-label="Hızlı ekle"
                         title="Hızlı ekle"
                       >
-                        <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                        <div className="flex flex-col items-center gap-2">
                           <span className="text-4xl leading-none">+</span>
                           <span className="text-sm font-medium">Ekle</span>
                         </div>
@@ -451,12 +430,11 @@ export default function ItemsTab({
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
-                          className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
+                          className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-300 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
                           aria-label="Hızlı ekle"
                           title="Hızlı ekle"
                         >
-                          <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                          <div className="flex flex-col items-center gap-2">
                             <span className="text-4xl leading-none">+</span>
                             <span className="text-sm font-medium">Ekle</span>
                           </div>
@@ -519,12 +497,11 @@ export default function ItemsTab({
                         <button
                           type="button"
                           onClick={() => setQaOpen(true)}
-                          className={`rounded-2xl border-2 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition ${brandTheme ? '' : 'border-emerald-300 bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40'}`}
-                          style={brandTheme ? { backgroundColor: 'var(--brand-elev-strong)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' } : undefined}
+                          className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/10 text-emerald-700 dark:text-emerald-300 p-4 shadow-sm grid place-items-center min-h-[152px] hover:-translate-y-0.5 hover:shadow-md transition"
                           aria-label="Hızlı ekle"
                           title="Hızlı ekle"
                         >
-                          <div className={`flex flex-col items-center gap-2 ${brandTheme ? '' : 'text-emerald-700 dark:text-emerald-300'}`} style={brandTheme ? { color: 'var(--brand-ink)' } : undefined}>
+                          <div className="flex flex-col items-center gap-2">
                             <span className="text-4xl leading-none">+</span>
                             <span className="text-sm font-medium">Ekle</span>
                           </div>
