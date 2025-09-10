@@ -19,7 +19,7 @@ export default function Footer() {
         {/* Brand left */}
         <div className="space-y-2">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Image src="/logo.svg" alt="RateStuff" width={40} height={40} className="dark:invert" />
+            <Image src="/logo.svg" alt="RateStuff" width={56} height={56} className="dark:invert" />
           </Link>
           <p className="text-sm opacity-70 max-w-sm">
             Her şeyi puanla, başkalarının deneyimlerinden ilham al.
@@ -28,9 +28,9 @@ export default function Footer() {
 
         {/* Social middle */}
         <div className="flex items-center md:justify-center gap-3">
-          <SocialIcon url="https://instagram.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 40, width: 40 }} />
-          <SocialIcon url="https://x.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 40, width: 40 }} />
-          <SocialIcon url="https://www.linkedin.com/company/ratestuff/" target="_blank" rel="noopener noreferrer" style={{ height: 40, width: 40 }} />
+          <SocialIcon url="https://instagram.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
+          <SocialIcon url="https://x.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
+          <SocialIcon url="https://www.linkedin.com/company/ratestuff/" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
         </div>
 
         {/* For Brands right */}
@@ -39,8 +39,8 @@ export default function Footer() {
             <Image
               src="/forbrandslogo.svg"
               alt="RateStuff for Brands"
-              width={48}
-              height={48}
+              width={64}
+              height={64}
               className="dark:invert dark:brightness-0"
             />
           </Link>
