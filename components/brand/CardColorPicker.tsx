@@ -160,23 +160,15 @@ root.style.removeProperty('--brand-elev-bd');
       <span className="text-xs" style={{ color: 'var(--brand-ink-subtle, var(--brand-ink, currentColor))' }}>Marka rengi:</span>
 
       {/* Hızlı palet */}
-      {PALETTE.map((c, i) => (
-        <div key={c} className="relative">
-          <button
-            type="button"
-            aria-label={`Renk ${c}`}
-            onClick={() => apply(c)}
-            className="h-6 w-6 rounded-full border border-black/10 dark:border-white/10 hover:scale-[1.05] transition"
-            style={{ backgroundColor: c, boxShadow: c === color ? '0 0 0 2px rgba(0,0,0,0.15) inset' : undefined }}
-          />
-          {i === 0 && (
-            <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <svg viewBox="0 0 24 24" className="w-6 h-6 text-red-600">
-                <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </span>
-          )}
-        </div>
+      {PALETTE.map((c) => (
+        <button
+          key={c}
+          type="button"
+          aria-label={`Renk ${c}`}
+          onClick={() => apply(c)}
+          className="h-6 w-6 rounded-full border border-black/10 dark:border-white/10 hover:scale-[1.05] transition"
+          style={{ backgroundColor: c, boxShadow: c === color ? '0 0 0 2px rgba(0,0,0,0.15) inset' : undefined }}
+        />
       ))}
 
       {/* Özel renk */}

@@ -434,9 +434,80 @@ const handleDelete = React.useCallback(async (id: string) => {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="grid place-items-center h-32 text-sm opacity-70">
-          {emptyState ?? <span>Henüz ürün eklenmemiş.</span>}
-        </div>
+        isOwner ? (
+          showQuickAdd ? (
+            <div
+              className="brand-quickadd-scope col-span-1 sm:col-span-2 lg:col-span-3"
+              style={{ color: 'var(--brand-ink)' }}
+            >
+              <QuickAddCard
+                open={showQuickAdd}
+                onClose={() => setShowQuickAdd(false)}
+                trending={tags}
+                allTagsEndpoint="/api/tags?limit=500"
+                variant="rich"
+                signedIn={Boolean(myId)}
+                isBrandProfile
+                autoCloseOnSuccess
+                onSubmit={async (payload) => {
+                  try {
+                    const res = await fetch('/api/items', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        ...payload,
+                        createdById: myId ?? undefined,
+                        ownerId: ownerId ?? undefined,
+                        source: 'brand-profile-quickadd',
+                      }),
+                    });
+                    if (!res.ok) return false;
+                    const data = await res.json().catch(() => ({}));
+                    const newId = data?.id as (string | undefined);
+                    if (data && (data as any).id) {
+                      setItemsLocal((prev: any[]) => [{ ...(data as any) }, ...prev]);
+                    }
+                    setShowQuickAdd(false);
+                    try { await onReload?.(); } catch {}
+                    onQuickAddDone?.(newId);
+                    return true;
+                  } catch {
+                    return false;
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div
+                className="w-full rounded-2xl h-full flex flex-col"
+                style={brandTheme ? {
+                  background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
+                  color: inkByTone,
+                  outline: 'none',
+                  boxShadow: 'none',
+                } : undefined}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAdd(true)}
+                  className="flex-1 rounded-2xl border flex items-center justify-center text-sm"
+                  style={{ borderColor: addCardBorder, color: addCardInk, background: addCardBg }}
+                  aria-label="Yeni ürün ekle"
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-2xl leading-none">+</span>
+                    <span className="opacity-80">Ekle</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )
+        ) : (
+          <div className="grid place-items-center h-32 text-sm opacity-70">
+            {emptyState ?? <span>Henüz ürün eklenmemiş.</span>}
+          </div>
+        )
       ) : (
         <div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 overflow-visible"
