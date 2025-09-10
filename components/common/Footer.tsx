@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { SocialIcon } from "react-social-icons";
 import React from "react";
+import ReachUsModal from "./ReachUs";
 
 /**
  * RateStuff Footer
@@ -11,6 +12,7 @@ import React from "react";
  */
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [reachOpen, setReachOpen] = React.useState(false);
 
   return (
     <footer className="mt-10 border-t dark:border-gray-800">
@@ -38,9 +40,8 @@ export default function Footer() {
           </button>
           <button
             type="button"
-            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
-            aria-disabled="true"
-            title="Yakında"
+            className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+            onClick={() => setReachOpen(true)}
           >
             Bize ulaş
           </button>
@@ -63,6 +64,7 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-4 text-center text-xs opacity-60">© {year} RateStuff</div>
       </div>
+      <ReachUsModal open={reachOpen} onClose={() => setReachOpen(false)} />
     </footer>
   );
 }
