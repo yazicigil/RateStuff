@@ -17,8 +17,8 @@ export default function Footer() {
     <footer className="mt-10 border-t dark:border-gray-800">
       <div className="rs-mobile-edge mx-auto max-w-screen-xl px-4 py-8 grid gap-6 md:grid-cols-3">
         {/* Brand left */}
-        <div className="space-y-2">
-          <Link href="/" className="inline-flex items-center gap-2">
+        <div className="flex flex-col items-start">
+          <Link href="/" className="mb-2">
             <Image src="/logo.svg" alt="RateStuff" width={96} height={96} className="dark:invert" />
           </Link>
           <p className="text-sm opacity-70 max-w-sm">
@@ -27,20 +27,20 @@ export default function Footer() {
         </div>
 
         {/* Social middle */}
-        <div className="flex items-center md:justify-center gap-3">
+        <div className="flex items-center md:justify-center gap-3 self-end md:self-center">
           <SocialIcon url="https://instagram.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
           <SocialIcon url="https://x.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
           <SocialIcon url="https://www.linkedin.com/company/ratestuff/" target="_blank" rel="noopener noreferrer" style={{ height: 32, width: 32 }} />
         </div>
 
         {/* For Brands right */}
-        <div className="md:text-right">
+        <div className="md:text-right flex flex-col items-end">
           <Link href="/brand" aria-label="RateStuff for Brands">
             <Image
               src="/forbrandslogo.svg"
               alt="RateStuff for Brands"
-              width={128}
-              height={128}
+              width={160}
+              height={160}
               className="dark:invert dark:brightness-0"
             />
           </Link>
