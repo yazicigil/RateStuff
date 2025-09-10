@@ -45,7 +45,7 @@ export default function Footer() {
             Bize ulaş
           </button>
           <Link
-            href="/brands"
+            href="/brand"
             className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
             title="RateStuff | For Brands"
           >
@@ -57,7 +57,6 @@ export default function Footer() {
         <div className="mt-4 flex items-center justify-center gap-4">
           <SocialIcon url="https://instagram.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
           <SocialIcon url="https://x.com/ratestuffnet" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
-          <SocialIcon url="https://github.com/ratestuff" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
           <SocialIcon url="https://www.linkedin.com/company/ratestuff/" target="_blank" rel="noopener noreferrer" style={{ height: 28, width: 28 }} />
         </div>
 
