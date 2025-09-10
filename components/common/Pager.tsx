@@ -74,7 +74,7 @@ export default function Pager({
   const pageBase =
     'inline-flex items-center justify-center h-9 min-w-9 px-2 rounded-md text-sm';
   const pageActive =
-    'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900';
+    'bg-purple-600 text-white dark:bg-purple-400 dark:text-gray-900';
   const pageIdle = 'hover:bg-gray-100 dark:hover:bg-gray-800 border';
 
   return (
