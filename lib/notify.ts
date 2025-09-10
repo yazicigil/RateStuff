@@ -67,20 +67,39 @@ export async function notify(p: NotifyPayload) {
 export const templates = {
   commentOnOwnItem: (args: {
     ownerId: string;
+    actorId?: string;
     actorName: string;
+    actorMaskedName?: string;
+    actorKind?: 'BRAND' | 'DEFAULT' | string; // tolerate string to avoid enum coupling here
+    actorVerified?: boolean;
+    rating?: number;
     itemTitle: string;
     commentText: string;
     itemId: string;
     thumb?: string;
-  }) =>
-    notify({
+  }) => {
+    const isBrand = String(args.actorKind || '').toUpperCase() === 'BRAND';
+    const displayName = isBrand
+      ? (args.actorName || 'Marka')
+      : (args.actorMaskedName || args.actorName || 'Kullanıcı');
+
+    return notify({
       userId: args.ownerId,
-      type: "COMMENT_ON_OWN_ITEM",
-      title: `${args.actorName} yorum yaptı`,
+      type: 'COMMENT_ON_OWN_ITEM',
+      title: `${displayName} yorum yaptı`,
       body: `“${args.commentText.slice(0, 80)}” • ${args.itemTitle}`,
       link: `/share/${args.itemId}`,
       image: args.thumb,
-      eventKey: `cmt:${args.itemId}:${args.actorName}:${args.commentText.slice(0,40)}`,
-      data: { itemId: args.itemId },
-    }),
+      eventKey: `cmt:${args.itemId}:${args.actorId ?? args.actorName}:${args.commentText.slice(0,40)}`,
+      data: {
+        itemId: args.itemId,
+        actorId: args.actorId,
+        actorName: args.actorName,
+        actorMaskedName: args.actorMaskedName,
+        actorKind: args.actorKind,
+        actorVerified: args.actorVerified ?? false,
+        rating: args.rating,
+      },
+    });
+  },
 };
