@@ -131,7 +131,7 @@ export default function BrandLoginPage() {
               width={360}
               height={72}
               priority
-              className="-ml-3 md:-ml-2"
+              className="-ml-3 md:-ml-2 dark:invert dark:brightness-0"
             />
           </div>
 
