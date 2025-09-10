@@ -379,9 +379,9 @@ export default function NotificationsDropdown() {
                               n.data?.actorType === 'BRAND' ||
                               (n.data as any)?.actorIsBrand
                             ) && ((n.data as any)?.actorVerified ?? true) && (
-                              // verified badge (inline svg)
-                              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" aria-label="Doğrulanmış">
-                                <path fill="currentColor" d="M12 2.25l2.35 1.27 2.62-.1 1.52 2.19 2.41 1.14-.28 2.61 1.33 2.32-1.88 1.93-.5 2.57-2.57.5-1.93 1.88-2.32-1.33-2.61.28-1.14-2.41-2.19-1.52.1-2.62L2.25 12l1.27-2.35-.1-2.62 2.19-1.52 1.14-2.41 2.61.28L12 2.25zm-1.2 11.2l5.2-5.2-1.4-1.4-3.8 3.79-1.6-1.59-1.4 1.41 3 2.99z"/>
+                              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block ml-1 w-4 h-4 align-middle">
+                                <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                                <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                               </svg>
                             )}
                           </span>
