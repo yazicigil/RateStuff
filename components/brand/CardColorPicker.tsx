@@ -45,6 +45,13 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     const el = document.getElementById(targetId);
     const root = document.documentElement; // <-- write vars here so scope is global
 
+    const hexUpperEarly = hex.toUpperCase();
+    if (hexUpperEarly === '#FFFFFF' || hexUpperEarly === '#000000') {
+      // behave as if no brand color selected
+      reset(shouldPersist);
+      return;
+    }
+
     // If we cannot find the target element, we still proceed with global vars
     const bg = hexToRgba(hex, 0.65);       // kept for optional glass uses
     const border = hexToRgba(hex, 0.35);
@@ -55,15 +62,7 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     const baseB = parseInt(raw.slice(4, 6), 16);
 
     const isDark = document.documentElement.classList.contains('dark');
-    const hexUpper = hex.toUpperCase();
-
-    // If user picks pure white/black, adapt by theme so surfaces stay legible
     let r = baseR, g = baseG, b = baseB;
-    if (hexUpper === '#FFFFFF' && isDark) {
-      r = 0; g = 0; b = 0; // show black in dark mode instead of white
-    } else if (hexUpper === '#000000' && !isDark) {
-      r = 255; g = 255; b = 255; // show white in light mode instead of black
-    }
 
     // Subtle surface wash from the (effective) color
     const surfaceAlpha = isDark ? 0.18 : 0.10; // stronger wash for better harmony
@@ -116,7 +115,7 @@ el.style.setProperty('--brand-elev-bd', elevBd);
     if (shouldPersist) persist(hex);
   }
 
-  function reset() {
+  function reset(persistAlso: boolean = true) {
     const el = document.getElementById(targetId);
     const root = document.documentElement;
 
@@ -153,7 +152,7 @@ root.style.removeProperty('--brand-elev-strong');
 root.style.removeProperty('--brand-elev-bd');
 
     setColor('#FFFFFF');
-    persist(null);
+    if (persistAlso) persist(null);
   }
 
   return (
@@ -161,15 +160,23 @@ root.style.removeProperty('--brand-elev-bd');
       <span className="text-xs" style={{ color: 'var(--brand-ink-subtle, var(--brand-ink, currentColor))' }}>Marka rengi:</span>
 
       {/* Hızlı palet */}
-      {PALETTE.map((c) => (
-        <button
-          key={c}
-          type="button"
-          aria-label={`Renk ${c}`}
-          onClick={() => apply(c)}
-          className="h-6 w-6 rounded-full border border-black/10 dark:border-white/10 hover:scale-[1.05] transition"
-          style={{ backgroundColor: c, boxShadow: c === color ? '0 0 0 2px rgba(0,0,0,0.15) inset' : undefined }}
-        />
+      {PALETTE.map((c, i) => (
+        <div key={c} className="relative">
+          <button
+            type="button"
+            aria-label={`Renk ${c}`}
+            onClick={() => apply(c)}
+            className="h-6 w-6 rounded-full border border-black/10 dark:border-white/10 hover:scale-[1.05] transition"
+            style={{ backgroundColor: c, boxShadow: c === color ? '0 0 0 2px rgba(0,0,0,0.15) inset' : undefined }}
+          />
+          {i === 0 && (
+            <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <svg viewBox="0 0 24 24" className="w-6 h-6 text-red-600">
+                <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            </span>
+          )}
+        </div>
       ))}
 
       {/* Özel renk */}
@@ -184,7 +191,7 @@ root.style.removeProperty('--brand-elev-bd');
 
       <button
         type="button"
-        onClick={reset}
+        onClick={() => reset()}
         className="ml-1 text-xs px-2 py-1 rounded border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5"
       >
         Sıfırla
