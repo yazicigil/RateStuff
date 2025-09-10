@@ -19,7 +19,7 @@ export default function Footer() {
         {/* Brand left */}
         <div className="space-y-2">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Image src="/logo.svg" alt="RateStuff" width={56} height={56} className="dark:invert" />
+            <Image src="/logo.svg" alt="RateStuff" width={96} height={96} className="dark:invert" />
           </Link>
           <p className="text-sm opacity-70 max-w-sm">
             Her şeyi puanla, başkalarının deneyimlerinden ilham al.
@@ -39,8 +39,8 @@ export default function Footer() {
             <Image
               src="/forbrandslogo.svg"
               alt="RateStuff for Brands"
-              width={64}
-              height={64}
+              width={128}
+              height={128}
               className="dark:invert dark:brightness-0"
             />
           </Link>
