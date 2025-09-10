@@ -49,7 +49,7 @@ export default function Footer() {
             className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
             title="RateStuff | For Brands"
           >
-            RateStuff | For Brands
+            for Brands
           </Link>
         </nav>
 
