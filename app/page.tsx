@@ -124,6 +124,9 @@ export default function HomePage() {
   const [items, setItems] = useState<ItemVM[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [trending, setTrending] = useState<string[]>([]);
+  // Pagination
+  const PER_PAGE = 8;
+  const [page, setPage] = useState(1);
   // Arama kutusundaki yazıya göre etiket eşleşmeleri (ilgili etiketler)
   const tagHits = useMemo(() => {
     const s = qInput.trim().toLowerCase();
@@ -582,12 +585,27 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     return filtered;
   }, [items, starBuckets, selectedTags, order]);
 
+  // Derived: total pages and current slice
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PER_PAGE));
+  const pageStart = Math.min((page - 1) * PER_PAGE, Math.max(0, (totalPages - 1) * PER_PAGE));
+  const pageItems = filteredItems.slice(pageStart, pageStart + PER_PAGE);
+
+  // Reset to page 1 when filters/search/order change
+  useEffect(() => {
+    setPage(1);
+  }, [qCommitted, order, Array.from(starBuckets).join(','), Array.from(selectedTags).join(',')]);
+
+  // Clamp page when filteredItems length changes
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [totalPages, page]);
+
   // Row-major iki sütuna böl (1: sol, 2: sağ, 3: sol, 4: sağ ...)
   const itemsWithAdd = useMemo(() => {
-    if (loading) return filteredItems;
-    // "+ Ekle" kartını ilk sıraya yerleştir
-    return [{ __add: true } as any, ...filteredItems];
-  }, [filteredItems, loading]);
+    if (loading) return pageItems;
+    // "+ Ekle" kartını her sayfanın en başına yerleştir
+    return [{ __add: true } as any, ...pageItems];
+  }, [pageItems, loading]);
   const [colLeft, colRight] = useMemo(() => {
     const L: any[] = [];
     const R: any[] = [];
@@ -596,6 +614,53 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     });
     return [L, R];
   }, [itemsWithAdd]);
+
+  // Ref for list top to scroll into view on page change
+  const listTopRef = useRef<HTMLDivElement>(null);
+
+  // Pager helpers
+  function goToPage(next: number) {
+    const p = Math.max(1, Math.min(totalPages, next));
+    if (p === page) return;
+    setPage(p);
+    // scroll to list section top for better UX
+    const el = listTopRef.current;
+    if (el) {
+      try {
+        const rect = el.getBoundingClientRect();
+        const y = rect.top + window.scrollY - headerOffset();
+        smoothScrollToY(y);
+      } catch {
+        window.scrollTo(0, 0);
+      }
+    }
+  }
+
+  function Pager() {
+    return (
+      <div className="flex items-center justify-center gap-2 mt-2">
+        <button
+          type="button"
+          className="px-3 h-9 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+          onClick={() => goToPage(page - 1)}
+          disabled={page <= 1}
+        >
+          Önceki
+        </button>
+        <div className="px-2 text-sm tabular-nums">
+          {page} / {totalPages}
+        </div>
+        <button
+          type="button"
+          className="px-3 h-9 rounded-lg border text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+          onClick={() => goToPage(page + 1)}
+          disabled={page >= totalPages}
+        >
+          Sonraki
+        </button>
+      </div>
+    );
+  }
 
   // Spotlight gezinme: aktif index ve yardımcılar
   const currentIndex = useMemo(
@@ -1264,7 +1329,7 @@ if (!already) {
         </aside>
 
         {/* Sağ: listeler */}
-        <section className="rs-mobile-edge space-y-4 order-2 md:order-2">
+        <section ref={listTopRef} className="rs-mobile-edge space-y-4 order-2 md:order-2">
 
 
           {/* QUICK-ADD SPOTLIGHT (moved into list column) */}
@@ -1470,6 +1535,8 @@ if (!already) {
         </div>
       )}
 
+          {/* PAGER (top) */}
+          <Pager />
 
           {/* KART IZGARASI */}
           <h1 className="text-lg font-semibold mb-2">
@@ -1673,6 +1740,9 @@ if (!already) {
               ))}
             </div>
           </div>
+          {/* PAGER (bottom) */}
+          <Pager />
+
           <ReportModal
             open={reportOpen}
             presets={REPORT_PRESETS}
