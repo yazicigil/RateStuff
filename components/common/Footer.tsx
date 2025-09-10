@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SocialIcon } from "react-social-icons";
 import React from "react";
 import ReachUsModal from "./ReachUs";
@@ -13,6 +14,7 @@ import ReachUsModal from "./ReachUs";
 export default function Footer() {
   const year = new Date().getFullYear();
   const [reachOpen, setReachOpen] = React.useState(false);
+  const pathname = usePathname();
 
   return (
     <footer className="mt-10 border-t dark:border-gray-800">
@@ -30,14 +32,13 @@ export default function Footer() {
           >
             Hakkımızda
           </button>
-          <button
-            type="button"
-            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
-            aria-disabled="true"
-            title="Yakında"
+          <Link
+            href="/privacy"
+            className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+            title="Gizlilik Politikası"
           >
             Gizlilik
-          </button>
+          </Link>
           <button
             type="button"
             className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
@@ -45,13 +46,23 @@ export default function Footer() {
           >
             Bize ulaş
           </button>
-          <Link
-            href="/brand"
-            className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
-            title="RateStuff | For Brands"
-          >
-            for Brands
-          </Link>
+          {pathname === "/brand" ? (
+            <Link
+              href="/"
+              className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
+              title="RateStuff ana sayfa"
+            >
+              RateStuff
+            </Link>
+          ) : (
+            <Link
+              href="/brand"
+              className="hover:text-purple-600 dark:hover:text-purple-400 font-semibold"
+              title="RateStuff | For Brands"
+            >
+              for Brands
+            </Link>
+          )}
         </nav>
 
         {/* Social icons */}
