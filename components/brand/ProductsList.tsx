@@ -474,7 +474,7 @@ const handleDelete = React.useCallback(async (id: string) => {
                 open={showQuickAdd}
                 onClose={() => setShowQuickAdd(false)}
                 trending={trending}
-                allTags={tags}
+                allTagsEndpoint="/api/tags?limit=500"
                 variant="rich"
                 signedIn={Boolean(myId)}
                 isBrandProfile
