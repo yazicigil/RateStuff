@@ -115,7 +115,14 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 }
 
 /* Mention dropdown theming + stacking */
-.rs-mention-panel{ @apply bg-white dark:bg-[#0b1220] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl; z-index: 9999 !important; margin-top: 4px; }
+.rs-mention-panel{
+  @apply bg-white dark:bg-[#0b1220] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl;
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  left: 0 !important;
+  right: auto !important;
+  z-index: 2147483647 !important; /* maximum stacking */
+}
 .rs-mention-panel .p-mention-items{ @apply py-1; }
 .rs-mention-panel .p-mention-item{ @apply px-2 py-1.5 cursor-pointer; }
 .rs-mention-panel .p-mention-item.p-highlight,
