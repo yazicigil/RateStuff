@@ -232,12 +232,17 @@ export default function ProductsList<
 const filtered = React.useMemo(() => {
   const hasSel = selected.size > 0;
   const qn = q.trim().toLowerCase();
-  const base = itemsLocal.filter((it) => {
-    if (removedIds.has(it.id)) return false;
-    const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
-    const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
-    return matchTags && matchQ;
-  });
+ const base = itemsLocal.filter((it) => {
+  if (removedIds.has(it.id)) return false;
+
+  // Suspended item'lar sadece sahibine görünsün
+  const ownerOfItem = (it as any)?.createdById ?? (it as any)?.createdBy?.id;
+  if ((it as any)?.suspended && ownerOfItem !== myId) return false;
+
+  const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
+  const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
+  return matchTags && matchQ;
+});
   if (order === 'top') {
     const score = (it: any) => {
       const s = it.rating ?? it.avgRating ?? it.avg ?? 0;
@@ -271,14 +276,12 @@ const filtered = React.useMemo(() => {
     return savedIds instanceof Set ? savedIds : new Set(savedIds);
   }, [savedIds]);
 
-  // Owner check (profil sahibinin kendi sayfası mı?)
+  // Sadece gerçek profil sahibinde QuickAdd/Ekle kartını göster. Public sayfalarda yanlışlıkla tetiklenmesin diye items içeriğine bakarak tahmin etmiyoruz.
   const isOwner = React.useMemo(() => {
     if (!myId) return false;
-    if (ownerId) return myId === ownerId;
-    // fallback: listedeki item'ların sahibi kontrolü
-    const anyOwner = items.find((it: any) => it?.createdById && it.createdById === myId);
-    return Boolean(anyOwner);
-  }, [myId, ownerId, items]);
+    if (ownerId == null) return false; // ownerId bilinmiyorsa public varsay
+    return myId === ownerId;
+  }, [myId, ownerId]);
 
   // QuickAdd visibility
   const [showQuickAdd, setShowQuickAdd] = React.useState(false);
@@ -596,8 +599,10 @@ return true;
             const isElevated = openShareId === it.id || openMenuId === it.id;
             return (
             <div
-              key={it.id}
-              className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
+  key={it.id}
+  data-suspended={(it as any)?.suspended ? 'true' : 'false'}
+  data-owner={(((it as any)?.createdById ?? (it as any)?.createdBy?.id) === myId) ? 'true' : 'false'}
+  className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
               style={brandTheme ? {
                 background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
                 color: inkByTone,
@@ -625,13 +630,13 @@ return true;
                   copiedShareId={copiedId}
 
                   onOpenSpotlight={handleOpenSpotlight}
-                  onToggleSave={onToggleSave ?? (() => {})}
-                  onReport={onReport ?? (() => {})}
+                  onToggleSave={onToggleSave}
+                  onReport={onReport}
                   onDelete={onDelete ?? handleDelete}
-                  onCopyShare={onCopyShare ?? ((id: string) => setCopiedId(id))}
-                  onNativeShare={onNativeShare ?? (() => {})}
-                  onShowInList={onShowInList ?? (() => {})}
-                  onVoteComment={onVoteComment ?? (() => {})}
+                  onCopyShare={onCopyShare}
+                  onNativeShare={onNativeShare}
+                  onShowInList={onShowInList}
+                  onVoteComment={onVoteComment}
                   onItemChanged={onItemChanged ?? (async () => { try { await onReload?.(); } catch {} })}
 
                   selectedTags={selected}
