@@ -107,6 +107,7 @@ export default async function BrandProfilePage() {
       imageUrl: true,
       productUrl: true,
       createdAt: true,
+      suspendedAt: true,
       tags: { select: { tag: { select: { name: true } } } },
     },
   });
@@ -146,6 +147,7 @@ export default async function BrandProfilePage() {
     description: it.description ?? '',
     imageUrl: it.imageUrl ?? null,
     productUrl: (it as any).productUrl ?? null,
+    suspendedAt: (it as any).suspendedAt ?? null,
     avg: avgMap.get(it.id) ?? null,
     avgRating: avgMap.get(it.id) ?? null,
     // Ratings/comment count normalized for ItemCard/RatingPill

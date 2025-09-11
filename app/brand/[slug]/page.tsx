@@ -160,11 +160,22 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
 
         <div className="mt-3 sm:mt-4 brand-slug-scope" style={{ color: 'var(--brand-ink)' }}>
           <ProductsList
-            // ProductsList arayüzü, ItemsCardClient’teki item’ları doğrudan kabul eder
-            items={(itemsForClient as any).map((it: any) => ({
-              ...it,
-              createdById: it.createdById ?? it.createdBy?.id ?? user.id,
-            }))}
+            // Owner/admin dışındakiler için suspended item'ları gizle; owner/admin için bırak
+            items={(itemsForClient as any)
+              .filter((it: any) => {
+                const isSusp = Boolean((it as any).suspendedAt);
+                const ownerId = (it as any).createdById ?? (it as any).createdBy?.id ?? user.id;
+                if (!isSusp) return true;
+                // public viewer ve admin değilse gizle
+                if (!viewerId && !viewerIsAdmin) return false;
+                return viewerIsAdmin || viewerId === ownerId;
+              })
+              .map((it: any) => ({
+                ...it,
+                // Ensure fields exist for ProductsList helpers
+                createdById: it.createdById ?? it.createdBy?.id ?? user.id,
+                suspendedAt: (it as any).suspendedAt ?? null,
+              }))}
             trending={[]}
             brandTheme
             myId={viewerId}
