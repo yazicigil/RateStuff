@@ -17,6 +17,9 @@ export type ProductsListItem = {
   desc?: string | null;
   imageUrl?: string | null;
   rating?: number | null;
+  suspendedAt?: string | null; // backend source of truth
+  createdBy?: { id: string } | null; // owner info
+  createdById?: string; // legacy fallback
   // Ek alanlar varsa genişletin
   [key: string]: any;
 };
@@ -180,15 +183,8 @@ export default function ProductsList<
   // ---- Suspended & owner helpers (schema-agnostic) ----
 
   const getOwnerId = React.useCallback((it: any): string | null => {
-    return (
-      it?.createdById ??
-      it?.createdBy?.id ??
-      it?.userId ??
-      it?.user?.id ??
-      it?.ownerId ??
-      it?.brandId ??
-      null
-    );
+    // Backend shapeItem returns createdBy.id; keep createdById as fallback for older payloads
+    return it?.createdBy?.id ?? it?.createdById ?? null;
   }, []);
 
   // Backend contract: item is suspended IFF `suspendedAt` is non-null (ISO string/date)
