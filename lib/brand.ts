@@ -24,6 +24,7 @@ export async function getBrandPublicView(slug: string) {
     take: 20, // istersen sayfalama ekleriz
     select: {
       id: true, name: true, description: true, imageUrl: true, productUrl: true, createdAt: true,
+      suspendedAt: true,
       tags: { select: { tag: { select: { name: true } } } },
     },
   });
@@ -56,6 +57,7 @@ export async function getBrandPublicView(slug: string) {
     description: it.description ?? "",
     imageUrl: it.imageUrl ?? null,
     productUrl: (it as any).productUrl ?? null,
+    suspendedAt: (it as any).suspendedAt ?? null,
     avg: avgMap.get(it.id) ?? null,
     avgRating: avgMap.get(it.id) ?? null,
     count: countMap.get(it.id) ?? 0,
