@@ -9,7 +9,6 @@ export async function GET(req: Request) {
 
   const rows = await prisma.brandAccount.findMany({
     where: {
-      active: true,
       ...(q
         ? {
             OR: [
