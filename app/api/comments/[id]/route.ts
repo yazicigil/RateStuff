@@ -47,27 +47,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             avatarUrl: true,
             email: true,
             kind: true,
-            // brandAccount: { select: { slug: true } }, // removed
           }
         }
       },
     });
-
-    // Attach BrandAccount.slug using e‑mail linkage (BrandAccount.email == User.email)
-    try {
-      const brand = await prisma.brandAccount.findFirst({
-        where: {
-          email: { equals: (updated as any).user?.email || '', mode: 'insensitive' },
-        },
-        select: { slug: true },
-      });
-      (updated as any).user = {
-        ...(updated as any).user,
-        brandAccount: brand ? { slug: brand.slug } : null,
-      };
-    } catch {
-      // ignore if brand account is not found or table not present
-    }
 
     return NextResponse.json({ ok: true, comment: updated });
   } catch (e: any) {
