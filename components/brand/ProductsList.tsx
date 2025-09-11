@@ -177,6 +177,33 @@ export default function ProductsList<
     return 0.2126*srgb[0] + 0.7152*srgb[1] + 0.0722*srgb[2];
   };
 
+  // ---- Suspended & owner helpers (schema-agnostic) ----
+  const isTrue = (v: any) => v === true || v === 'true' || v === 1 || v === '1';
+
+  const getOwnerId = React.useCallback((it: any): string | null => {
+    return (
+      it?.createdById ??
+      it?.createdBy?.id ??
+      it?.userId ??
+      it?.user?.id ??
+      it?.ownerId ??
+      it?.brandId ??
+      null
+    );
+  }, []);
+
+  const isItemSuspended = React.useCallback((it: any): boolean => {
+    const status = String(it?.status ?? '').toUpperCase();
+    return (
+      isTrue(it?.suspended) ||
+      status === 'SUSPENDED' ||
+      Boolean(it?.suspendedAt) ||
+      isTrue(it?.state?.suspended) ||
+      isTrue(it?.moderation?.suspended) ||
+      isTrue(it?.flags?.suspended)
+    );
+  }, []);
+
   React.useEffect(() => {
     const el = surfaceRef.current;
     if (!el) return;
@@ -233,17 +260,17 @@ export default function ProductsList<
 const filtered = React.useMemo(() => {
   const hasSel = selected.size > 0;
   const qn = q.trim().toLowerCase();
- const base = itemsLocal.filter((it) => {
-  if (removedIds.has(it.id)) return false;
+  const base = itemsLocal.filter((it) => {
+    if (removedIds.has(it.id)) return false;
 
-  // Suspended item'lar sadece sahibine görünsün
-  const ownerOfItem = (it as any)?.createdById ?? (it as any)?.createdBy?.id;
-  if ((it as any)?.suspended && ownerOfItem !== myId) return false;
+    // Suspended items: hide from everyone except owner (or admin)
+    const ownerOfItem = getOwnerId(it as any);
+    if (isItemSuspended(it) && ownerOfItem !== myId && !amAdmin) return false;
 
-  const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
-  const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
-  return matchTags && matchQ;
-});
+    const matchTags = !hasSel || (it.tags || []).some((t) => selected.has(t));
+    const matchQ = !qn || it.name.toLowerCase().includes(qn) || (it.desc || '').toLowerCase().includes(qn);
+    return matchTags && matchQ;
+  });
   if (order === 'top') {
     const score = (it: any) => {
       const s = it.rating ?? it.avgRating ?? it.avg ?? 0;
@@ -252,7 +279,7 @@ const filtered = React.useMemo(() => {
     return [...base].sort((a, b) => score(b) - score(a));
   }
   return base;
-}, [itemsLocal, removedIds, selected, q, order]);
+}, [itemsLocal, removedIds, selected, q, order, myId, amAdmin]);
 
   // Pagination derived values
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
@@ -724,55 +751,55 @@ return true;
           {pageItems.map((it) => {
             const isElevated = openShareId === it.id || openMenuId === it.id;
             return (
-            <div
-  key={it.id}
-  data-suspended={(it as any)?.suspended ? 'true' : 'false'}
-  data-owner={(((it as any)?.createdById ?? (it as any)?.createdBy?.id) === myId) ? 'true' : 'false'}
-  className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
-              style={brandTheme ? {
-                background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
-                color: inkByTone,
-                outline: 'none',
-                boxShadow: 'none',
-              } : undefined}
-            >
-              {renderItem ? (
-                renderItem(it)
-              ) : (
-                <ItemCard
-                  className="h-full"
-                  item={it as any}
-                  me={me}
-                  saved={savedShadow.has(it.id) ? savedShadow.get(it.id)! : savedSet.has(it.id)}
-                  amAdmin={!!amAdmin}
-                  myId={myId ?? null}
-                  showComments={!!showComments}
-                  showCommentBox={!!showCommentBox}
+              <div
+                key={it.id}
+                data-suspended={isItemSuspended(it) ? 'true' : 'false'}
+                data-owner={(getOwnerId(it) === myId) ? 'true' : 'false'}
+                className={`w-full rounded-2xl ${isElevated ? 'relative z-50' : ''} h-full flex flex-col`}
+                style={brandTheme ? {
+                  background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
+                  color: inkByTone,
+                  outline: 'none',
+                  boxShadow: 'none',
+                } : undefined}
+              >
+                {renderItem ? (
+                  renderItem(it)
+                ) : (
+                  <ItemCard
+                    className="h-full"
+                    item={{ ...(it as any), suspended: isItemSuspended(it) }}
+                    me={me}
+                    saved={savedShadow.has(it.id) ? savedShadow.get(it.id)! : savedSet.has(it.id)}
+                    amAdmin={!!amAdmin}
+                    myId={myId ?? null}
+                    showComments={!!showComments}
+                    showCommentBox={!!showCommentBox}
 
-                  openShareId={openShareId}
-                  setOpenShareId={setOpenShareId}
-                  openMenuId={openMenuId}
-                  setOpenMenuId={setOpenMenuId}
-                  copiedShareId={copiedId}
+                    openShareId={openShareId}
+                    setOpenShareId={setOpenShareId}
+                    openMenuId={openMenuId}
+                    setOpenMenuId={setOpenMenuId}
+                    copiedShareId={copiedId}
 
-                  onOpenSpotlight={handleOpenSpotlight}
-                  onToggleSave={onToggleSave ?? handleToggleSave}
-                  onReport={onReport ?? handleReport}
-                  onDelete={onDelete ?? handleDelete}
-                  onCopyShare={onCopyShare ?? handleCopyShare}
-                  onNativeShare={onNativeShare ?? handleNativeShare}
-                  onShowInList={onShowInList}
-                  onVoteComment={onVoteComment}
-                  onItemChanged={onItemChanged ?? (async () => { try { await onReload?.(); } catch {} })}
+                    onOpenSpotlight={handleOpenSpotlight}
+                    onToggleSave={onToggleSave ?? handleToggleSave}
+                    onReport={onReport ?? handleReport}
+                    onDelete={onDelete ?? handleDelete}
+                    onCopyShare={onCopyShare ?? handleCopyShare}
+                    onNativeShare={onNativeShare ?? handleNativeShare}
+                    onShowInList={onShowInList}
+                    onVoteComment={onVoteComment}
+                    onItemChanged={onItemChanged ?? (async () => { try { await onReload?.(); } catch {} })}
 
-                  selectedTags={selected}
-                  onToggleTag={onToggleTag ?? (() => {})}
-                  onResetTags={onResetTags ?? (() => {})}
+                    selectedTags={selected}
+                    onToggleTag={onToggleTag ?? (() => {})}
+                    onResetTags={onResetTags ?? (() => {})}
 
-                  {...(itemCardProps as any)}
-                />
-              )}
-            </div>
+                    {...(itemCardProps as any)}
+                  />
+                )}
+              </div>
             )
           })}
         </div>
