@@ -10,7 +10,7 @@ export function MentionTextArea({
   placeholder = "Bir şeyler yaz... (@slug ile marka etiketle)",
   className,
   minLengthToTrigger = 0,
-  rows = 4,
+  rows = 1,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -68,7 +68,7 @@ export function MentionTextArea({
       panelStyle={{ maxHeight: 320, overflowY: 'auto', backgroundColor: '#ffffff' }}
       rows={rows}
       autoResize
-      style={{ minHeight: "100px" }}
+      style={{ minHeight: "35px" }}
       itemTemplate={itemTemplate}
     />
   );
