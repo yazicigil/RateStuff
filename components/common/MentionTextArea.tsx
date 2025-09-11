@@ -10,7 +10,7 @@ export function MentionTextArea({
   placeholder = "Bir şeyler yaz... (@slug ile marka etiketle)",
   className,
   minLengthToTrigger = 0,
-  rows = 3,
+  rows = 4,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -24,7 +24,7 @@ export function MentionTextArea({
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < minLengthToTrigger) return setSuggestions([]);
     try {
-      const res = await fetch(`/api/brand/mention?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/brand/mention?q=${encodeURIComponent(q)}&take=200`);
       const data: BrandOpt[] = await res.json();
       setSuggestions(data);
     } catch {
@@ -68,6 +68,7 @@ export function MentionTextArea({
       panelStyle={{ maxHeight: 320, overflowY: 'auto', backgroundColor: '#ffffff' }}
       rows={rows}
       autoResize
+      style={{ minHeight: "100px" }}
       itemTemplate={itemTemplate}
     />
   );

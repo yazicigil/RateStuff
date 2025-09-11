@@ -6,6 +6,7 @@ export async function GET(req: Request) {
   const q = (searchParams.get("q") || "").trim().toLowerCase();
   const takeParam = Number(searchParams.get("take"));
   const take = Number.isFinite(takeParam) ? Math.min(Math.max(takeParam, 1), 200) : 100;
+  const effectiveTake = q ? take : Math.max(take, 200);
 
   const rows = await prisma.brandAccount.findMany({
     where: {
@@ -19,7 +20,7 @@ export async function GET(req: Request) {
         : {}),
     },
     select: { slug: true, displayName: true, coverImageUrl: true, email: true },
-    take,
+    take: effectiveTake,
     orderBy: [{ displayName: "asc" }, { slug: "asc" }],
   });
 
