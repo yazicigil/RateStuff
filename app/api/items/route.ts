@@ -10,7 +10,27 @@ export const revalidate = 0;
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
-function shapeItem(i: any, meId?: string | null) {
+async function buildBrandSlugMap(userIds: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (!Array.isArray(userIds) || userIds.length === 0) return map;
+  try {
+    const anyPrisma: any = prisma as any;
+    const rows = await anyPrisma?.brandAccount?.findMany?.({
+      where: { createdById: { in: userIds } },
+      select: { createdById: true, slug: true },
+    });
+    for (const r of rows || []) {
+      if (r?.createdById && typeof r.slug === 'string' && r.slug.trim()) {
+        map.set(r.createdById, r.slug.trim());
+      }
+    }
+  } catch {
+    // silently ignore if model not present
+  }
+  return map;
+}
+
+function shapeItem(i: any, meId?: string | null, slugMap?: Map<string, string>) {
   const ratings = (i.comments || [])
     .map((c: any) => (typeof c.rating === 'number' ? c.rating : 0))
     .filter((n: number) => n > 0);
@@ -63,6 +83,7 @@ function shapeItem(i: any, meId?: string | null) {
                   kind: (c.user as any).kind ?? null,        // REGULAR | BRAND
                   avatarUrl: c.user.avatarUrl ?? null,
                   verified: c.user.email === ADMIN_EMAIL,
+                  slug: slugMap?.get(c.user.id) ?? null,
                 }
               : null,
           },
@@ -114,7 +135,10 @@ export async function GET(req: Request) {
         return NextResponse.json([]);
       }
 
-      return NextResponse.json([shapeItem(item, me?.id || null)]);
+      const userIdsSingle = Array.from(new Set((item.comments || []).map((c: any) => c.user?.id).filter(Boolean)));
+      const slugMapSingle = await buildBrandSlugMap(userIdsSingle as string[]);
+
+      return NextResponse.json([shapeItem(item, me?.id || null, slugMapSingle)]);
     }
 
     const searchCond = q
@@ -155,7 +179,10 @@ export async function GET(req: Request) {
       take: 100,
     });
 
-    return NextResponse.json(items.map((it) => shapeItem(it, me?.id || null)));
+    const userIds = Array.from(new Set(items.flatMap((it: any) => (it.comments || []).map((c: any) => c.user?.id).filter(Boolean))));
+    const slugMap = await buildBrandSlugMap(userIds as string[]);
+
+    return NextResponse.json(items.map((it) => shapeItem(it, me?.id || null, slugMap)));
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 500 });
   }
@@ -260,7 +287,11 @@ export async function POST(req: Request) {
     } as const;
     const createdFull = await prisma.item.findUnique({ where: { id: newId }, include });
     if (!createdFull) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 500 });
-    return NextResponse.json(shapeItem(createdFull, me.id), { status: 201 });
+
+    const createdUserIds = Array.from(new Set((createdFull.comments || []).map((c: any) => c.user?.id).filter(Boolean)));
+    const createdSlugMap = await buildBrandSlugMap(createdUserIds as string[]);
+
+    return NextResponse.json(shapeItem(createdFull, me.id, createdSlugMap), { status: 201 });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }
