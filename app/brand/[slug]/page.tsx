@@ -163,19 +163,28 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             // Owner/admin dışındakiler için suspended item'ları gizle; owner/admin için bırak
             items={(itemsForClient as any)
               .filter((it: any) => {
-                const isSusp = Boolean((it as any).suspendedAt);
+                const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
+                const hasSuspAt = (it as any).suspendedAt != null;
+                const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
+                const isSusp = hasSuspAt || legacySusp;
                 const ownerId = (it as any).createdById ?? (it as any).createdBy?.id ?? user.id;
                 if (!isSusp) return true;
                 // public viewer ve admin değilse gizle
                 if (!viewerId && !viewerIsAdmin) return false;
                 return viewerIsAdmin || viewerId === ownerId;
               })
-              .map((it: any) => ({
-                ...it,
-                // Ensure fields exist for ProductsList helpers
-                createdById: it.createdById ?? it.createdBy?.id ?? user.id,
-                suspendedAt: (it as any).suspendedAt ?? null,
-              }))}
+              .map((it: any) => {
+                const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
+                const hasSuspAt = (it as any).suspendedAt != null;
+                const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
+                const synthSuspendedAt = hasSuspAt ? (it as any).suspendedAt : (legacySusp ? '__legacy-suspended__' : null);
+                return {
+                  ...it,
+                  // Ensure fields exist for ProductsList helpers
+                  createdById: it.createdById ?? it.createdBy?.id ?? user.id,
+                  suspendedAt: synthSuspendedAt,
+                };
+              })}
             trending={[]}
             brandTheme
             myId={viewerId}
