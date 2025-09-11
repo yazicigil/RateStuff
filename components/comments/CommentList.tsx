@@ -185,11 +185,15 @@ export default function CommentList({
               isBrand
                 ? (c?.user?.name || "Anonim")
                 : (c?.user?.maskedName || maskName(c?.user?.name, false));
-            const brandSlug = (c.user as any)?.slug ?? (c.user as any)?.brandSlug;
-            const hrefBrand = isBrand && c.user
+            // Brand link must be /brand/markaadi and MUST use BrandAccount.slug coming from backend
+            const brandSlug = typeof (c.user as any)?.slug === 'string' && (c.user as any).slug.trim().length > 0
+              ? (c.user as any).slug
+              : undefined;
+
+            const hrefBrand = isBrand
               ? (
-                  resolveBrandHref?.(c.user) ??
-                  (brandSlug ? `/brand/${brandSlug}` : (c.user.id ? `/brand/${c.user.id}` : undefined))
+                  // Allow parent to override via resolver if provided; otherwise only use slug
+                  resolveBrandHref?.(c.user as any) ?? (brandSlug ? `/brand/${encodeURIComponent(brandSlug)}` : undefined)
                 )
               : undefined;
             const score = typeof c.score === 'number' ? c.score : 0;

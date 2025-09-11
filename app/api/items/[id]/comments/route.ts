@@ -1,3 +1,17 @@
+// Helper to fetch brand slug by user id (best-effort, type-safe-any access)
+async function getBrandSlugByUserId(userId: string): Promise<string | undefined> {
+  try {
+    const brand = await (prisma as any)?.brandAccount?.findFirst?.({
+      where: { createdById: userId },
+      select: { slug: true },
+    });
+    const slug = brand?.slug;
+    if (typeof slug === 'string' && slug.trim().length > 0) return slug;
+  } catch (_) {
+    // ignore – model may not exist or prisma types may not expose it in some environments
+  }
+  return undefined;
+}
 // app/api/items/[id]/comments/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -69,6 +83,10 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       },
     });
 
+    const createdUserWithBrand = created?.user
+      ? { ...created.user, slug: await getBrandSlugByUserId(me.id) }
+      : undefined;
+
     // Bildirim: item sahibine haber ver (sahip farklıysa)
     try {
       const itemOwner = await prisma.item.findUnique({
@@ -128,7 +146,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       console.error("[milestone:comment]", err);
     }
 
-    return NextResponse.json({ ok: true, comment: { ...created, score, myVote } }, { status: 201 });
+    return NextResponse.json({ ok: true, comment: { ...created, user: createdUserWithBrand, score, myVote } }, { status: 201 });
   } catch (e: any) {
     if (e?.code === "P2002") {
       // unique violation (itemId,userId)
