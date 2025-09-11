@@ -178,7 +178,6 @@ export default function ProductsList<
   };
 
   // ---- Suspended & owner helpers (schema-agnostic) ----
-  const isTrue = (v: any) => v === true || v === 'true' || v === 1 || v === '1';
 
   const getOwnerId = React.useCallback((it: any): string | null => {
     return (
@@ -192,6 +191,7 @@ export default function ProductsList<
     );
   }, []);
 
+  // Backend contract: item is suspended IFF `suspendedAt` is non-null (ISO string/date)
   const isItemSuspended = React.useCallback((it: any): boolean => {
     return Boolean(it?.suspendedAt);
   }, []);
