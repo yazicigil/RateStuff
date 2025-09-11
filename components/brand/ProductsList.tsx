@@ -491,7 +491,7 @@ const handleDelete = React.useCallback(async (id: string) => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div
-                className="w-full rounded-2xl h-full flex flex-col"
+                className="w-full rounded-2xl h-full flex flex-col min-h-[260px] sm:min-h-[300px] lg:min-h-[340px]"
                 style={brandTheme ? {
                   background: 'var(--brand-elev-strong, var(--brand-elev, rgba(0,0,0,.04)))',
                   color: inkByTone,
