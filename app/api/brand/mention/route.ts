@@ -1,23 +1,44 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // lib/prisma.ts mevcut  [oai_citation:3‡git repo file tree (updated).rtf](file-service://file-R4vX7VSknyKLga8gMMYAnn)
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = (searchParams.get("q") || "").trim().toLowerCase();
-  if (!q) return NextResponse.json([]);
+  const takeParam = Number(searchParams.get("take"));
+  const take = Number.isFinite(takeParam) ? Math.min(Math.max(takeParam, 1), 200) : 100;
 
-  // BrandAccount.slug üzerinden prefix arama (case-insensitive)
   const rows = await prisma.brandAccount.findMany({
-    where: { slug: { startsWith: q, mode: "insensitive" } },
-    select: { slug: true, displayName: true, coverImageUrl: true },
-    take: 8,
-    orderBy: { slug: "asc" },
+    where: {
+      active: true,
+      ...(q
+        ? {
+            OR: [
+              { slug: { startsWith: q, mode: "insensitive" } },
+              { displayName: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
+    select: { slug: true, displayName: true, coverImageUrl: true, email: true },
+    take,
+    orderBy: [{ displayName: "asc" }, { slug: "asc" }],
   });
 
-  const data = rows.map(r => ({
+  // Load user avatars by matching BrandAccount.email to User.email
+  const emails = rows.map(r => r.email).filter(Boolean);
+  let avatarByEmail: Record<string, string | null> = {};
+  if (emails.length) {
+    const users = await prisma.user.findMany({
+      where: { email: { in: emails } },
+      select: { email: true, avatarUrl: true },
+    });
+    avatarByEmail = Object.fromEntries(users.map(u => [u.email, u.avatarUrl ?? null]));
+  }
+
+  const data = rows.map((r) => ({
     slug: r.slug,
     name: r.displayName ?? r.slug,
-    avatarUrl: r.coverImageUrl ?? null, // istersen avatar kaynaklarını sonra zenginleştiririz
+    avatarUrl: avatarByEmail[r.email] ?? r.coverImageUrl ?? null,
   }));
 
   return NextResponse.json(data);

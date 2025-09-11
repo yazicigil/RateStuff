@@ -16,7 +16,7 @@ export function linkifyMentions(text: string) {
     out.push(text.slice(last, idx));
     if (pre) out.push(pre);
     out.push(
-      <Link key={`${slug}-${idx}`} href={`/brand/${slug}`} className="text-blue-600 hover:underline">
+      <Link key={`${slug}-${idx}`} href={`/brand/${slug}`} className="text-violet-600 dark:text-violet-400 hover:underline">
         @{slug}
       </Link>
     );

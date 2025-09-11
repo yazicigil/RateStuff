@@ -22,7 +22,7 @@ export function MentionTextArea({
   const [suggestions, setSuggestions] = useState<BrandOpt[]>([]);
 
   const fetchSuggestions = useCallback(async (q: string) => {
-    if (!q || q.length < minLengthToTrigger) return setSuggestions([]);
+    if (q.length < minLengthToTrigger) return setSuggestions([]);
     try {
       const res = await fetch(`/api/brand/mention?q=${encodeURIComponent(q)}`);
       const data: BrandOpt[] = await res.json();
@@ -37,13 +37,13 @@ export function MentionTextArea({
   }, [fetchSuggestions]);
 
   const itemTemplate = (opt: BrandOpt) => (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 px-2 py-1.5">
       {opt.avatarUrl
         ? <img src={opt.avatarUrl!} alt={opt.slug} className="w-6 h-6 rounded-full" />
         : <div className="w-6 h-6 rounded-full bg-gray-300" />}
       <div className="leading-tight">
-        <div className="text-sm font-medium">@{opt.slug}</div>
-        <div className="text-xs text-gray-500">{opt.name}</div>
+        <div className="text-sm font-semibold">{opt.name}</div>
+        <div className="text-xs text-gray-500">@{opt.slug}</div>
       </div>
     </div>
   );
@@ -51,6 +51,7 @@ export function MentionTextArea({
   return (
     <Mention
       className={className}
+      inputClassName="rs-mention-input"
       value={value}
       onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
       placeholder={placeholder}
@@ -58,7 +59,13 @@ export function MentionTextArea({
       onSearch={onSearch}
       field="slug"
       trigger="@"
-      // textarea props:
+      panelClassName="rs-mention-panel"
+      onSelect={() => {
+        setTimeout(() => {
+          onChange(((curr: any) => (typeof curr === 'string' && !curr.endsWith(' ')) ? curr + ' ' : curr) as any);
+        }, 0);
+      }}
+      panelStyle={{ maxHeight: 240, overflowY: 'auto' }}
       rows={rows}
       autoResize
       itemTemplate={itemTemplate}
