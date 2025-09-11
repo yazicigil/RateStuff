@@ -169,6 +169,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             brandTheme
             myId={viewerId}
             amAdmin={viewerIsAdmin}
+            ownerId={viewerId}
             // allTags verilmezse item'lardan derlenir
             // renderItem vermezsek basic kartı kullanılır; istersen özel kart geçirilebilir
           />

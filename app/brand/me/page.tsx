@@ -303,6 +303,7 @@ export default async function BrandProfilePage() {
             searchPlaceholder="Ürün veya açıklama ara..."
             myId={user.id}
             amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
+            ownerId={user.id}
           />
         </div>
       </div>
