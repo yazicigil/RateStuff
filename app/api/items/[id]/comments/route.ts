@@ -1,15 +1,26 @@
-// Helper to fetch brand slug by user id (best-effort, type-safe-any access)
-async function getBrandSlugByUserId(userId: string): Promise<string | undefined> {
+// Helper to fetch brand slug by user id or email (best-effort)
+async function getBrandSlug(params: { userId?: string; email?: string }): Promise<string | undefined> {
+  const anyPrisma: any = prisma as any;
   try {
-    const brand = await (prisma as any)?.brandAccount?.findFirst?.({
-      where: { createdById: userId },
-      select: { slug: true },
-    });
-    const slug = brand?.slug;
-    if (typeof slug === 'string' && slug.trim().length > 0) return slug;
-  } catch (_) {
-    // ignore – model may not exist or prisma types may not expose it in some environments
-  }
+    if (params.userId) {
+      const byUser = await anyPrisma?.brandAccount?.findFirst?.({
+        where: { createdById: params.userId },
+        select: { slug: true },
+      });
+      const s1 = byUser?.slug;
+      if (typeof s1 === 'string' && s1.trim()) return s1.trim();
+    }
+  } catch (_) {}
+  try {
+    if (params.email) {
+      const byEmail = await anyPrisma?.brandAccount?.findFirst?.({
+        where: { email: { equals: params.email } },
+        select: { slug: true },
+      });
+      const s2 = byEmail?.slug;
+      if (typeof s2 === 'string' && s2.trim()) return s2.trim();
+    }
+  } catch (_) {}
   return undefined;
 }
 // app/api/items/[id]/comments/route.ts
@@ -84,7 +95,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     });
 
     const createdUserWithBrand = created?.user
-      ? { ...created.user, slug: await getBrandSlugByUserId(me.id) }
+      ? { ...created.user, slug: await getBrandSlug({ userId: me.id, email: created.user.email }) }
       : undefined;
 
     // Bildirim: item sahibine haber ver (sahip farklıysa)
@@ -170,23 +181,46 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     // 2) Collect userIds
     const userIds = Array.from(new Set(rows.map(r => r.user?.id).filter(Boolean) as string[]));
 
-    // 3) Build userId -> slug map via BrandAccount.createdById
+    // Collect emails for secondary fallback
+    const emails = Array.from(new Set(rows.map(r => r.user?.email).filter(Boolean) as string[]));
+
+    // 3) Build userId -> slug map via BrandAccount.createdById, then email fallback
     const slugMap = new Map<string, string>();
-    if (userIds.length > 0) {
-      try {
-        const anyPrisma: any = prisma as any;
-        const brands = await anyPrisma?.brandAccount?.findMany?.({
+    try {
+      const anyPrisma: any = prisma as any;
+      if (userIds.length > 0) {
+        const byUser = await anyPrisma?.brandAccount?.findMany?.({
           where: { createdById: { in: userIds } },
           select: { createdById: true, slug: true },
         });
-        for (const b of brands || []) {
+        for (const b of byUser || []) {
           if (b?.createdById && typeof b.slug === 'string' && b.slug.trim()) {
             slugMap.set(b.createdById, b.slug.trim());
           }
         }
-      } catch (_) {
-        // brandAccount modeli yoksa sessizce geç
       }
+      // Email fallback: map users with missing slug by matching BrandAccount.email
+      if (emails.length > 0) {
+        const byEmail = await anyPrisma?.brandAccount?.findMany?.({
+          where: { email: { in: emails } },
+          select: { email: true, slug: true },
+        });
+        const emailToSlug = new Map<string, string>();
+        for (const r of byEmail || []) {
+          const e = typeof r?.email === 'string' ? r.email : undefined;
+          const s = typeof r?.slug === 'string' ? r.slug.trim() : '';
+          if (e && s) emailToSlug.set(e, s);
+        }
+        for (const row of rows) {
+          const uid = row.user?.id;
+          const em = row.user?.email;
+          if (uid && !slugMap.has(uid) && em && emailToSlug.has(em)) {
+            slugMap.set(uid, emailToSlug.get(em)!);
+          }
+        }
+      }
+    } catch (_) {
+      // silently ignore if brandAccount model/fields differ
     }
 
     // 4) Enrich each comment's user with slug; default score/myVote if absent
