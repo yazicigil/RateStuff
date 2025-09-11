@@ -210,7 +210,7 @@ export default function ItemCard({
 
   return (
     <div
-      className={`relative rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 text-neutral-900 dark:text-neutral-100 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] ${i?.suspended ? 'opacity-60 grayscale' : ''} h-full`}
+      className={`relative z-10 overflow-visible rounded-2xl border p-4 shadow-sm bg-white dark:bg-gray-900 dark:border-gray-800 text-neutral-900 dark:text-neutral-100 flex flex-col transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-md [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)] focus-within:z-50 ${i?.suspended ? 'opacity-60 grayscale' : ''} h-full`}
       style={{
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent))'
       }}
