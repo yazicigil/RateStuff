@@ -1,29 +1,71 @@
 import Link from "next/link";
 
-// Slug kurallarına göre karakter setini daralt
-const SLUG = "[a-z0-9._-]";
-const MENTION = new RegExp(`(^|[\\s.,;:!?()"'»«\$begin:math:display$\\$end:math:display$])@(${SLUG}{2,32})(?=$|[\\s.,;:!?()"'»«\$begin:math:display$\\$end:math:display$])`, "gi");
+// slug karakter kümesi
+const SLUG_CHARS = "A-Za-z0-9._-";
+const MENTION = new RegExp(
+  `(^|[^${SLUG_CHARS}])@([${SLUG_CHARS}]{1,32})(?![${SLUG_CHARS}])`,
+  "gi"
+);
 
-export function linkifyMentions(text: string) {
-  const out: (string | JSX.Element)[] = [];
+type Options = {
+  inline?: boolean; // true => <span> render et (iç içe <a> sorununu aşmak için)
+};
+
+export function linkifyMentions(text: string, opts: Options = {}) {
+  const parts: (string | JSX.Element)[] = [];
   let last = 0;
 
-  text.replace(MENTION, (match, pre, slug, idx) => {
-    // e-posta kaçınma: '@' öncesi alfanumerik ise mention sayma
-    const prev = text[idx - 1];
+  text.replace(MENTION, (match, pre, slug, offset) => {
+    const prev = text[offset - 1];
     if (prev && /[A-Za-z0-9]/.test(prev)) return match;
 
-    out.push(text.slice(last, idx));
-    if (pre) out.push(pre);
-    out.push(
-      <Link key={`${slug}-${idx}`} href={`/brand/${slug}`} className="!text-violet-600 dark:!text-violet-400 hover:underline">
-        @{slug}
-      </Link>
-    );
-    last = idx + match.length;
+    const start = offset;
+    const preStr = typeof pre === "string" ? pre : "";
+    const mentionStart = start + preStr.length;
+
+    parts.push(text.slice(last, start));
+    if (preStr) parts.push(preStr);
+
+    if (opts.inline) {
+      // Kart içindeki nested <a> sorunundan kaçınmak için <span> + JS navigation
+      parts.push(
+        <span
+          key={`${slug}-${mentionStart}`}
+          role="link"
+          tabIndex={0}
+          className="rs-mention-link hover:underline cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/brand/${slug}`;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = `/brand/${slug}`;
+            }
+          }}
+        >
+          @{slug}
+        </span>
+      );
+    } else {
+      parts.push(
+        <Link
+          key={`${slug}-${mentionStart}`}
+          href={`/brand/${slug}`}
+          className="rs-mention-link hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          @{slug}
+        </Link>
+      );
+    }
+
+    last = mentionStart + (`@${slug}`).length;
     return match;
   });
 
-  out.push(text.slice(last));
-  return out;
+  parts.push(text.slice(last));
+  return parts;
 }

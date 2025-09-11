@@ -23,7 +23,12 @@
   line-height: 1.4;
 }
 .rs-mention-input::placeholder { opacity: 0.8; }
-
+.rs-mention-link {
+  color: #7c3aed !important; /* violet-600 */
+}
+.dark .rs-mention-link {
+  color: #a78bfa !important; /* violet-400 */
+}
 /* page container defaults */
 body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 

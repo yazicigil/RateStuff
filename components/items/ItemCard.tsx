@@ -415,9 +415,9 @@ export default function ItemCard({
                   </button>
                 </h3>
                 {i.description && (
-                  <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
-                    {linkifyMentions(i.description)}
-                  </p>
+                <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
+                {linkifyMentions(i.description, { inline: true })}
+                </p>
                 )}
 
                 {(i.createdBy || creatorNameRaw) && (

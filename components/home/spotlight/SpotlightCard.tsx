@@ -398,12 +398,11 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 )}
               </div>
 
-              {item.description && (
-                <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
-                  {linkifyMentions(item.description)}
-                </p>
-              )}
-
+            {item.description && (
+  <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
+     {linkifyMentions(item.description, { inline: true })}
+   </p>
+ )}
               {item.createdBy && (
                 <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
                   {item.createdBy.avatarUrl ? (
