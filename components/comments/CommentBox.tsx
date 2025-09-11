@@ -182,18 +182,20 @@ export default function CommentBox({
           </div>
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <MentionTextArea
-                className={
-                  "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                  (hasBanned
-                    ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-                    : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
-                }
-                value={text}
-                onChange={(v) => setText(v)}
-                rows={2}
-                placeholder={" Yorum yaz..."}
-              />
+              <div className="relative z-[2147483646]">
+                <MentionTextArea
+                  className={
+                    "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                    (hasBanned
+                      ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
+                      : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+                  }
+                  value={text}
+                  onChange={(v) => setText(v)}
+                  rows={2}
+                  placeholder={" Yorum yaz..."}
+                />
+              </div>
               {hasBanned && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-500">
                   Yorumunuzda yasaklı kelime bulunuyor.
@@ -340,18 +342,20 @@ export default function CommentBox({
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <MentionTextArea
-            className={
-              "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-              (hasBanned
-                ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-                : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
-            }
-            value={text}
-            onChange={(v) => setText(v)}
-            rows={1}
-            placeholder={session ? ' Yorum yaz…' : ' Yorum için giriş yap'}
-          />
+          <div className="relative z-[2147483646]">
+            <MentionTextArea
+              className={
+                "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                (hasBanned
+                  ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
+                  : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+              }
+              value={text}
+              onChange={(v) => setText(v)}
+              rows={1}
+              placeholder={session ? ' Yorum yaz…' : ' Yorum için giriş yap'}
+            />
+          </div>
           {hasBanned && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-500">
               Yorumunuzda yasaklı kelime bulunuyor.
