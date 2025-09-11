@@ -3,6 +3,20 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 
+// best-effort helper to fetch BrandAccount slug via createdById
+async function getBrandSlugByUserId(userId: string): Promise<string | undefined> {
+  try {
+    const anyPrisma: any = prisma as any;
+    const brand = await anyPrisma?.brandAccount?.findFirst?.({
+      where: { createdById: userId },
+      select: { slug: true },
+    });
+    const slug = brand?.slug;
+    if (typeof slug === 'string' && slug.trim().length > 0) return slug.trim();
+  } catch {}
+  return undefined;
+}
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -51,8 +65,10 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         }
       },
     });
-
-    return NextResponse.json({ ok: true, comment: updated });
+    const updatedWithSlug = updated?.user
+      ? { ...updated, user: { ...updated.user, slug: await getBrandSlugByUserId(updated.user.id) } }
+      : updated;
+    return NextResponse.json({ ok: true, comment: updatedWithSlug });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }

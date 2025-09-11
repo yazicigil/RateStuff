@@ -180,15 +180,18 @@ export default function CommentList({
       ) : (
         <ul>
           {ordered.map((c) => {
-            const isBrand = String(c?.user?.kind || "").toUpperCase() === "BRAND";
+            // Brand link must be /brand/markaadi and MUST use BrandAccount.slug coming from backend
+            const brandSlug = typeof (c.user as any)?.slug === 'string' && (c.user as any).slug.trim().length > 0
+              ? (c.user as any).slug
+              : undefined;
+
+            const isBrand = (String(c?.user?.kind || "").toUpperCase() === "BRAND") || !!brandSlug;
             const displayName =
               isBrand
                 ? (c?.user?.name || "Anonim")
                 : (c?.user?.maskedName || maskName(c?.user?.name, false));
             // Brand link must be /brand/markaadi and MUST use BrandAccount.slug coming from backend
-            const brandSlug = typeof (c.user as any)?.slug === 'string' && (c.user as any).slug.trim().length > 0
-              ? (c.user as any).slug
-              : undefined;
+            
 
             const hrefBrand = isBrand
               ? (

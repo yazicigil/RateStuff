@@ -155,6 +155,53 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ ok: false, error: e?.message || "error" }, { status: 400 });
   }
 }
+// GET: list comments for an item and augment user.slug from BrandAccount (createdById)
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  try {
+    // 1) Fetch comments for the item
+    const rows = await prisma.comment.findMany({
+      where: { itemId: params.id },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+      },
+    });
+
+    // 2) Collect userIds
+    const userIds = Array.from(new Set(rows.map(r => r.user?.id).filter(Boolean) as string[]));
+
+    // 3) Build userId -> slug map via BrandAccount.createdById
+    const slugMap = new Map<string, string>();
+    if (userIds.length > 0) {
+      try {
+        const anyPrisma: any = prisma as any;
+        const brands = await anyPrisma?.brandAccount?.findMany?.({
+          where: { createdById: { in: userIds } },
+          select: { createdById: true, slug: true },
+        });
+        for (const b of brands || []) {
+          if (b?.createdById && typeof b.slug === 'string' && b.slug.trim()) {
+            slugMap.set(b.createdById, b.slug.trim());
+          }
+        }
+      } catch (_) {
+        // brandAccount modeli yoksa sessizce geç
+      }
+    }
+
+    // 4) Enrich each comment's user with slug; default score/myVote if absent
+    const comments = rows.map(c => {
+      const u = c.user ? { ...c.user, slug: c.user.id ? slugMap.get(c.user.id) : undefined } : undefined;
+      const score = (c as any).score ?? 0;
+      const myVote = (c as any).myVote ?? 0;
+      return { ...c, user: u, score, myVote };
+    });
+
+    return NextResponse.json({ ok: true, comments }, { status: 200 });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
+  }
+}
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const me = await getSessionUser();
