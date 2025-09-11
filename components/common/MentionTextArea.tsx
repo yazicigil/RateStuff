@@ -65,7 +65,7 @@ export function MentionTextArea({
           onChange(((curr: any) => (typeof curr === 'string' && !curr.endsWith(' ')) ? curr + ' ' : curr) as any);
         }, 0);
       }}
-      panelStyle={{ maxHeight: 320, overflowY: 'auto', backgroundColor: '#ffffff' }}
+      panelStyle={{ maxHeight: 320, overflowY: 'auto' }}
       rows={rows}
       autoResize
       style={{ minHeight: "35px" }}
