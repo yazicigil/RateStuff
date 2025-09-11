@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Stars from "../common/Stars";
 import { containsBannedWord } from "@/lib/bannedWords";
-
+import { MentionTextArea } from "@/components/common/MentionTextArea";
+import { linkifyMentions } from "@/lib/text/linkifyMentions";
 function maskName(s?: string | null) {
   if (!s) return 'Anonim';
   const raw = String(s).trim();
@@ -181,22 +182,17 @@ export default function CommentBox({
           </div>
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <textarea
-                className={"w-full border rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none overflow-hidden " +
+              <MentionTextArea
+                className={
+                  "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                   (hasBanned
                     ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-                    : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")}
+                    : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+                }
                 value={text}
-                onChange={e => setText(e.target.value)}
-                onInput={e => {
-                  const el = e.currentTarget;
-                  el.style.height = '0px';
-                  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-                }}
-                disabled={busy}
+                onChange={(v) => setText(v)}
                 rows={2}
-                maxLength={maxLen}
-                aria-describedby={counterId}
+                placeholder={"Yorumun… (@slug ile marka etiketle)"}
               />
               {hasBanned && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-500">
@@ -260,7 +256,7 @@ export default function CommentBox({
                     (!expanded ? "line-clamp-2 " : "")
                   }
                 >
-                  “{myComment.text}” {myComment.edited && <em className="opacity-60">(düzenlendi)</em>}
+                  {linkifyMentions(myComment.text)} {myComment.edited && <em className="opacity-60">(düzenlendi)</em>}
                 </div>
               </div>
               {isTruncated && (
@@ -327,6 +323,7 @@ export default function CommentBox({
         e.preventDefault();
         submit();
       }}
+      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (canSend) submit(); } }}
     >
       <div className="mb-2">
         <div className="flex items-center justify-between mb-1">
@@ -343,31 +340,17 @@ export default function CommentBox({
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <textarea
+          <MentionTextArea
             className={
-              "w-full border rounded-xl px-3 py-2 text-sm min-h-[40px] max-h-40 bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 resize-none overflow-hidden " +
+              "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
               (hasBanned
                 ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                 : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
             }
-            placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
             value={text}
-            onChange={e => setText(e.target.value)}
-            onInput={e => {
-              const el = e.currentTarget;
-              el.style.height = '0px';
-              el.style.height = Math.min(el.scrollHeight, 160) + 'px';
-            }}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (canSend) submit();
-              }
-            }}
-            disabled={busy}
-            maxLength={maxLen}
-            aria-describedby={counterId}
+            onChange={(v) => setText(v)}
             rows={1}
+            placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
           />
           {hasBanned && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-500">

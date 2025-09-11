@@ -1,3 +1,4 @@
+import { MentionTextArea } from '@/components/common/MentionTextArea';
 'use client';
 import React, { useCallback, useMemo, useState } from 'react';
 import ImageUploader from '@/components/common/ImageUploader';
@@ -140,12 +141,11 @@ export default function ItemEditor({
       {/* Description */}
       <div className="mt-2">
         <label className="block text-sm font-medium mb-1">Kısa açıklama</label>
-        <textarea
+        <MentionTextArea
           className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
           rows={3}
-          maxLength={maxDesc}
           value={state.description}
-          onChange={(e) => setState({ description: e.target.value })}
+          onChange={(v) => setState({ description: v.slice(0, maxDesc) })}
           placeholder="kısa açıklama"
         />
         <div className="mt-1 text-[11px] opacity-60">{state.description.length}/{maxDesc}</div>
