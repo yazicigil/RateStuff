@@ -16,12 +16,13 @@ export function linkifyMentions(text: string, opts: Options = {}) {
   let last = 0;
 
   text.replace(MENTION, (match, pre, slug, offset) => {
-    const prev = text[offset - 1];
-    if (prev && /[A-Za-z0-9]/.test(prev)) return match;
-
-    const start = offset;
+    const start = offset; // start of the whole match (may include leading separator)
     const preStr = typeof pre === "string" ? pre : "";
-    const mentionStart = start + preStr.length;
+    const mentionStart = start + preStr.length; // index of '@'
+
+    // email guard: if the char right before '@' is alphanumeric, don't treat as mention
+    const prevAt = text[mentionStart - 1];
+    if (prevAt && /[A-Za-z0-9]/.test(prevAt)) return match;
 
     parts.push(text.slice(last, start));
     if (preStr) parts.push(preStr);
