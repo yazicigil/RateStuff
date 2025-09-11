@@ -3,11 +3,13 @@ import { useRef, useCallback } from "react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import ImageUploader from "@/components/common/ImageUploader";
+import CardColorPicker from "@/components/brand/CardColorPicker";
 
 type BrandMinimal = {
   id: string;
   email: string;
   displayName: string | null;
+  cardColor?: string | null;
 };
 
 export default function EditBrandModal({
@@ -90,6 +92,17 @@ export default function EditBrandModal({
               <ImageUploader
                 name="avatarUrl"
                 defaultValue={defaultAvatarUrl ?? ""}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <div>
+            <span className="text-xs text-neutral-500">Kart rengi</span>
+            <div className="mt-2">
+              <CardColorPicker
+                initialColor={brand.cardColor ?? null}
+                targetId="brand-hero-card"
                 className="w-full"
               />
             </div>
