@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { linkifyMentions } from '@/lib/text/linkifyMentions';
 
 export type CommentUser = {
   id?: string | null;
@@ -269,11 +270,11 @@ export default function CommentList({
                         localRefs.current[c.id] = el;
                       }}
                       className={
-                        'text-sm mt-1 ' +
+                        'text-sm mt-1 whitespace-pre-wrap break-words ' +
                         (!isExpanded ? 'line-clamp-2 ' : '')
                       }
                     >
-                      {c.text}
+                      {linkifyMentions(c.text)}
                       {c.edited && (
                         <em className="ml-1 text-xs opacity-60 align-baseline"> (düzenlendi)</em>
                       )}

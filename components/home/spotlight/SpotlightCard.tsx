@@ -10,6 +10,7 @@ import OptionsPopover from '@/components/items/popovers/OptionsPopover';
 import CommentBox from '@/components/comments/CommentBox';
 import CommentList from '@/components/comments/CommentList';
 import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
+import { linkifyMentions } from '@/lib/text/linkifyMentions';
 
 export type SpotlightItem = {
   id: string;
@@ -398,7 +399,9 @@ export default function SpotlightCard(props: SpotlightCardProps) {
               </div>
 
               {item.description && (
-                <p className="text-sm opacity-80 mt-1 break-words">{item.description}</p>
+                <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
+                  {linkifyMentions(item.description)}
+                </p>
               )}
 
               {item.createdBy && (

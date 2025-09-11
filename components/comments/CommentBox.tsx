@@ -192,7 +192,7 @@ export default function CommentBox({
                 value={text}
                 onChange={(v) => setText(v)}
                 rows={2}
-                placeholder={"Yorumun… (@slug ile marka etiketle)"}
+                placeholder={" Yorum yaz..."}
               />
               {hasBanned && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-500">
@@ -350,7 +350,7 @@ export default function CommentBox({
             value={text}
             onChange={(v) => setText(v)}
             rows={1}
-            placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
+            placeholder={session ? ' Yorum yaz…' : ' Yorum için giriş yap'}
           />
           {hasBanned && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-500">

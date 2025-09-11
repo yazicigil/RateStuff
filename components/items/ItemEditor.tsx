@@ -147,7 +147,7 @@ export default function ItemEditor({
           rows={3}
           value={state.description}
           onChange={(v) => setState({ description: v.slice(0, maxDesc) })}
-          placeholder="kısa açıklama"
+          placeholder=" kısa açıklama"
         />
         <div className="mt-1 text-[11px] opacity-60">{state.description.length}/{maxDesc}</div>
       </div>

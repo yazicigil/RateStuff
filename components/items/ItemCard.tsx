@@ -10,6 +10,7 @@ import CommentList from '@/components/comments/CommentList';
 import CommentBox from '@/components/comments/CommentBox';
 import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
 import Link from 'next/link';
+import { linkifyMentions } from '@/lib/text/linkifyMentions';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
@@ -413,7 +414,11 @@ export default function ItemCard({
                     {i.name}
                   </button>
                 </h3>
-                {i.description && <p className="text-sm opacity-80 mt-1 break-words">{i.description}</p>}
+                {i.description && (
+                  <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
+                    {linkifyMentions(i.description)}
+                  </p>
+                )}
 
                 {(i.createdBy || creatorNameRaw) && (
                   <div className="mt-2 flex items-center gap-2 text-xs opacity-80 min-w-0">

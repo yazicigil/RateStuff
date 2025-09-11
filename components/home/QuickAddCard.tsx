@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import ImageUploader from '@/components/common/ImageUploader';
 import Stars from '@/components/common/Stars';
 import { containsBannedWord } from '@/lib/bannedWords';
+import { MentionTextArea } from "@/components/common/MentionTextArea";
 
 type QuickAddCardProps = {
   /** panel göstergesi – dışarıdan yönetebilirsin, istersen hep açık da bırakılabilir */
@@ -393,11 +394,11 @@ if (!validNow) {
 
           <div>
             <label className="block text-sm font-medium mb-1">Kısa açıklama <span className="opacity-60">(opsiyonel)</span></label>
-            <input
+            <MentionTextArea
               value={desc}
-              onChange={(e) => setDesc(e.target.value)}
+              onChange={setDesc}
+              placeholder=" kısa açıklama"
               className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
-              placeholder="kısa açıklama"
             />
           </div>
 {isBrandProfile && (
