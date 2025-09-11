@@ -10,23 +10,49 @@ export const revalidate = 0;
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
-async function buildBrandSlugMap(userIds: string[]): Promise<Map<string, string>> {
+async function buildBrandSlugMap(userIds: string[], emails?: string[]): Promise<Map<string, string>> {
   const map = new Map<string, string>();
-  if (!Array.isArray(userIds) || userIds.length === 0) return map;
-  try {
-    const anyPrisma: any = prisma as any;
-    const rows = await anyPrisma?.brandAccount?.findMany?.({
-      where: { createdById: { in: userIds } },
-      select: { createdById: true, slug: true },
-    });
-    for (const r of rows || []) {
-      if (r?.createdById && typeof r.slug === 'string' && r.slug.trim()) {
-        map.set(r.createdById, r.slug.trim());
+  const anyPrisma: any = prisma as any;
+
+  const ids = Array.isArray(userIds) ? Array.from(new Set(userIds.filter(Boolean))) : [];
+  const ems = Array.isArray(emails) ? Array.from(new Set(emails.filter(Boolean))) : [];
+
+  // 1) Primary: createdById → slug
+  if (ids.length > 0) {
+    try {
+      const rows = await anyPrisma?.brandAccount?.findMany?.({
+        where: { createdById: { in: ids } },
+        select: { createdById: true, slug: true },
+      });
+      for (const r of rows || []) {
+        const uid = r?.createdById;
+        const slug = typeof r?.slug === 'string' ? r.slug.trim() : '';
+        if (uid && slug && !map.has(uid)) map.set(uid, slug);
       }
-    }
-  } catch {
-    // silently ignore if model not present
+    } catch {}
   }
+
+  // 2) Fallback: email → slug (fill only missing userIds that have matching email)
+  if (ems.length > 0) {
+    try {
+      const byEmail = await anyPrisma?.brandAccount?.findMany?.({
+        where: { email: { in: ems } },
+        select: { email: true, slug: true },
+      });
+      const emailToSlug = new Map<string, string>();
+      for (const r of byEmail || []) {
+        const e = typeof r?.email === 'string' ? r.email : '';
+        const s = typeof r?.slug === 'string' ? r.slug.trim() : '';
+        if (e && s && !emailToSlug.has(e)) emailToSlug.set(e, s);
+      }
+      // Note: actual mapping of userId→slug will be done by callers that know which userId has which email
+      // We just return emailToSlug via a temporary key marker to avoid changing callers too much.
+      // However, since callers already expand user objects, we will instead rely on callers to build emails array
+      // and then map per-user below. To keep the helper simple, we only return id→slug here and expose emailToSlug
+      // via return value is not possible. So we will handle email back-fill in callers below.
+    } catch {}
+  }
+
   return map;
 }
 
@@ -136,7 +162,32 @@ export async function GET(req: Request) {
       }
 
       const userIdsSingle = Array.from(new Set((item.comments || []).map((c: any) => c.user?.id).filter(Boolean)));
-      const slugMapSingle = await buildBrandSlugMap(userIdsSingle as string[]);
+      const emailsSingle = Array.from(new Set((item.comments || []).map((c: any) => c.user?.email).filter(Boolean)));
+      const slugMapSingle = await buildBrandSlugMap(userIdsSingle as string[], emailsSingle as string[]);
+
+      // Email fallback: for users missing slug, try BrandAccount.email match
+      if (emailsSingle.length > 0) {
+        try {
+          const anyPrisma: any = prisma as any;
+          const byEmail = await anyPrisma?.brandAccount?.findMany?.({
+            where: { email: { in: emailsSingle } },
+            select: { email: true, slug: true },
+          });
+          const emailToSlug = new Map<string, string>();
+          for (const r of byEmail || []) {
+            const e = typeof r?.email === 'string' ? r.email : '';
+            const s = typeof r?.slug === 'string' ? r.slug.trim() : '';
+            if (e && s) emailToSlug.set(e, s);
+          }
+          for (const c of item.comments || []) {
+            const uid = c?.user?.id as string | undefined;
+            const em = c?.user?.email as string | undefined;
+            if (uid && em && !slugMapSingle.has(uid) && emailToSlug.has(em)) {
+              slugMapSingle.set(uid, emailToSlug.get(em)!);
+            }
+          }
+        } catch {}
+      }
 
       return NextResponse.json([shapeItem(item, me?.id || null, slugMapSingle)]);
     }
@@ -180,7 +231,34 @@ export async function GET(req: Request) {
     });
 
     const userIds = Array.from(new Set(items.flatMap((it: any) => (it.comments || []).map((c: any) => c.user?.id).filter(Boolean))));
-    const slugMap = await buildBrandSlugMap(userIds as string[]);
+    const emails = Array.from(new Set(items.flatMap((it: any) => (it.comments || []).map((c: any) => c.user?.email).filter(Boolean))));
+    const slugMap = await buildBrandSlugMap(userIds as string[], emails as string[]);
+
+    // Email fallback for list
+    if (emails.length > 0) {
+      try {
+        const anyPrisma: any = prisma as any;
+        const byEmail = await anyPrisma?.brandAccount?.findMany?.({
+          where: { email: { in: emails } },
+          select: { email: true, slug: true },
+        });
+        const emailToSlug = new Map<string, string>();
+        for (const r of byEmail || []) {
+          const e = typeof r?.email === 'string' ? r.email : '';
+          const s = typeof r?.slug === 'string' ? r.slug.trim() : '';
+          if (e && s) emailToSlug.set(e, s);
+        }
+        for (const it of items) {
+          for (const c of it.comments || []) {
+            const uid = c?.user?.id as string | undefined;
+            const em = c?.user?.email as string | undefined;
+            if (uid && em && !slugMap.has(uid) && emailToSlug.has(em)) {
+              slugMap.set(uid, emailToSlug.get(em)!);
+            }
+          }
+        }
+      } catch {}
+    }
 
     return NextResponse.json(items.map((it) => shapeItem(it, me?.id || null, slugMap)));
   } catch (e: any) {
@@ -289,7 +367,32 @@ export async function POST(req: Request) {
     if (!createdFull) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 500 });
 
     const createdUserIds = Array.from(new Set((createdFull.comments || []).map((c: any) => c.user?.id).filter(Boolean)));
-    const createdSlugMap = await buildBrandSlugMap(createdUserIds as string[]);
+    const createdEmails = Array.from(new Set((createdFull.comments || []).map((c: any) => c.user?.email).filter(Boolean)));
+    const createdSlugMap = await buildBrandSlugMap(createdUserIds as string[], createdEmails as string[]);
+
+    // Email fallback for POST result
+    if (createdEmails.length > 0) {
+      try {
+        const anyPrisma: any = prisma as any;
+        const byEmail = await anyPrisma?.brandAccount?.findMany?.({
+          where: { email: { in: createdEmails } },
+          select: { email: true, slug: true },
+        });
+        const emailToSlug = new Map<string, string>();
+        for (const r of byEmail || []) {
+          const e = typeof r?.email === 'string' ? r.email : '';
+          const s = typeof r?.slug === 'string' ? r.slug.trim() : '';
+          if (e && s) emailToSlug.set(e, s);
+        }
+        for (const c of createdFull.comments || []) {
+          const uid = c?.user?.id as string | undefined;
+          const em = c?.user?.email as string | undefined;
+          if (uid && em && !createdSlugMap.has(uid) && emailToSlug.has(em)) {
+            createdSlugMap.set(uid, emailToSlug.get(em)!);
+          }
+        }
+      } catch {}
+    }
 
     return NextResponse.json(shapeItem(createdFull, me.id, createdSlugMap), { status: 201 });
   } catch (e: any) {
