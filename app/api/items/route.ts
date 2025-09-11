@@ -126,6 +126,7 @@ function shapeItem(i: any, meId?: string | null, slugMap?: Map<string, string>) 
     })(),
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
     reportCount: i.reportCount ?? 0,
+    suspendedAt: i.suspendedAt ?? null,
     suspended: Boolean(i.suspendedAt),
   };
 }
