@@ -1,7 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
 import { Mention } from "primereact/mention";
-import { linkifyMentions } from "@/lib/text/linkifyMentions";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
 
@@ -50,33 +49,26 @@ export function MentionTextArea({
   );
 
   return (
-    <>
-      <Mention
-        className={className}
-        inputClassName="rs-mention-input"
-        value={value}
-        onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
-        placeholder={placeholder}
-        suggestions={suggestions}
-        onSearch={onSearch}
-        field="slug"
-        trigger="@"
-        panelClassName="rs-mention-panel"
-        onSelect={() => {
-          setTimeout(() => {
-            onChange(((curr: any) => (typeof curr === 'string' && !curr.endsWith(' ')) ? curr + ' ' : curr) as any);
-          }, 0);
-        }}
-        panelStyle={{ maxHeight: 320, overflowY: 'auto', backgroundColor: '#ffffff' }}
-        rows={rows}
-        autoResize
-        itemTemplate={itemTemplate}
-      />
-      {value.trim().length > 0 && (
-        <div className="mt-1 text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap break-words">
-          {linkifyMentions(value)}
-        </div>
-      )}
-    </>
+    <Mention
+      className={className}
+      inputClassName="rs-mention-input"
+      value={value}
+      onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
+      placeholder={placeholder}
+      suggestions={suggestions}
+      onSearch={onSearch}
+      field="slug"
+      trigger="@"
+      panelClassName="rs-mention-panel"
+      onSelect={() => {
+        setTimeout(() => {
+          onChange(((curr: any) => (typeof curr === 'string' && !curr.endsWith(' ')) ? curr + ' ' : curr) as any);
+        }, 0);
+      }}
+      panelStyle={{ maxHeight: 320, overflowY: 'auto', backgroundColor: '#ffffff' }}
+      rows={rows}
+      autoResize
+      itemTemplate={itemTemplate}
+    />
   );
 }
