@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import TagFilterBar from '@/components/common/TagFilterBar';
 import ItemCard from '@/components/items/ItemCard';
 import Pager from '@/components/common/Pager';
+import ReportModal from '@/components/common/ReportModal';
 
 export type ProductsListItem = {
   id: string;
@@ -226,7 +227,7 @@ export default function ProductsList<
     (it.tags || []).forEach((t) => s.add(t));
   }
   return Array.from(s);
-}, [allTags, itemsLocal, removedIds]);
+}, [itemsLocal, removedIds, selected, q, order, myId]);
 
   // Filtreli liste
 const filtered = React.useMemo(() => {
@@ -269,9 +270,38 @@ const filtered = React.useMemo(() => {
   const [openShareId, setOpenShareId] = React.useState<string | null>(null);
   const [openMenuId, setOpenMenuId] = React.useState<string | null>(null);
   const [copiedId, setCopiedId] = React.useState<string | null>(copiedShareId ?? null);
-  React.useEffect(() => setCopiedId(copiedShareId ?? null), [copiedShareId]);
+React.useEffect(() => setCopiedId(copiedShareId ?? null), [copiedShareId]);
 
-  const savedSet = React.useMemo(() => {
+// Saved optimistic shadow map
+const [savedShadow, setSavedShadow] = React.useState<Map<string, boolean>>(new Map());
+
+// Report modal state (homepage-like)
+const REPORT_PRESETS = [
+  'Spam',
+  'Nefret söylemi',
+  'Şiddet / Tehdit',
+  'Uygunsuz içerik',
+  'Kişisel veri',
+  'Taciz',
+  'Spoiler',
+  'Yanlış bilgi',
+  'Telif ihlali',
+  'Diğer',
+] as const;
+
+const [reportOpen, setReportOpen] = React.useState(false);
+const [reportTargetId, setReportTargetId] = React.useState<string | null>(null);
+const [reportPreset, setReportPreset] = React.useState<(typeof REPORT_PRESETS)[number] | ''>('');
+const [reportDetails, setReportDetails] = React.useState('');
+const [reportSubmitting, setReportSubmitting] = React.useState(false);
+const [reportError, setReportError] = React.useState<string | null>(null);
+const [reportSuccess, setReportSuccess] = React.useState(false);
+
+// Share helpers
+const buildShareUrl = React.useCallback((id: string) => `https://ratestuff.net/share/${id}`, []);
+const canNativeShare = typeof window !== 'undefined' && !!(navigator as any)?.share;
+
+const savedSet = React.useMemo(() => {
     if (!savedIds) return new Set<string>();
     return savedIds instanceof Set ? savedIds : new Set(savedIds);
   }, [savedIds]);
@@ -331,6 +361,102 @@ const handleDelete = React.useCallback(async (id: string) => {
     console.warn('Delete error', e);
   }
 }, [onDeleted, onItemChanged, onReload]);
+// Toggle Save via /api/items/:id/save (POST save, DELETE unsave)
+const handleToggleSave = React.useCallback(async (id: string) => {
+  try {
+    const currentlySaved = savedShadow.has(id) ? savedShadow.get(id)! : savedSet.has(id);
+    const nextSaved = !currentlySaved;
+    // optimistic update
+    setSavedShadow(prev => new Map(prev).set(id, nextSaved));
+    const method = nextSaved ? 'POST' : 'DELETE';
+    const res = await fetch(`/api/items/${id}/save`, { method });
+    if (!res.ok) {
+      // revert
+      setSavedShadow(prev => new Map(prev).set(id, currentlySaved));
+      console.warn('Save toggle failed', await res.text().catch(() => ''));
+      return;
+    }
+    onSavedChanged?.(id, nextSaved);
+    onItemChanged?.(id);
+    try { await onReload?.(); } catch {}
+  } catch (e) {
+    console.warn('Save toggle error', e);
+  }
+}, [savedSet, savedShadow, onSavedChanged, onItemChanged, onReload]);
+
+// Report → modal aç (homepage-like)
+const handleReport = React.useCallback((id: string) => {
+  setReportTargetId(id);
+  setReportPreset('');
+  setReportDetails('');
+  setReportError(null);
+  setReportOpen(true);
+}, []);
+
+async function submitReport() {
+  if (!reportTargetId) return;
+  const preset = String(reportPreset || '').trim();
+  const details = String(reportDetails || '').trim();
+  if (!preset) { setReportError('Lütfen bir sebep seç.'); return; }
+  if (preset === 'Diğer' && !details) { setReportError('Diğer seçildi, lütfen sebebi yaz.'); return; }
+
+  const reason = preset === 'Diğer' ? details : (details ? `${preset} — ${details}` : preset);
+
+  setReportSubmitting(true);
+  setReportError(null);
+  const res = await fetch(`/api/items/${reportTargetId}/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason })
+  });
+  setReportSubmitting(false);
+
+  let j: any = null; try { j = await res.json(); } catch {}
+  if (res.ok && j?.ok) {
+    setReportOpen(false);
+    const id = reportTargetId;
+    setReportTargetId(null);
+    setReportPreset('');
+    setReportDetails('');
+    setReportSuccess(true);
+    setTimeout(() => setReportSuccess(false), 1600);
+    try { await onReload?.(); } catch {}
+    if (id) onItemChanged?.(id);
+  } else {
+    setReportError(j?.error || `${res.status} ${res.statusText}`);
+  }
+}
+
+// Kopyala (fallback)
+const handleCopyShare = React.useCallback(async (id: string) => {
+  try {
+    const url = buildShareUrl(id);
+    await navigator.clipboard.writeText(url);
+    setCopiedId(id);
+  } catch (e) {
+    console.warn('Copy share failed', e);
+  }
+}, [buildShareUrl]);
+
+// Native share (destek yoksa kopyala)
+const handleNativeShare = React.useCallback(async (id: string, name?: string) => {
+  const url = buildShareUrl(id);
+  if (canNativeShare) {
+    try {
+      await (navigator as any).share({ title: name || 'RateStuff', text: name || 'RateStuff paylaşımı', url });
+      setCopiedId(id);
+      return;
+    } catch {
+      // cancel/fail → fallback
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    setCopiedId(id);
+  } catch (e) {
+    console.warn('Share fallback copy failed', e);
+  }
+}, [buildShareUrl, canNativeShare]);
 
 
 
@@ -617,7 +743,7 @@ return true;
                   className="h-full"
                   item={it as any}
                   me={me}
-                  saved={savedSet.has(it.id)}
+                  saved={savedShadow.has(it.id) ? savedShadow.get(it.id)! : savedSet.has(it.id)}
                   amAdmin={!!amAdmin}
                   myId={myId ?? null}
                   showComments={!!showComments}
@@ -630,11 +756,11 @@ return true;
                   copiedShareId={copiedId}
 
                   onOpenSpotlight={handleOpenSpotlight}
-                  onToggleSave={onToggleSave}
-                  onReport={onReport}
+                  onToggleSave={onToggleSave ?? handleToggleSave}
+                  onReport={onReport ?? handleReport}
                   onDelete={onDelete ?? handleDelete}
-                  onCopyShare={onCopyShare}
-                  onNativeShare={onNativeShare}
+                  onCopyShare={onCopyShare ?? handleCopyShare}
+                  onNativeShare={onNativeShare ?? handleNativeShare}
                   onShowInList={onShowInList}
                   onVoteComment={onVoteComment}
                   onItemChanged={onItemChanged ?? (async () => { try { await onReload?.(); } catch {} })}
@@ -720,6 +846,30 @@ return true;
           color: var(--brand-ink);
         }
       `}</style>
+        {/* Report Modal */}
+      {/* Report Modal (homepage-like) */}
+      <ReportModal
+        open={reportOpen}
+        presets={REPORT_PRESETS}
+        preset={reportPreset}
+        details={reportDetails}
+        submitting={reportSubmitting}
+        error={reportError}
+        onClose={() => setReportOpen(false)}
+        onSubmit={submitReport}
+        onSelectPreset={(v) => setReportPreset(v as typeof REPORT_PRESETS[number])}
+        onChangeDetails={(v) => setReportDetails(v)}
+      />
+      {reportSuccess && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[210]">
+          <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 shadow-sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span className="text-sm font-medium">Rapor alındı</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
