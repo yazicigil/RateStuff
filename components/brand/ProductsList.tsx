@@ -193,15 +193,7 @@ export default function ProductsList<
   }, []);
 
   const isItemSuspended = React.useCallback((it: any): boolean => {
-    const status = String(it?.status ?? '').toUpperCase();
-    return (
-      isTrue(it?.suspended) ||
-      status === 'SUSPENDED' ||
-      Boolean(it?.suspendedAt) ||
-      isTrue(it?.state?.suspended) ||
-      isTrue(it?.moderation?.suspended) ||
-      isTrue(it?.flags?.suspended)
-    );
+    return Boolean(it?.suspendedAt);
   }, []);
 
   React.useEffect(() => {
