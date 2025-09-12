@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -36,7 +36,7 @@ export function MentionTextArea({
     if (e.trigger === "@") fetchSuggestions(e.query);
   }, [fetchSuggestions]);
 
-  const itemTemplate = (opt: BrandOpt) => (
+  const itemTemplate = useCallback((opt: BrandOpt) => (
     <div className="flex items-center gap-2 px-2 py-1.5">
       {opt.avatarUrl
         ? <img src={opt.avatarUrl!} alt={opt.slug} className="w-6 h-6 rounded-full" />
@@ -46,7 +46,7 @@ export function MentionTextArea({
         <div className="text-xs text-gray-500">@{opt.slug}</div>
       </div>
     </div>
-  );
+  ), []);
 
   return (
     <Mention
@@ -62,7 +62,9 @@ export function MentionTextArea({
       panelClassName="rs-mention-panel"
       onSelect={() => {
         setTimeout(() => {
-          onChange(((curr: any) => (typeof curr === 'string' && !curr.endsWith(' ')) ? curr + ' ' : curr) as any);
+          if (typeof value === 'string' && !value.endsWith(' ')) {
+            onChange(value + ' ');
+          }
         }, 0);
       }}
       panelStyle={{ maxHeight: 320, overflowY: 'auto' }}

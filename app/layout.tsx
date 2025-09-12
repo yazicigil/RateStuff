@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 import HeaderGate from "@/components/header/HeaderGate";
 import HeaderControlsWrapper from "@/components/header/HeaderControlsWrapper";
 import Footer from '@/components/common/Footer';
+import PrimeProvider from './providers/prime';
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -143,6 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico?v=2" sizes="any" />
       </head>
       <body className="min-h-screen antialiased">
+        <PrimeProvider>
         <HeaderControlsWrapper>
           <HeaderGate />
 
@@ -159,7 +161,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           })();`}
         </Script>
           <Footer />
-
+</PrimeProvider>
       </body>
     </html>
   );

@@ -10,7 +10,7 @@
 .link { @apply underline hover:opacity-80; }
 .sidebar .section { @apply card mb-4; }
 /* Normalize PrimeReact Mention input to match our textarea look */
-.p-mention { position: relative; overflow: visible; @apply w-full; z-index: 10000 !important; isolation: isolate; }
+.p-mention { position: relative; overflow: visible; @apply w-full; }
 .p-mention .p-inputtext {
   @apply w-full bg-transparent text-inherit placeholder:text-gray-500 dark:placeholder:text-gray-400 border-0 outline-none shadow-none;
   padding: 0; /* outer container handles padding/border/radius */
@@ -117,11 +117,8 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 /* Mention dropdown theming + stacking */
 .rs-mention-panel{
   @apply bg-white dark:bg-[#0b1220] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl;
-  position: absolute !important;
-  top: calc(100% + 4px) !important;
-  left: 0 !important;
-  right: auto !important;
-  z-index: 2147483647 !important; /* maximum stacking */
+  /* PrimeReact positions the overlay; keep z-index moderate per PrimeProvider zIndex.overlay */
+  z-index: 60 !important;
 }
 .rs-mention-panel .p-mention-items{ @apply py-1; }
 .rs-mention-panel .p-mention-item{ @apply px-2 py-1.5 cursor-pointer; }
@@ -131,7 +128,7 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 .sidebar .section:has(.p-mention) {
   overflow: visible !important;
 }
-.p-mention { @apply w-full; }
+/* .p-mention sizing handled above */
 .p-mention .p-inputtext,
 .rs-mention-input {
   padding: 0 !important;   /* dış container padding kullanılsın */
