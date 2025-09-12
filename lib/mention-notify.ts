@@ -2,6 +2,16 @@
 import { extractMentionsFromHtml, buildSnippet } from "@/lib/mentions";
 import { Prisma, PrismaClient } from "@prisma/client";
 
+// Fallback for plain-text comments (e.g., "@brandslug")
+const MENTION_RE = /@([a-z0-9](?:[a-z0-9-_]{1,30}))/gi;
+function extractMentionsFromText(s: string) {
+  if (!s) return [] as Array<{ slug: string }>;
+  const out = new Set<string>();
+  let m: RegExpExecArray | null;
+  while ((m = MENTION_RE.exec(s)) !== null) out.add(m[1].toLowerCase());
+  return Array.from(out).map((slug) => ({ slug }));
+}
+
 function buildNotifBase(params: { type: 'MENTION_IN_COMMENT' | 'MENTION_IN_POST'; brandId: string; actorId: string; itemId: string; commentId?: string | null; itemName?: string }) {
   const { type, brandId, actorId, itemId, commentId, itemName } = params;
   const title = type === 'MENTION_IN_COMMENT' ? 'Bir kullanıcı yorumunda sizden bahsetti' : `${itemName ?? 'Gönderi'} gönderisinde sizden bahsedildi`;
@@ -62,9 +72,16 @@ export async function handleMentionsOnComment(
   params: { actorId: string; itemId: string; commentId: string; text: string }
 ) {
   const { actorId, itemId, commentId, text } = params;
-  const parsed = extractMentionsFromHtml(text);
+  let parsed = extractMentionsFromHtml(text);
+  if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) {
+    // Comments may be stored as plain text; fall back to regex-based parser
+    parsed = extractMentionsFromText(text);
+  }
   const mentions = await resolveMentionTargets(tx, parsed);
   if (!mentions.length) return;
+
+  // Fetch item once (used for notification titles)
+  const item = await tx.item.findUnique({ where: { id: itemId }, select: { name: true } });
 
   await Promise.all(
     mentions
@@ -82,7 +99,6 @@ export async function handleMentionsOnComment(
           update: { snippet: buildSnippet(text) },
         });
 
-        const item = await tx.item.findUnique({ where: { id: itemId }, select: { name: true } });
         const base = buildNotifBase({ type: 'MENTION_IN_COMMENT', brandId: m.brandId, actorId, itemId, commentId, itemName: item?.name });
 
         await tx.notification.upsert({
