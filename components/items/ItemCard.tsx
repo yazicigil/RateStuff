@@ -224,7 +224,7 @@ export default function ItemCard({
 
       {/* TOP RIGHT: Share + Options (buttons) */}
       {!editing && (
-        <div className="rs-pop absolute top-1.5 right-1.5 z-20 flex flex-col gap-1.5">
+        <div className="rs-pop absolute top-1.5 right-1.5 z-10 flex flex-col gap-1.5">
           {showProductCta && (
             <a
               href={productUrl as string}
@@ -275,7 +275,7 @@ export default function ItemCard({
             {typeof window !== 'undefined' && openShareId === i.id && sharePos && createPortal(
               <div
                 className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
-                style={{ position: 'fixed', top: sharePos.top, left: sharePos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+                style={{ position: 'fixed', top: sharePos.top, left: sharePos.left, zIndex: 80, transform: 'translateX(-100%)' }}
               >
                 <SharePopover
                   open
@@ -306,7 +306,7 @@ export default function ItemCard({
             {typeof window !== 'undefined' && openMenuId === i.id && menuPos && createPortal(
               <div
                 className="text-neutral-900 dark:text-neutral-100 [--brand-ink:#111827] [--brand-ink-subtle:rgba(17,24,39,0.66)] dark:[--brand-ink:#F3F4F6] dark:[--brand-ink-subtle:rgba(243,244,246,0.66)]"
-                style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 1000, transform: 'translateX(-100%)' }}
+                style={{ position: 'fixed', top: menuPos.top, left: menuPos.left, zIndex: 80, transform: 'translateX(-100%)' }}
               >
                 <OptionsPopover
                   open
