@@ -5,7 +5,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 function buildNotifBase(params: { type: 'MENTION_IN_COMMENT' | 'MENTION_IN_POST'; brandId: string; actorId: string; itemId: string; commentId?: string | null; itemName?: string }) {
   const { type, brandId, actorId, itemId, commentId, itemName } = params;
   const title = type === 'MENTION_IN_COMMENT' ? 'Bir kullanıcı yorumunda sizden bahsetti' : `${itemName ?? 'Gönderi'} gönderisinde sizden bahsedildi`;
-  const body = type === 'MENTION_IN_COMMENT' ? '“' + (itemName ?? 'Gönderi') + '” içindeki bir yorumda mentionlandınız' : 'Gönderi açıklamasında mentionlandınız';
+  const body = type === 'MENTION_IN_COMMENT' ? '“' + (itemName ?? 'Gönderi') + '” içindeki bir yorumda sizden bahsedildi' : 'Gönderi açıklamasında sizden bahsedildi';
   const key = `${type}:${brandId}:${itemId}:${commentId ?? 'desc'}`; // eventKey üzerinden tekilleştireceğiz
   return { title, body, key };
 }
@@ -25,7 +25,7 @@ async function resolveMentionTargets(tx: Tx, parsed: ReturnType<typeof extractMe
   if (slugs.length) {
     // BrandAccount: { slug, email }
     const accounts = await (tx as any).brandAccount.findMany({
-      where: { slug: { in: slugs }, active: true },
+      where: { slug: { in: slugs } },
       select: { slug: true, email: true },
     });
     const emails = accounts.map((a: any) => a.email).filter(Boolean);
