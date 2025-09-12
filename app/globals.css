@@ -118,12 +118,11 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 .rs-mention-panel{
   @apply bg-white dark:bg-[#0b1220] border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-xl;
   /* PrimeReact positions the overlay; keep z-index moderate per PrimeProvider zIndex.overlay */
-  z-index: 60 !important;
 }
 .rs-mention-panel .p-mention-items{ @apply py-1; }
 .rs-mention-panel .p-mention-item{ @apply px-2 py-1.5 cursor-pointer; }
 .rs-mention-panel .p-mention-item.p-highlight,
-.rs-mention-panel .p-mention-item:hover{ @apply bg-neutral-100 da rk:bg-neutral-800; }
+.rs-mention-panel .p-mention-item:hover{ @apply bg-neutral-100 dark:bg-neutral-800; }
 .card:has(.p-mention),
 .sidebar .section:has(.p-mention) {
   overflow: visible !important;

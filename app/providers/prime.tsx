@@ -4,7 +4,7 @@ import { PrimeReactProvider } from 'primereact/api';
 import { PropsWithChildren } from 'react';
 
 export default function PrimeProvider({ children }: PropsWithChildren) {
-  // SSR güvenli değer: 'self' stringi; body’ye almak istersen aşağıdaki yorumu aç
+  // Body'ye portal (SSR guard ile), stacking sorunlarını kesin çözer
   const value = {
     appendTo: typeof window !== 'undefined' ? document.body : undefined,                    // dropdown tam inputun altında
     // appendTo: typeof window !== 'undefined' ? document.body : undefined, // body’ye portal
