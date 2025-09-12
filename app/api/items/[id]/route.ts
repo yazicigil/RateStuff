@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { maskName } from '@/lib/mask';
+import { handleMentionsOnPost } from "@/lib/mention-notify";
 
 const ADMIN_EMAIL = 'ratestuffnet@gmail.com';
 
@@ -113,6 +114,89 @@ export async function DELETE(_req: Request, { params }: { params: { id: string }
     });
 
     return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
+  }
+}
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const me = await getSessionUser();
+    if (!me) {
+      return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({} as any));
+    const { name, description, imageUrl, productUrl } = body || {};
+
+    const item = await prisma.item.findUnique({
+      where: { id: params.id },
+      select: { id: true, createdById: true },
+    });
+    if (!item) {
+      return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    }
+
+    const isOwner = item.createdById === me.id;
+    const isAdmin = (me as any)?.email === ADMIN_EMAIL || (me as any)?.isAdmin === true;
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
+    }
+
+    // productUrl normalization (same logic as POST, simplified)
+    let safeProductUrl: string | null | undefined = undefined; // undefined → do not change
+    if (typeof productUrl === 'string') {
+      if (productUrl.trim() === '') {
+        safeProductUrl = null;
+      } else {
+        try {
+          const u = new URL(productUrl.trim());
+          if (u.protocol === 'http:' || u.protocol === 'https:') {
+            safeProductUrl = u.toString();
+          } else {
+            return NextResponse.json({ ok: false, error: 'invalid-product-url-protocol' }, { status: 400 });
+          }
+        } catch {
+          return NextResponse.json({ ok: false, error: 'invalid-product-url' }, { status: 400 });
+        }
+      }
+    }
+
+    const data: any = {};
+    if (typeof name === 'string') data.name = name.trim();
+    if (typeof description === 'string') data.description = description.trim();
+    if (typeof imageUrl === 'string') data.imageUrl = imageUrl.trim() || null;
+    if (safeProductUrl !== undefined) data.productUrl = safeProductUrl;
+
+    await prisma.item.update({ where: { id: params.id }, data });
+
+    // Mentions: description güncellendiyse mention kayıtlarını upsert et
+    try {
+      if (typeof description === 'string') {
+        await prisma.$transaction(async (tx) => {
+          await handleMentionsOnPost(tx, {
+            actorId: me.id,
+            itemId: params.id,
+            description: String(description),
+          });
+        });
+      }
+    } catch (err) {
+      console.error('[mentions:on-post:update]', err);
+    }
+
+    // Return updated shaped item
+    const updated = await prisma.item.findUnique({
+      where: { id: params.id },
+      include: {
+        comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } } } },
+        tags: { include: { tag: true } },
+        createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
+      },
+    });
+    if (!updated) return NextResponse.json({ ok: false, error: 'not-found' }, { status: 404 });
+    const meMaybe = await getSessionUser().catch(() => null);
+    return NextResponse.json({ ok: true, item: shapeItem(updated as any, meMaybe?.id || null) });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });
   }

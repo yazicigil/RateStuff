@@ -29,6 +29,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { containsBannedWord } from "@/lib/bannedWords";
 import { milestone_ownerItemReviews, milestone_userReviewsGiven } from "@/lib/milestones";
+import { handleMentionsOnComment } from "@/lib/mention-notify";
 
 function maskName(input?: string | null): string {
   const name = (input || "Bir kullanıcı").trim();
@@ -93,6 +94,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
       },
     });
+
+    // Mentions: comment içindeki marka mention’ları için Mention + Notification üret
+    try {
+      await prisma.$transaction(async (tx) => {
+        await handleMentionsOnComment(tx, {
+          actorId: me.id,
+          itemId: params.id,
+          commentId: created.id,
+          text: text,
+        });
+      });
+    } catch (err) {
+      console.error('[mentions:on-comment:create]', err);
+    }
 
     const createdUserWithBrand = created?.user
       ? { ...created.user, slug: await getBrandSlug({ userId: me.id, email: created.user.email }) }
@@ -273,6 +288,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     }
 
     await prisma.comment.update({ where: { id: commentId }, data });
+    // Mentions: yorum metni güncellendiyse mention kayıtlarını upsert et
+    try {
+      if (typeof body.text === 'string') {
+        await prisma.$transaction(async (tx) => {
+          await handleMentionsOnComment(tx, {
+            actorId: me.id,
+            itemId: params.id,
+            commentId,
+            text: String(body.text),
+          });
+        });
+      }
+    } catch (err) {
+      console.error('[mentions:on-comment:update]', err);
+    }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });

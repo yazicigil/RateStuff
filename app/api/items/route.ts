@@ -4,6 +4,7 @@ import { getSessionUser } from '@/lib/auth';
 import { containsBannedWord } from '@/lib/bannedWords';
 import { milestone_userItemsShared } from "@/lib/milestones";
 import { notifyTagPeers } from "@/lib/tagPeers";
+import { handleMentionsOnPost } from "@/lib/mention-notify";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -351,6 +352,21 @@ export async function POST(req: Request) {
       await notifyTagPeers(prisma, newId);
     } catch (e) {
       console.error('[notify:tag-peers]', e);
+    }
+
+    // Mentions: item description içindeki marka mention’ları için Mention + Notification üret
+    try {
+      if (typeof description === 'string' && description.trim() !== '') {
+        await prisma.$transaction(async (tx) => {
+          await handleMentionsOnPost(tx, {
+            actorId: me.id,
+            itemId: newId,
+            description: description,
+          });
+        });
+      }
+    } catch (e) {
+      console.error('[mentions:on-post:create]', e);
     }
 
     const include = {

@@ -5,8 +5,8 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")   // runtime (pooler) URL
-  directUrl = env("DIRECT_URL")     // migrate/push (direct 5432) URL
+  url       = env("DATABASE_URL") // runtime (pooler) URL
+  directUrl = env("DIRECT_URL") // migrate/push (direct 5432) URL
 }
 
 enum UserKind {
@@ -15,70 +15,84 @@ enum UserKind {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
-  name       String?
-  maskedName String?
-  avatarUrl  String?
-  createdAt  DateTime @default(now())
-  isAdmin    Boolean  @default(false)
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  name               String?
+  maskedName         String?
+  avatarUrl          String?
+  createdAt          DateTime  @default(now())
+  isAdmin            Boolean   @default(false)
   welcomeEmailSentAt DateTime?
 
   items        Item[]
   ratings      Rating[]
   comments     Comment[]
   commentVotes CommentVote[]
-  saved        SavedItem[]    // ← eklendi
+  saved        SavedItem[] // ← eklendi
   reports      Report[]
-  kind       UserKind @default(REGULAR)
+  kind         UserKind      @default(REGULAR)
 
   // back-relation for BrandAccount.createdBy
   createdBrandAccounts BrandAccount[] @relation("UserCreatedBrandAccounts")
 
-  socialLinks  SocialLink[]
+  socialLinks SocialLink[]
+
+  // back-relations for notifications & mentions
+  notificationsAsBrand Notification[] @relation("NotificationBrand")
+  notificationsAsActor Notification[] @relation("NotificationActor")
+  mentionsAsBrand      Mention[]      @relation("MentionBrand")
+  mentionsAsActor      Mention[]      @relation("MentionActor")
 }
 
 model Item {
-  id           String    @id @default(cuid())
-  name         String
-  description  String
-  imageUrl     String?
-  productUrl String?
-  createdAt    DateTime  @default(now())
-  editedAt     DateTime?
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String?
+  productUrl  String?
+  createdAt   DateTime    @default(now())
+  editedAt    DateTime?
   suspendedAt DateTime?
-  createdById  String?
-  createdBy    User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  dedupeKey    String?   @unique
-  ratings   Rating[]
-  comments  Comment[]
-  tags      ItemTag[]
-  savedBy   SavedItem[]  // ← eklendi
-  reports   Report[]
+  createdById String?
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  dedupeKey   String?     @unique
+  ratings     Rating[]
+  comments    Comment[]
+  tags        ItemTag[]
+  savedBy     SavedItem[] // ← eklendi
+  reports     Report[]
+
+  // back-relations
+  notifications Notification[] @relation("NotificationItem")
+  mentions      Mention[]      @relation("MentionItem")
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   itemId    String
   userId    String
   text      String
-  rating    Int      @default(0)
-  createdAt DateTime @default(now())
+  rating    Int       @default(0)
+  createdAt DateTime  @default(now())
   editedAt  DateTime?
 
-  item  Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item  Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   votes CommentVote[]
+
+  // back-relations
+  notifications Notification[] @relation("NotificationComment")
+  mentions      Mention[]      @relation("MentionComment")
 
   @@unique([itemId, userId])
 }
 
 model Rating {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   itemId    String
   userId    String
-  value     Int      @default(0)
-  createdAt DateTime @default(now())
+  value     Int       @default(0)
+  createdAt DateTime  @default(now())
   editedAt  DateTime?
 
   item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
@@ -88,8 +102,8 @@ model Rating {
 }
 
 model Tag {
-  id    String   @id @default(cuid())
-  name  String   @unique
+  id    String    @id @default(cuid())
+  name  String    @unique
   items ItemTag[]
 }
 
@@ -118,8 +132,8 @@ model Report {
 }
 
 model SavedItem {
-  userId   String
-  itemId   String
+  userId    String
+  itemId    String
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -131,10 +145,10 @@ model SavedItem {
 }
 
 model CommentVote {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   commentId String
   userId    String
-  value     Int     // 1 = upvote, -1 = downvote
+  value     Int // 1 = upvote, -1 = downvote
 
   comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -155,37 +169,54 @@ enum NotificationType {
   COMMENT_UPVOTED
   ADMIN_BROADCAST
   ADMIN_DIRECT
+  MENTION_IN_COMMENT
+  MENTION_IN_POST // item description içinde
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  type      NotificationType
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType
+  brandId String
+  brand   User             @relation("NotificationBrand", fields: [brandId], references: [id])
+
+  // bildirimi tetikleyen kullanıcı
+  actorId String
+  actor   User   @relation("NotificationActor", fields: [actorId], references: [id])
+
+  itemId String
+  item   Item   @relation("NotificationItem", fields: [itemId], references: [id])
+
+  // comment mention ise dolu; post mention ise null
+  commentId String?
+  comment   Comment?  @relation("NotificationComment", fields: [commentId], references: [id])
   title     String
   body      String
   link      String?
   image     String?
   data      Json?
   readAt    DateTime?
-  createdAt DateTime         @default(now())
-  eventKey  String?          @unique
+  createdAt DateTime  @default(now())
+  eventKey  String?   @unique
 
+  @@unique([type, brandId, itemId, commentId])
   @@index([userId, createdAt(sort: Desc)])
 }
 
 model NotificationPreference {
-  id                 String  @id @default(cuid())
-  userId             String  @unique
-  emailEnabled       Boolean @default(false)
-  pushEnabled        Boolean @default(false)
-  commentOnOwnItem   Boolean @default(true)
-  ratingOnOwnItem    Boolean @default(true)
-  tagPeerNewItem     Boolean @default(true)
-  reportEvents       Boolean @default(true)
-  milestones         Boolean @default(true)
-  commentUpvoted     Boolean @default(true)
-  emailDigest        String  @default("none")
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  emailEnabled     Boolean @default(false)
+  pushEnabled      Boolean @default(false)
+  commentOnOwnItem Boolean @default(true)
+  ratingOnOwnItem  Boolean @default(true)
+  tagPeerNewItem   Boolean @default(true)
+  reportEvents     Boolean @default(true)
+  milestones       Boolean @default(true)
+  commentUpvoted   Boolean @default(true)
+  emailDigest      String  @default("none")
 }
+
 model Presence {
   id        String   @id @default(cuid())
   userId    String?
@@ -195,75 +226,100 @@ model Presence {
   @@index([lastSeen])
   @@index([userId])
 }
+
 model NotificationTemplate {
-  id        String            @id @default(cuid())
-  type      NotificationType  @unique
+  id        String           @id @default(cuid())
+  type      NotificationType @unique
   title     String
   body      String
   image     String?
-  updatedAt DateTime          @updatedAt
+  updatedAt DateTime         @updatedAt
 }
-
 
 // Whitelist of brand accounts you manage via Admin
 model BrandAccount {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  displayName  String?
-   slug          String   @unique
-  active       Boolean  @default(true)
-  features     Json?
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  email       String   @unique
+  displayName String?
+  slug        String   @unique
+  active      Boolean  @default(true)
+  features    Json?
+  createdAt   DateTime @default(now())
 
-  createdById  String?
-  createdBy    User?    @relation("UserCreatedBrandAccounts", fields: [createdById], references: [id])
+  createdById String?
+  createdBy   User?   @relation("UserCreatedBrandAccounts", fields: [createdById], references: [id])
 
-  coverImageUrl String?   // profil üst görseli
-  bio           String?   @db.Text  // uzun açıklama için
-  cardColor String?
+  coverImageUrl String? // profil üst görseli
+  bio           String? @db.Text // uzun açıklama için
+  cardColor     String?
+
   @@index([email])
 }
 
-
 // One-time 6-digit codes (hashed); short TTL, limited attempts
 model BrandOtp {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   email      String
   codeHash   String
   ip         String?
   expiresAt  DateTime
-  attempts   Int      @default(0)
+  attempts   Int       @default(0)
   consumedAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@index([email])
 }
 
 // Single-use login nonce used by Credentials authorize()
 model BrandLoginNonce {
-  id         String   @id @default(cuid())
-  email      String
-  nonceHash  String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  email     String
+  nonceHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
   @@index([email])
 }
 
 model SocialLink {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
 
-  url       String
-  label     String?
-  platform  String?
-  order     Int      @default(0)
-  visible   Boolean  @default(true)
+  url      String
+  label    String?
+  platform String?
+  order    Int     @default(0)
+  visible  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([userId, url])
   @@index([userId, order])
+}
+
+model Mention {
+  id      String @id @default(cuid())
+  brandId String
+  brand   User   @relation("MentionBrand", fields: [brandId], references: [id])
+
+  // kaynağı:
+  itemId String
+  item   Item   @relation("MentionItem", fields: [itemId], references: [id])
+
+  commentId String?
+  comment   Comment? @relation("MentionComment", fields: [commentId], references: [id])
+
+  // kim mentionlamış:
+  actorId String
+  actor   User   @relation("MentionActor", fields: [actorId], references: [id])
+
+  // metinden küçük bir alıntı (opsiyonel, UI’da işimize yarar)
+  snippet String?
+
+  createdAt DateTime @default(now())
+
+  // aynı kaynaktan aynı markaya birden fazla mention kaydı tutmayalım:
+  @@unique([brandId, itemId, commentId])
 }
