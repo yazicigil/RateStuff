@@ -94,7 +94,7 @@ export async function handleMentionsOnComment(
             title: base.title,
             body: base.body,
             link: `/?item=${itemId}&comment=${commentId}`,
-            image: undefined,
+            image: '/mention.svg',
             data: { itemId, commentId, actorId },
             brandId: m.brandId,
             actorId,
@@ -105,6 +105,7 @@ export async function handleMentionsOnComment(
             // sadece metadata güncellesin (ör. body değiştiyse)
             title: base.title,
             body: base.body,
+            image: '/mention.svg',
             data: { itemId, commentId, actorId },
           },
         });
@@ -149,7 +150,7 @@ export async function handleMentionsOnPost(
             title: base.title,
             body: base.body,
             link: `/?item=${itemId}&hl=desc`,
-            image: undefined,
+            image: '/mention.svg',
             data: { itemId, actorId },
             brandId: m.brandId,
             actorId,
@@ -159,6 +160,7 @@ export async function handleMentionsOnPost(
           update: {
             title: base.title,
             body: base.body,
+            image: '/mention.svg',
             data: { itemId, actorId },
           },
         });
