@@ -60,6 +60,8 @@ export function MentionTextArea({
       field="slug"
       trigger="@"
       panelClassName="rs-mention-panel z-[9999]"
+      // @ts-ignore  (bazı sürümlerde type yok ama runtime'da çalışıyor)
+      appendTo={typeof window !== 'undefined' ? document.body : undefined}
       onSelect={() => {
         setTimeout(() => {
           if (typeof value === 'string' && !value.endsWith(' ')) {
