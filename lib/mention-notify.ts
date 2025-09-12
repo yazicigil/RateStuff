@@ -20,21 +20,31 @@ async function resolveMentionTargets(tx: Tx, parsed: ReturnType<typeof extractMe
     if ((m as any).brandId) out.push({ brandId: (m as any).brandId, display: (m as any).display });
   }
 
-  // 2) Slugs → BrandAccount.slug -> createdById (brand user id)
+  // 2) Slugs → BrandAccount.slug -> email -> User(kind='BRAND')
   const slugs = parsed.filter((m: any) => m.slug).map((m: any) => String(m.slug).toLowerCase());
   if (slugs.length) {
+    // BrandAccount: { slug, email }
     const accounts = await (tx as any).brandAccount.findMany({
       where: { slug: { in: slugs } },
-      select: { slug: true, createdById: true },
+      select: { slug: true, email: true },
     });
-    const slugToUserId = new Map<string, string>();
-    for (const a of accounts) {
-      if (a.createdById) slugToUserId.set(String(a.slug).toLowerCase(), a.createdById);
-    }
-    for (const m of parsed) {
-      if ((m as any).slug) {
-        const uid = slugToUserId.get(String((m as any).slug).toLowerCase());
-        if (uid) out.push({ brandId: uid, display: (m as any).display });
+    const emails = accounts.map((a: any) => a.email).filter(Boolean);
+    if (emails.length) {
+      const brandUsers = await (tx as any).user.findMany({
+        where: { email: { in: emails } },
+        select: { id: true, email: true },
+      });
+      const emailToUserId = new Map<string, string>(brandUsers.map((u: any) => [u.email, u.id]));
+      const slugToUserId = new Map<string, string>();
+      for (const a of accounts) {
+        const uid = emailToUserId.get(a.email);
+        if (uid) slugToUserId.set(String(a.slug).toLowerCase(), uid);
+      }
+      for (const m of parsed) {
+        if ((m as any).slug) {
+          const uid = slugToUserId.get(String((m as any).slug).toLowerCase());
+          if (uid) out.push({ brandId: uid, display: (m as any).display });
+        }
       }
     }
   }
