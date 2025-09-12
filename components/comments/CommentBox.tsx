@@ -182,7 +182,7 @@ export default function CommentBox({
           </div>
           <div className="flex items-end gap-2">
             <div className="flex-1">
-              <div className="relative z-[2147483646]">
+              <div className="relative z-10">
                 <MentionTextArea
                   className={
                     "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
@@ -342,7 +342,7 @@ export default function CommentBox({
       </div>
       <div className="flex items-end gap-2">
         <div className="flex-1">
-          <div className="relative z-[2147483646]">
+          <div className="relative z-10">
             <MentionTextArea
               className={
                 "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
