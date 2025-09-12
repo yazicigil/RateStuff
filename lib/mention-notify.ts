@@ -75,17 +75,12 @@ export async function handleMentionsOnComment(
       .filter((m) => m.brandId !== actorId) // self-mention yok
       .map(async (m) => {
         console.info('[mention:comment] processing', { brandId: m.brandId, display: m.display });
-        await tx.mention.upsert({
-          where: { brandId_itemId_commentId: { brandId: m.brandId, itemId, commentId } },
-          create: {
-            brandId: m.brandId,
-            actorId,
-            itemId,
-            commentId,
-            snippet: buildSnippet(text),
-          },
-          update: { snippet: buildSnippet(text) },
-        });
+        const existing = await tx.mention.findFirst({ where: { brandId: m.brandId, itemId, commentId } });
+        if (existing) {
+          await tx.mention.update({ where: { id: existing.id }, data: { snippet: buildSnippet(text) } });
+        } else {
+          await tx.mention.create({ data: { brandId: m.brandId, actorId, itemId, commentId, snippet: buildSnippet(text) } });
+        }
 
         const item = await tx.item.findUnique({ where: { id: itemId }, select: { name: true } });
         const base = buildNotifBase({ type: 'MENTION_IN_COMMENT', brandId: m.brandId, actorId, itemId, commentId, itemName: item?.name });
