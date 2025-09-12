@@ -53,7 +53,7 @@ export function MentionTextArea({
       className={className}
       inputClassName="rs-mention-input"
       value={value}
-      onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
+      onChange={(e: any) => onChange(e.value)}
       placeholder={placeholder}
       suggestions={suggestions}
       onSearch={onSearch}
@@ -64,8 +64,9 @@ export function MentionTextArea({
       appendTo={typeof window !== 'undefined' ? document.body : undefined}
       onSelect={() => {
         setTimeout(() => {
-          if (typeof value === 'string' && !value.endsWith(' ')) {
-            onChange(value + ' ');
+          const current = (document.querySelector('.rs-mention-input') as HTMLTextAreaElement | null)?.value ?? value;
+          if (typeof current === 'string' && !current.endsWith(' ')) {
+            onChange(current + ' ');
           }
         }, 0);
       }}
