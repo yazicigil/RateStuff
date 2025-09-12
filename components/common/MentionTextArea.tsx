@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -20,6 +20,7 @@ export function MentionTextArea({
   rows?: number;
 }) {
   const [suggestions, setSuggestions] = useState<BrandOpt[]>([]);
+  const rootRef = useRef<HTMLDivElement | null>(null);
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < minLengthToTrigger) return setSuggestions([]);
@@ -49,32 +50,35 @@ export function MentionTextArea({
   ), []);
 
   return (
-    <Mention
-      className={className}
-      inputClassName="rs-mention-input"
-      value={value}
-      onChange={(e: any) => onChange(e.value)}
-      placeholder={placeholder}
-      suggestions={suggestions}
-      onSearch={onSearch}
-      field="slug"
-      trigger="@"
-      panelClassName="rs-mention-panel z-[9999]"
-      // @ts-ignore  (bazı sürümlerde type yok ama runtime'da çalışıyor)
-      appendTo={typeof window !== 'undefined' ? document.body : undefined}
-      onSelect={() => {
-        setTimeout(() => {
-          const current = (document.querySelector('.rs-mention-input') as HTMLTextAreaElement | null)?.value ?? value;
-          if (typeof current === 'string' && !current.endsWith(' ')) {
-            onChange(current + ' ');
-          }
-        }, 0);
-      }}
-      panelStyle={{ maxHeight: 320, overflowY: 'auto' }}
-      rows={rows}
-      autoResize
-      style={{ minHeight: "35px" }}
-      itemTemplate={itemTemplate}
-    />
+    <div ref={rootRef} className="relative">
+      <Mention
+        className={className}
+        inputClassName="rs-mention-input"
+        value={value}
+        onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
+        placeholder={placeholder}
+        suggestions={suggestions}
+        onSearch={onSearch}
+        field="slug"
+        trigger="@"
+        panelClassName="rs-mention-panel z-[9999]"
+        // @ts-ignore  (bazı sürümlerde type yok ama runtime'da çalışıyor)
+        appendTo={typeof window !== 'undefined' ? document.body : undefined}
+        onSelect={() => {
+          // PrimeReact insertion happens first; then we read the real textarea value and only add a trailing space if needed
+          setTimeout(() => {
+            const ta = rootRef.current?.querySelector('textarea');
+            if (!ta) return;
+            const next = ta.value.endsWith(' ') ? ta.value : ta.value + ' ';
+            if (next !== value) onChange(next);
+          }, 0);
+        }}
+        panelStyle={{ maxHeight: 320, overflowY: 'auto' }}
+        rows={rows}
+        autoResize
+        style={{ minHeight: "35px" }}
+        itemTemplate={itemTemplate}
+      />
+    </div>
   );
 }
