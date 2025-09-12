@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -59,7 +59,7 @@ export function MentionTextArea({
       onSearch={onSearch}
       field="slug"
       trigger="@"
-      panelClassName="rs-mention-panel"
+      panelClassName="rs-mention-panel z-[9999]"
       onSelect={() => {
         setTimeout(() => {
           if (typeof value === 'string' && !value.endsWith(' ')) {
