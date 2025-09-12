@@ -4,17 +4,18 @@ import { PrimeReactProvider } from 'primereact/api';
 import { PropsWithChildren } from 'react';
 
 export default function PrimeProvider({ children }: PropsWithChildren) {
-  // Body'ye portal (SSR guard ile), stacking sorunlarını kesin çözer
+  // Body'ye portal (SSR guard ile), stacking sorunlarını kökten çözer
   const value = {
-    appendTo: typeof window !== 'undefined' ? document.body : undefined,                    // dropdown tam inputun altında
-    // appendTo: typeof window !== 'undefined' ? document.body : undefined, // body’ye portal
-    autoZIndex: false,                    // değerleri biz belirleyelim
+    appendTo: typeof window !== 'undefined' ? document.body : undefined,
+    // PrimeReact z-index'leri otomatik uygulasın ki overlay her zaman üstte olsun
+    autoZIndex: true,
     zIndex: {
-      modal: 1100,
-      overlay: 110,                        // dropdown/overlay
-      menu: 60,
-      tooltip: 90,
-      toast: 1200,
+      // Kartlardan yüksek, header/menu'den düşük bir seviye önerisi
+      overlay: 140,
+      menu: 140,
+      tooltip: 160,
+      modal: 1200,
+      toast: 1400,
     },
     hideOverlaysOnDocumentScrolling: true,
   } as const;
