@@ -11,9 +11,9 @@ export default function PrimeProvider({ children }: PropsWithChildren) {
     autoZIndex: true,
     zIndex: {
       // Kartlardan yüksek, header/menu'den düşük bir seviye önerisi
-      overlay: 140,
-      menu: 140,
-      tooltip: 160,
+    overlay: 10000,   // ✨ kart hover/transform vs. her şeyin üstünde
+      menu: 10000,
+      tooltip: 10100,
       modal: 1200,
       toast: 1400,
     },
