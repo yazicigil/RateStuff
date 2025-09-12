@@ -102,7 +102,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
           actorId: me.id,
           itemId: params.id,
           commentId: created.id,
-          text: text,
+          text: created.text ?? text,
         });
       });
     } catch (err) {
@@ -287,16 +287,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       data.rating = Math.round(r);
     }
 
-    await prisma.comment.update({ where: { id: commentId }, data });
+    const updated = await prisma.comment.update({ where: { id: commentId }, data, select: { id: true, text: true } });
     // Mentions: yorum metni güncellendiyse mention kayıtlarını upsert et
     try {
-      if (typeof body.text === 'string') {
+      if (typeof updated.text === 'string') {
         await prisma.$transaction(async (tx) => {
           await handleMentionsOnComment(tx, {
             actorId: me.id,
             itemId: params.id,
             commentId,
-            text: String(body.text),
+            text: updated.text,
           });
         });
       }
