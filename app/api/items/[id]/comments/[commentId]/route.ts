@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
+import { handleMentionsOnComment } from "@/lib/mention-notify";
 
 export async function PATCH(req: Request, { params }: { params: { id: string; commentId: string } }) {
   try {
@@ -21,10 +22,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string; co
     if (!c || c.itemId !== params.id) return NextResponse.json({ ok: false, error: "not found" }, { status: 404 });
     if (c.userId !== me.id) return NextResponse.json({ ok: false, error: "forbidden" }, { status: 403 });
 
-    await prisma.comment.update({
+    const updated = await prisma.comment.update({
       where: { id: params.commentId },
       data: { text: clean, rating: score, editedAt: new Date() } as any,
+      select: { id: true, text: true },
     });
+
+    // Mention & Notification: parse the DB-saved text and upsert records
+    try {
+      await prisma.$transaction(async (tx) => {
+        await handleMentionsOnComment(tx, {
+          actorId: me.id,
+          itemId: params.id,
+          commentId: params.commentId,
+          text: updated.text ?? "",
+        });
+      });
+    } catch (err) {
+      console.error('[mentions:on-comment:patch]', err);
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     if (e?.code === 'P2002') {
