@@ -2,16 +2,6 @@
 import { extractMentionsFromHtml, buildSnippet } from "@/lib/mentions";
 import { Prisma, PrismaClient } from "@prisma/client";
 
-// Fallback for plain-text comments (e.g., "@brandslug")
-const MENTION_RE = /@([a-z0-9](?:[a-z0-9-_]{1,30}))/gi;
-function extractMentionsFromText(s: string) {
-  if (!s) return [] as Array<{ slug: string }>;
-  const out = new Set<string>();
-  let m: RegExpExecArray | null;
-  while ((m = MENTION_RE.exec(s)) !== null) out.add(m[1].toLowerCase());
-  return Array.from(out).map((slug) => ({ slug }));
-}
-
 function buildNotifBase(params: { type: 'MENTION_IN_COMMENT' | 'MENTION_IN_POST'; brandId: string; actorId: string; itemId: string; commentId?: string | null; itemName?: string }) {
   const { type, brandId, actorId, itemId, commentId, itemName } = params;
   const title = type === 'MENTION_IN_COMMENT' ? 'Bir kullanıcı yorumunda sizden bahsetti' : `${itemName ?? 'Gönderi'} gönderisinde sizden bahsedildi`;
@@ -68,25 +58,23 @@ async function resolveMentionTargets(tx: Tx, parsed: ReturnType<typeof extractMe
 type Tx = PrismaClient | Prisma.TransactionClient;
 
 export async function handleMentionsOnComment(
+  
   tx: Tx,
   params: { actorId: string; itemId: string; commentId: string; text: string }
 ) {
   const { actorId, itemId, commentId, text } = params;
-  let parsed = extractMentionsFromHtml(text);
-  if (!parsed || (Array.isArray(parsed) && parsed.length === 0)) {
-    // Comments may be stored as plain text; fall back to regex-based parser
-    parsed = extractMentionsFromText(text);
-  }
+  console.info('[mention:comment] start', { itemId, commentId, actorId, textLen: text?.length });
+  const parsed = extractMentionsFromHtml(text);
+  console.info('[mention:comment] parsed', parsed);
   const mentions = await resolveMentionTargets(tx, parsed);
+  console.info('[mention:comment] resolved', mentions);
   if (!mentions.length) return;
-
-  // Fetch item once (used for notification titles)
-  const item = await tx.item.findUnique({ where: { id: itemId }, select: { name: true } });
 
   await Promise.all(
     mentions
       .filter((m) => m.brandId !== actorId) // self-mention yok
       .map(async (m) => {
+        console.info('[mention:comment] processing', { brandId: m.brandId, display: m.display });
         await tx.mention.upsert({
           where: { brandId_itemId_commentId: { brandId: m.brandId, itemId, commentId } },
           create: {
@@ -99,6 +87,7 @@ export async function handleMentionsOnComment(
           update: { snippet: buildSnippet(text) },
         });
 
+        const item = await tx.item.findUnique({ where: { id: itemId }, select: { name: true } });
         const base = buildNotifBase({ type: 'MENTION_IN_COMMENT', brandId: m.brandId, actorId, itemId, commentId, itemName: item?.name });
 
         await tx.notification.upsert({
@@ -133,14 +122,18 @@ export async function handleMentionsOnPost(
   params: { actorId: string; itemId: string; description: string }
 ) {
   const { actorId, itemId, description } = params;
+  console.info('[mention:post] start', { itemId, actorId, descLen: description?.length });
   const parsed = extractMentionsFromHtml(description);
+  console.info('[mention:post] parsed', parsed);
   const mentions = await resolveMentionTargets(tx, parsed);
+  console.info('[mention:post] resolved', mentions);
   if (!mentions.length) return;
 
   await Promise.all(
     mentions
       .filter((m) => m.brandId !== actorId)
       .map(async (m) => {
+        console.info('[mention:post] processing', { brandId: m.brandId, display: m.display });
         // Mention (post): commentId null için manuel upsert
         const existing = await tx.mention.findFirst({ where: { brandId: m.brandId, itemId, commentId: null } });
         if (existing) {
