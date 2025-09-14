@@ -268,6 +268,18 @@ export default function Header({ controls }: { controls?: Controls }) {
   const ctxControls = useHeaderControls();
   const effectiveControls = ctxControls ?? controls;
 
+  // Show search on home and spotlight (/?item=...) pages, and provide a minimal fallback controls when context/props are absent
+  const showSearch = isHome || cleanPath.startsWith('/share');
+  const [fallbackQ, setFallbackQ] = useState('');
+  const fallbackControls: Controls = {
+    q: fallbackQ,
+    onQ: setFallbackQ,
+    order: 'new',
+    onOrder: () => {},
+    starBuckets: [],
+    onStarBuckets: () => {},
+  };
+
 
   async function refetchMe() {
     try {
@@ -366,9 +378,9 @@ export default function Header({ controls }: { controls?: Controls }) {
           </div>
         </div>
 
-        {/* Desktop: arama + sıralama sadece ana sayfada */}
-        {effectiveControls && isHome && (
-          <SearchWithSuggestions controls={effectiveControls} />
+        {/* Desktop: arama + sıralama ana sayfada ve spotlight görünümünde */}
+        {showSearch && (
+          <SearchWithSuggestions controls={effectiveControls ?? fallbackControls} />
         )}
 
         {/* Desktop sağ: tema + auth */}
