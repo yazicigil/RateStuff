@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -21,6 +22,8 @@ export function MentionTextArea({
 }) {
   const [suggestions, setSuggestions] = useState<BrandOpt[]>([]);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < minLengthToTrigger) return setSuggestions([]);
@@ -51,8 +54,15 @@ export function MentionTextArea({
 
   return (
     <div ref={rootRef} className="relative">
-      {suggestions.length > 0 && (
-        <div className="fixed inset-0 z-[9998] bg-transparent" />
+      {mounted && suggestions.length > 0 && createPortal(
+        <div
+          className="fixed inset-0 z-[9998] bg-transparent"
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            setSuggestions([]);
+          }}
+        />,
+        document.body
       )}
       <Mention
         className={`${className ?? ''} rs-mention [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:pr-12 [&_textarea]:leading-[1.4]`}
@@ -75,6 +85,7 @@ export function MentionTextArea({
             if (!ta) return;
             const next = ta.value.endsWith(' ') ? ta.value : ta.value + ' ';
             if (next !== value) onChange(next);
+            setSuggestions([]);
           }, 0);
         }}
         panelStyle={{ maxHeight: 320, overflowY: 'auto' }}
