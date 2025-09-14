@@ -140,14 +140,16 @@ export default function ItemsTab({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-  name: payload.name,
-  description: payload.desc,
-  tags: payload.tags,
-  rating: payload.rating,
-  comment: payload.comment,
-  imageUrl: payload.imageUrl,
-  productUrl: payload.productUrl, // NEW
-}),
+          name: payload.name,
+          description: payload.desc ?? '',
+          tags: payload.tags ?? [],
+          rating: payload.rating,
+          comment: payload.comment,
+          imageUrl: payload.imageUrl ?? null,
+          productUrl: payload.productUrl ?? null,
+          createdById: myId ?? undefined,
+          source: 'me-quickadd',
+        }),
       });
       if (!res.ok) {
         const msg = await res.text().catch(() => 'Eklenemedi');

@@ -610,7 +610,13 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        ...payload,
+                        name: payload.name,
+                        description: payload.desc ?? '',
+                        tags: payload.tags ?? [],
+                        rating: payload.rating,
+                        comment: payload.comment,
+                        imageUrl: payload.imageUrl ?? null,
+                        productUrl: payload.productUrl ?? null,
                         createdById: myId ?? undefined,
                         ownerId: ownerId ?? undefined,
                         source: 'brand-profile-quickadd',
@@ -712,23 +718,28 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
-                        ...payload,
+                        name: payload.name,
+                        description: payload.desc ?? '',
+                        tags: payload.tags ?? [],
+                        rating: payload.rating,
+                        comment: payload.comment,
+                        imageUrl: payload.imageUrl ?? null,
+                        productUrl: payload.productUrl ?? null,
                         createdById: myId ?? undefined,
-                        // ownerId bağlamı: brand profili altında eklenen item sahibini belirlemek için
                         ownerId: ownerId ?? undefined,
                         source: 'brand-profile-quickadd',
                       }),
                     });
                     if (!res.ok) return false;
-                  const data = await res.json().catch(() => ({}));
-const newId = data?.id as (string | undefined);
-if (data && (data as any).id) {
-  setItemsLocal((prev: any[]) => [{ ...(data as any) }, ...prev]);
-}
-setShowQuickAdd(false);
-try { await onReload?.(); } catch {}
-onQuickAddDone?.(newId);
-return true;
+                    const data = await res.json().catch(() => ({}));
+                    const newId = data?.id as (string | undefined);
+                    if (data && (data as any).id) {
+                      setItemsLocal((prev: any[]) => [{ ...(data as any) }, ...prev]);
+                    }
+                    setShowQuickAdd(false);
+                    try { await onReload?.(); } catch {}
+                    onQuickAddDone?.(newId);
+                    return true;
                   } catch {
                     return false;
                   }
