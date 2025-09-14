@@ -16,6 +16,7 @@ export function linkifyMentions(text: string, opts: Options = {}) {
   let last = 0;
 
   text.replace(MENTION, (match, pre, slug, offset) => {
+    const slugLower = (slug ?? '').toLowerCase();
     const start = offset; // start of the whole match (may include leading separator)
     const preStr = typeof pre === "string" ? pre : "";
     const mentionStart = start + preStr.length; // index of '@'
@@ -37,13 +38,13 @@ export function linkifyMentions(text: string, opts: Options = {}) {
           className="rs-mention-link hover:underline cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
-            window.location.href = `/brand/${slug}`;
+            window.location.href = `/brand/${slugLower}`;
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               e.stopPropagation();
-              window.location.href = `/brand/${slug}`;
+              window.location.href = `/brand/${slugLower}`;
             }
           }}
         >
@@ -54,7 +55,7 @@ export function linkifyMentions(text: string, opts: Options = {}) {
       parts.push(
         <Link
           key={`${slug}-${mentionStart}`}
-          href={`/brand/${slug}`}
+          href={`/brand/${slugLower}`}
           className="rs-mention-link hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
