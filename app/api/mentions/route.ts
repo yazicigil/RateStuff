@@ -50,6 +50,8 @@ export async function GET(req: Request) {
       imageUrl: true,
       productUrl: true,
       createdAt: true,
+      suspendedAt: true,
+      ratings: { select: { value: true } },
       _count: { select: { ratings: true, comments: true, savedBy: true } },
       tags: { select: { tag: { select: { name: true } } } },
     },
@@ -64,20 +66,28 @@ export async function GET(req: Request) {
   }
 
   // ProductsList/ItemCard için hafif map
-  const mapped = page.map((it) => ({
-    id: it.id,
-    name: it.name,
-    description: it.description,
-    imageUrl: it.imageUrl,
-    productUrl: it.productUrl,
-    createdAt: it.createdAt,
-    counts: {
-      ratings: it._count.ratings,
-      comments: it._count.comments,
-      saved: it._count.savedBy,
-    },
-    tags: it.tags.map((t) => t.tag.name),
-  }));
+  const mapped = page.map((it) => {
+    const values = (it.ratings || []).map(r => Number(r.value) || 0);
+    const ratingAvg = values.length ? values.reduce((a,b)=>a+b,0) / values.length : null;
+    return {
+      id: it.id,
+      name: it.name,
+      desc: it.description,            // alias for ProductsList search
+      description: it.description,
+      imageUrl: it.imageUrl,
+      productUrl: it.productUrl,
+      createdAt: it.createdAt,
+      suspendedAt: it.suspendedAt,
+      rating: ratingAvg,               // primary field used by ProductsList
+      avgRating: ratingAvg,            // extra alias just in case
+      counts: {
+        ratings: it._count.ratings,
+        comments: it._count.comments,
+        saved: it._count.savedBy,
+      },
+      tags: it.tags.map((t) => t.tag.name),
+    };
+  });
 
   return NextResponse.json({ items: mapped, nextCursor });
 }

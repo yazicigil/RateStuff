@@ -122,7 +122,15 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
         const res = await fetch(`/api/mentions?${qs}`, { signal: ctrl.signal })
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         const data = await res.json().catch(() => ([]))
-        if (!cancelled) setItems((data?.items ?? data ?? []) as T[])
+        if (!cancelled) {
+          const raw = (data?.items ?? data ?? []) as any[];
+          const norm = raw.map((it) => ({
+            ...it,
+            desc: it.desc ?? it.description ?? null,
+            rating: typeof it.rating === 'number' ? it.rating : (typeof it.avgRating === 'number' ? it.avgRating : null),
+          }));
+          setItems(norm as T[]);
+        }
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Yükleme hatası')
       } finally {

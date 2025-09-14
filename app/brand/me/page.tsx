@@ -296,16 +296,15 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
           ) : null}
         </div>
 
-        <div className="mt-4 sm:mt-6 flex items-center justify-between">
-          <h2 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler & Bahsetmeler</h2>
-          <div className="inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs sm:text-sm"
+        <div className="mt-4 sm:mt-6 flex items-center justify-start">
+          <div className="inline-flex items-center gap-1 rounded-full border px-1 py-0.5 sm:px-1.5 sm:py-1 text-xs sm:text-sm shadow-sm backdrop-blur-sm"
                style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}>
             <Link
               href="?tab=items"
               prefetch={false}
               className={clsx(
                 "px-2 sm:px-3 py-1 rounded-full transition",
-                activeTab === 'items' ? 'bg-white/80 dark:bg-white/10 shadow-sm' : 'opacity-80 hover:opacity-100'
+                activeTab === 'items' ? 'bg-white dark:bg-white/10 shadow-md font-medium' : 'opacity-70 hover:opacity-100 transition-colors'
               )}
             >Ürünlerim</Link>
             <Link
@@ -313,7 +312,7 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
               prefetch={false}
               className={clsx(
                 "px-2 sm:px-3 py-1 rounded-full transition",
-                activeTab === 'mentions' ? 'bg-white/80 dark:bg-white/10 shadow-sm' : 'opacity-80 hover:opacity-100'
+                activeTab === 'mentions' ? 'bg-white dark:bg-white/10 shadow-md font-medium' : 'opacity-70 hover:opacity-100 transition-colors'
               )}
             >Bahsetmeler</Link>
           </div>
