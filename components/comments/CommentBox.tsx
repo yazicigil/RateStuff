@@ -185,7 +185,7 @@ export default function CommentBox({
               <div className="relative">
                 <MentionTextArea
                   className={
-                    "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                    "pl-1.5 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                     (hasBanned
                       ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                       : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
@@ -345,7 +345,7 @@ export default function CommentBox({
           <div className="relative">
             <MentionTextArea
               className={
-                "w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "pl-1.5 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                 (hasBanned
                   ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                   : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
