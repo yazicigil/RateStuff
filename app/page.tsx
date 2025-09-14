@@ -669,6 +669,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         rating: Number(form.get('rating') || '0'),
         comment: String(form.get('comment') || ''),
         imageUrl: String(form.get('imageUrl') || '') || null,
+        productUrl: String(form.get('productUrl') || '') || null,
       };
       const res = await fetchOrSignin('/api/items', {
         method: 'POST',
@@ -1331,7 +1332,7 @@ if (!already) {
         }
       } catch {}
     }}
-    onSubmit={async ({ name, desc, tags, rating, comment, imageUrl }) => {
+    onSubmit={async ({ name, desc, tags, rating, comment, imageUrl, productUrl }) => {
       const fd = new FormData();
       fd.set('name', name);
       fd.set('desc', desc);
@@ -1339,6 +1340,7 @@ if (!already) {
       fd.set('rating', String(rating));
       fd.set('comment', comment);
       fd.set('imageUrl', imageUrl ?? '');
+      fd.set('productUrl', productUrl ?? '');
       return await addItem(fd);
     }}
   />

@@ -19,6 +19,7 @@ export type QuickAddHomeProps = {
     rating: number; // her zaman zorunlu
     comment: string;
     imageUrl: string | null;
+    productUrl: string | null;
   }) => Promise<boolean | { ok: boolean; duplicate?: boolean; error?: string }> | boolean | { ok: boolean; duplicate?: boolean; error?: string };
 
   /** etiket havuzları (trend + tüm etiketler); chip önerileri bunlardan gelir */
@@ -39,6 +40,9 @@ export type QuickAddHomeProps = {
     rating?: number; // 1-5 (zorunlu olduğundan >0 ise uygularız)
   };
 
+  /** kullanıcı marka hesabı mı? */
+  isBrandUser?: boolean;
+
   /** başarılı submit sonrası kartı otomatik kapat */
   autoCloseOnSuccess?: boolean;
 };
@@ -54,6 +58,7 @@ export default function QuickAddHome({
   signInHref = '/signin',
   prefill,
   autoCloseOnSuccess = true,
+  isBrandUser = false,
 }: QuickAddHomeProps) {
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
@@ -64,6 +69,7 @@ export default function QuickAddHome({
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [productUrl, setProductUrl] = useState('');
 
   const [tagInput, setTagInput] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -80,6 +86,12 @@ export default function QuickAddHome({
   // ---- helpers
   function normalizeTag(s: string) {
     return s.trim().replace(/^#+/, '').toLowerCase();
+  }
+  function normalizeUrl(u: string) {
+    const t = (u || '').trim();
+    if (!t) return '';
+    if (/^https?:\/\//i.test(t)) return t;
+    return 'https://' + t;
   }
   function addTagsFromInput(src?: string) {
     const raw = typeof src === 'string' ? src : tagInput;
@@ -150,7 +162,7 @@ export default function QuickAddHome({
   const valid =
     name.trim().length > 0 &&
     tags.length > 0 &&
-    rating > 0 &&
+    (!isBrandUser ? rating > 0 : true) &&
     !blocked;
 
   // autofocus
@@ -210,7 +222,7 @@ export default function QuickAddHome({
     const validNow =
       name.trim().length > 0 &&
       nextTags.length > 0 &&
-      rating > 0 &&
+      (!isBrandUser ? rating > 0 : true) &&
       !blockedNow;
 
     if (!validNow) {
@@ -233,6 +245,7 @@ export default function QuickAddHome({
         rating,
         comment: comment.trim(),
         imageUrl,
+        productUrl: isBrandUser ? (productUrl ? normalizeUrl(productUrl) : null) : null,
       }) as any;
 
       const ok: boolean = typeof res === 'boolean' ? res : !!res?.ok;
@@ -241,7 +254,7 @@ export default function QuickAddHome({
 
       if (ok) {
         formRef.current?.reset();
-        setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput('');
+        setName(''); setDesc(''); setComment(''); setRating(0); setImageUrl(null); setTags([]); setTagInput(''); setProductUrl('');
         setJustAdded(true);
         setTimeout(() => setJustAdded(false), 1600);
         try { window.dispatchEvent(new CustomEvent('ratestuff:items:reload')); } catch {}
@@ -322,6 +335,19 @@ export default function QuickAddHome({
               className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
             />
           </div>
+          {isBrandUser && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Ürün linki <span className="opacity-60">(opsiyonel)</span></label>
+              <input
+                value={productUrl}
+                onChange={(e) => setProductUrl(e.target.value)}
+                className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100"
+                placeholder="Ürün linki"
+                type="text"
+                inputMode="url"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-2">Görsel ekle <span className="opacity-60">(opsiyonel)</span></label>
@@ -473,7 +499,7 @@ export default function QuickAddHome({
           </div>
 
           {/* Puan */}
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${isBrandUser ? 'opacity-50 pointer-events-none' : ''}`}>
             <label className="text-sm font-medium">Puanın <span className="opacity-60">*</span>:</label>
             <Stars value={rating} onRate={(n) => setRating(n)} />
             {rating > 0 && (
@@ -491,7 +517,8 @@ export default function QuickAddHome({
               onChange={(e) => setComment(e.target.value)}
               rows={3}
               maxLength={240}
-              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+              disabled={isBrandUser}
+              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}${isBrandUser ? ' opacity-50 cursor-not-allowed' : ''}`}
               placeholder="Kısa görüşün…"
             />
             <div className="mt-1 text-[11px] opacity-60">{comment.length}/240</div>

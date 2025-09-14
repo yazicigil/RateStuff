@@ -2,6 +2,13 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+const normalizeUrl = (u: string) => {
+  const t = (u || '').trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return t;
+  return 'https://' + t;
+};
+
 type LearnMoreFormData = {
   brandName: string;
   category: string;
@@ -137,11 +144,12 @@ export default function LearnMoreModal({
     setLoading(true);
     setError(null);
     try {
+      const contactRaw = (data.contact || '').trim();
       const payload: LearnMoreFormData = {
         brandName: data.brandName.trim(),
         category: categoryIsOther ? (data.customCategory || "").trim() : data.category,
         customCategory: categoryIsOther ? (data.customCategory || "").trim() : undefined,
-        contact: (data.contact || "").trim() || undefined,
+        contact: contactRaw ? normalizeUrl(contactRaw) : undefined,
         about: (data.about || "").trim() || undefined,
         email: data.email.trim(),
       };

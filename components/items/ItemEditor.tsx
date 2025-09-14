@@ -4,6 +4,13 @@ import { MentionTextArea } from '@/components/common/MentionTextArea';
 import React, { useCallback, useMemo, useState } from 'react';
 import ImageUploader from '@/components/common/ImageUploader';
 
+const normalizeUrl = (u: string) => {
+  const t = (u || '').trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return t;
+  return 'https://' + t;
+};
+
 export type ItemEditorValue = {
   imageUrl: string;
   description: string;
@@ -44,8 +51,6 @@ function useMaybeControlled<T>(controlled: T | undefined, initial: T) {
     isControlled: isCtrl,
   };
 }
-
-const isValidUrl = (u: string) => /^https?:\/\//i.test(u);
 
 function normalizeTag(s: string) {
   return s.trim().replace(/^#+/, '').toLowerCase();
@@ -110,12 +115,6 @@ export default function ItemEditor({
     }
   }, [tagEditInput, tags, setState, addTagsFromInput]);
 
-  const productUrlInvalid = useMemo(() => {
-    const u = state.productUrl?.trim();
-    if (!u) return false;
-    return !isValidUrl(u);
-  }, [state.productUrl]);
-
   return (
     <>
       {title && (
@@ -161,17 +160,11 @@ export default function ItemEditor({
           <input
             value={state.productUrl ?? ''}
             onChange={(e) => setState({ productUrl: e.target.value })}
-            className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 ${
-              state.productUrl && productUrlInvalid
-                ? 'border-red-500 focus:ring-red-500 dark:border-red-600'
-                : 'focus:ring-2 focus:ring-emerald-400'
-            }`}
-            placeholder="https://…"
+            className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-emerald-400"
+            placeholder="Ürün linki"
+            type="text"
             inputMode="url"
           />
-          {state.productUrl && productUrlInvalid && (
-            <div className="mt-1 text-xs text-red-600 dark:text-red-400">Lütfen http(s) ile başlayan geçerli bir URL gir.</div>
-          )}
         </div>
       )}
 
@@ -222,13 +215,13 @@ export default function ItemEditor({
         </button>
         <button
           type="button"
-          disabled={!!productUrlInvalid || !!saving}
+          disabled={!!saving}
           className="px-3 h-8 rounded-full bg-emerald-600 text-white disabled:opacity-60"
           onClick={() => onSave({
             imageUrl: state.imageUrl,
             description: state.description,
             tags: state.tags.slice(0, maxTags),
-            productUrl: (state.productUrl ?? '').trim(),
+            productUrl: state.productUrl ? normalizeUrl(state.productUrl) : '',
           })}
         >
           {saving ? 'Kaydediliyor…' : 'Kaydet'}

@@ -811,9 +811,19 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
       {/* QuickAdd brand theming */}
       <style jsx global>{`
         /* Scope all QuickAdd content to brand ink & accents */
-        .brand-quickadd-scope,
-        .brand-quickadd-scope * {
+        .brand-quickadd-scope {
           color: var(--brand-ink);
+        }
+        .brand-quickadd-scope a,
+        .brand-quickadd-scope label,
+        .brand-quickadd-scope input,
+        .brand-quickadd-scope textarea,
+        .brand-quickadd-scope select,
+        .brand-quickadd-scope button,
+        .brand-quickadd-scope [role="button"],
+        .brand-quickadd-scope .rs-chip,
+        .brand-quickadd-scope [data-chip] {
+          color: inherit;
         }
         /* Icons follow currentColor */
         .brand-quickadd-scope svg [fill]:not([fill="none"]) { fill: currentColor; }
@@ -825,11 +835,11 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
         .brand-quickadd-scope select {
           background: var(--brand-elev-bg, var(--brand-items-bg, transparent));
           border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
-          color: var(--brand-ink);
+          color: inherit;
         }
         .brand-quickadd-scope input::placeholder,
         .brand-quickadd-scope textarea::placeholder {
-          color: color-mix(in oklab, var(--brand-ink) 60%, transparent);
+          color: color-mix(in oklab, currentColor 60%, transparent);
         }
 
         /* Primary CTA uses brand accent */

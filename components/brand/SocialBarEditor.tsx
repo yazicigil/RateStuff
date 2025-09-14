@@ -2,6 +2,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { SocialIcon } from "react-social-icons";
 
+const normalizeUrl = (u: string) => {
+  const t = (u || '').trim();
+  if (!t) return '';
+  if (/^https?:\/\//i.test(t)) return t;
+  return 'https://' + t;
+};
+
 type SocialLink = {
   id: string;
   url: string;
@@ -41,10 +48,11 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
     e.preventDefault();
     if (!url.trim()) return;
     setSaving(true);
+    const norm = normalizeUrl(url);
     const res = await fetch(`/api/users/${userId}/socials`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, label: label || undefined, visible: true, order: links.length }),
+      body: JSON.stringify({ url: norm, label: label || undefined, visible: true, order: links.length }),
     });
     const data = await res.json().catch(() => ({}));
     setSaving(false);
@@ -205,7 +213,8 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
         <div className="flex-1 min-w-0 basis-full sm:basis-auto">
           <label className="sr-only">URL</label>
           <input
-            type="url"
+            type="text"
+            inputMode="url"
             required
             className="w-full rounded-full border border-zinc-300/40 bg-white/5 px-4 py-2 text-sm outline-none focus:ring-1 focus:ring-emerald-500/40"
             placeholder="https://instagram.com/marka"
@@ -253,7 +262,17 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
                   <div className="mx-1 h-full rounded-full bg-emerald-500 animate-pulse" />
                 </div>
               )}
-              <div className="shrink-0 mt-1 sm:mt-0">
+              <div className="flex items-center gap-2 shrink-0 mt-1 sm:mt-0">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-md cursor-grab select-none text-[color:var(--brand-ink,theme(colors.zinc.500))]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="5" cy="5" r="2" fill="currentColor" />
+                    <circle cx="12" cy="5" r="2" fill="currentColor" />
+                    <circle cx="19" cy="5" r="2" fill="currentColor" />
+                    <circle cx="5" cy="12" r="2" fill="currentColor" />
+                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                    <circle cx="19" cy="12" r="2" fill="currentColor" />
+                  </svg>
+                </span>
                 <SocialIcon url={l.url} style={{ height: 22, width: 22 }} />
               </div>
 
@@ -261,7 +280,7 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
                 className="flex-1 min-w-0 w-full rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
                 value={l.url}
                 onChange={(e) => setLinks(prev => prev.map(x => x.id === l.id ? { ...x, url: e.target.value } : x))}
-                onBlur={(e) => saveInline(l.id, { url: e.target.value })}
+                onBlur={(e) => saveInline(l.id, { url: normalizeUrl(e.target.value) })}
               />
               <input
                 className="w-full sm:w-44 rounded-full bg-transparent px-3 py-1.5 text-sm outline-none border border-zinc-300/30 focus:border-zinc-300/60"
@@ -273,12 +292,6 @@ export default function SocialBarEditor({ userId, onPreview, onClose }: { userId
               />
 
               <div className="flex items-center gap-1.5 shrink-0">
-                {/* Drag handle */}
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border border-zinc-300/40 text-zinc-500 cursor-grab select-none">
-                  <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
-                </span>
                 <button
                   onClick={() => toggleVisibility(l.id, !l.visible)}
                   className={`inline-flex items-center justify-center w-8 h-8 rounded-full border ${l.visible ? "border-amber-500/60" : "border-zinc-300/50 hover:bg-zinc-200/20"}`}
