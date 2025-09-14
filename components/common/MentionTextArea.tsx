@@ -53,7 +53,8 @@ export function MentionTextArea({
     <div ref={rootRef} className="relative">
       <Mention
         className={className}
-        inputClassName="rs-mention-input"
+        inputClassName="rs-mention-input px-3 py-2 pr-12 leading-[1.4]"
+        inputStyle={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 12, paddingRight: 48, lineHeight: 1.4 }}
         value={value}
         onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
         placeholder={placeholder}
