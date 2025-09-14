@@ -26,9 +26,7 @@ export async function GET(req: Request) {
     slug = ba.slug;
   }
 
-  const takeParam = Number(searchParams.get("take"));
-  const take = Number.isFinite(takeParam) ? Math.min(Math.max(takeParam, 1), 200) : 100;
-  const cursor = searchParams.get("cursor") || undefined;
+  const MAX = 500;
 
   // brandId’yi netle
   let brandIdResolved = brandId;
@@ -51,8 +49,7 @@ export async function GET(req: Request) {
     where: { id: { in: itemIds }, suspendedAt: null },
     orderBy: { createdAt: "desc" },
     distinct: ['id'],
-    take: take + (cursor ? 1 : 0),
-    ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+    take: MAX,
     select: {
       id: true,
       name: true,
@@ -67,16 +64,8 @@ export async function GET(req: Request) {
     },
   });
 
-  // cursor hesapla
-  let nextCursor: string | null = null;
-  let page = items;
-  if (page.length > take) {
-    nextCursor = page[take - 1].id;
-    page = page.slice(0, take);
-  }
-
   // ProductsList/ItemCard için hafif map
-  const mapped = page.map((it) => {
+  const mapped = items.map((it) => {
     const values = (it.ratings || []).map(r => Number(r.value) || 0);
     const ratingAvg = values.length ? values.reduce((a,b)=>a+b,0) / values.length : null;
     return {
@@ -91,7 +80,10 @@ export async function GET(req: Request) {
       rating: ratingAvg,               // legacy/alt field
       avgRating: ratingAvg,            // preferred by ItemCard
       avg: ratingAvg,                  // fallback alias
+      ratingsAvg: ratingAvg,
       count: it._count.ratings,        // ItemCard expects `count`
+      ratingsCount: it._count.ratings,
+      totalRatings: it._count.ratings,
       counts: {
         ratings: it._count.ratings,
         comments: it._count.comments,
@@ -101,5 +93,5 @@ export async function GET(req: Request) {
     };
   });
 
-  return NextResponse.json({ items: mapped, nextCursor });
+  return NextResponse.json({ items: mapped, nextCursor: null });
 }
