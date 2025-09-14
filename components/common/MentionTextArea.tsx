@@ -38,7 +38,7 @@ export function MentionTextArea({
   }, [fetchSuggestions]);
 
   const itemTemplate = useCallback((opt: BrandOpt) => (
-    <div className="flex items-center gap-2 px-2 py-1.5">
+    <button type="button" onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); pick(opt); }} className="flex w-full items-center gap-2 px-2 py-1.5 text-left focus:outline-none">
       {opt.avatarUrl
         ? <img src={opt.avatarUrl!} alt={opt.slug} className="w-6 h-6 rounded-full" />
         : <div className="w-6 h-6 rounded-full bg-gray-300" />}
@@ -46,8 +46,35 @@ export function MentionTextArea({
         <div className="text-sm font-semibold">{opt.name}</div>
         <div className="text-xs text-gray-500">@{opt.slug}</div>
       </div>
-    </div>
+    </button>
   ), []);
+
+  const pick = useCallback((opt: BrandOpt) => {
+    const ta = rootRef.current?.querySelector('textarea');
+    if (!ta) return;
+    const start = ta.selectionStart ?? value.length;
+    const end = ta.selectionEnd ?? value.length;
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    // find the last '@' before caret
+    const at = before.lastIndexOf('@');
+    if (at === -1) return; // safety
+    // from '@' to caret, ensure no whitespace (still in mention token)
+    const token = before.slice(at, before.length);
+    if (/\s/.test(token)) return; // user moved out of token
+    const inserted = before.slice(0, at) + '@' + opt.slug + ' ';
+    const nextVal = inserted + after;
+    onChange(nextVal);
+    // move caret to end of inserted mention
+    const newPos = inserted.length;
+    requestAnimationFrame(() => {
+      ta.focus();
+      try {
+        ta.setSelectionRange(newPos, newPos);
+      } catch {}
+    });
+    setSuggestions([]);
+  }, [onChange, setSuggestions, value]);
 
   return (
     <div ref={rootRef} className="relative">
@@ -66,16 +93,6 @@ export function MentionTextArea({
         onHide={() => setSuggestions([])}
         // @ts-ignore  (bazı sürümlerde type yok ama runtime'da çalışıyor)
         appendTo={typeof window !== 'undefined' ? document.body : undefined}
-        onSelect={() => {
-          // PrimeReact insertion happens first; then we read the real textarea value and only add a trailing space if needed
-          setTimeout(() => {
-            const ta = rootRef.current?.querySelector('textarea');
-            if (!ta) return;
-            const next = ta.value.endsWith(' ') ? ta.value : ta.value + ' ';
-            if (next !== value) onChange(next);
-            setSuggestions([]);
-          }, 0);
-        }}
         panelStyle={{ maxHeight: 320, overflowY: 'auto', pointerEvents: 'auto' }}
         rows={rows}
         autoResize
