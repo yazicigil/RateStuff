@@ -142,7 +142,7 @@ export default function ItemsTab({
         body: JSON.stringify({
           name: payload.name,
           description: payload.desc ?? '',
-          tags: payload.tags ?? [],
+          tagsCsv: (payload.tags ?? []).join(','),
           rating: payload.rating,
           comment: payload.comment,
           imageUrl: payload.imageUrl ?? null,

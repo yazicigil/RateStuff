@@ -612,7 +612,7 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                       body: JSON.stringify({
                         name: payload.name,
                         description: payload.desc ?? '',
-                        tags: payload.tags ?? [],
+                        tagsCsv: (payload.tags ?? []).join(','),
                         rating: payload.rating,
                         comment: payload.comment,
                         imageUrl: payload.imageUrl ?? null,
@@ -720,7 +720,7 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                       body: JSON.stringify({
                         name: payload.name,
                         description: payload.desc ?? '',
-                        tags: payload.tags ?? [],
+                        tagsCsv: (payload.tags ?? []).join(','),
                         rating: payload.rating,
                         comment: payload.comment,
                         imageUrl: payload.imageUrl ?? null,
