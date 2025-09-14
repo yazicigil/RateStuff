@@ -51,8 +51,11 @@ export function MentionTextArea({
 
   return (
     <div ref={rootRef} className="relative">
+      {suggestions.length > 0 && (
+        <div className="fixed inset-0 z-[9998] bg-transparent" />
+      )}
       <Mention
-        className={className}
+        className={`${className ?? ''} rs-mention [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:pr-12 [&_textarea]:leading-[1.4]`}
         inputClassName="rs-mention-input px-3 py-2 pr-12 leading-[1.4]"
         inputStyle={{ paddingTop: 8, paddingBottom: 8, paddingLeft: 12, paddingRight: 48, lineHeight: 1.4 }}
         value={value}
