@@ -1,6 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
+import { useCallback, useRef, useState } from "react";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -22,8 +21,6 @@ export function MentionTextArea({
 }) {
   const [suggestions, setSuggestions] = useState<BrandOpt[]>([]);
   const rootRef = useRef<HTMLDivElement | null>(null);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < minLengthToTrigger) return setSuggestions([]);
@@ -54,16 +51,6 @@ export function MentionTextArea({
 
   return (
     <div ref={rootRef} className="relative">
-      {mounted && suggestions.length > 0 && createPortal(
-        <div
-          className="fixed inset-0 z-[9998] bg-transparent"
-          onMouseDown={(e) => {
-            e.stopPropagation();
-            setSuggestions([]);
-          }}
-        />,
-        document.body
-      )}
       <Mention
         className={`${className ?? ''} rs-mention [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:pr-12 [&_textarea]:leading-[1.4]`}
         inputClassName="rs-mention-input px-3 py-2 pr-12 leading-[1.4]"
@@ -75,7 +62,8 @@ export function MentionTextArea({
         onSearch={onSearch}
         field="slug"
         trigger="@"
-        panelClassName="rs-mention-panel z-[9999]"
+        panelClassName="rs-mention-panel z-[2147483000] pointer-events-auto [&_*]:pointer-events-auto"
+        onHide={() => setSuggestions([])}
         // @ts-ignore  (bazı sürümlerde type yok ama runtime'da çalışıyor)
         appendTo={typeof window !== 'undefined' ? document.body : undefined}
         onSelect={() => {
@@ -88,7 +76,7 @@ export function MentionTextArea({
             setSuggestions([]);
           }, 0);
         }}
-        panelStyle={{ maxHeight: 320, overflowY: 'auto' }}
+        panelStyle={{ maxHeight: 320, overflowY: 'auto', pointerEvents: 'auto' }}
         rows={rows}
         autoResize
         style={{ minHeight: "35px" }}
