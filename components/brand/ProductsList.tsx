@@ -825,6 +825,18 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
         .brand-quickadd-scope [data-chip] {
           color: inherit;
         }
+        /* Make all inputs follow scoped ink color (override Tailwind dark:text-*) */
+        .brand-quickadd-scope input,
+        .brand-quickadd-scope textarea,
+        .brand-quickadd-scope select {
+          color: inherit !important;
+          caret-color: currentColor;
+        }
+        .brand-quickadd-scope input::placeholder,
+        .brand-quickadd-scope textarea::placeholder,
+        .brand-quickadd-scope select::placeholder {
+          color: color-mix(in oklab, currentColor 55%, transparent);
+        }
         /* Icons follow currentColor */
         .brand-quickadd-scope svg [fill]:not([fill="none"]) { fill: currentColor; }
         .brand-quickadd-scope svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
@@ -854,7 +866,9 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
         .brand-quickadd-scope .rs-btn--ghost[aria-pressed="true"] {
           box-shadow: 0 0 0 1px var(--brand-elev-bd, rgba(0,0,0,.14)) inset;
         }
-
+.brand-quickadd-scope .rs-tag-input {
+  background: transparent !important;
+}
         /* Tag/chip suggestions */
        .brand-quickadd-scope .rs-chip,
 .brand-quickadd-scope [data-chip] {
@@ -869,9 +883,8 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
 .brand-quickadd-scope .rs-chip.rs-chip--selected,
 .brand-quickadd-scope [data-chip][data-selected="true"] {
   background: transparent;
-  border-color: var(--brand-elev-bd, rgba(0,0,0,.22));
+  border-color: var(--brand-elev-bd, rgba(0,0,0,.22)); }
   
-  .brand-quickadd-scope .rs-tag-input { background: transparent !important; }
       `}</style>
         {/* Report Modal */}
       {/* Report Modal (homepage-like) */}
