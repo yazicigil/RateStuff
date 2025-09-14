@@ -172,16 +172,8 @@ export default function OptionsPopover({
         )}
       </button>
 
-      {!hideShowInList && (
-        <button
-          className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-white"
-          onClick={() => { onClose(); onShowInList(itemId); }}
-          role="menuitem"
-        >
-          <img src={(ListIcon as any).src || (ListIcon as any).default || '/assets/icons/list.svg'} alt="" className="w-[18px] h-[18px] dark:invert" />
-          <span>Listede göster</span>
-        </button>
-      )}
+   
+      
 
       <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
       <button
