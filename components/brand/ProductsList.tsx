@@ -829,19 +829,6 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
         .brand-quickadd-scope svg [fill]:not([fill="none"]) { fill: currentColor; }
         .brand-quickadd-scope svg [stroke]:not([stroke="none"]) { stroke: currentColor; }
 
-        /* Form fields adopt brand surfaces */
-        .brand-quickadd-scope input,
-        .brand-quickadd-scope textarea,
-        .brand-quickadd-scope select {
-          background: var(--brand-elev-bg, var(--brand-items-bg, transparent));
-          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
-          color: inherit;
-        }
-        .brand-quickadd-scope input::placeholder,
-        .brand-quickadd-scope textarea::placeholder {
-          color: color-mix(in oklab, currentColor 60%, transparent);
-        }
-
         /* Primary CTA uses brand accent */
         .brand-quickadd-scope .rs-btn--primary,
         .brand-quickadd-scope button[data-variant="primary"] {

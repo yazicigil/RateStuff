@@ -288,6 +288,7 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   const { data: session } = useSession();
   const myId = (session as any)?.user?.id ?? null;
   const amAdmin = Boolean((session as any)?.user?.isAdmin) || ((session as any)?.user?.email === ADMIN_EMAIL);
+  const isBrandUser = ((session as any)?.user?.kind ?? '').toUpperCase?.() === 'BRAND';
   async function loadSavedIds() {
     try {
       const r = await fetch('/api/items/saved-ids', { cache: 'no-store' });
@@ -1314,6 +1315,7 @@ if (!already) {
   <QuickAddHome
     open
     variant="rich"
+    isBrandUser={isBrandUser}
     autoCloseOnSuccess={true}
     prefill={{
       name: (qCommitted || qInput).trim() || undefined,
