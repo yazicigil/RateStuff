@@ -465,12 +465,13 @@ const valid =
                           <div className="relative mx-1 overflow-hidden">
                             <div className={`flex items-center gap-1 ${sugDir === 'left' ? 'sug-anim-left' : ''} ${sugDir === 'right' ? 'sug-anim-right' : ''}`}>
                               {visible.map((t) => (
-                                <button
-                                  key={t}
-                                  type="button"
-                                  className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border bg-white hover:bg-gray-50 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-700"
-                                  onMouseDown={(ev) => ev.preventDefault()}
-                                  onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
+                               <button
+                               key={t}
+                              type="button"
+                              data-chip
+                              className="shrink-0 inline-flex items-center px-2 py-0.5 text-xs rounded-full border"
+                              onMouseDown={(ev) => ev.preventDefault()}
+                              onClick={() => { if (tags.length >= 3) return; setTags((prev) => Array.from(new Set([...prev, t])).slice(0, 3)); setTagInput(''); setShowSug(false); }}
                                 >
                                   <span>#{t}</span>
                                   <svg aria-hidden width="12" height="12" viewBox="0 0 24 24" className="ml-1 opacity-70">
@@ -521,7 +522,7 @@ const valid =
               onFocus={() => setShowSug(true)}
             >
               {tags.map((t) => (
-                <span key={t} className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600">
+              <span key={t} data-chip className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full border">
                   #{t}
                   <button
                     type="button"
@@ -582,7 +583,7 @@ const valid =
                 }}
                 onFocus={() => setShowSug(true)}
                 placeholder={tags.length >= 3 ? 'En fazla 3 etiket' : (tags.length ? '' : 'kahve, ekipman')}
-                className="flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
+                className="rs-tag-input flex-1 min-w-[120px] px-2 py-1 text-sm bg-transparent outline-none"
                 disabled={tags.length >= 3}
               />
             </div>

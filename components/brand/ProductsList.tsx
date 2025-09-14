@@ -856,18 +856,22 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
         }
 
         /* Tag/chip suggestions */
-        .brand-quickadd-scope .rs-chip,
-        .brand-quickadd-scope [data-chip] {
-          background: var(--brand-elev-bg, var(--brand-items-bg, transparent));
-          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
-          color: var(--brand-ink);
-        }
-        .brand-quickadd-scope .rs-chip.rs-chip--selected,
-        .brand-quickadd-scope [data-chip][data-selected="true"] {
-          background: transparent;
-          border-color: var(--brand-elev-bd, rgba(0,0,0,.14));
-          color: var(--brand-ink);
-        }
+       .brand-quickadd-scope .rs-chip,
+.brand-quickadd-scope [data-chip] {
+  background: transparent;
+  border-color: var(--brand-elev-bd, rgba(0,0,0,.18));
+  color: var(--brand-ink-strong, var(--brand-ink));
+}
+.brand-quickadd-scope .rs-chip:hover,
+.brand-quickadd-scope [data-chip]:hover {
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+.brand-quickadd-scope .rs-chip.rs-chip--selected,
+.brand-quickadd-scope [data-chip][data-selected="true"] {
+  background: transparent;
+  border-color: var(--brand-elev-bd, rgba(0,0,0,.22));
+  
+  .brand-quickadd-scope .rs-tag-input { background: transparent !important; }
       `}</style>
         {/* Report Modal */}
       {/* Report Modal (homepage-like) */}
