@@ -40,6 +40,7 @@
     "react-social-icons": "^6.24.0",
     "resend": "^6.0.1",
     "sharp": "^0.34.3",
+    "styletron": "^3.0.4",
     "styletron-engine-monolithic": "^1.0.0",
     "styletron-react": "^6.1.1",
     "zeptomail": "^6.2.1",
