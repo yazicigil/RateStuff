@@ -389,7 +389,7 @@ const valid =
               ref={nameRef}
               value={name}
               onChange={(e) => { setName(e.target.value); if (error) setError(null); }}
-              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent ${containsBannedWord(name) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+              className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent ${containsBannedWord(name) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700'}`}
               placeholder="örn. V60 02 filtre"
             />
             {containsBannedWord(name) && <span className="text-xs text-red-600">Item adında yasaklı kelime var.</span>}
@@ -401,7 +401,7 @@ const valid =
               value={desc}
               onChange={setDesc}
               placeholder=" kısa açıklama"
-              className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
+              className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700"
             />
           </div>
 {isBrandProfile && (
@@ -412,7 +412,7 @@ const valid =
     <input
       value={productUrl}
       onChange={(e) => { setProductUrl(e.target.value); if (error) setError(null); }}
-      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100`}
+      className={`w-full border rounded-xl px-3 py-2 text-sm focus:outline-none bg-transparent dark:bg-transparent focus:ring-2 focus:ring-emerald-400 dark:border-gray-700`}
       placeholder="https://…"
       inputMode="url"
     />
@@ -518,7 +518,7 @@ const valid =
               </div>
             )}
             <div
-              className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${tags.some(containsBannedWord) ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:bg-gray-800 dark:border-gray-700'}`}
+              className={`relative border rounded-xl px-2 py-1.5 flex flex-wrap gap-1 focus-within:ring-2 ${tags.some(containsBannedWord) ? 'border-red-500 ring-red-500 dark:border-red-600' : 'focus-within:ring-emerald-400 dark:border-gray-700'}`}
               onFocus={() => setShowSug(true)}
             >
               {tags.map((t) => (
@@ -619,7 +619,7 @@ const valid =
               rows={3}
               maxLength={240}
               disabled={commentDisabled}
-              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent disabled:opacity-60 disabled:cursor-not-allowed ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700 dark:text-gray-100'}`}
+              className={`w-full border rounded-xl px-3 py-2 text-sm resize-y focus:outline-none bg-transparent dark:bg-transparent disabled:opacity-60 disabled:cursor-not-allowed ${containsBannedWord(comment) ? 'border-red-500 focus:ring-red-500 dark:border-red-600' : 'focus:ring-2 focus:ring-emerald-400 dark:border-gray-700'}`}
               placeholder="Kısa görüşün…"
             />
             <div className={`mt-1 text-[11px] opacity-60 ${commentDisabled ? 'opacity-40' : ''}`} aria-disabled={commentDisabled}>
