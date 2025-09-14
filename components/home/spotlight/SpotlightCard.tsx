@@ -334,21 +334,21 @@ export default function SpotlightCard(props: SpotlightCardProps) {
               <div className="flex flex-col items-start md:items-stretch">
                 {/* Big image */}
                 <div className="w-full flex justify-start">
-                  <img
-                    src={item.imageUrl || '/default-item.svg'}
-                    alt={item.name || 'item'}
-                    width={288}
-                    height={288}
-                    decoding="async"
-                    loading="eager"
-                    className="w-56 h-56 md:w-72 md:h-72 object-cover rounded-xl"
-                    onError={(e) => {
-                      const t = e.currentTarget as HTMLImageElement;
-                      if (t.src.endsWith('/default-item.svg')) return;
-                      t.onerror = null;
-                      t.src = '/default-item.svg';
-                    }}
-                  />
+                  <div className="relative w-56 h-56 md:w-72 md:h-72">
+                    <img
+                      src={item.imageUrl || '/default-item.svg'}
+                      alt={item.name || 'item'}
+                      decoding="async"
+                      loading="eager"
+                      className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                      onError={(e) => {
+                        const t = e.currentTarget as HTMLImageElement;
+                        if (t.src.endsWith('/default-item.svg')) return;
+                        t.onerror = null;
+                        t.src = '/default-item.svg';
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Title + CTA */}
@@ -383,7 +383,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 </div>
 
                 {/* Created by / edited / suspended */}
-                <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+                <div className="mt-2 md:mt-1 flex items-center gap-2 text-xs opacity-80">
                   {item.createdBy?.avatarUrl ? (
                     <img
                       src={item.createdBy.avatarUrl}
@@ -418,7 +418,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 </div>
 
                 {/* Avg rating */}
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <div className="mt-2 md:mt-1 flex items-center gap-2 flex-wrap">
                   <Stars rating={avg} readOnly />
                   <RatingPill avg={avg} count={ratingCount} />
                 </div>
@@ -432,7 +432,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
                 {/* Tags */}
                 {!!(item.tags && item.tags.length) && (
-                  <div className="mt-3">
+                  <div className="mt-3 pt-3 border-t dark:border-gray-800">
                     <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
                       {item.tags.slice(0, 10).map((t) => (
                         <Tag key={t} label={t} className="ml-0 inline-flex" />
@@ -445,14 +445,11 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
             {/* RIGHT COLUMN: comments list (narrow), comment box at the bottom */}
             <aside className="mt-4 md:mt-0">
-              <div className="rounded-xl border dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 p-3 md:sticky md:top-16">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm font-medium">Yorumlar</div>
-                  <div className="text-xs opacity-70 tabular-nums">{(item.comments || []).length}</div>
-                </div>
+              <div className="rounded-xl border dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 p-3 md:sticky md:top-16 flex flex-col md:max-h-[70vh]">
+                <div className="mb-2 text-sm font-medium">Yorumlar</div>
 
                 {/* List */}
-                <div className="max-h-[52vh] overflow-y-auto">
+                <div className="flex-1 overflow-y-auto">
                   <CommentList
                     itemId={item.id}
                     myId={myId}
