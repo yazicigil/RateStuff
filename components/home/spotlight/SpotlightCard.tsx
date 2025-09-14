@@ -328,156 +328,183 @@ export default function SpotlightCard(props: SpotlightCardProps) {
         </div>
       ) : (
         <div key={animKey} className={animClass || ''} style={{ willChange: 'transform' }}>
-          <div className="md:grid md:grid-cols-[minmax(0,1fr)_300px] md:gap-8 gap-4">
-            {/* LEFT COLUMN: big image, then meta/details */}
-            <div>
-              <div className="flex flex-col items-start md:items-stretch">
-                {/* Big image */}
-                <div className="w-full flex justify-start">
-                  <div className="relative w-56 h-56 md:w-72 md:h-72">
-                    <img
-                      src={item.imageUrl || '/default-item.svg'}
-                      alt={item.name || 'item'}
-                      decoding="async"
-                      loading="eager"
-                      className="absolute inset-0 w-full h-full object-cover rounded-xl"
-                      onError={(e) => {
-                        const t = e.currentTarget as HTMLImageElement;
-                        if (t.src.endsWith('/default-item.svg')) return;
-                        t.onerror = null;
-                        t.src = '/default-item.svg';
-                      }}
-                    />
-                  </div>
-                </div>
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-center shrink-0 w-28">
+              <img
+                src={item.imageUrl || '/default-item.svg'}
+                alt={item.name || 'item'}
+                width={112}
+                height={112}
+                decoding="async"
+                loading="eager"
+                className="w-28 h-28 object-cover rounded-lg"
+                onError={(e) => {
+                  const t = e.currentTarget as HTMLImageElement;
+                  if (t.src.endsWith('/default-item.svg')) return;
+                  t.onerror = null;
+                  t.src = '/default-item.svg';
+                }}
+              />
+              {item.edited && !isBrand && (
+                <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
+              )}
+            </div>
 
-                {/* Title + CTA */}
-                <div className="mt-4 flex items-center gap-2 flex-wrap pr-16 md:pr-24">
-                  <h3
-                    className="text-lg md:text-xl font-semibold leading-snug title-wrap md-clamp2"
-                    title={item.name}
-                    lang="tr"
+            <div className="flex-1 min-w-0">
+              {item.suspended && (
+                <div className="mb-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">
+                  Askıda — yalnızca sen görüyorsun
+                </div>
+              )}
+
+              <div className="flex flex-wrap items-center gap-2 pr-16 md:pr-24">
+                <h3
+                  className="text-base md:text-lg font-semibold leading-snug title-wrap md-clamp2"
+                  title={item.name}
+                  lang="tr"
+                >
+                  {item.name}
+                </h3>
+                {!editing && showProductCta && (
+                  <a
+                    href={item.productUrl as string}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow"
+                    className="inline-flex items-center gap-1 h-8 px-3 rounded-full shadow text-sm font-medium focus:outline-none focus:ring-2"
+                    style={{
+                      backgroundColor: '#6827CD',
+                      color: '#fff',
+                      ['--tw-ring-color' as any]: '#6827CD'
+                    }}
+                    aria-label="Ürüne git"
+                    title="Ürüne git"
                   >
-                    {item.name}
-                  </h3>
-                  {!editing && showProductCta && (
-                    <a
-                      href={item.productUrl as string}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      className="inline-flex items-center gap-1 h-8 px-3 rounded-full shadow text-sm font-medium focus:outline-none focus:ring-2"
-                      style={{
-                        backgroundColor: '#6827CD',
-                        color: '#fff',
-                        ['--tw-ring-color' as any]: '#6827CD'
-                      }}
-                      aria-label="Ürüne git"
-                      title="Ürüne git"
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={1.5}
+                      className="w-4 h-4"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-                      </svg>
-                      <span>Ürüne git</span>
-                    </a>
-                  )}
-                </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+                      />
+                    </svg>
+                    <span>Ürüne git</span>
+                  </a>
+                )}
+              </div>
 
-                {/* Created by / edited / suspended */}
-                <div className="mt-2 md:mt-1 flex items-center gap-2 text-xs opacity-80">
-                  {item.createdBy?.avatarUrl ? (
+            {item.description && (
+  <p className="text-sm opacity-80 mt-1 whitespace-pre-wrap break-words">
+     {linkifyMentions(item.description, { inline: true })}
+   </p>
+ )}
+              {item.createdBy && (
+                <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+                  {item.createdBy.avatarUrl ? (
                     <img
                       src={item.createdBy.avatarUrl}
-                      alt={maskName(item.createdBy.name, String(item.createdBy?.kind || '').toUpperCase() === 'BRAND')}
+                      alt={maskName(item.createdBy.name, String(item.createdBy?.kind || "").toUpperCase() === "BRAND")}
                       className="w-5 h-5 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-5 h-5 rounded-full bg-gray-200 text-gray-700 grid place-items-center text-[10px]">
-                      {(maskName(item.createdBy?.name, String(item.createdBy?.kind || '').toUpperCase() === 'BRAND') || 'U').charAt(0).toUpperCase()}
+                      {(maskName(item.createdBy.name, String(item.createdBy?.kind || "").toUpperCase() === "BRAND") || 'U').charAt(0).toUpperCase()}
                     </div>
                   )}
                   {(() => {
-                    const display = isBrand ? (item.createdBy?.name || 'Anonim') : maskName(item.createdBy?.name);
+                    const display = isBrand ? (item.createdBy?.name || "Anonim") : maskName(item.createdBy?.name);
                     return (
                       <>
                         {isBrand && brandSlug ? (
-                          <Link href={`/brand/${brandSlug}`} className="hover:underline underline-offset-2" title={`${display} profiline git`}>
+                          <Link
+                            href={`/brand/${brandSlug}`}
+                            className="hover:underline underline-offset-2"
+                            title={`${display} profiline git`}
+                          >
                             {display}
                           </Link>
                         ) : (
                           <span>{display}</span>
                         )}
-                        {item.edited && !isBrand && (
-                          <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
-                        )}
-                        {item.suspended && (
-                          <span className="ml-2 inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full border border-amber-300/60 bg-amber-50 text-amber-800 dark:border-amber-600/60 dark:bg-amber-900/20 dark:text-amber-200">Askıda</span>
+                        {isBrand && (
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                            className="inline-block ml-1 w-4 h-4 align-middle"
+                          >
+                            <circle cx="12" cy="12" r="9" fill="#3B82F6" />
+                            <path
+                              d="M8.5 12.5l2 2 4-4"
+                              fill="none"
+                              stroke="#fff"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
                         )}
                       </>
                     );
                   })()}
                 </div>
+              )}
 
-                {/* Avg rating */}
-                <div className="mt-2 md:mt-1 flex items-center gap-2 flex-wrap">
-                  <Stars rating={avg} readOnly />
-                  <RatingPill avg={avg} count={ratingCount} />
-                </div>
-
-                {/* Description */}
-                {item.description && (
-                  <p className="text-sm opacity-80 mt-3 whitespace-pre-wrap break-words">
-                    {linkifyMentions(item.description, { inline: true })}
-                  </p>
-                )}
-
-                {/* Tags */}
-                {!!(item.tags && item.tags.length) && (
-                  <div className="mt-3 pt-3 border-t dark:border-gray-800">
-                    <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
-                      {item.tags.slice(0, 10).map((t) => (
-                        <Tag key={t} label={t} className="ml-0 inline-flex" />
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <Stars rating={avg} readOnly />
+                <RatingPill avg={avg} count={ratingCount} />
               </div>
             </div>
+          </div>
 
-            {/* RIGHT COLUMN: comments list (narrow), comment box at the bottom */}
-            <aside className="mt-4 md:mt-0">
-              <div className="rounded-xl border dark:border-gray-800 bg-white/70 dark:bg-gray-900/70 p-3 md:sticky md:top-16 flex flex-col md:max-h-[70vh]">
-                <div className="mb-2 text-sm font-medium">Yorumlar</div>
-
-                {/* List */}
-                <div className="flex-1 overflow-y-auto">
-                  <CommentList
-                    itemId={item.id}
-                    myId={myId}
-                    comments={displayOthers}
-                    totalCount={(item.comments || []).length}
-                    onVote={(commentId, next) => voteOnComment(commentId, next)}
-                  />
-                  {hasMoreOthers && (
-                    <div className="pt-1">
-                      <button type="button" className="text-[12px] underline opacity-75 hover:opacity-100" onClick={() => setShowCount((n) => n + 7)}>
-                        daha fazla gör
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* CommentBox at the bottom */}
-                <div className="mt-3 pt-3 border-t dark:border-gray-800">
-                  <div className="mb-1 text-sm font-medium">Puan</div>
-                  <CommentBox
-                    itemId={item.id}
-                    myComment={my || undefined}
-                    onDone={() => { try { onCommentDone && onCommentDone(); } catch {} }}
-                    initialRating={0}
-                  />
-                </div>
+          {!!(item.tags && item.tags.length) && (
+            <div className="mt-2 pt-2 border-t dark:border-gray-800">
+              <div className="w-full flex flex-wrap items-center gap-1 justify-start text-left">
+                {item.tags.slice(0, 10).map((t) => (
+                  <Tag key={t} label={t} className="ml-0 inline-flex" />
+                ))}
               </div>
-            </aside>
+            </div>
+          )}
+
+          {!!(item.comments && item.comments.length) && <div className="mt-3 border-t dark:border-gray-800" />}
+
+          {/* Başkalarının yorumları (CommentList) */}
+          <CommentList
+            itemId={item.id}
+            myId={myId}
+            comments={displayOthers}
+            totalCount={(item.comments || []).length}
+            onVote={(commentId, next) => voteOnComment(commentId, next)}
+          />
+
+          {hasMoreOthers && (
+            <div className="pt-1">
+              <button
+                type="button"
+                className="text-[12px] underline opacity-75 hover:opacity-100"
+                onClick={() => setShowCount((n) => n + 7)}
+              >
+                daha fazla gör
+              </button>
+            </div>
+          )}
+
+          <div className="mt-3 pt-3 border-t dark:border-gray-800">
+            <CommentBox
+              itemId={item.id}
+              myComment={my || undefined}
+              onDone={() => {
+                try { onCommentDone && onCommentDone(); } catch {}
+              }}
+              initialRating={0}
+            />
           </div>
         </div>
       )}
