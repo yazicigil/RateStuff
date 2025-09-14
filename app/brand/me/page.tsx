@@ -144,27 +144,33 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
     commentsCountAgg.map((g) => [g.itemId, (g as any)._count?._all ?? 0])
   );
 
-  const itemsForClient = items.map((it) => ({
-    id: it.id,
-    name: it.name,
-    description: it.description ?? '',
-    imageUrl: it.imageUrl ?? null,
-    productUrl: (it as any).productUrl ?? null,
-    suspendedAt: (it as any).suspendedAt ?? null,
-    avg: avgMap.get(it.id) ?? null,
-    avgRating: avgMap.get(it.id) ?? null,
-    // Ratings/comment count normalized for ItemCard/RatingPill
-    count: commentsCountMap.get(it.id) ?? 0,
-    commentsCount: commentsCountMap.get(it.id) ?? 0, // legacy alias
-    commentCount: commentsCountMap.get(it.id) ?? 0,  // legacy alias for some components
-    ratingsCount: commentsCountMap.get(it.id) ?? 0,  // legacy alias
-    // Tags normalized to string[] (from relation)
-    tags: Array.isArray((it as any).tags)
-      ? ((it as any).tags.map((t: any) => t?.tag?.name).filter(Boolean))
-      : [],
-    createdById: user.id,
-    createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
-  }));
+  const itemsForClient = items.map((it) => {
+    const avgRaw = avgMap.get(it.id);
+    const avgSafe = (typeof avgRaw === 'number' && Number.isFinite(avgRaw)) ? Number(avgRaw) : 0;
+    const cntRaw = commentsCountMap.get(it.id);
+    const countSafe = (typeof cntRaw === 'number' && Number.isFinite(cntRaw)) ? Number(cntRaw) : 0;
+    return {
+      id: it.id,
+      name: it.name,
+      description: it.description ?? '',
+      imageUrl: it.imageUrl ?? null,
+      productUrl: (it as any).productUrl ?? null,
+      suspendedAt: (it as any).suspendedAt ?? null,
+      avg: avgSafe,
+      avgRating: avgSafe,
+      // Ratings/comment count normalized for ItemCard/RatingPill
+      count: countSafe,
+      commentsCount: countSafe, // legacy alias
+      commentCount: countSafe,  // legacy alias for some components
+      ratingsCount: countSafe,  // legacy alias
+      // Tags normalized to string[] (from relation)
+      tags: Array.isArray((it as any).tags)
+        ? ((it as any).tags.map((t: any) => t?.tag?.name).filter(Boolean))
+        : [],
+      createdById: user.id,
+      createdBy: { id: user.id, name: user.name, maskedName: null, avatarUrl: user.avatarUrl, kind: user.kind },
+    };
+  });
 
   // Trending tags (brand scope): most frequent tags from this brand's items
   const tagFreq = new Map<string, number>();

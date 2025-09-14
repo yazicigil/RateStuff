@@ -123,18 +123,19 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
         if (!cancelled) {
           const raw = (data?.items ?? data ?? []) as any[];
           const norm = raw.map((it) => {
-            const avgFromAny = typeof it.avgRating === 'number' ? it.avgRating
-                               : typeof it.avg === 'number' ? it.avg
-                               : (typeof it.rating === 'number' ? it.rating : null);
-            const count = typeof it.count === 'number' ? it.count
-                         : (typeof it.counts?.ratings === 'number' ? it.counts.ratings : 0);
+            // Compose candidate values for average
+            const cand = [it.avgRating, it.avg, it.rating];
+            const avgFromAny = cand.find((v: any) => typeof v === 'number' && Number.isFinite(v));
+            const avgSafe = typeof avgFromAny === 'number' ? avgFromAny : 0;
+            const countRaw = typeof it.count === 'number' ? it.count : (typeof it.counts?.ratings === 'number' ? it.counts.ratings : 0);
+            const countSafe = Number.isFinite(Number(countRaw)) ? Number(countRaw) : 0;
             return {
               ...it,
               desc: it.desc ?? it.description ?? null,
-              rating: typeof it.rating === 'number' ? it.rating : avgFromAny,
-              avgRating: avgFromAny,
-              avg: typeof it.avg === 'number' ? it.avg : avgFromAny,
-              count,
+              rating: typeof it.rating === 'number' && Number.isFinite(it.rating) ? it.rating : avgSafe,
+              avgRating: avgSafe,
+              avg: typeof it.avg === 'number' && Number.isFinite(it.avg) ? it.avg : avgSafe,
+              count: countSafe,
             };
           });
           setItems(norm as T[]);

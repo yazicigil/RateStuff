@@ -195,10 +195,21 @@ export default async function BrandPublicPage({ params, searchParams }: { params
                   const hasSuspAt = (it as any).suspendedAt != null;
                   const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
                   const synthSuspendedAt = hasSuspAt ? (it as any).suspendedAt : (legacySusp ? '__legacy-suspended__' : null);
+
+                  const avgCandidates = [ (it as any).avgRating, (it as any).avg, (it as any).rating ];
+                  const avgPick = avgCandidates.find((v) => typeof v === 'number' && Number.isFinite(v));
+                  const avgSafe = typeof avgPick === 'number' ? avgPick : 0;
+                  const countRaw = (it as any).count ?? (it as any).counts?.ratings ?? (it as any).ratingsCount ?? 0;
+                  const countSafe = Number.isFinite(Number(countRaw)) ? Number(countRaw) : 0;
+
                   return {
                     ...it,
                     createdById: it.createdById ?? it.createdBy?.id ?? user.id,
                     suspendedAt: synthSuspendedAt,
+                    avg: typeof (it as any).avg === 'number' && Number.isFinite((it as any).avg) ? (it as any).avg : avgSafe,
+                    avgRating: typeof (it as any).avgRating === 'number' && Number.isFinite((it as any).avgRating) ? (it as any).avgRating : avgSafe,
+                    rating: typeof (it as any).rating === 'number' && Number.isFinite((it as any).rating) ? (it as any).rating : avgSafe,
+                    count: countSafe,
                   };
                 })}
               trending={[]}

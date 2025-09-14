@@ -66,8 +66,10 @@ export async function GET(req: Request) {
 
   // ProductsList/ItemCard için hafif map
   const mapped = items.map((it) => {
-    const values = (it.ratings || []).map(r => Number(r.value) || 0);
-    const ratingAvg = values.length ? values.reduce((a,b)=>a+b,0) / values.length : null;
+    // Ensure only numeric, finite values are counted for ratings
+    const values = (it.ratings || []).map(r => Number(r.value)).filter(v => Number.isFinite(v));
+    const ratingsCount = values.length;
+    const ratingAvg = ratingsCount ? values.reduce((a, b) => a + b, 0) / ratingsCount : 0;
     return {
       id: it.id,
       name: it.name,
@@ -81,11 +83,11 @@ export async function GET(req: Request) {
       avgRating: ratingAvg,            // preferred by ItemCard
       avg: ratingAvg,                  // fallback alias
       ratingsAvg: ratingAvg,
-      count: it._count.ratings,        // ItemCard expects `count`
-      ratingsCount: it._count.ratings,
-      totalRatings: it._count.ratings,
+      count: ratingsCount,             // ItemCard expects `count`
+      ratingsCount: ratingsCount,
+      totalRatings: ratingsCount,
       counts: {
-        ratings: it._count.ratings,
+        ratings: ratingsCount,
         comments: it._count.comments,
         saved: it._count.savedBy,
       },
