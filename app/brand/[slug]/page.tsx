@@ -6,6 +6,8 @@ import { getBrandPublicView } from "@/lib/brand";
 import { auth } from "@/lib/auth";
 import { getBrandCSSVars } from "@/lib/brandTheme";
 import ProductsList from "@/components/brand/ProductsList";
+import { StatefulTabs, Tab } from 'baseui/tabs-motion';
+import { ShoppingBagIcon, AtSymbolIcon } from '@heroicons/react/24/outline';
 
 // local helpers for single-file contrast decision
 function hexToRgbLocal(hex: string) {
@@ -22,6 +24,7 @@ function relLumaLocal({r,g,b}:{r:number;g:number;b:number}) {
 
 const BrandBioInline = dynamic(() => import("@/components/brand/BrandBioInline"), { ssr: false });
 const OwnerSettings = dynamic(() => import("@/components/brand/OwnerSettings"), { ssr: false });
+const MentionsTab = dynamic(() => import("@/components/brand/MentionsTab"), { ssr: false });
 
 // verified badge – me sayfasındakiyle aynı
 function VerifiedBadge() {
@@ -35,7 +38,7 @@ function VerifiedBadge() {
 
 export const revalidate = 60;
 
-export default async function BrandPublicPage({ params }: { params: { slug: string } }) {
+export default async function BrandPublicPage({ params, searchParams }: { params: { slug: string }, searchParams?: { tab?: string } }) {
   const session = await auth();
   const viewerId = (session as any)?.user?.id ?? null;
   const viewerIsAdmin = Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com');
@@ -57,6 +60,7 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
   const brandVars = getBrandCSSVars(brand.cardColor || "#ffffff");
   const brandRGB = hexToRgbLocal(brandHex);
   const surfaceWeak = `rgba(${brandRGB.r}, ${brandRGB.g}, ${brandRGB.b}, ${isLightBrand ? 0.08 : 0.12})`;
+  const activeTab = (searchParams?.tab === 'mentions') ? 'mentions' : 'items';
 
   return (
     <div
@@ -155,44 +159,98 @@ export default async function BrandPublicPage({ params }: { params: { slug: stri
             </div>
           </div>
         </div>
-        <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler</h2>
+        <div className="mt-4 sm:mt-6">
+          <StatefulTabs
+            initialState={{ activeKey: activeTab === 'mentions' ? 'mentions' : 'items' }}
+            onChange={({ activeKey }) => {
+              if (activeKey === 'items') {
+                window.location.href = '?tab=items';
+              } else {
+                window.location.href = '?tab=mentions';
+              }
+            }}
+            overrides={{
+              Root: {
+                style: {
+                  backgroundColor: 'transparent',
+                  borderBottom: `2px solid ${brand.cardColor || '#000'}`,
+                },
+              },
+              TabBar: {
+                style: {
+                  borderBottomColor: brand.cardColor || '#000',
+                },
+              },
+              TabHighlight: {
+                style: {
+                  backgroundColor: brand.cardColor || '#000',
+                },
+              },
+            }}
+          >
+            <Tab
+              key="items"
+              title={
+                <span className="inline-flex items-center gap-1.5" style={{ color: activeTab === 'items' ? (brand.cardColor || '#000') : 'inherit' }}>
+                  <ShoppingBagIcon className="w-4 h-4" />
+                  Ürünlerim
+                </span>
+              }
+            />
+            <Tab
+              key="mentions"
+              title={
+                <span className="inline-flex items-center gap-1.5" style={{ color: activeTab === 'mentions' ? (brand.cardColor || '#000') : 'inherit' }}>
+                  <AtSymbolIcon className="w-4 h-4" />
+                  Bahsetmeler
+                </span>
+              }
+            />
+          </StatefulTabs>
+        </div>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
         <div className="mt-3 sm:mt-4 brand-slug-scope" style={{ color: 'var(--brand-ink)' }}>
-          <ProductsList
-            // Owner/admin dışındakiler için suspended item'ları gizle; owner/admin için bırak
-            items={(itemsForClient as any)
-              .filter((it: any) => {
-                const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
-                const hasSuspAt = (it as any).suspendedAt != null;
-                const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
-                const isSusp = hasSuspAt || legacySusp;
-                const ownerId = (it as any).createdById ?? (it as any).createdBy?.id ?? user.id;
-                if (!isSusp) return true;
-                // public viewer ve admin değilse gizle
-                if (!viewerId && !viewerIsAdmin) return false;
-                return viewerIsAdmin || viewerId === ownerId;
-              })
-              .map((it: any) => {
-                const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
-                const hasSuspAt = (it as any).suspendedAt != null;
-                const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
-                const synthSuspendedAt = hasSuspAt ? (it as any).suspendedAt : (legacySusp ? '__legacy-suspended__' : null);
-                return {
-                  ...it,
-                  // Ensure fields exist for ProductsList helpers
-                  createdById: it.createdById ?? it.createdBy?.id ?? user.id,
-                  suspendedAt: synthSuspendedAt,
-                };
-              })}
-            trending={[]}
-            brandTheme
-            myId={viewerId}
-            amAdmin={viewerIsAdmin}
-            ownerId={user.id}
-            // allTags verilmezse item'lardan derlenir
-            // renderItem vermezsek basic kartı kullanılır; istersen özel kart geçirilebilir
-          />
+          {activeTab === 'mentions' ? (
+            <MentionsTab
+              brandSlug={brand.slug}
+              brandTheme
+              myId={viewerId}
+              amAdmin={viewerIsAdmin}
+              searchPlaceholder="Açıklamada @markam geçen ürün ara…"
+            />
+          ) : (
+            <ProductsList
+              // Owner/admin dışındakiler için suspended item'ları gizle; owner/admin için bırak
+              items={(itemsForClient as any)
+                .filter((it: any) => {
+                  const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
+                  const hasSuspAt = (it as any).suspendedAt != null;
+                  const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
+                  const isSusp = hasSuspAt || legacySusp;
+                  const ownerId = (it as any).createdById ?? (it as any).createdBy?.id ?? user.id;
+                  if (!isSusp) return true;
+                  if (!viewerId && !viewerIsAdmin) return false;
+                  return viewerIsAdmin || viewerId === ownerId;
+                })
+                .map((it: any) => {
+                  const status = (it as any)?.status ? String((it as any).status).toUpperCase() : '';
+                  const hasSuspAt = (it as any).suspendedAt != null;
+                  const legacySusp = (it as any).suspended === true || status === 'SUSPENDED';
+                  const synthSuspendedAt = hasSuspAt ? (it as any).suspendedAt : (legacySusp ? '__legacy-suspended__' : null);
+                  return {
+                    ...it,
+                    createdById: it.createdById ?? it.createdBy?.id ?? user.id,
+                    suspendedAt: synthSuspendedAt,
+                  };
+                })}
+              trending={[]}
+              brandTheme
+              myId={viewerId}
+              amAdmin={viewerIsAdmin}
+              ownerId={user.id}
+            />
+          )}
         </div>
         <style
           dangerouslySetInnerHTML={{

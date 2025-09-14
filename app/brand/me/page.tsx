@@ -1,3 +1,4 @@
+import { ShoppingBagIcon, AtSymbolIcon } from '@heroicons/react/24/outline';
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { UserKind } from "@prisma/client";
@@ -10,6 +11,7 @@ import dynamic from "next/dynamic";
 import ProductsList from '@/components/brand/ProductsList';
 import CardColorPicker from '@/components/brand/CardColorPicker';
 import { getBrandCSSVars } from "@/lib/brandTheme";
+import { StatefulTabs, Tab } from 'baseui/tabs-motion';
 
 // local helpers for page tint (same logic as /brand/[slug])
 function hexToRgbLocal(hex: string) {
@@ -296,26 +298,54 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
           ) : null}
         </div>
 
-        <div className="mt-4 sm:mt-6 flex items-center justify-start">
-          <div className="inline-flex items-center gap-1 rounded-full border px-1 py-0.5 sm:px-1.5 sm:py-1 text-xs sm:text-sm shadow-sm backdrop-blur-sm"
-               style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}>
-            <Link
-              href="?tab=items"
-              prefetch={false}
-              className={clsx(
-                "px-2 sm:px-3 py-1 rounded-full transition",
-                activeTab === 'items' ? 'bg-white dark:bg-white/10 shadow-md font-medium' : 'opacity-70 hover:opacity-100 transition-colors'
-              )}
-            >Ürünlerim</Link>
-            <Link
-              href="?tab=mentions"
-              prefetch={false}
-              className={clsx(
-                "px-2 sm:px-3 py-1 rounded-full transition",
-                activeTab === 'mentions' ? 'bg-white dark:bg-white/10 shadow-md font-medium' : 'opacity-70 hover:opacity-100 transition-colors'
-              )}
-            >Bahsetmeler</Link>
-          </div>
+        <div className="mt-4 sm:mt-6">
+          <StatefulTabs
+            initialState={{ activeKey: activeTab === 'mentions' ? 'mentions' : 'items' }}
+            onChange={({ activeKey }) => {
+              if (activeKey === 'items') {
+                window.location.href = '?tab=items';
+              } else {
+                window.location.href = '?tab=mentions';
+              }
+            }}
+            overrides={{
+              Root: {
+                style: {
+                  backgroundColor: 'transparent',
+                  borderBottom: `2px solid ${brand?.cardColor || '#000'}`,
+                },
+              },
+              TabBar: {
+                style: {
+                  borderBottomColor: brand?.cardColor || '#000',
+                },
+              },
+              TabHighlight: {
+                style: {
+                  backgroundColor: brand?.cardColor || '#000',
+                },
+              },
+            }}
+          >
+            <Tab
+              key="items"
+              title={
+                <span className="inline-flex items-center gap-1.5" style={{ color: activeTab === 'items' ? (brand?.cardColor || '#000') : 'inherit' }}>
+                  <ShoppingBagIcon className="w-4 h-4" />
+                  Ürünlerim
+                </span>
+              }
+            />
+            <Tab
+              key="mentions"
+              title={
+                <span className="inline-flex items-center gap-1.5" style={{ color: activeTab === 'mentions' ? (brand?.cardColor || '#000') : 'inherit' }}>
+                  <AtSymbolIcon className="w-4 h-4" />
+                  Bahsetmeler
+                </span>
+              }
+            />
+          </StatefulTabs>
         </div>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
