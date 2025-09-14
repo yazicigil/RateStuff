@@ -30,6 +30,7 @@ const EditAvatar = dynamic(() => import("@/components/brand/EditAvatar"), { ssr:
 
 const NotificationsDropdown = dynamic(() => import("@/components/header/notifications/Dropdown"), { ssr: false });
 const SocialBar = dynamic(() => import("@/components/brand/SocialBar"), { ssr: false });
+const MentionsTab = dynamic(() => import("@/components/brand/MentionsTab"), { ssr: false });
 
 // verified badge – inline svg
 function VerifiedBadge() {
@@ -45,7 +46,7 @@ function VerifiedBadge() {
   );
 }
 
-export default async function BrandProfilePage() {
+export default async function BrandProfilePage({ searchParams }: { searchParams?: { tab?: string } }) {
   const session = await auth();
   if (!session?.user?.email) notFound();
 
@@ -85,6 +86,7 @@ export default async function BrandProfilePage() {
       slug: true,
     },
   });
+  const activeTab = (searchParams?.tab === 'mentions') ? 'mentions' : 'items';
 
   const brandHex = brand?.cardColor ?? "#ffffff";
   const isLightBrand = (() => {
@@ -294,19 +296,51 @@ export default async function BrandProfilePage() {
           ) : null}
         </div>
 
-        <h2 className="mt-4 sm:mt-6 text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünlerim</h2>
+        <div className="mt-4 sm:mt-6 flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-semibold tracking-tight text-neutral-700 dark:text-neutral-200">Ürünler & Bahsetmeler</h2>
+          <div className="inline-flex items-center gap-1 rounded-full border px-1.5 py-1 text-xs sm:text-sm"
+               style={{ backgroundColor: 'var(--brand-chip-bg)', borderColor: 'var(--brand-elev-bd)', color: 'var(--brand-ink)' }}>
+            <Link
+              href="?tab=items"
+              prefetch={false}
+              className={clsx(
+                "px-2 sm:px-3 py-1 rounded-full transition",
+                activeTab === 'items' ? 'bg-white/80 dark:bg-white/10 shadow-sm' : 'opacity-80 hover:opacity-100'
+              )}
+            >Ürünlerim</Link>
+            <Link
+              href="?tab=mentions"
+              prefetch={false}
+              className={clsx(
+                "px-2 sm:px-3 py-1 rounded-full transition",
+                activeTab === 'mentions' ? 'bg-white/80 dark:bg-white/10 shadow-sm' : 'opacity-80 hover:opacity-100'
+              )}
+            >Bahsetmeler</Link>
+          </div>
+        </div>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
-        {/* ProductsList section (brand-themed, same as slug page) */}
+
+        {/* Tab contents */}
         <div className="mt-3 sm:mt-4" style={{ color: 'var(--brand-ink)' }}>
-          <ProductsList
-            items={itemsForClient as any}
-            trending={trendingTags}
-            brandTheme
-            searchPlaceholder="Ürün veya açıklama ara..."
-            myId={user.id}
-            amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
-            ownerId={user.id}
-          />
+          {activeTab === 'mentions' ? (
+            <MentionsTab
+              brandSlug={brand?.slug ?? undefined}
+              brandTheme
+              myId={user.id}
+              amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
+              searchPlaceholder="Bahsetmelerde ara…"
+            />
+          ) : (
+            <ProductsList
+              items={itemsForClient as any}
+              trending={trendingTags}
+              brandTheme
+              searchPlaceholder="Ürün veya açıklama ara..."
+              myId={user.id}
+              amAdmin={Boolean((session as any)?.user?.isAdmin || (session as any)?.user?.email === 'ratestuffnet@gmail.com')}
+              ownerId={user.id}
+            />
+          )}
         </div>
       </div>
     </div>
