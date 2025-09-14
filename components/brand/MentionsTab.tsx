@@ -1,5 +1,3 @@
-
-
 'use client'
 
 import React from 'react'
@@ -119,16 +117,26 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
         setLoading(true)
         setError(null)
         const qs = brandId ? `brandId=${encodeURIComponent(brandId)}` : brandSlug ? `brandSlug=${encodeURIComponent(brandSlug)}` : ''
-        const res = await fetch(`/api/mentions?${qs}`, { signal: ctrl.signal })
+        const res = await fetch(`/api/mentions?${qs}&take=200`, { signal: ctrl.signal })
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         const data = await res.json().catch(() => ([]))
         if (!cancelled) {
           const raw = (data?.items ?? data ?? []) as any[];
-          const norm = raw.map((it) => ({
-            ...it,
-            desc: it.desc ?? it.description ?? null,
-            rating: typeof it.rating === 'number' ? it.rating : (typeof it.avgRating === 'number' ? it.avgRating : null),
-          }));
+          const norm = raw.map((it) => {
+            const avgFromAny = typeof it.avgRating === 'number' ? it.avgRating
+                               : typeof it.avg === 'number' ? it.avg
+                               : (typeof it.rating === 'number' ? it.rating : null);
+            const count = typeof it.count === 'number' ? it.count
+                         : (typeof it.counts?.ratings === 'number' ? it.counts.ratings : 0);
+            return {
+              ...it,
+              desc: it.desc ?? it.description ?? null,
+              rating: typeof it.rating === 'number' ? it.rating : avgFromAny,
+              avgRating: avgFromAny,
+              avg: typeof it.avg === 'number' ? it.avg : avgFromAny,
+              count,
+            };
+          });
           setItems(norm as T[]);
         }
       } catch (e: any) {

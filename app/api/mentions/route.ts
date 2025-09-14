@@ -4,8 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/mentions?brandSlug=foo  or  ?brandId=...
- * Optional: ?take=24&cursor=<itemId>
- * Suspended olmayan ve @slug geçen item'ları döner (item.description veya comment.text içinde).
+ * DB mention tablosundan brandId eşleşen ve commentId IS NULL olan kayıtların itemId'leri üzerinden listeler.
  */
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -27,20 +26,31 @@ export async function GET(req: Request) {
     slug = ba.slug;
   }
 
-  const pattern = `@${slug}`; // mention araması (case-insensitive)
-
   const takeParam = Number(searchParams.get("take"));
-  const take = Number.isFinite(takeParam) ? Math.min(Math.max(takeParam, 1), 50) : 24;
+  const take = Number.isFinite(takeParam) ? Math.min(Math.max(takeParam, 1), 200) : 100;
   const cursor = searchParams.get("cursor") || undefined;
 
-  const where = {
-    suspendedAt: null,
-    description: { contains: pattern, mode: "insensitive" as const },
-  };
+  // brandId’yi netle
+  let brandIdResolved = brandId;
+  if (!brandIdResolved) {
+    const ba2 = await prisma.brandAccount.findUnique({ where: { slug }, select: { id: true } });
+    brandIdResolved = ba2?.id || '';
+  }
+  if (!brandIdResolved) return NextResponse.json({ items: [], nextCursor: null });
 
+  // mention tablosundan sadece commentId = null olan itemId'leri topla
+  const mentionRows = await prisma.mention.findMany({
+    where: { brandId: brandIdResolved, commentId: null },
+    select: { itemId: true },
+  });
+  const itemIds = Array.from(new Set(mentionRows.map(m => m.itemId)));
+  if (itemIds.length === 0) return NextResponse.json({ items: [], nextCursor: null });
+
+  // Item'ları çek – suspended olmayanlar
   const items = await prisma.item.findMany({
-    where,
+    where: { id: { in: itemIds }, suspendedAt: null },
     orderBy: { createdAt: "desc" },
+    distinct: ['id'],
     take: take + (cursor ? 1 : 0),
     ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
     select: {
@@ -78,8 +88,10 @@ export async function GET(req: Request) {
       productUrl: it.productUrl,
       createdAt: it.createdAt,
       suspendedAt: it.suspendedAt,
-      rating: ratingAvg,               // primary field used by ProductsList
-      avgRating: ratingAvg,            // extra alias just in case
+      rating: ratingAvg,               // legacy/alt field
+      avgRating: ratingAvg,            // preferred by ItemCard
+      avg: ratingAvg,                  // fallback alias
+      count: it._count.ratings,        // ItemCard expects `count`
       counts: {
         ratings: it._count.ratings,
         comments: it._count.comments,
