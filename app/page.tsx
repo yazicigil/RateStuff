@@ -896,7 +896,6 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   }, [reportOpen]);
 
   async function deleteItem(id: string) {
-    if (!confirm('Bu öğeyi kaldırmak istiyor musun?')) return;
     const res = await fetchOrSignin(`/api/items/${id}`, { method: 'DELETE' });
     if (!res) return;
     const j = await res.json().catch(() => null);
