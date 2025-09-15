@@ -29,6 +29,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const idsToDelete: string[] = Array.isArray((body as any).imagesDelete)
       ? (body as any).imagesDelete.filter((x: any) => typeof x === 'string')
       : [];
+    const imagesToAdd: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }> = Array.isArray((body as any).imagesAdd)
+      ? (body as any).imagesAdd.filter((x: any) => x && typeof x.url === 'string')
+      : [];
     const data: any = { editedAt: new Date() };
 
     // metin opsiyonel
@@ -72,6 +75,25 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (idsToDelete.length > 0) {
       await prisma.commentImage.deleteMany({
         where: { id: { in: idsToDelete }, commentId: params.id },
+      });
+    }
+    if (imagesToAdd.length > 0) {
+      const last = await prisma.commentImage.findMany({
+        where: { commentId: params.id },
+        select: { order: true },
+        orderBy: { order: 'desc' },
+        take: 1,
+      });
+      let base = (last[0]?.order ?? -1) + 1;
+      await prisma.commentImage.createMany({
+        data: imagesToAdd.map((im, idx) => ({
+          commentId: params.id,
+          url: im.url,
+          width: im.width ?? null,
+          height: im.height ?? null,
+          blurDataUrl: im.blurDataUrl ?? null,
+          order: base + idx,
+        })),
       });
     }
     const updatedWithSlug = updated?.user

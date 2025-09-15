@@ -63,11 +63,13 @@ export default function CommentBox({
     Array.isArray(myComment?.images) ? (myComment!.images as any) : []
   );
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
+  const [newImages, setNewImages] = useState<Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>>([]);
 
   // Keep local copy in sync with incoming prop
   useEffect(() => {
     setMyImages(Array.isArray(myComment?.images) ? (myComment!.images as any) : []);
     setRemovedImageIds([]);
+    setNewImages([]);
   }, [myComment?.id]);
 
   // If my comment has no images but server has them, self-fetch and merge by id
@@ -156,14 +158,14 @@ export default function CommentBox({
       let res = await fetch(`/api/comments/${myComment.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, rating, imagesDelete: removedImageIds }),
+        body: JSON.stringify({ text, rating, imagesDelete: removedImageIds, imagesAdd: newImages }),
       });
       if (!res.ok && res.status !== 200) {
         // 2) Fallback route
         res = await fetch(`/api/items/${itemId}/comments`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ commentId: myComment.id, text, rating, imagesDelete: removedImageIds }),
+          body: JSON.stringify({ commentId: myComment.id, text, rating, imagesDelete: removedImageIds, imagesAdd: newImages }),
         });
       }
       if (!res.ok) throw new Error(`Güncellenemedi (${res.status})`);
@@ -172,6 +174,7 @@ export default function CommentBox({
         setMyImages(prev => prev.filter(img => !img.id || !removedImageIds.includes(img.id)));
       }
       setRemovedImageIds([]);
+      setNewImages([]);
       setEditMode(false);
       onDone?.();
     } catch (err: any) {
@@ -260,22 +263,46 @@ export default function CommentBox({
                   {myImages.map((img, i) => (
                     <div key={img.id || i} className="relative">
                       <img src={img.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
-                      {img.id && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMyImages(prev => prev.filter((_, idx) => idx !== i));
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMyImages(prev => prev.filter((_, idx) => idx !== i));
+                          if (img.id) {
                             setRemovedImageIds(prev => prev.includes(img.id!) ? prev : [...prev, img.id!]);
-                          }}
-                          className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
-                          aria-label="Kaldır"
-                          title="Kaldır"
-                        >
-                          ×
-                        </button>
-                      )}
+                          } else {
+                            // newly added image (no id): also remove from newImages list
+                            setNewImages(prev => prev.filter((ni) => !(ni.url === img.url && ni.width === img.width && ni.height === img.height && ni.blurDataUrl === img.blurDataUrl)));
+                          }
+                        }}
+                        className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+                        aria-label="Kaldır"
+                        title="Kaldır"
+                      >
+                        ×
+                      </button>
                     </div>
                   ))}
+                </div>
+              )}
+              {/* Yeni görsel ekleme (düzenleme sırasında) */}
+              {(myImages.length + newImages.length) < 4 && (
+                <div className="mb-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50/60 p-2 dark:border-white/15 dark:bg-white/5">
+                  <ImageUploader
+                    multiple
+                    maxFiles={Math.max(0, 4 - (myImages.length + newImages.length))}
+                    accept={{ "image/*": [".jpg", ".jpeg", ".png", ".webp"] }}
+                    onUploaded={(files: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>) => {
+                      const next = files.map(f => ({ url: f.url, width: f.width, height: f.height, blurDataUrl: f.blurDataUrl }));
+                      // Append to both myImages (for immediate preview) and newImages (for PATCH imagesAdd)
+                      setMyImages(prev => [...prev, ...next].slice(0, 4));
+                      setNewImages(prev => [...prev, ...next].slice(0, 4));
+                    }}
+                    className="text-[13px]"
+                  />
+                  <div className="mt-2 flex items-center justify-between text-[11px] opacity-70">
+                    <span>Toplam 4 görsel ekleyebilirsin</span>
+                    <span>{Math.min(4, myImages.length + newImages.length)}/4</span>
+                  </div>
                 </div>
               )}
               <div className="relative">
@@ -516,7 +543,7 @@ export default function CommentBox({
               />
               <div className="mt-2 flex items-center justify-between text-[11px] opacity-70">
                 <span>En fazla 4 görsel ekleyebilirsin</span>
-                {images.length > 0 && <span>{images.length}/4</span>}
+                <span>{images.length}/4</span>
               </div>
             </div>
           )}

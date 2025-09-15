@@ -316,8 +316,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({} as any));
-    const { commentId, text, rating, imagesDelete } = body || {};
+    const { commentId, text, rating, imagesDelete, imagesAdd } = body || {};
     const idsToDelete: string[] = Array.isArray(imagesDelete) ? imagesDelete.filter((x: any) => typeof x === 'string') : [];
+    const imagesToAdd: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }> = Array.isArray(imagesAdd)
+      ? imagesAdd.filter((x: any) => x && typeof x.url === 'string')
+      : [];
 
     if (!commentId) return NextResponse.json({ ok: false, error: 'commentId-required' }, { status: 400 });
 
@@ -367,6 +370,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     if (idsToDelete.length > 0) {
       await prisma.commentImage.deleteMany({ where: { id: { in: idsToDelete }, commentId } });
+    }
+
+    if (imagesToAdd.length > 0) {
+      const last = await prisma.commentImage.findMany({
+        where: { commentId },
+        select: { order: true },
+        orderBy: { order: 'desc' },
+        take: 1,
+      });
+      let base = (last[0]?.order ?? -1) + 1;
+      await prisma.commentImage.createMany({
+        data: imagesToAdd.map((im: any, idx: number) => ({
+          commentId,
+          url: im.url,
+          width: im.width ?? null,
+          height: im.height ?? null,
+          blurDataUrl: im.blurDataUrl ?? null,
+          order: base + idx,
+        })),
+      });
     }
 
     return NextResponse.json({ ok: true });
