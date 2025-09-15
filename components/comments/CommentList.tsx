@@ -93,6 +93,43 @@ export default function CommentList({
     }));
   }, [comments]);
 
+  // --- Self-hydrate images if parent dropped them ---
+  const [hydrated, setHydrated] = useState<SpotComment[]>(safeComments);
+
+  // Keep local copy in sync when parent changes
+  useEffect(() => {
+    setHydrated(safeComments);
+  }, [safeComments]);
+
+  // If any comment has empty/missing images, fetch authoritative list and merge by id
+  useEffect(() => {
+    const needsHydrate = safeComments.some(c => !Array.isArray(c.images) || c.images.length === 0);
+    if (!needsHydrate || !itemId) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`/api/items/${encodeURIComponent(itemId)}/comments`, { cache: 'no-store' });
+        if (!r.ok) return;
+        const j = await r.json().catch(() => null);
+        const list: SpotComment[] = Array.isArray(j?.comments) ? j.comments : [];
+        if (!list.length) return;
+
+        const byId = new Map(list.map((c: any) => [c.id, c]));
+        const merged = safeComments.map((c) => {
+          const fresh = byId.get(c.id);
+          const freshImgs = Array.isArray(fresh?.images) ? fresh.images : [];
+          const images = (Array.isArray(c.images) && c.images.length > 0) ? c.images : freshImgs;
+          return { ...c, images } as SpotComment;
+        });
+        if (!cancelled) setHydrated(merged);
+      } catch {
+        // ignore network errors silently
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [itemId, safeComments]);
+
   // Yerel ölçüm ve state fallback'leri (ItemCard içinde parent state gelmeyebilir)
   const [localTruncated, setLocalTruncated] = useState<Set<string>>(new Set());
   const [localExpanded, setLocalExpanded] = useState<Set<string>>(new Set());
@@ -120,45 +157,21 @@ export default function CommentList({
     const mine: SpotComment[] = [];
     const others: SpotComment[] = [];
 
-    for (const c of safeComments) {
+    for (const c of hydrated) {
       const uid = c?.user?.id || null;
-
-      if (ownerId != null && uid != null && String(uid) === String(ownerId)) {
-        ownerComments.push(c);
-        continue;
-      }
-
-      if (myId && uid === myId) {
-        mine.push(c);
-      } else {
-        others.push(c);
-      }
+      if (ownerId != null && uid != null && String(uid) === String(ownerId)) { ownerComments.push(c); continue; }
+      if (myId && uid === myId) { mine.push(c); } else { others.push(c); }
     }
 
-    // Gönderi sahibi kendisi görüntülüyorsa: kendi yorumunu görmesin
     const isOwnerViewingOwnPost = ownerId != null && myId != null && String(ownerId) === String(myId);
-
-    // Sıralama: (1) owner'ın yorum(lar)ı (pin'li), (2) benim yorumlarım (opsiyonel), (3) diğerleri (skorla)
-    // Not: owner yorumları oy fark etmeksizin en üstte kalır.
-    // İç gruplar içinde basit stabil sıra; istenirse tarih/score ile ayrıca sıralanabilir.
-
-    // Diğerleri: score'a göre azalan
     others.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
 
     const list: SpotComment[] = [];
-
-    if (!isOwnerViewingOwnPost && ownerComments.length > 0) {
-      list.push(...ownerComments);
-    }
-
-    if (!hideMyComment && mine.length > 0) {
-      list.push(...mine);
-    }
-
+    if (!isOwnerViewingOwnPost && ownerComments.length > 0) list.push(...ownerComments);
+    if (!hideMyComment && mine.length > 0) list.push(...mine);
     list.push(...others);
-
     return list;
-  }, [safeComments, myId, ownerId, hideMyComment]);
+  }, [hydrated, myId, ownerId, hideMyComment]);
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
