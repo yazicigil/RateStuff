@@ -1,5 +1,16 @@
+'use client';
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+
+const maskDisplayName = (masked?: string | null, name?: string | null) => {
+  if (masked && masked.trim()) return masked;
+  const n = (name || '').trim();
+  if (!n) return '***';
+  const first = n[0];
+  return `${first}${'•'.repeat(Math.max(2, Math.min(6, n.length - 1)))}`;
+};
 
 // Types for images coming from item and comments
 export type LightboxImage = {
@@ -12,6 +23,10 @@ export type LightboxImage = {
   alt?: string;
   // order is respected when present
   order?: number | null;
+  // optional comment metadata for footer
+  commentId?: string;
+  commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+  commentRating?: number | null;
 };
 
 export type LightboxGalleryProps = {
@@ -108,17 +123,24 @@ export default function LightboxGallery({
 
   const prev = () => setIndex((currentIndex - 1 + total) % total);
   const next = () => setIndex((currentIndex + 1) % total);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
   if (total === 0) return null;
 
   const current = images[currentIndex];
 
-  return (
+  const currentMeta = {
+    user: current?.commentUser || null,
+    rating: typeof current?.commentRating === 'number' ? (current!.commentRating as number) : null,
+  } as const;
+
+  return createPortal(
     <div
       role="dialog"
       aria-modal
-      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex flex-col"
+      className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-sm flex flex-col"
       onClick={onClose}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
@@ -137,16 +159,13 @@ export default function LightboxGallery({
 
       {/* stage */}
       <div className="relative flex-1 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-        {/* image */}
         <img
           key={String(current.id ?? current.url)}
           src={current.url}
           alt={current.alt ?? "Görsel"}
-          className="max-h-[80vh] max-w-[92vw] object-contain rounded-lg shadow-2xl"
+          className="h-[80vh] max-h-[80vh] w-auto max-w-[92vw] object-contain rounded-lg shadow-2xl"
           draggable={false}
         />
-
-        {/* nav arrows */}
         {total > 1 && (
           <>
             <button
@@ -167,7 +186,6 @@ export default function LightboxGallery({
         )}
       </div>
 
-      {/* filmstrip thumbnails */}
       {total > 1 && (
         <div className="w-full overflow-x-auto px-3 pb-3 pt-1 select-none" onClick={(e) => e.stopPropagation()}>
           <div className="mx-auto flex w-max gap-2">
@@ -176,18 +194,40 @@ export default function LightboxGallery({
                 key={String(im.id ?? im.url) + i}
                 onClick={() => setIndex(i)}
                 className={
-                  "relative h-16 w-16 shrink-0 overflow-hidden rounded-md ring-2 transition " +
+                  "relative h-16 shrink-0 overflow-hidden rounded-md ring-2 transition inline-flex items-center justify-center px-1 " +
                   (i === currentIndex ? "ring-emerald-400" : "ring-white/20 hover:ring-white/40")
                 }
                 aria-label={`Görsele git ${i + 1}`}
               >
-                <img src={im.url} alt={im.alt ?? "thumbnail"} className="h-full w-full object-cover" />
+                <img src={im.url} alt={im.alt ?? "thumbnail"} className="h-16 w-auto object-contain" />
               </button>
             ))}
           </div>
         </div>
       )}
-    </div>
+
+      {/* related comment meta */}
+      {currentMeta.user && (
+        <div className="px-3 pb-4">
+          <div className="mx-auto flex w-full max-w-[880px] items-center gap-2 text-white/90">
+            <img
+              src={currentMeta.user?.avatarUrl || '/avatar.png'}
+              alt="avatar"
+              className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20"
+            />
+            <span className="text-sm opacity-90">
+              {maskDisplayName(currentMeta.user?.maskedName ?? undefined, currentMeta.user?.name ?? undefined)}
+            </span>
+            {typeof currentMeta.rating === 'number' && (
+              <span className="ml-1 inline-flex items-center gap-1 bg-white/15 text-white text-[11px] px-2 py-0.5 rounded-full">
+                <span className="leading-none">{currentMeta.rating}★</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }
 

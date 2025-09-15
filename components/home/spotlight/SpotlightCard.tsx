@@ -147,6 +147,8 @@ export default function SpotlightCard(props: SpotlightCardProps) {
   // Lightbox state for item + comment images
   const [lbOpen, setLbOpen] = React.useState(false);
   const [lbIndex, setLbIndex] = React.useState(0);
+  // Hydrated full comment images for Lightbox (fetches authoritative list)
+  const [lbCommentImages, setLbCommentImages] = React.useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number | null }>>([]);
 
   const onSaveEditor = React.useCallback(async (v: ItemEditorValue) => {
     try {
@@ -226,6 +228,29 @@ export default function SpotlightCard(props: SpotlightCardProps) {
     }
     return list;
   }, [item?.comments]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch(`/api/items/${encodeURIComponent(item.id)}/comments`, { cache: 'no-store' });
+        if (!r.ok) return;
+        const j = await r.json().catch(() => null);
+        const list: any[] = Array.isArray(j?.comments) ? j!.comments : [];
+        const images: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number | null }> = [];
+        for (const c of list) {
+          const imgs = Array.isArray(c?.images) ? [...c.images] : [];
+          imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          for (const im of imgs) {
+            if (!im?.url) continue;
+            images.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl ?? null, order: im.order ?? null });
+          }
+        }
+        if (!cancelled) setLbCommentImages(images);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [item?.id]);
 
   return (
     <div
@@ -367,8 +392,9 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 loading="eager"
                 className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
                 onClick={() => {
-                  if (!item.imageUrl && commentImagesForLightbox.length === 0) return;
-                  setLbIndex(0); // item image is always index 0 when present
+                  const hasAny = !!item.imageUrl || (lbCommentImages.length > 0 || commentImagesForLightbox.length > 0);
+                  if (!hasAny) return;
+                  setLbIndex(0); // item görseli varsa daima 0
                   setLbOpen(true);
                 }}
                 onError={(e) => {
@@ -545,7 +571,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
       {/* Lightbox for item + comment images */}
       <LightboxGallery
         itemImage={item.imageUrl ? { url: item.imageUrl } : undefined}
-        commentImages={commentImagesForLightbox}
+        commentImages={lbCommentImages.length > 0 ? lbCommentImages : commentImagesForLightbox}
         isOpen={lbOpen}
         onClose={() => setLbOpen(false)}
         index={lbIndex}

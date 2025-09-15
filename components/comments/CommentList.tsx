@@ -181,34 +181,8 @@ export default function CommentList({
   // Lightbox state
   const [lbOpen, setLbOpen] = useState(false);
   const [lbIndex, setLbIndex] = useState(0);
+  const [lbImages, setLbImages] = useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number }>>([]);
 
-  const galleryImages = useMemo(() => {
-    const list: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number }> = [];
-    if (itemImage?.url) {
-      list.push({ url: itemImage.url, width: itemImage.width, height: itemImage.height, blurDataUrl: itemImage.blurDataUrl ?? undefined });
-    }
-    for (const c of ordered) {
-      const imgs = Array.isArray(c.images) ? [...c.images] : [];
-      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      for (const im of imgs) {
-        if (!im?.url) continue;
-        list.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl, order: im.order });
-      }
-    }
-    return list;
-  }, [ordered, itemImage]);
-
-  const startIndexByComment = useMemo(() => {
-    const map: Record<string, number> = {};
-    let idx = itemImage?.url ? 1 : 0;
-    for (const c of ordered) {
-      const imgs = Array.isArray(c.images) ? [...c.images] : [];
-      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-      if (imgs.length > 0) map[c.id] = idx;
-      idx += imgs.length;
-    }
-    return map;
-  }, [ordered, itemImage]);
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
@@ -324,14 +298,17 @@ export default function CommentList({
                         <button
                           type="button"
                           onClick={() => {
-                            const start = startIndexByComment[c.id] ?? 0;
-                            setLbIndex(start);
+                            const imgs = Array.isArray(c.images) ? [...c.images] : [];
+                            imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                            setLbImages(imgs);
+                            setLbIndex(0);
                             setLbOpen(true);
                           }}
-                          className="inline-flex items-center ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full shrink-0 hover:bg-gray-300/80 dark:hover:bg-gray-600/80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          className="inline-flex items-center gap-1 ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full shrink-0 hover:bg-gray-300/80 dark:hover:bg-gray-600/80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                           title="Görselleri aç"
-                          aria-label="Görselleri aç"
+                          aria-label={`Bu yorumda ${(Array.isArray(c.images) ? c.images.length : 0)} fotoğraf var`}
                         >
+                          <span className="tabular-nums leading-none">{Array.isArray(c.images) ? c.images.length : 0}</span>
                           <PhotoIcon className="h-4 w-4 opacity-80" />
                         </button>
                       )}
@@ -405,10 +382,9 @@ export default function CommentList({
           })}
         </ul>
       )}
-      {/* Lightbox Gallery */}
+      {/* Lightbox Gallery: show only the clicked comment's images */}
       <LightboxGallery
-        itemImage={itemImage ?? undefined}
-        commentImages={galleryImages.slice(itemImage?.url ? 1 : 0)}
+        commentImages={lbImages}
         isOpen={lbOpen}
         onClose={() => setLbOpen(false)}
         index={lbIndex}

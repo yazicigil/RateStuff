@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { PhotoIcon } from "@heroicons/react/24/solid";
+import LightboxGallery from '@/components/items/LightboxGallery';
 import ImageUploader from "@/components/common/ImageUploader";
 import { useSession, signIn } from "next-auth/react";
 import Stars from "../common/Stars";
@@ -65,6 +66,21 @@ export default function CommentBox({
   );
   const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>>([]);
+
+  // Lightbox state for "Senin yorumun" görselleri
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
+  const [lbImages, setLbImages] = useState<Array<{
+    id?: string;
+    url: string;
+    width?: number;
+    height?: number;
+    blurDataUrl?: string | null;
+    order?: number;
+    commentId?: string;
+    commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+    commentRating?: number | null;
+  }>>([]);
 
   // Keep local copy in sync with incoming prop
   useEffect(() => {
@@ -394,13 +410,33 @@ export default function CommentBox({
                   <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">{myComment.rating}★</span>
                 ) : null}
                 {Array.isArray(myImages) && myImages.length > 0 && (
-                  <span
-                    className="inline-flex items-center ml-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10 shrink-0"
-                    title="Bu yorumda fotoğraf var"
-                    aria-label="Bu yorumda fotoğraf var"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const imgs = Array.isArray(myImages) ? [...myImages] : [];
+                      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+                      const enriched = imgs.map((im) => ({
+                        ...im,
+                        blurDataUrl: im.blurDataUrl ?? null,
+                        commentId: myComment.id,
+                        commentUser: {
+                          maskedName: myComment.user?.name ? maskName(myComment.user?.name) : (myComment.user as any)?.maskedName ?? null,
+                          name: myComment.user?.name ?? null,
+                          avatarUrl: myComment.user?.avatarUrl ?? null,
+                        },
+                        commentRating: typeof myComment.rating === 'number' ? myComment.rating : null,
+                      }));
+                      setLbImages(enriched as any);
+                      setLbIndex(0);
+                      setLbOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1 ml-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10 shrink-0 hover:bg-gray-300/80 dark:hover:bg-gray-600/80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    title="Görselleri aç"
+                    aria-label={`Bu yorumda ${myImages.length} fotoğraf var`}
                   >
+                    <span className="tabular-nums leading-none">{myImages.length}</span>
                     <PhotoIcon className="h-4 w-4 opacity-90" />
-                  </span>
+                  </button>
                 )}
                 <span className="flex items-center gap-1.5 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
                   <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
@@ -472,6 +508,14 @@ export default function CommentBox({
             </button>
           </div>
         </div>
+        {/* Lightbox: sadece bu yorumun görselleri */}
+        <LightboxGallery
+          commentImages={lbImages}
+          isOpen={lbOpen}
+          onClose={() => setLbOpen(false)}
+          index={lbIndex}
+          onIndexChange={setLbIndex}
+        />
       </div>
     );
   }
