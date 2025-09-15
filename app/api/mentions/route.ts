@@ -58,18 +58,37 @@ export async function GET(req: Request) {
       productUrl: true,
       createdAt: true,
       suspendedAt: true,
-      ratings: { select: { value: true } },
-      _count: { select: { ratings: true, comments: true, savedBy: true } },
+      _count: { select: { comments: true, savedBy: true } },
       tags: { select: { tag: { select: { name: true } } } },
     },
   });
 
+  // Compute rating stats from Comment table (ratings stored on comments.rating)
+  const ratingAgg = await prisma.comment.groupBy({
+    by: ['itemId'],
+    where: {
+      itemId: { in: itemIds },
+      // Avoid TS "null" typing issues: treat only positive ratings as valid
+      rating: { gt: 0 },
+    },
+    _avg: { rating: true },
+    _count: { _all: true },
+  });
+  const ratingByItem = new Map<string, { avg: number; count: number }>();
+  for (const row of ratingAgg) {
+    const avg = Number(row._avg?.rating ?? 0);
+    const count = typeof row._count === 'object' ? Number((row._count as any)._all ?? 0) : Number(row._count ?? 0);
+    ratingByItem.set(String(row.itemId), {
+      avg: Number.isFinite(avg) ? avg : 0,
+      count: Number.isFinite(count) ? count : 0,
+    });
+  }
+
   // ProductsList/ItemCard için hafif map
   const mapped = items.map((it) => {
-    // Ensure only numeric, finite values are counted for ratings
-    const values = (it.ratings || []).map(r => Number(r.value)).filter(v => Number.isFinite(v));
-    const ratingsCount = values.length;
-    const ratingAvg = ratingsCount ? values.reduce((a, b) => a + b, 0) / ratingsCount : 0;
+    const stats = ratingByItem.get(it.id) || { avg: 0, count: 0 };
+    const ratingAvg = stats.avg;
+    const ratingsCount = stats.count;
     return {
       id: it.id,
       name: it.name,
