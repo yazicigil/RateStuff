@@ -16,23 +16,53 @@ export async function POST(req: Request) {
 
   if (!me || !dbUser) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const { brandId, brandSlug, itemId } = await req.json();
+  let { brandId, brandSlug, itemId } = await req.json();
 
   if (!itemId || (!brandId && !brandSlug)) {
     return NextResponse.json({ error: 'itemId and brandId/brandSlug required (or provide mentionId)' }, { status: 400 });
   }
 
-  const iid = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
-  if (!iid || Number.isNaN(iid)) {
-    return NextResponse.json({ error: 'valid numeric itemId required' }, { status: 400 });
+  const iid = typeof itemId === 'string' ? itemId : String(itemId || '');
+  if (!iid) {
+    return NextResponse.json({ error: 'valid itemId required' }, { status: 400 });
   }
 
-  // brandId resolve + yetki
-  const brand = await prisma.brandAccount.findUnique({
-    where: brandId ? { id: brandId } : { slug: brandSlug },
-    select: { id: true, createdById: true, email: true },
-  });
-  if (!brand) return NextResponse.json({ error: 'brand not found' }, { status: 404 });
+  if (!brandId && !brandSlug) {
+    const ref = req.headers.get('referer') || '';
+    const m = ref.match(/\/brand\/([^\/?]+)/);
+    const inferred = m?.[1];
+    if (inferred && inferred !== 'me') {
+      brandSlug = inferred;
+    }
+  }
+
+  let brand = brandId || brandSlug
+    ? await prisma.brandAccount.findUnique({
+        where: brandId ? { id: brandId } : { slug: brandSlug },
+        select: { id: true, createdById: true, email: true },
+      })
+    : null;
+
+  if (!brand) {
+    // Fallback: user owns exactly one brand → use it
+    const owned = await prisma.brandAccount.findMany({
+      where: {
+        OR: [
+          { createdById: dbUser.id },
+          { email: dbUser.email },
+        ],
+      },
+      select: { id: true, createdById: true, email: true },
+      take: 2,
+    });
+    if (owned.length === 1) {
+      brand = owned[0];
+    }
+  }
+
+  if (!brand) {
+    return NextResponse.json({ error: 'itemId and brandId/brandSlug required (or provide mentionId)' }, { status: 400 });
+  }
 
   const amAdmin = Boolean(dbUser?.isAdmin || (session as any)?.user?.isAdmin);
   const isOwnerByCreator = brand.createdById ? brand.createdById === dbUser.id : false;

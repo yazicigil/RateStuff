@@ -99,7 +99,7 @@ export default function OptionsPopover({
       if (onHideMention) {
         return onHideMention(itemId);
       }
-      const payload: Record<string, any> = { itemId: Number(itemId) };
+      const payload: Record<string, any> = { itemId };
       const slug = brandSlugFromCtx || inferBrandSlugFromLocation();
       if (brandIdFromCtx) payload.brandId = brandIdFromCtx;
       if (!payload.brandId && slug) payload.brandSlug = slug;
