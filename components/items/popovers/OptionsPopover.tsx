@@ -159,7 +159,7 @@ export default function OptionsPopover({
             role="menuitem"
           >
             <AtSymbolIcon className="w-[18px] h-[18px]" />
-            <span>Profilimde gösterilmesin</span>
+            <span>Profilimden Kaldır</span>
           </button>
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
         </>

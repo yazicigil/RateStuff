@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useEffect, useRef, useState } from 'react';
+import { PhotoIcon } from "@heroicons/react/24/solid";
 import { linkifyMentions } from '@/lib/text/linkifyMentions';
 
 export type CommentUser = {
@@ -21,6 +22,7 @@ export type SpotComment = {
   myVote?: 1 | -1 | 0 | null;   // kullanıcının mevcut oyu
   edited?: boolean;
   user?: CommentUser | null;
+  images?: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>;
 };
 
 export interface CommentListProps {
@@ -204,6 +206,7 @@ export default function CommentList({
             const myVote = (typeof c.myVote === 'number' ? c.myVote : 0) as 1 | 0 | -1;
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
             const isTruncated = effectiveTruncated?.has(c.id) ?? false;
+          const hasImages = Array.isArray(c.images) && c.images.length > 0;
 
             return (
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
@@ -258,6 +261,11 @@ export default function CommentList({
                       {typeof c.rating === 'number' && c.rating > 0 && (
                         <span className="ml-1 inline-block bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full">
                           {c.rating}★
+                        </span>
+                      )}
+                      {hasImages && (
+                        <span className="inline-flex items-center gap-1 text-[11px] opacity-80" title="Bu yorumda fotoğraf var" aria-label="Bu yorumda fotoğraf var">
+                          <PhotoIcon className="h-4 w-4" />
                         </span>
                       )}
                     </div>

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
+import { PhotoIcon } from "@heroicons/react/24/solid";
+import ImageUploader from "@/components/common/ImageUploader";
 import { useSession, signIn } from "next-auth/react";
 import Stars from "../common/Stars";
 import { containsBannedWord } from "@/lib/bannedWords";
@@ -51,6 +53,9 @@ export default function CommentBox({
   const canSend = !busy && rating > 0 && !hasBanned;
   const ratingText = ['', 'Çok kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'][rating] ?? '';
   const counterId = `cb-count-${itemId}`;
+
+  const [images, setImages] = useState<Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>>([]);
+  const [showUploader, setShowUploader] = useState(false);
 
   // Silme onayı 3 sn sonra sıfırlansın
   if (typeof window !== 'undefined') {
@@ -149,13 +154,15 @@ export default function CommentBox({
     const r = await fetch(`/api/items/${itemId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, rating }),
+      body: JSON.stringify({ text, rating, images }),
     });
     const j = await r.json();
     setBusy(false);
     if (j.ok) {
       setText("");
       setRating(initialRating || 0);
+      setImages([]);
+      setShowUploader(false);
       onDone?.();
     } else alert('Hata: ' + j.error);
   }
@@ -355,6 +362,15 @@ export default function CommentBox({
               rows={1}
               placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
             />
+            <button
+              type="button"
+              aria-label="Fotoğraf ekle"
+              title="Fotoğraf ekle"
+              onClick={() => setShowUploader(v => !v)}
+              className="absolute right-2 bottom-2 inline-flex h-8 w-8 items-center justify-center rounded-lg hover:opacity-80 focus:outline-none"
+            >
+              <PhotoIcon className="h-6 w-6 opacity-80" />
+            </button>
           </div>
           {hasBanned && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-500">
@@ -366,6 +382,42 @@ export default function CommentBox({
               {text.length}/{maxLen}
             </span>
           </div>
+
+          {/* seçilmiş görsellerin küçük önizlemesi */}
+          {images.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {images.map((img, i) => (
+                <div key={i} className="relative">
+                  <img src={img.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
+                    className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+                    aria-label="Kaldır"
+                    title="Kaldır"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* uploader paneli */}
+          {showUploader && (
+            <div className="mt-2 rounded-xl border border-dashed border-neutral-300 p-3 dark:border-white/15">
+              <ImageUploader
+                multiple
+                maxFiles={Math.max(0, 4 - images.length)}
+                accept={{ "image/*": [".jpg", ".jpeg", ".png", ".webp"] }}
+                onUploaded={(files: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>) => {
+                  const next = files.map(f => ({ url: f.url, width: f.width, height: f.height, blurDataUrl: f.blurDataUrl }));
+                  setImages(prev => [...prev, ...next].slice(0, 4));
+                }}
+              />
+              <p className="mt-2 text-xs opacity-70">En fazla 4 görsel ekleyebilirsin.</p>
+            </div>
+          )}
         </div>
         {session ? (
           <button

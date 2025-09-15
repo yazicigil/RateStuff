@@ -56,6 +56,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
     const ratingRaw = Number(body.rating);
     const textRaw = typeof body.comment === "string" ? body.comment : (typeof body.text === "string" ? body.text : "");
     const text = String(textRaw || "").trim();
+    const images = Array.isArray(body.images) ? body.images : [];
 
     if (text && containsBannedWord(text)) {
       return NextResponse.json({ ok: false, error: "banned-word" }, { status: 400 });
@@ -94,6 +95,20 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
       },
     });
+
+    if (images.length > 0) {
+      await prisma.commentImage.createMany({
+        data: images.map((img: any, index: number) => ({
+          commentId: created.id,
+          url: img.url,
+          width: img.width,
+          height: img.height,
+          blurDataUrl: img.blurDataUrl,
+          order: typeof img.order === 'number' ? img.order : index,
+          uploadedById: me.id,
+        })),
+      });
+    }
 
     // Mentions: comment içindeki marka mention’ları için Mention + Notification üret
     try {
@@ -172,7 +187,23 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       console.error("[milestone:comment]", err);
     }
 
-    return NextResponse.json({ ok: true, comment: { ...created, user: createdUserWithBrand, score, myVote } }, { status: 201 });
+    // Refetch created comment with images
+    const createdWithImages = await prisma.comment.findUnique({
+      where: { id: created.id },
+      include: {
+        user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+        images: {
+          orderBy: { order: 'asc' },
+          select: { id: true, url: true, width: true, height: true, blurDataUrl: true, order: true },
+        },
+      },
+    });
+
+    const createdUserWithBrandFinal = createdWithImages?.user
+      ? { ...createdWithImages.user, slug: await getBrandSlug({ userId: me.id, email: createdWithImages.user.email }) }
+      : undefined;
+
+    return NextResponse.json({ ok: true, comment: { ...createdWithImages, user: createdUserWithBrandFinal, score, myVote } }, { status: 201 });
   } catch (e: any) {
     if (e?.code === "P2002") {
       // unique violation (itemId,userId)
@@ -190,6 +221,10 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true } },
+        images: {
+          orderBy: { order: 'asc' },
+          select: { id: true, url: true, width: true, height: true, blurDataUrl: true, order: true },
+        },
       },
     });
 
@@ -238,12 +273,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       // silently ignore if brandAccount model/fields differ
     }
 
-    // 4) Enrich each comment's user with slug; default score/myVote if absent
+    // 4) Enrich each comment's user with slug; default score/myVote if absent, keep images
     const comments = rows.map(c => {
       const u = c.user ? { ...c.user, slug: c.user.id ? slugMap.get(c.user.id) : undefined } : undefined;
       const score = (c as any).score ?? 0;
       const myVote = (c as any).myVote ?? 0;
-      return { ...c, user: u, score, myVote };
+      return { ...c, user: u, score, myVote, images: c.images };
     });
 
     return NextResponse.json({ ok: true, comments }, { status: 200 });

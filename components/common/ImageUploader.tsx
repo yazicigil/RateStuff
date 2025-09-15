@@ -1,17 +1,26 @@
 'use client';
 import { useRef, useState, useMemo } from 'react';
 
+type Uploaded = { url: string; width?: number; height?: number; blurDataUrl?: string };
 type Props = {
   /** Form submit’te alan adı (hidden input üretir) */
   name?: string;
-  /** Kontrollü kullanım için değer */
+  /** Kontrollü kullanım için tekil değer */
   value?: string | null;
-  /** Kontrollü kullanım için değişim bildirimi */
+  /** Kontrollü kullanım için tekil değişim bildirimi */
   onChange?: (url: string | null) => void;
-  /** Kontrollüsüz başlangıç değeri */
+  /** Çoklu kullanım için callback: yüklenen dosyaların URL listesi */
+  onUploaded?: (files: Uploaded[]) => void;
+  /** Kontrollüsüz başlangıç tekil değer */
   defaultValue?: string | null;
   /** Maks dosya boyutu (MB) – varsayılan 5 */
   maxSizeMB?: number;
+  /** Çoklu dosya yükleme modu */
+  multiple?: boolean;
+  /** Çoklu modda en fazla kaç dosya seçilebilir/yüklenebilir */
+  maxFiles?: number;
+  /** accept attribute – "image/*" veya input'un kabul edeceği mime/uzantılar */
+  accept?: Record<string, string[]> | string;
   className?: string;
 };
 
@@ -58,12 +67,27 @@ async function downscaleIfNeeded(file: File, maxW = 1600): Promise<File> {
   return new File([blob], name, { type: 'image/jpeg' });
 }
 
+function normalizeAccept(accept?: Record<string, string[]> | string) {
+  if (!accept) return 'image/*';
+  if (typeof accept === 'string') return accept;
+  const parts: string[] = [];
+  for (const [mime, exts] of Object.entries(accept)) {
+    parts.push(mime);
+    if (Array.isArray(exts)) parts.push(...exts);
+  }
+  return parts.join(',');
+}
+
 export default function ImageUploader({
   name,
   value,
   onChange,
+  onUploaded,
   defaultValue = null,
   maxSizeMB = 5,
+  multiple = false,
+  maxFiles,
+  accept,
   className,
 }: Props) {
   // Kontrollü mü? value prop’u varsa kontrollü kabul ediyoruz
@@ -76,40 +100,47 @@ export default function ImageUploader({
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [dragOver, setDragOver] = useState(false);
+
+  const acceptStr = normalizeAccept(accept);
+  const effectiveMaxFiles = typeof maxFiles === 'number' && maxFiles > 0 ? maxFiles : 100;
+
   function prevent(e: React.DragEvent) { e.preventDefault(); e.stopPropagation(); }
+
   async function handleDrop(e: React.DragEvent) {
     prevent(e);
     setDragOver(false);
     const dt = e.dataTransfer;
     if (!dt) return;
-    const file = dt.files?.[0];
-    if (file) {
-      await handleFile(file);
+    const files = Array.from(dt.files || []);
+    if (!files.length) return;
+    await handleFiles(files);
+  }
+
+  async function handleFiles(files: File[]) {
+    const picked = files.slice(0, effectiveMaxFiles);
+    if (multiple) {
+      const results: Uploaded[] = [];
+      for (const f of picked) {
+        const r = await uploadSingle(f);
+        if (r) results.push(r);
+      }
+      if (results.length && onUploaded) onUploaded(results);
+    } else if (picked[0]) {
+      const r = await uploadSingle(picked[0]);
+      if (r) {
+        if (isControlled) onChange?.(r.url); else setInnerUrl(r.url);
+      }
     }
   }
 
-  async function handleFile(file: File) {
+  async function uploadSingle(file: File): Promise<Uploaded | null> {
     setErr(null);
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setErr('Sadece görsel yükleyin');
-      return;
-    }
+    if (!file.type.startsWith('image/')) { setErr('Sadece görsel yükleyin'); return null; }
     const max = maxSizeMB * 1024 * 1024;
-    if (file.size > max) {
-      setErr(`Maksimum ${maxSizeMB} MB`);
-      return;
-    }
+    if (file.size > max) { setErr(`Maksimum ${maxSizeMB} MB`); return null; }
 
-    // İstemci tarafı downscale (opsiyonel hızlandırma)
     let toSend = file;
-    try {
-      toSend = await downscaleIfNeeded(file, 1600);
-    } catch {
-      // sessizce geç: sunucu optimize edecek
-      toSend = file;
-    }
+    try { toSend = await downscaleIfNeeded(file, 1600); } catch { toSend = file; }
 
     const fd = new FormData();
     fd.append('file', toSend);
@@ -118,18 +149,23 @@ export default function ImageUploader({
     try {
       const r = await fetch('/api/upload', { method: 'POST', body: fd });
       const j = await r.json().catch(() => null);
-
       if (j?.ok && j?.url) {
-        if (isControlled) onChange?.(j.url);
-        else setInnerUrl(j.url);
+        const out: Uploaded = { url: j.url, width: j.width, height: j.height, blurDataUrl: j.blurDataUrl };
+        return out;
       } else {
         setErr(j?.error || 'Yükleme hatası');
+        return null;
       }
     } catch (e: any) {
       setErr(e?.message || 'Yükleme hatası');
+      return null;
     } finally {
       setUploading(false);
     }
+  }
+
+  async function handleFile(file: File) {
+    await handleFiles([file]);
   }
 
   function clearImage() {
@@ -189,13 +225,13 @@ export default function ImageUploader({
                       className="inline-flex items-center px-2.5 py-1 rounded-md border text-sm font-medium bg-white/70 dark:bg-gray-800/70 border-gray-300 dark:border-gray-600 shadow-sm select-none pointer-events-none"
                       aria-hidden="true"
                     >
-                      Dosya seç
+                      {multiple ? 'Dosyaları seç' : 'Dosya seç'}
                     </span>
                     <span className="ml-1 text-sm opacity-80">veya sürükleyip bırak</span>
                   </>
                 )}
               </div>
-              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB</div>
+              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB{multiple ? ` · En fazla ${effectiveMaxFiles} görsel` : ''}</div>
             </div>
           </div>
         </button>
@@ -217,12 +253,12 @@ export default function ImageUploader({
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept={acceptStr}
         hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) handleFile(f);
-          // aynı dosyayı tekrar seçebilesin
+        multiple={multiple}
+        onChange={async (e) => {
+          const files = Array.from(e.target.files || []).slice(0, effectiveMaxFiles);
+          if (files.length) await handleFiles(files);
           e.currentTarget.value = '';
         }}
       />

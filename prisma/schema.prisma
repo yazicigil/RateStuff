@@ -38,11 +38,12 @@ model User {
   socialLinks SocialLink[]
 
   // back-relations for notifications & mentions
-  notificationsAsBrand Notification[] @relation("NotificationBrand")
-  notificationsAsActor Notification[] @relation("NotificationActor")
-  mentionsAsBrand      Mention[]      @relation("MentionBrand")
-  mentionsAsActor      Mention[]      @relation("MentionActor")
-  hiddenMentions   Mention[] @relation(name: "MentionHiddenBy")
+  notificationsAsBrand  Notification[] @relation("NotificationBrand")
+  notificationsAsActor  Notification[] @relation("NotificationActor")
+  mentionsAsBrand       Mention[]      @relation("MentionBrand")
+  mentionsAsActor       Mention[]      @relation("MentionActor")
+  hiddenMentions        Mention[]      @relation(name: "MentionHiddenBy")
+  uploadedCommentImages CommentImage[] @relation("CommentImage_uploadedBy")
 }
 
 model Item {
@@ -84,8 +85,28 @@ model Comment {
   // back-relations
   notifications Notification[] @relation("NotificationComment")
   mentions      Mention[]      @relation("MentionComment")
+  images        CommentImage[]
 
   @@unique([itemId, userId])
+}
+
+model CommentImage {
+  id        String  @id @default(cuid())
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  url         String
+  width       Int?
+  height      Int?
+  blurDataUrl String?
+  order       Int     @default(0)
+
+  uploadedById String?
+  uploadedBy   User?   @relation("CommentImage_uploadedBy", fields: [uploadedById], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([commentId])
 }
 
 model Rating {
@@ -320,12 +341,12 @@ model Mention {
   // metinden küçük bir alıntı (opsiyonel, UI’da işimize yarar)
   snippet String?
 
-  createdAt DateTime @default(now())
-// soft hide
+  createdAt  DateTime  @default(now())
+  // soft hide
   hiddenAt   DateTime?
-  hiddenById String?   // kim gizledi
-  hiddenBy   User?    @relation(name: "MentionHiddenBy", fields: [hiddenById], references: [id])
-  
+  hiddenById String? // kim gizledi
+  hiddenBy   User?     @relation(name: "MentionHiddenBy", fields: [hiddenById], references: [id])
+
   // aynı kaynaktan aynı markaya birden fazla mention kaydı tutmayalım:
   @@unique([brandId, itemId, commentId])
 }
