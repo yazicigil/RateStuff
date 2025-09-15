@@ -85,6 +85,14 @@ export default function CommentList({
   resolveBrandHref,
 }: CommentListProps) {
 
+  // Normalize incoming comments to always carry an images array
+  const safeComments = useMemo(() => {
+    return (comments || []).map((c) => ({
+      ...c,
+      images: Array.isArray((c as any).images) ? (c as any).images : [],
+    }));
+  }, [comments]);
+
   // Yerel ölçüm ve state fallback'leri (ItemCard içinde parent state gelmeyebilir)
   const [localTruncated, setLocalTruncated] = useState<Set<string>>(new Set());
   const [localExpanded, setLocalExpanded] = useState<Set<string>>(new Set());
@@ -112,7 +120,7 @@ export default function CommentList({
     const mine: SpotComment[] = [];
     const others: SpotComment[] = [];
 
-    for (const c of comments) {
+    for (const c of safeComments) {
       const uid = c?.user?.id || null;
 
       if (ownerId != null && uid != null && String(uid) === String(ownerId)) {
@@ -150,7 +158,7 @@ export default function CommentList({
     list.push(...others);
 
     return list;
-  }, [comments, myId, ownerId, hideMyComment]);
+  }, [safeComments, myId, ownerId, hideMyComment]);
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
@@ -178,7 +186,7 @@ export default function CommentList({
 
       {ordered.length === 0 ? (
         <div className="text-sm opacity-70">
-          {comments.some(c => c.user?.id === myId) ? "Henüz başka yorum yok." : emptyText}
+          {safeComments.some(c => c.user?.id === myId) ? "Henüz başka yorum yok." : emptyText}
         </div>
       ) : (
         <ul>

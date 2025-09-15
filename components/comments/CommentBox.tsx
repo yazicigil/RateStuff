@@ -157,15 +157,17 @@ export default function CommentBox({
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, rating, images }),
     });
-    const j = await r.json();
+    const j = await r.json().catch(() => null);
     setBusy(false);
-    if (j.ok) {
+    if (r.ok && (j?.comment || j?.id || j?.success === true)) {
       setText("");
       setRating(initialRating || 0);
       setImages([]);
       setShowUploader(false);
       onDone?.();
-    } else alert('Hata: ' + j.error);
+    } else {
+      alert('Hata: ' + (j?.error || `${r.status} ${r.statusText}`));
+    }
   }
 
   if (myComment) {
@@ -254,11 +256,11 @@ export default function CommentBox({
                 ) : null}
                 {Array.isArray((myComment as any).images) && (myComment as any).images.length > 0 && (
                   <span
-                    className="inline-flex items-center bg-emerald-200 text-emerald-900 text-[11px] px-1.5 py-0.5 rounded-full"
+                    className="inline-flex items-center ml-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10"
                     title="Bu yorumda fotoğraf var"
                     aria-label="Bu yorumda fotoğraf var"
                   >
-                    <PhotoIcon className="h-4 w-4 opacity-80" />
+                    <PhotoIcon className="h-4 w-4 opacity-90" />
                   </span>
                 )}
                 <span className="flex items-center gap-1.5 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
@@ -362,7 +364,7 @@ export default function CommentBox({
           <div className="relative">
             <MentionTextArea
               className={
-                "pl-1.5 [&_textarea]:pt-2.5 [&_textarea]:pt-3 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "pl-1.5 [&_textarea]:pt-3 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                 (hasBanned
                   ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                   : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
@@ -387,7 +389,7 @@ export default function CommentBox({
               Yorumunuzda yasaklı kelime bulunuyor.
             </p>
           )}
-          <div className="mt-1 flex items-center justify-end">
+          <div className="mt-0.5 flex items-center justify-end">
             <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
               {text.length}/{maxLen}
             </span>
