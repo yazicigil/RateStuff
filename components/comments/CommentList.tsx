@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useEffect, useRef, useState } from 'react';
+import LightboxGallery from '@/components/items/LightboxGallery';
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import { linkifyMentions } from '@/lib/text/linkifyMentions';
 
@@ -57,6 +58,9 @@ export interface CommentListProps {
 
   /** Opsiyonel: Marka kullanıcı için public profil linkini hesapla */
   resolveBrandHref?: (user: CommentUser) => string | undefined;
+
+  /** Opsiyonel: Lightbox için item'ın kapak görseli */
+  itemImage?: { url: string; width?: number; height?: number; blurDataUrl?: string | null } | null;
 }
 
 /** isim maskeleme (doğrulanmamış kullanıcılar için) */
@@ -83,6 +87,7 @@ export default function CommentList({
   totalCount,
   hideMyComment = true,
   resolveBrandHref,
+  itemImage,
 }: CommentListProps) {
 
   // Normalize incoming comments to always carry an images array
@@ -172,6 +177,38 @@ export default function CommentList({
     list.push(...others);
     return list;
   }, [hydrated, myId, ownerId, hideMyComment]);
+
+  // Lightbox state
+  const [lbOpen, setLbOpen] = useState(false);
+  const [lbIndex, setLbIndex] = useState(0);
+
+  const galleryImages = useMemo(() => {
+    const list: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number }> = [];
+    if (itemImage?.url) {
+      list.push({ url: itemImage.url, width: itemImage.width, height: itemImage.height, blurDataUrl: itemImage.blurDataUrl ?? undefined });
+    }
+    for (const c of ordered) {
+      const imgs = Array.isArray(c.images) ? [...c.images] : [];
+      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      for (const im of imgs) {
+        if (!im?.url) continue;
+        list.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl, order: im.order });
+      }
+    }
+    return list;
+  }, [ordered, itemImage]);
+
+  const startIndexByComment = useMemo(() => {
+    const map: Record<string, number> = {};
+    let idx = itemImage?.url ? 1 : 0;
+    for (const c of ordered) {
+      const imgs = Array.isArray(c.images) ? [...c.images] : [];
+      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      if (imgs.length > 0) map[c.id] = idx;
+      idx += imgs.length;
+    }
+    return map;
+  }, [ordered, itemImage]);
 
   // mount/updates: truncate ölçümü
   useEffect(() => {
@@ -284,13 +321,19 @@ export default function CommentList({
                         {Math.max(0, Number(c.rating) || 0)}★
                       </span>
                       {hasImages && (
-                        <span
-                          className="inline-flex items-center ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full shrink-0"
-                          title="Bu yorumda fotoğraf var"
-                          aria-label="Bu yorumda fotoğraf var"
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const start = startIndexByComment[c.id] ?? 0;
+                            setLbIndex(start);
+                            setLbOpen(true);
+                          }}
+                          className="inline-flex items-center ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full shrink-0 hover:bg-gray-300/80 dark:hover:bg-gray-600/80 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                          title="Görselleri aç"
+                          aria-label="Görselleri aç"
                         >
                           <PhotoIcon className="h-4 w-4 opacity-80" />
-                        </span>
+                        </button>
                       )}
                     </div>
 
@@ -362,6 +405,15 @@ export default function CommentList({
           })}
         </ul>
       )}
+      {/* Lightbox Gallery */}
+      <LightboxGallery
+        itemImage={itemImage ?? undefined}
+        commentImages={galleryImages.slice(itemImage?.url ? 1 : 0)}
+        isOpen={lbOpen}
+        onClose={() => setLbOpen(false)}
+        index={lbIndex}
+        onIndexChange={setLbIndex}
+      />
     </div>
   );
 }

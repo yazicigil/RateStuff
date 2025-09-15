@@ -11,6 +11,7 @@ import CommentBox from '@/components/comments/CommentBox';
 import CommentList from '@/components/comments/CommentList';
 import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
 import { linkifyMentions } from '@/lib/text/linkifyMentions';
+import LightboxGallery from '@/components/items/LightboxGallery';
 
 export type SpotlightItem = {
   id: string;
@@ -143,6 +144,9 @@ export default function SpotlightCard(props: SpotlightCardProps) {
   const [editing, setEditing] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [err, setErr] = React.useState<string | null>(null);
+  // Lightbox state for item + comment images
+  const [lbOpen, setLbOpen] = React.useState(false);
+  const [lbIndex, setLbIndex] = React.useState(0);
 
   const onSaveEditor = React.useCallback(async (v: ItemEditorValue) => {
     try {
@@ -208,6 +212,20 @@ export default function SpotlightCard(props: SpotlightCardProps) {
       images: Array.isArray(c?.images) ? c.images : [],
     }));
   const hasMoreOthers = others.length > showCount;
+
+  // Build comment images array in visual order
+  const commentImagesForLightbox = React.useMemo(() => {
+    const list: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number | null }> = [];
+    for (const c of (item.comments || [])) {
+      const imgs = Array.isArray(c.images) ? [...c.images] : [];
+      imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      for (const im of imgs) {
+        if (!im?.url) continue;
+        list.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl ?? null, order: im.order ?? null });
+      }
+    }
+    return list;
+  }, [item?.comments]);
 
   return (
     <div
@@ -347,7 +365,12 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 height={112}
                 decoding="async"
                 loading="eager"
-                className="w-28 h-28 object-cover rounded-lg"
+                className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
+                onClick={() => {
+                  if (!item.imageUrl && commentImagesForLightbox.length === 0) return;
+                  setLbIndex(0); // item image is always index 0 when present
+                  setLbOpen(true);
+                }}
                 onError={(e) => {
                   const t = e.currentTarget as HTMLImageElement;
                   if (t.src.endsWith('/default-item.svg')) return;
@@ -492,6 +515,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
             comments={displayOthers}
             totalCount={(item.comments || []).length}
             onVote={(commentId, next) => voteOnComment(commentId, next)}
+            itemImage={item.imageUrl ? { url: item.imageUrl } : null}
           />
 
           {hasMoreOthers && (
@@ -518,6 +542,15 @@ export default function SpotlightCard(props: SpotlightCardProps) {
           </div>
         </div>
       )}
+      {/* Lightbox for item + comment images */}
+      <LightboxGallery
+        itemImage={item.imageUrl ? { url: item.imageUrl } : undefined}
+        commentImages={commentImagesForLightbox}
+        isOpen={lbOpen}
+        onClose={() => setLbOpen(false)}
+        index={lbIndex}
+        onIndexChange={setLbIndex}
+      />
     </div>
   );
 }
