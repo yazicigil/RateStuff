@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth";
 import { deleteBlobIfVercel } from "@/lib/blob";
+import { handleMentionsOnPost } from "@/lib/mention-notify";
 
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
@@ -133,8 +134,30 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
           data: { editedAt: new Date() },
         });
       }
+    });
 
-      // Orphan tag cleanup
+    // === Mention & Notification for description edits ===
+    if (description !== undefined) {
+      try {
+        // fetch DB-saved description to ensure we parse the exact stored content
+        const updated = await prisma.item.findUnique({
+          where: { id: params.id },
+          select: { id: true, description: true },
+        });
+        await prisma.$transaction(async (tx) => {
+          await handleMentionsOnPost(tx, {
+            actorId: me.id,
+            itemId: params.id,
+            description: (updated as any)?.description ?? "",
+          });
+        });
+      } catch (err) {
+        console.error('[mentions:on-post:edit]', err);
+      }
+    }
+
+    // Orphan tag cleanup
+    await prisma.$transaction(async (tx) => {
       await tx.tag.deleteMany({
         where: { items: { none: {} } },
       });
