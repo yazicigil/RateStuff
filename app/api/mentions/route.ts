@@ -36,9 +36,9 @@ export async function GET(req: Request) {
   }
   if (!brandIdResolved) return NextResponse.json({ items: [], nextCursor: null });
 
-  // mention tablosundan sadece commentId = null olan itemId'leri topla
+  // mention tablosundan sadece commentId = null ve hiddenAt = null olan itemId'leri topla
   const mentionRows = await prisma.mention.findMany({
-    where: { brandId: brandIdResolved, commentId: null },
+    where: { brandId: brandIdResolved, commentId: null, hiddenAt: null },
     select: { itemId: true },
   });
   const itemIds = Array.from(new Set(mentionRows.map(m => m.itemId)));

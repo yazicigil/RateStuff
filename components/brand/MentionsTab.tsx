@@ -2,6 +2,8 @@
 
 import React from 'react'
 import ProductsList, { type ProductsListItem, type ProductsListProps } from '@/components/brand/ProductsList'
+import { MentionsContext } from '@/components/brand/MentionsContext'
+
 
 /**
  * MentionsTab
@@ -158,6 +160,19 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
     return () => { cancelled = true; ctrl.abort() }
   }, [itemsProp, brandId, brandSlug])
 
+  // MentionsTab – OptionsPopover'dan gelen global gizleme event'ini dinle
+  React.useEffect(() => {
+    function onHidden(ev: any) {
+      const id = ev?.detail?.itemId as string | undefined
+      if (!id) return
+      setItems((prev) => prev.filter((x: any) => x?.id !== id))
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('rs:mention-hidden', onHidden)
+      return () => window.removeEventListener('rs:mention-hidden', onHidden)
+    }
+  }, [])
+
   // Mentions listesinde Ekle/QuickAdd görünmemeli; ownerId bilinmiyor gibi davranalım
   const ownerId: string | undefined = undefined
 
@@ -182,42 +197,44 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
   }
 
   return (
-    <ProductsList
-      items={items}
-      trending={[]}
-      allTags={undefined}
-      initialSelectedTags={initialSelectedTags}
-      brandTheme={brandTheme}
-      renderItem={undefined}
-      emptyState={emptyState}
-      searchPlaceholder={searchPlaceholder}
-      onFilterChange={undefined}
-      className={className}
-      me={me}
-      amAdmin={amAdmin}
-      myId={myId}
-      savedIds={savedIds}
-      copiedShareId={copiedShareId}
-      onDeleted={onDeleted}
-      onDelete={onDelete}
-      onSavedChanged={onSavedChanged}
-      onItemChanged={onItemChanged}
-      onOpenSpotlight={onOpenSpotlight}
-      onToggleSave={onToggleSave}
-      onReport={onReport}
-      onCopyShare={onCopyShare}
-      onNativeShare={onNativeShare}
-      onShowInList={onShowInList}
-      onVoteComment={onVoteComment}
-      showComments={showComments}
-      showCommentBox={showCommentBox}
-      selectedTagsExternal={selectedTagsExternal}
-      onToggleTag={onToggleTag}
-      onResetTags={onResetTags}
-      itemCardProps={itemCardProps}
-      ownerId={ownerId}
-      onQuickAddDone={undefined}
-      onReload={onReload}
-    />
+    <MentionsContext.Provider value={{ isMentions: true, brandId }}>
+      <ProductsList
+        items={items}
+        trending={[]}
+        allTags={undefined}
+        initialSelectedTags={initialSelectedTags}
+        brandTheme={brandTheme}
+        renderItem={undefined}
+        emptyState={emptyState}
+        searchPlaceholder={searchPlaceholder}
+        onFilterChange={undefined}
+        className={className}
+        me={me}
+        amAdmin={amAdmin}
+        myId={myId}
+        savedIds={savedIds}
+        copiedShareId={copiedShareId}
+        onDeleted={onDeleted}
+        onDelete={onDelete}
+        onSavedChanged={onSavedChanged}
+        onItemChanged={onItemChanged}
+        onOpenSpotlight={onOpenSpotlight}
+        onToggleSave={onToggleSave}
+        onReport={onReport}
+        onCopyShare={onCopyShare}
+        onNativeShare={onNativeShare}
+        onShowInList={onShowInList}
+        onVoteComment={onVoteComment}
+        showComments={showComments}
+        showCommentBox={showCommentBox}
+        selectedTagsExternal={selectedTagsExternal}
+        onToggleTag={onToggleTag}
+        onResetTags={onResetTags}
+        itemCardProps={itemCardProps}
+        ownerId={ownerId}
+        onQuickAddDone={undefined}
+        onReload={onReload}
+      />
+    </MentionsContext.Provider>
   )
 }

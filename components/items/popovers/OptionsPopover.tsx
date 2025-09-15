@@ -8,6 +8,8 @@ import BookmarkSlashIcon from '@/assets/icons/bookmarkslash.svg';
 import ListIcon from '@/assets/icons/list.svg';
 import ReportIcon from '@/assets/icons/report.svg';
 import EditIcon from '@/assets/icons/pencil.svg';
+import { AtSymbolIcon } from '@heroicons/react/24/outline';
+import { useMentionsContext } from '@/components/brand/MentionsContext';
 
 // SVG helper: accepts either a React component (SVGR) or a URL module
 function SvgIcon(Icon: any, fallbackPath: string, props: React.SVGProps<SVGSVGElement> & { className?: string }) {
@@ -55,6 +57,9 @@ export type OptionsPopoverProps = {
 
   isOwner?: boolean;
   onEdit?: (id: string) => void;
+  onHideMention?: (id: string) => void;
+
+  isMentionsContext?: boolean;
 
   className?: string;
   style?: React.CSSProperties;
@@ -72,10 +77,34 @@ export default function OptionsPopover({
   onShowInList,
   hideShowInList = false,
   isOwner = false,
+  isMentionsContext = false,
   onEdit,
+  onHideMention,
   className,
   style,
 }: OptionsPopoverProps) {
+  const ctx = useMentionsContext();
+  const isMentions = ctx?.isMentions === true;
+  const brandIdFromCtx = ctx?.brandId;
+
+  async function handleHideFromMentions() {
+    try {
+      if (onHideMention) {
+        return onHideMention(itemId);
+      }
+      if (!brandIdFromCtx) return;
+      await fetch('/api/mentions/hide', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ brandId: brandIdFromCtx, itemId }),
+      });
+    } finally {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('rs:mention-hidden', { detail: { itemId } }));
+      }
+    }
+  }
+
   const ref = useRef<HTMLDivElement>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -176,6 +205,16 @@ export default function OptionsPopover({
       
 
       <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />
+      {( (isOwner || amAdmin) && (isMentionsContext || isMentions) ) && (
+        <button
+          className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors dark:text-white"
+          onClick={() => { onClose(); handleHideFromMentions(); }}
+          role="menuitem"
+        >
+          <AtSymbolIcon className="w-[18px] h-[18px]" />
+          <span>Bahsetmelerden Kaldır</span>
+        </button>
+      )}
       <button
         className="w-full text-left px-3 py-2 rounded-lg text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 transition-colors"
         onClick={() => { onClose(); onReport(itemId); }}

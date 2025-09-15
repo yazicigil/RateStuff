@@ -42,6 +42,7 @@ model User {
   notificationsAsActor Notification[] @relation("NotificationActor")
   mentionsAsBrand      Mention[]      @relation("MentionBrand")
   mentionsAsActor      Mention[]      @relation("MentionActor")
+  hiddenMentions   Mention[] @relation(name: "MentionHiddenBy")
 }
 
 model Item {
@@ -320,7 +321,11 @@ model Mention {
   snippet String?
 
   createdAt DateTime @default(now())
-
+// soft hide
+  hiddenAt   DateTime?
+  hiddenById String?   // kim gizledi
+  hiddenBy   User?    @relation(name: "MentionHiddenBy", fields: [hiddenById], references: [id])
+  
   // aynı kaynaktan aynı markaya birden fazla mention kaydı tutmayalım:
   @@unique([brandId, itemId, commentId])
 }
