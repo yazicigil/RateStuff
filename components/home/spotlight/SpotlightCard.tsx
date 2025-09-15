@@ -40,6 +40,7 @@ export type SpotlightItem = {
     myVote?: 1 | -1 | 0 | null;
     edited?: boolean;
     user?: { id?: string; name?: string | null; avatarUrl?: string | null; verified?: boolean };
+    images?: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>;
   }[];
 };
 
@@ -195,8 +196,17 @@ export default function SpotlightCard(props: SpotlightCardProps) {
   }, [item?.id]); // eslint-disable-line
 
   const others = (item.comments || []).filter((c) => c.user?.id !== myId);
-  const my = (item.comments || []).find((c) => c.user?.id === myId) || null;
-  const displayOthers = others.slice(0, showCount);
+  const rawMy = (item.comments || []).find((c) => c.user?.id === myId) || null;
+  const my = rawMy ? ({
+    ...rawMy,
+    images: Array.isArray((rawMy as any)?.images) ? (rawMy as any).images : [],
+  }) : null;
+  const displayOthers = others
+    .slice(0, showCount)
+    .map((c: any) => ({
+      ...c,
+      images: Array.isArray(c?.images) ? c.images : [],
+    }));
   const hasMoreOthers = others.length > showCount;
 
   return (

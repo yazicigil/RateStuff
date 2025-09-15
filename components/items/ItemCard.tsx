@@ -173,7 +173,12 @@ export default function ItemCard({
     }
   }, [i?.id, onItemChanged]);
 
-  const allComments = Array.isArray(i?.comments) ? (i.comments as any[]) : [];
+  const allComments: any[] = Array.isArray(i?.comments)
+    ? (i.comments as any[]).map((c: any) => ({
+        ...c,
+        images: Array.isArray((c as any)?.images) ? (c as any).images : [],
+      }))
+    : [];
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
   const otherComments = myId ? allComments.filter((c: any) => c?.user?.id !== myId) : allComments;
   const showMore = otherComments.length > 3;
@@ -509,6 +514,7 @@ export default function ItemCard({
                   onVote={onVoteComment}
                   title="Yorumlar"
                   emptyText={otherComments.length === 0 ? 'Henüz başka yorum yok.' : undefined}
+                  
                 />
                 {showMore && (
                   <div className="mt-2">
