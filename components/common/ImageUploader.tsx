@@ -231,7 +231,7 @@ export default function ImageUploader({
                   </>
                 )}
               </div>
-              <div className="text-xs opacity-60 mt-1">Maksimum boyut: {maxSizeMB}MB{multiple ? ` · En fazla ${effectiveMaxFiles} görsel` : ''}</div>
+              
             </div>
           </div>
         </button>
