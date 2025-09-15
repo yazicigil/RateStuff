@@ -197,9 +197,6 @@ export default function CommentList({
         <span className="text-xs opacity-70 tabular-nums">{typeof totalCount === 'number' ? totalCount : ordered.length}</span>
       </div>
 
-      <div className="mb-2 text-[11px] p-1 rounded bg-yellow-50 text-yellow-900 ring-1 ring-yellow-200">
-        debug: {ordered.length} yorum · ilk yorum images.length = {ordered[0]?.images?.length ?? 0}
-      </div>
 
       {ordered.length === 0 ? (
         <div className="text-sm opacity-70">
@@ -232,11 +229,6 @@ export default function CommentList({
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
             const isTruncated = effectiveTruncated?.has(c.id) ?? false;
           const hasImages = Array.isArray(c.images) && c.images.length > 0;
-          // debug: keep minimal in dev only
-          if (process.env.NODE_ENV !== 'production' && hasImages) {
-            // eslint-disable-next-line no-console
-            console.debug('hasImages', c.id, (c.images as any[]).length);
-          }
 
             return (
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
@@ -300,9 +292,6 @@ export default function CommentList({
                           <PhotoIcon className="h-4 w-4 opacity-80" />
                         </span>
                       )}
-                      <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-900 ring-1 ring-blue-200">
-                        imgs:{(c.images as any[])?.length ?? 0}
-                      </span>
                     </div>
 
                     {/* metin */}

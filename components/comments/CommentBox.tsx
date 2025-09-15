@@ -58,6 +58,53 @@ export default function CommentBox({
   const [images, setImages] = useState<Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>>([]);
   const [showUploader, setShowUploader] = useState(false);
 
+  // --- Hydrate myComment.images if parent dropped them ---
+  const [myImages, setMyImages] = useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>>(
+    Array.isArray(myComment?.images) ? (myComment!.images as any) : []
+  );
+
+  // Keep local copy in sync with incoming prop
+  useEffect(() => {
+    setMyImages(Array.isArray(myComment?.images) ? (myComment!.images as any) : []);
+  }, [myComment?.id]);
+
+  // If my comment has no images but server has them, self-fetch and merge by id
+  useEffect(() => {
+    const needsHydrate = !!myComment?.id && (!Array.isArray(myImages) || myImages.length === 0);
+    if (!needsHydrate) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        // Try the comments list for the item
+        let list: any[] | null = null;
+        if (itemId) {
+          const r = await fetch(`/api/items/${encodeURIComponent(itemId)}/comments`, { cache: 'no-store' });
+          if (r.ok) {
+            const j = await r.json().catch(() => null);
+            if (Array.isArray(j?.comments)) list = j.comments as any[];
+          }
+        }
+        // Fallback: fetch the single comment if list failed
+        if (!Array.isArray(list)) {
+          const r2 = await fetch(`/api/comments/${encodeURIComponent(myComment!.id)}`, { cache: 'no-store' });
+          if (r2.ok) {
+            const j2 = await r2.json().catch(() => null);
+            if (j2?.comment) list = [j2.comment];
+          }
+        }
+        if (!Array.isArray(list)) return;
+        const found = list.find((c: any) => c?.id === myComment!.id);
+        const fresh = Array.isArray(found?.images) ? found.images : [];
+        if (!cancelled && fresh.length > 0) setMyImages(fresh);
+      } catch {
+        // ignore
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [itemId, myComment?.id, myImages?.length]);
+
   // Silme onayı 3 sn sonra sıfırlansın
   if (typeof window !== 'undefined') {
     // no-op on SSR
@@ -249,14 +296,14 @@ export default function CommentBox({
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <div className="text-xs opacity-70 flex items-center gap-2">
+              <div className="text-xs opacity-70 flex flex-wrap items-center gap-2">
                 <span>Senin yorumun</span>
                 {typeof myComment.rating === 'number' && myComment.rating > 0 ? (
-                  <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{myComment.rating}★</span>
+                  <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">{myComment.rating}★</span>
                 ) : null}
-                {Array.isArray((myComment as any).images) && (myComment as any).images.length > 0 && (
+                {Array.isArray(myImages) && myImages.length > 0 && (
                   <span
-                    className="inline-flex items-center ml-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10"
+                    className="inline-flex items-center ml-0.5 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full ring-1 ring-black/5 dark:ring-white/10 shrink-0"
                     title="Bu yorumda fotoğraf var"
                     aria-label="Bu yorumda fotoğraf var"
                   >
