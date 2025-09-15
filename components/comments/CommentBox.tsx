@@ -564,6 +564,8 @@ export default function CommentBox({
                 onUploaded={(files: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>) => {
                   const next = files.map(f => ({ url: f.url, width: f.width, height: f.height, blurDataUrl: f.blurDataUrl }));
                   setImages(prev => [...prev, ...next].slice(0, 4));
+                  // close uploader after successful add
+                  setShowUploader(false);
                 }}
                 className="text-[13px]"
               />
