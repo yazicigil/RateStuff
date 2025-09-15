@@ -215,15 +215,39 @@ export default function SpotlightCard(props: SpotlightCardProps) {
     }));
   const hasMoreOthers = others.length > showCount;
 
-  // Build comment images array in visual order
+  // Build comment images array in visual order, with comment metadata for lightbox footer
   const commentImagesForLightbox = React.useMemo(() => {
-    const list: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number | null }> = [];
+    const list: Array<{
+      id?: string;
+      url: string;
+      width?: number;
+      height?: number;
+      blurDataUrl?: string | null;
+      order?: number | null;
+      commentId?: string;
+      commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+      commentRating?: number | null;
+    }> = [];
     for (const c of (item.comments || [])) {
       const imgs = Array.isArray(c.images) ? [...c.images] : [];
       imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       for (const im of imgs) {
         if (!im?.url) continue;
-        list.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl ?? null, order: im.order ?? null });
+        list.push({
+          id: im.id,
+          url: im.url,
+          width: im.width,
+          height: im.height,
+          blurDataUrl: im.blurDataUrl ?? null,
+          order: im.order ?? null,
+          commentId: c.id,
+          commentUser: {
+            maskedName: maskName(c?.user?.name, false),
+            name: c?.user?.name ?? null,
+            avatarUrl: c?.user?.avatarUrl ?? null,
+          },
+          commentRating: typeof c?.rating === 'number' ? c.rating : null,
+        });
       }
     }
     return list;
@@ -237,13 +261,37 @@ export default function SpotlightCard(props: SpotlightCardProps) {
         if (!r.ok) return;
         const j = await r.json().catch(() => null);
         const list: any[] = Array.isArray(j?.comments) ? j!.comments : [];
-        const images: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number | null }> = [];
+        const images: Array<{
+          id?: string;
+          url: string;
+          width?: number;
+          height?: number;
+          blurDataUrl?: string | null;
+          order?: number | null;
+          commentId?: string;
+          commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+          commentRating?: number | null;
+        }> = [];
         for (const c of list) {
           const imgs = Array.isArray(c?.images) ? [...c.images] : [];
           imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
           for (const im of imgs) {
             if (!im?.url) continue;
-            images.push({ id: im.id, url: im.url, width: im.width, height: im.height, blurDataUrl: im.blurDataUrl ?? null, order: im.order ?? null });
+            images.push({
+              id: im.id,
+              url: im.url,
+              width: im.width,
+              height: im.height,
+              blurDataUrl: im.blurDataUrl ?? null,
+              order: im.order ?? null,
+              commentId: c.id,
+              commentUser: {
+                maskedName: maskName(c?.user?.name, false),
+                name: c?.user?.name ?? null,
+                avatarUrl: c?.user?.avatarUrl ?? null,
+              },
+              commentRating: typeof c?.rating === 'number' ? c.rating : null,
+            });
           }
         }
         if (!cancelled) setLbCommentImages(images);

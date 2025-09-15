@@ -181,7 +181,17 @@ export default function CommentList({
   // Lightbox state
   const [lbOpen, setLbOpen] = useState(false);
   const [lbIndex, setLbIndex] = useState(0);
-  const [lbImages, setLbImages] = useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string | null; order?: number }>>([]);
+  const [lbImages, setLbImages] = useState<Array<{
+    id?: string;
+    url: string;
+    width?: number;
+    height?: number;
+    blurDataUrl?: string | null;
+    order?: number;
+    commentId?: string;
+    commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+    commentRating?: number | null;
+  }>>([]);
 
 
   // mount/updates: truncate ölçümü
@@ -300,7 +310,18 @@ export default function CommentList({
                           onClick={() => {
                             const imgs = Array.isArray(c.images) ? [...c.images] : [];
                             imgs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-                            setLbImages(imgs);
+                            const enriched = imgs.map(im => ({
+                              ...im,
+                              blurDataUrl: (im as any)?.blurDataUrl ?? null,
+                              commentId: c.id,
+                              commentUser: {
+                                maskedName: c.user?.maskedName ?? maskName(c.user?.name, false),
+                                name: c.user?.name ?? null,
+                                avatarUrl: c.user?.avatarUrl ?? null,
+                              },
+                              commentRating: typeof c.rating === 'number' ? c.rating : null,
+                            }));
+                            setLbImages(enriched as any);
                             setLbIndex(0);
                             setLbOpen(true);
                           }}
