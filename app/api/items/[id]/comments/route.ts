@@ -203,7 +203,21 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       ? { ...createdWithImages.user, slug: await getBrandSlug({ userId: me.id, email: createdWithImages.user.email }) }
       : undefined;
 
-    return NextResponse.json({ ok: true, comment: { ...createdWithImages, user: createdUserWithBrandFinal, score, myVote } }, { status: 201 });
+    const imagesNormalized = Array.isArray(createdWithImages?.images)
+      ? createdWithImages!.images.map((im: any) => ({
+          id: im.id,
+          url: im.url,
+          width: im.width ?? undefined,
+          height: im.height ?? undefined,
+          blurDataUrl: im.blurDataUrl ?? undefined,
+          order: typeof im.order === 'number' ? im.order : undefined,
+        }))
+      : [];
+
+    return NextResponse.json(
+      { ok: true, comment: { ...createdWithImages, images: imagesNormalized, user: createdUserWithBrandFinal, score, myVote } },
+      { status: 201 }
+    );
   } catch (e: any) {
     if (e?.code === "P2002") {
       // unique violation (itemId,userId)
@@ -278,7 +292,17 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       const u = c.user ? { ...c.user, slug: c.user.id ? slugMap.get(c.user.id) : undefined } : undefined;
       const score = (c as any).score ?? 0;
       const myVote = (c as any).myVote ?? 0;
-      return { ...c, user: u, score, myVote, images: c.images };
+      const imagesNormalized = Array.isArray(c.images)
+        ? c.images.map((im: any) => ({
+            id: im.id,
+            url: im.url,
+            width: im.width ?? undefined,
+            height: im.height ?? undefined,
+            blurDataUrl: im.blurDataUrl ?? undefined,
+            order: typeof im.order === 'number' ? im.order : undefined,
+          }))
+        : [];
+      return { ...c, user: u, score, myVote, images: imagesNormalized };
     });
 
     return NextResponse.json({ ok: true, comments }, { status: 200 });
