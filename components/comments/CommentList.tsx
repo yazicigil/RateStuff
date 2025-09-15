@@ -184,6 +184,10 @@ export default function CommentList({
         <span className="text-xs opacity-70 tabular-nums">{typeof totalCount === 'number' ? totalCount : ordered.length}</span>
       </div>
 
+      <div className="mb-2 text-[11px] p-1 rounded bg-yellow-50 text-yellow-900 ring-1 ring-yellow-200">
+        debug: {ordered.length} yorum · ilk yorum images.length = {ordered[0]?.images?.length ?? 0}
+      </div>
+
       {ordered.length === 0 ? (
         <div className="text-sm opacity-70">
           {safeComments.some(c => c.user?.id === myId) ? "Henüz başka yorum yok." : emptyText}
@@ -283,6 +287,9 @@ export default function CommentList({
                           <PhotoIcon className="h-4 w-4 opacity-80" />
                         </span>
                       )}
+                      <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-blue-50 text-blue-900 ring-1 ring-blue-200">
+                        imgs:{(c.images as any[])?.length ?? 0}
+                      </span>
                     </div>
 
                     {/* metin */}
