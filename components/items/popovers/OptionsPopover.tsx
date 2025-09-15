@@ -86,17 +86,21 @@ export default function OptionsPopover({
   const ctx = useMentionsContext();
   const isMentions = ctx?.isMentions === true;
   const brandIdFromCtx = ctx?.brandId;
+  const brandSlugFromCtx = (ctx as any)?.brandSlug as string | undefined;
 
   async function handleHideFromMentions() {
     try {
       if (onHideMention) {
         return onHideMention(itemId);
       }
-      if (!brandIdFromCtx) return;
+      const payload: Record<string, any> = { itemId };
+      if (brandIdFromCtx) payload.brandId = brandIdFromCtx;
+      if (!brandIdFromCtx && brandSlugFromCtx) payload.brandSlug = brandSlugFromCtx;
+      if (!payload.brandId && !payload.brandSlug) return; // no context; do nothing
       await fetch('/api/mentions/hide', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ brandId: brandIdFromCtx, itemId }),
+        body: JSON.stringify(payload),
       });
     } finally {
       if (typeof window !== 'undefined') {
