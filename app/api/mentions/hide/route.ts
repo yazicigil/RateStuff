@@ -22,6 +22,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'itemId and brandId/brandSlug required (or provide mentionId)' }, { status: 400 });
   }
 
+  const iid = typeof itemId === 'string' ? parseInt(itemId, 10) : itemId;
+  if (!iid || Number.isNaN(iid)) {
+    return NextResponse.json({ error: 'valid numeric itemId required' }, { status: 400 });
+  }
+
   // brandId resolve + yetki
   const brand = await prisma.brandAccount.findUnique({
     where: brandId ? { id: brandId } : { slug: brandSlug },
@@ -37,7 +42,7 @@ export async function POST(req: Request) {
   }
 
   const res = await prisma.mention.updateMany({
-    where: { brandId: brand.id, itemId, commentId: null, hiddenAt: null },
+    where: { brandId: brand.id, itemId: iid, hiddenAt: null },
     data: { hiddenAt: new Date(), hiddenById: dbUser.id },
   });
 
