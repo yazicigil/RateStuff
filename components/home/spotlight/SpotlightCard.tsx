@@ -307,6 +307,8 @@ export default function SpotlightCard(props: SpotlightCardProps) {
 
   // Total comment image count (prefer hydrated list)
   const commentImagesTotal = (lbCommentImages.length > 0 ? lbCommentImages.length : commentImagesForLightbox.length);
+  // Include item image in the displayed total if item has an image
+  const totalWithItem = commentImagesTotal + (item.imageUrl ? 1 : 0);
 
   return (
     <div
@@ -472,10 +474,10 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                       setLbOpen(true);
                     }}
                     className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded-full bg-white/90 text-gray-800 dark:bg-gray-900/90 dark:text-gray-100 text-[11px] px-1.5 py-0.5 shadow ring-1 ring-black/10 dark:ring-white/10 backdrop-blur-sm hover:bg-white/95 dark:hover:bg-gray-900"
-                    aria-label={`Bu ürüne ait yorumlarda ${commentImagesTotal} fotoğraf var`}
+                    aria-label={`Bu ürüne ait toplam ${totalWithItem} fotoğraf var`}
                     title="Yorum fotoğraflarını aç"
                   >
-                    <span className="tabular-nums leading-none">{commentImagesTotal}</span>
+                    <span className="tabular-nums leading-none">{totalWithItem}</span>
                     <PhotoIcon className="h-4 w-4 opacity-80" />
                   </button>
                 )}

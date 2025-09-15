@@ -281,7 +281,7 @@ export default function CommentBox({
                 <div className="mb-2 flex flex-wrap gap-2">
                   {myImages.map((img, i) => (
                     <div key={img.id || i} className="relative">
-                      <img src={img.url} alt="" className="h-20 w-20 rounded-md object-cover ring-1 ring-black/10 dark:ring-white/10" />
+                      <img src={img.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
                       <button
                         type="button"
                         onClick={() => {
@@ -293,7 +293,7 @@ export default function CommentBox({
                             setNewImages(prev => prev.filter((ni) => !(ni.url === img.url && ni.width === img.width && ni.height === img.height && ni.blurDataUrl === img.blurDataUrl)));
                           }
                         }}
-                        className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] text-white shadow"
+                        className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
                         aria-label="Kaldır"
                         title="Kaldır"
                       >
@@ -305,7 +305,7 @@ export default function CommentBox({
                     <button
                       type="button"
                       onClick={() => setShowEditUploader(v => !v)}
-className="h-20 w-20 rounded-md border border-dashed border-neutral-300/70 dark:border-white/20 grid place-items-center hover:bg-white/60 dark:hover:bg-white/10"
+                      className="h-20 w-20 rounded-lg border border-dashed border-neutral-300/70 dark:border-white/20 grid place-items-center hover:bg-white/60 dark:hover:bg-white/10"
                       title="Görsel ekle"
                       aria-label="Görsel ekle"
                     >
@@ -316,7 +316,7 @@ className="h-20 w-20 rounded-md border border-dashed border-neutral-300/70 dark:
               )}
               {/* Yeni görsel ekleme (düzenleme sırasında) */}
               {showEditUploader && (myImages.length + newImages.length) < 4 && (
-                <div className="mb-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50 p-3 shadow-sm dark:border-white/15 dark:bg-white/5">
+                <div className="mb-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50/60 p-2 dark:border-white/15 dark:bg-white/5">
                   <ImageUploader
                     multiple
                     maxFiles={Math.max(0, 4 - (myImages.length + newImages.length))}
@@ -356,7 +356,8 @@ className="h-20 w-20 rounded-md border border-dashed border-neutral-300/70 dark:
                     aria-label="Fotoğraf ekle"
                     title="Fotoğraf ekle"
                     onClick={() => setShowEditUploader(v => !v)}
-className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/10 bg-white/85 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"                  >
+                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  >
                     <PhotoIcon className="h-5 w-5 opacity-80" />
                   </button>
                 )}
@@ -547,12 +548,12 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
         <div className="flex-1">
           <div className="relative">
             <MentionTextArea
-  className={
-    "pl-1.5 [&_textarea]:pt-3 [&_textarea]:pr-12 [&_textarea]:min-h-[48px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-    (hasBanned
-      ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-      : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
-  }
+              className={
+                "pl-1.5 [&_textarea]:pt-3 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                (hasBanned
+                  ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
+                  : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+              }
               value={text}
               onChange={(v) => setText(v)}
               rows={1}
@@ -563,7 +564,8 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
               aria-label="Fotoğraf ekle"
               title="Fotoğraf ekle"
               onClick={() => setShowUploader(v => !v)}
-className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/10 bg-white/85 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"            >
+              className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
               <PhotoIcon className="h-5 w-5 opacity-80" />
             </button>
           </div>
@@ -572,8 +574,8 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
               Yorumunuzda yasaklı kelime bulunuyor.
             </p>
           )}
-<div className="mt-1 flex items-center justify-end">
-              <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
+          <div className="mt-0.5 flex items-center justify-end">
+            <span id={counterId} className="text-[11px] tabular-nums text-gray-500 dark:text-gray-400">
               {text.length}/{maxLen}
             </span>
           </div>
@@ -583,11 +585,11 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
             <div className="mt-2 flex flex-wrap gap-2">
               {images.map((img, i) => (
                 <div key={i} className="relative">
-                  <img src={img.url} alt="" className="h-20 w-20 rounded-md object-cover ring-1 ring-black/10 dark:ring-white/10" />
+                  <img src={img.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
                   <button
                     type="button"
                     onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))}
-                    className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-[11px] text-white shadow"
+                    className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
                     aria-label="Kaldır"
                     title="Kaldır"
                   >
@@ -595,24 +597,12 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
                   </button>
                 </div>
               ))}
-
-              {images.length < 4 && (
-                <button
-                  type="button"
-                  onClick={() => setShowUploader(true)}
-                  className="h-20 w-20 rounded-md border border-dashed border-neutral-300/70 dark:border-white/20 grid place-items-center hover:bg-white/60 dark:hover:bg-white/10"
-                  title="Görsel ekle"
-                  aria-label="Görsel ekle"
-                >
-                  <span className="text-2xl leading-none">+</span>
-                </button>
-              )}
             </div>
           )}
 
           {/* uploader paneli */}
           {showUploader && (
-            <div className="mt-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50 p-3 shadow-sm dark:border-white/15 dark:bg-white/5">
+            <div className="mt-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50/60 p-2 dark:border-white/15 dark:bg-white/5">
               <ImageUploader
                 multiple
                 maxFiles={Math.max(0, 4 - images.length)}
@@ -638,7 +628,8 @@ className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-cente
             aria-label="Gönder"
             title="Gönder"
             className={
-"mt-1 grid place-items-center w-11 h-11 rounded-full border border-gray-300 dark:border-gray-700 " +              (canSend
+              "mt-1 grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 " +
+              (canSend
                 ? "bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 : "bg-white/80 dark:bg-gray-800/80 text-gray-400 cursor-not-allowed")
             }
