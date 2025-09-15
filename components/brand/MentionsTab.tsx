@@ -118,10 +118,12 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
       try {
         setLoading(true)
         setError(null)
-        const qs = brandId ? `brandId=${encodeURIComponent(brandId)}` : brandSlug ? `brandSlug=${encodeURIComponent(brandSlug)}` : ''
+        const qs = brandSlug ? `brandSlug=${encodeURIComponent(brandSlug)}` : brandId ? `brandId=${encodeURIComponent(brandId)}` : ''
         const res = await fetch(`/api/mentions?${qs}&take=200`, { signal: ctrl.signal })
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
         const data = await res.json().catch(() => ([]))
+        // TEMP DEBUG:
+        console.debug('[MentionsTab] fetched', Array.isArray(data?.items) ? data.items.length : (Array.isArray(data) ? data.length : 0), 'items for', qs);
         if (!cancelled) {
           const raw = (data?.items ?? data ?? []) as any[];
           const norm = raw.map((it) => {

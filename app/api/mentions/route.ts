@@ -15,16 +15,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "brandSlug or brandId is required" }, { status: 400 });
   }
 
-  // brandId geldiyse slug'a çevir
+  // brandId geldiyse slug'a çevirME — doğrudan brandId ile devam ediyoruz; slug yalnızca brandSlug verilmişse gerekecek
   let slug = brandSlug;
-  if (!slug && brandId) {
-    const ba = await prisma.brandAccount.findUnique({
-      where: { id: brandId },
-      select: { slug: true },
-    });
-    if (!ba?.slug) return NextResponse.json({ items: [] });
-    slug = ba.slug;
-  }
 
   const MAX = 500;
 
@@ -42,7 +34,7 @@ export async function GET(req: Request) {
     select: { id: true, itemId: true, createdAt: true },
     orderBy: { createdAt: 'desc' },
   });
-  const itemIds = Array.from(new Set(mentionRows.map(m => m.itemId)));
+  const itemIds = Array.from(new Set(mentionRows.map(m => m.itemId).filter((x): x is string => !!x)));
   const latestMentionIdByItem = new Map<string, string>();
   for (const row of mentionRows) {
     if (!latestMentionIdByItem.has(row.itemId)) {
@@ -69,6 +61,9 @@ export async function GET(req: Request) {
       tags: { select: { tag: { select: { name: true } } } },
     },
   });
+
+  // TEMP DEBUG:
+  console.log('[mentions] brandIdResolved=', brandIdResolved, 'mentionRows=', mentionRows.length, 'itemIds=', itemIds.length, 'items=', items.length);
 
   // Compute rating stats from Comment table (ratings stored on comments.rating)
   const ratingAgg = await prisma.comment.groupBy({
