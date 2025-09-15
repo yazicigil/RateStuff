@@ -88,20 +88,34 @@ export default function OptionsPopover({
   const brandIdFromCtx = ctx?.brandId;
   const brandSlugFromCtx = (ctx as any)?.brandSlug as string | undefined;
 
+  function inferBrandSlugFromLocation(): string | undefined {
+    if (typeof window === 'undefined') return undefined;
+    const m = window.location.pathname.match(/\/brand\/([^\/\?]+)/);
+    return m?.[1];
+  }
+
   async function handleHideFromMentions() {
     try {
       if (onHideMention) {
         return onHideMention(itemId);
       }
       const payload: Record<string, any> = { itemId };
+      const slug = brandSlugFromCtx || inferBrandSlugFromLocation();
       if (brandIdFromCtx) payload.brandId = brandIdFromCtx;
-      if (!brandIdFromCtx && brandSlugFromCtx) payload.brandSlug = brandSlugFromCtx;
-      if (!payload.brandId && !payload.brandSlug) return; // no context; do nothing
-      await fetch('/api/mentions/hide', {
+      if (!payload.brandId && slug) payload.brandSlug = slug;
+      if (!payload.brandId && !payload.brandSlug) {
+        console.warn('[OptionsPopover] Missing brand context for hide:', { itemId });
+        return;
+      }
+      const res = await fetch('/api/mentions/hide', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        console.error('[OptionsPopover] hide failed', res.status, text);
+      }
     } finally {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('rs:mention-hidden', { detail: { itemId } }));
