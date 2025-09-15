@@ -316,7 +316,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({} as any));
-    const { commentId } = body || {};
+    const { commentId, text, rating, imagesDelete } = body || {};
+    const idsToDelete: string[] = Array.isArray(imagesDelete) ? imagesDelete.filter((x: any) => typeof x === 'string') : [];
+
     if (!commentId) return NextResponse.json({ ok: false, error: 'commentId-required' }, { status: 400 });
 
     const existing = await prisma.comment.findUnique({
@@ -332,14 +334,14 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!isOwner && !isAdmin) return NextResponse.json({ ok: false, error: 'forbidden' }, { status: 403 });
 
     const data: any = { editedAt: new Date() };
-    if (typeof body.text === 'string') {
-      if (containsBannedWord(body.text)) {
+    if (typeof text === 'string') {
+      if (containsBannedWord(text)) {
         return NextResponse.json({ ok: false, error: "banned-word" }, { status: 400 });
       }
-      data.text = String(body.text);
+      data.text = String(text);
     }
-    if (body.rating !== undefined) {
-      const r = Number(body.rating);
+    if (rating !== undefined) {
+      const r = Number(rating);
       if (!Number.isFinite(r) || r < 1 || r > 5) {
         return NextResponse.json({ ok: false, error: 'invalid-rating' }, { status: 400 });
       }
@@ -362,6 +364,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     } catch (err) {
       console.error('[mentions:on-comment:update]', err);
     }
+
+    if (idsToDelete.length > 0) {
+      await prisma.commentImage.deleteMany({ where: { id: { in: idsToDelete }, commentId } });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e?.message || 'error' }, { status: 400 });

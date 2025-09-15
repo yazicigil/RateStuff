@@ -62,10 +62,12 @@ export default function CommentBox({
   const [myImages, setMyImages] = useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>>(
     Array.isArray(myComment?.images) ? (myComment!.images as any) : []
   );
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]);
 
   // Keep local copy in sync with incoming prop
   useEffect(() => {
     setMyImages(Array.isArray(myComment?.images) ? (myComment!.images as any) : []);
+    setRemovedImageIds([]);
   }, [myComment?.id]);
 
   // If my comment has no images but server has them, self-fetch and merge by id
@@ -146,17 +148,18 @@ export default function CommentBox({
       let res = await fetch(`/api/comments/${myComment.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, rating }),
+        body: JSON.stringify({ text, rating, imagesDelete: removedImageIds }),
       });
       if (!res.ok && res.status !== 200) {
         // 2) Fallback route
         res = await fetch(`/api/items/${itemId}/comments`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ commentId: myComment.id, text, rating }),
+          body: JSON.stringify({ commentId: myComment.id, text, rating, imagesDelete: removedImageIds }),
         });
       }
       if (!res.ok) throw new Error(`Güncellenemedi (${res.status})`);
+      setRemovedImageIds([]);
       setEditMode(false);
       onDone?.();
     } catch (err: any) {
@@ -239,6 +242,30 @@ export default function CommentBox({
           </div>
           <div className="flex items-end gap-2">
             <div className="flex-1">
+              {/* Mevcut görseller (düzenleme sırasında) */}
+              {Array.isArray(myImages) && myImages.length > 0 && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {myImages.map((img, i) => (
+                    <div key={img.id || i} className="relative">
+                      <img src={img.url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+                      {img.id && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMyImages(prev => prev.filter((_, idx) => idx !== i));
+                            setRemovedImageIds(prev => prev.includes(img.id!) ? prev : [...prev, img.id!]);
+                          }}
+                          className="absolute -right-1 -top-1 rounded-full bg-black/70 px-2 py-0.5 text-xs text-white"
+                          aria-label="Kaldır"
+                          title="Kaldır"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="relative">
                 <MentionTextArea
                   className={

@@ -26,6 +26,9 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (!me) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
 
     const body = await req.json().catch(() => ({} as any));
+    const idsToDelete: string[] = Array.isArray((body as any).imagesDelete)
+      ? (body as any).imagesDelete.filter((x: any) => typeof x === 'string')
+      : [];
     const data: any = { editedAt: new Date() };
 
     // metin opsiyonel
@@ -65,6 +68,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
         }
       },
     });
+    // Optionally delete requested comment images
+    if (idsToDelete.length > 0) {
+      await prisma.commentImage.deleteMany({
+        where: { id: { in: idsToDelete }, commentId: params.id },
+      });
+    }
     const updatedWithSlug = updated?.user
       ? { ...updated, user: { ...updated.user, slug: await getBrandSlugByUserId(updated.user.id) } }
       : updated;
