@@ -1,3 +1,10 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/auth";
+import { containsBannedWord } from "@/lib/bannedWords";
+import { milestone_ownerItemReviews, milestone_userReviewsGiven } from "@/lib/milestones";
+import { handleMentionsOnComment } from "@/lib/mention-notify";
+
 // Helper to fetch brand slug by user id or email (best-effort)
 async function getBrandSlug(params: { userId?: string; email?: string }): Promise<string | undefined> {
   const anyPrisma: any = prisma as any;
@@ -23,13 +30,6 @@ async function getBrandSlug(params: { userId?: string; email?: string }): Promis
   } catch (_) {}
   return undefined;
 }
-// app/api/items/[id]/comments/route.ts
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/auth";
-import { containsBannedWord } from "@/lib/bannedWords";
-import { milestone_ownerItemReviews, milestone_userReviewsGiven } from "@/lib/milestones";
-import { handleMentionsOnComment } from "@/lib/mention-notify";
 
 function maskName(input?: string | null): string {
   const name = (input || "Bir kullanıcı").trim();

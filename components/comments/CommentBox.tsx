@@ -34,6 +34,7 @@ export default function CommentBox({
     votes?: { value: number }[] | null;
     upCount?: number;
     downCount?: number;
+    images?: Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>;
   };
 }) {
   const { data: session } = useSession();
@@ -251,6 +252,15 @@ export default function CommentBox({
                 {typeof myComment.rating === 'number' && myComment.rating > 0 ? (
                   <span className="inline-block bg-emerald-200 text-emerald-900 text-[11px] px-2 py-0.5 rounded-full">{myComment.rating}★</span>
                 ) : null}
+                {Array.isArray((myComment as any).images) && (myComment as any).images.length > 0 && (
+                  <span
+                    className="inline-flex items-center bg-emerald-200 text-emerald-900 text-[11px] px-1.5 py-0.5 rounded-full"
+                    title="Bu yorumda fotoğraf var"
+                    aria-label="Bu yorumda fotoğraf var"
+                  >
+                    <PhotoIcon className="h-4 w-4 opacity-80" />
+                  </span>
+                )}
                 <span className="flex items-center gap-1.5 text-[12px] text-emerald-900/80 dark:text-emerald-200/80">
                   <span aria-label={`Upvotes: ${upVotes}`} title={`Upvotes: ${upVotes}`} className="leading-none select-none">▲</span>
                   <span className="tabular-nums leading-none select-none">{upVotes - downVotes}</span>
@@ -347,12 +357,12 @@ export default function CommentBox({
         </div>
         <Stars rating={rating} onRatingChange={setRating} />
       </div>
-      <div className="flex items-end gap-2">
+      <div className="flex items-start gap-2">
         <div className="flex-1">
           <div className="relative">
             <MentionTextArea
               className={
-                "pl-1.5 [&_textarea]:pt-2.5 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "pl-1.5 [&_textarea]:pt-2.5 [&_textarea]:pt-3 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                 (hasBanned
                   ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                   : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
@@ -367,9 +377,9 @@ export default function CommentBox({
               aria-label="Fotoğraf ekle"
               title="Fotoğraf ekle"
               onClick={() => setShowUploader(v => !v)}
-              className="absolute right-2 bottom-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/10 bg-white/70 backdrop-blur-sm shadow-sm hover:bg-white/90 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
-              <PhotoIcon className="h-6 w-6 opacity-80" />
+              <PhotoIcon className="h-5 w-5 opacity-80" />
             </button>
           </div>
           {hasBanned && (
@@ -429,7 +439,7 @@ export default function CommentBox({
             aria-label="Gönder"
             title="Gönder"
             className={
-              "grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 " +
+              "mt-1 grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 " +
               (canSend
                 ? "bg-emerald-600 text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                 : "bg-white/80 dark:bg-gray-800/80 text-gray-400 cursor-not-allowed")
@@ -446,7 +456,7 @@ export default function CommentBox({
           <button
             type="button"
             onClick={() => signIn('google')}
-            className="grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 hover:bg-white dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            className="mt-1 grid place-items-center w-10 h-10 rounded-full border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 hover:bg-white dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             title="Giriş yap"
             aria-label="Giriş yap"
           >
