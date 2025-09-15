@@ -215,7 +215,11 @@ export default function CommentList({
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
             const isTruncated = effectiveTruncated?.has(c.id) ?? false;
           const hasImages = Array.isArray(c.images) && c.images.length > 0;
-          console.log("Comment debug", { id: c.id, images: c.images, hasImages });
+          // debug: keep minimal in dev only
+          if (process.env.NODE_ENV !== 'production' && hasImages) {
+            // eslint-disable-next-line no-console
+            console.debug('hasImages', c.id, (c.images as any[]).length);
+          }
 
             return (
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
@@ -253,7 +257,7 @@ export default function CommentList({
 
                   {/* content */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-xs opacity-80">
+                    <div className="flex flex-wrap items-center gap-2 text-xs opacity-80">
                       {hrefBrand ? (
                         <a href={hrefBrand} className="truncate hover:underline" title="Marka profili">
                           {displayName}
@@ -267,12 +271,12 @@ export default function CommentList({
                           <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       )}
-                      <span className="ml-1 inline-flex items-center gap-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full">
+                      <span className="ml-1 inline-flex items-center gap-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
                         {Math.max(0, Number(c.rating) || 0)}★
                       </span>
                       {hasImages && (
                         <span
-                          className="inline-flex items-center ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full"
+                          className="inline-flex items-center ml-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full shrink-0"
                           title="Bu yorumda fotoğraf var"
                           aria-label="Bu yorumda fotoğraf var"
                         >
