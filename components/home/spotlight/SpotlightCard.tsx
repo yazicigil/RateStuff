@@ -12,6 +12,7 @@ import CommentList from '@/components/comments/CommentList';
 import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
 import { linkifyMentions } from '@/lib/text/linkifyMentions';
 import LightboxGallery from '@/components/items/LightboxGallery';
+import { PhotoIcon } from '@heroicons/react/24/solid';
 
 export type SpotlightItem = {
   id: string;
@@ -304,6 +305,9 @@ export default function SpotlightCard(props: SpotlightCardProps) {
     return () => { cancelled = true; };
   }, [item?.id]);
 
+  // Total comment image count (prefer hydrated list)
+  const commentImagesTotal = (lbCommentImages.length > 0 ? lbCommentImages.length : commentImagesForLightbox.length);
+
   return (
     <div
       className={`scroll-mt-24 relative rounded-2xl border p-4 pl-12 pr-12 md:pl-14 md:pr-14 shadow-md bg-white/90 dark:bg-gray-900/90 border-gray-200 dark:border-gray-800 ring-1 ring-black/5 dark:ring-white/5 flex flex-col transition-transform duration-150 ${item.suspended ? 'opacity-60 grayscale' : ''}`}
@@ -435,27 +439,47 @@ export default function SpotlightCard(props: SpotlightCardProps) {
         <div key={animKey} className={animClass || ''} style={{ willChange: 'transform' }}>
           <div className="flex items-start gap-3">
             <div className="flex flex-col items-center shrink-0 w-28">
-              <img
-                src={item.imageUrl || '/default-item.svg'}
-                alt={item.name || 'item'}
-                width={112}
-                height={112}
-                decoding="async"
-                loading="eager"
-                className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
-                onClick={() => {
-                  const hasAny = !!item.imageUrl || (lbCommentImages.length > 0 || commentImagesForLightbox.length > 0);
-                  if (!hasAny) return;
-                  setLbIndex(0); // item görseli varsa daima 0
-                  setLbOpen(true);
-                }}
-                onError={(e) => {
-                  const t = e.currentTarget as HTMLImageElement;
-                  if (t.src.endsWith('/default-item.svg')) return;
-                  t.onerror = null;
-                  t.src = '/default-item.svg';
-                }}
-              />
+              <div className="relative">
+                <img
+                  src={item.imageUrl || '/default-item.svg'}
+                  alt={item.name || 'item'}
+                  width={112}
+                  height={112}
+                  decoding="async"
+                  loading="eager"
+                  className="w-28 h-28 object-cover rounded-lg cursor-zoom-in"
+                  onClick={() => {
+                    const hasAny = !!item.imageUrl || (lbCommentImages.length > 0 || commentImagesForLightbox.length > 0);
+                    if (!hasAny) return;
+                    setLbIndex(0); // item görseli varsa daima 0
+                    setLbOpen(true);
+                  }}
+                  onError={(e) => {
+                    const t = e.currentTarget as HTMLImageElement;
+                    if (t.src.endsWith('/default-item.svg')) return;
+                    t.onerror = null;
+                    t.src = '/default-item.svg';
+                  }}
+                />
+                {commentImagesTotal > 0 && (
+                  <button
+                    type="button"
+                    onClick={(ev) => {
+                      ev.stopPropagation();
+                      // Açılış: ilk yorum görselinden başlat (item image varsa 1, yoksa 0)
+                      const start = item.imageUrl ? 1 : 0;
+                      setLbIndex(start);
+                      setLbOpen(true);
+                    }}
+                    className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded-full bg-white/90 text-gray-800 dark:bg-gray-900/90 dark:text-gray-100 text-[11px] px-1.5 py-0.5 shadow ring-1 ring-black/10 dark:ring-white/10 backdrop-blur-sm hover:bg-white/95 dark:hover:bg-gray-900"
+                    aria-label={`Bu ürüne ait yorumlarda ${commentImagesTotal} fotoğraf var`}
+                    title="Yorum fotoğraflarını aç"
+                  >
+                    <span className="tabular-nums leading-none">{commentImagesTotal}</span>
+                    <PhotoIcon className="h-4 w-4 opacity-80" />
+                  </button>
+                )}
+              </div>
               {item.edited && !isBrand && (
                 <span className="text-[11px] px-2 py-0.5 mt-1 rounded-full border bg-white dark:bg-gray-800 dark:border-gray-700">düzenlendi</span>
               )}
