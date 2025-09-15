@@ -191,6 +191,7 @@ export default function CommentList({
     commentId?: string;
     commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
     commentRating?: number | null;
+    commentText?: string | null;
   }>>([]);
 
 
@@ -320,6 +321,7 @@ export default function CommentList({
                                 avatarUrl: c.user?.avatarUrl ?? null,
                               },
                               commentRating: typeof c.rating === 'number' ? c.rating : null,
+                              commentText: typeof c.text === 'string' ? c.text : null,
                             }));
                             setLbImages(enriched as any);
                             setLbIndex(0);

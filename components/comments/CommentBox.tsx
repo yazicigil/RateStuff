@@ -80,6 +80,7 @@ export default function CommentBox({
     commentId?: string;
     commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
     commentRating?: number | null;
+    commentText?: string | null;
   }>>([]);
 
   // Keep local copy in sync with incoming prop
@@ -425,6 +426,7 @@ export default function CommentBox({
                           avatarUrl: myComment.user?.avatarUrl ?? null,
                         },
                         commentRating: typeof myComment.rating === 'number' ? myComment.rating : null,
+                        commentText: typeof myComment.text === 'string' ? myComment.text : null,
                       }));
                       setLbImages(enriched as any);
                       setLbIndex(0);

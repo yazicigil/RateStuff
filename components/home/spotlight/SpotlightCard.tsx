@@ -227,6 +227,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
       commentId?: string;
       commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
       commentRating?: number | null;
+      commentText?: string | null;
     }> = [];
     for (const c of (item.comments || [])) {
       const imgs = Array.isArray(c.images) ? [...c.images] : [];
@@ -247,6 +248,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
             avatarUrl: c?.user?.avatarUrl ?? null,
           },
           commentRating: typeof c?.rating === 'number' ? c.rating : null,
+          commentText: typeof c?.text === 'string' ? c.text : null,
         });
       }
     }
@@ -271,6 +273,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
           commentId?: string;
           commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
           commentRating?: number | null;
+          commentText?: string | null;
         }> = [];
         for (const c of list) {
           const imgs = Array.isArray(c?.images) ? [...c.images] : [];
@@ -291,6 +294,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 avatarUrl: c?.user?.avatarUrl ?? null,
               },
               commentRating: typeof c?.rating === 'number' ? c.rating : null,
+              commentText: typeof c?.text === 'string' ? c.text : null,
             });
           }
         }

@@ -27,6 +27,7 @@ export type LightboxImage = {
   commentId?: string;
   commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
   commentRating?: number | null;
+  commentText?: string | null;
 };
 
 export type LightboxGalleryProps = {
@@ -134,6 +135,7 @@ export default function LightboxGallery({
   const currentMeta = {
     user: current?.commentUser || null,
     rating: typeof current?.commentRating === 'number' ? (current!.commentRating as number) : null,
+    text: (current as any)?.commentText ?? null,
   } as const;
 
   return createPortal(
@@ -223,6 +225,13 @@ export default function LightboxGallery({
                 <span className="leading-none">{currentMeta.rating}★</span>
               </span>
             )}
+          </div>
+        </div>
+      )}
+      {currentMeta.text && (
+        <div className="px-3 pb-6 -mt-2">
+          <div className="mx-auto w-full max-w-[880px] text-white/85">
+            <p className="text-sm whitespace-pre-wrap break-words">{String(currentMeta.text)}</p>
           </div>
         </div>
       )}
