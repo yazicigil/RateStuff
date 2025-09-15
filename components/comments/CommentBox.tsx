@@ -57,6 +57,7 @@ export default function CommentBox({
 
   const [images, setImages] = useState<Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>>([]);
   const [showUploader, setShowUploader] = useState(false);
+  const [showEditUploader, setShowEditUploader] = useState(false);
 
   // --- Hydrate myComment.images if parent dropped them ---
   const [myImages, setMyImages] = useState<Array<{ id?: string; url: string; width?: number; height?: number; blurDataUrl?: string; order?: number }>>(
@@ -175,6 +176,7 @@ export default function CommentBox({
       }
       setRemovedImageIds([]);
       setNewImages([]);
+      setShowEditUploader(false);
       setEditMode(false);
       onDone?.();
     } catch (err: any) {
@@ -282,10 +284,21 @@ export default function CommentBox({
                       </button>
                     </div>
                   ))}
+                  {(myImages.length + newImages.length) < 4 && (myImages.length + newImages.length) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowEditUploader(v => !v)}
+                      className="h-20 w-20 rounded-lg border border-dashed border-neutral-300/70 dark:border-white/20 grid place-items-center hover:bg-white/60 dark:hover:bg-white/10"
+                      title="Görsel ekle"
+                      aria-label="Görsel ekle"
+                    >
+                      <span className="text-2xl leading-none">+</span>
+                    </button>
+                  )}
                 </div>
               )}
               {/* Yeni görsel ekleme (düzenleme sırasında) */}
-              {(myImages.length + newImages.length) < 4 && (
+              {showEditUploader && (myImages.length + newImages.length) < 4 && (
                 <div className="mb-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50/60 p-2 dark:border-white/15 dark:bg-white/5">
                   <ImageUploader
                     multiple
@@ -293,9 +306,11 @@ export default function CommentBox({
                     accept={{ "image/*": [".jpg", ".jpeg", ".png", ".webp"] }}
                     onUploaded={(files: Array<{ url: string; width?: number; height?: number; blurDataUrl?: string }>) => {
                       const next = files.map(f => ({ url: f.url, width: f.width, height: f.height, blurDataUrl: f.blurDataUrl }));
-                      // Append to both myImages (for immediate preview) and newImages (for PATCH imagesAdd)
                       setMyImages(prev => [...prev, ...next].slice(0, 4));
                       setNewImages(prev => [...prev, ...next].slice(0, 4));
+                      // close panel if quota filled
+                      const willCount = Math.min(4, myImages.length + newImages.length + next.length);
+                      if (willCount >= 4) setShowEditUploader(false);
                     }}
                     className="text-[13px]"
                   />
@@ -318,6 +333,17 @@ export default function CommentBox({
                   rows={2}
                   placeholder={"Yorum yaz..."}
                 />
+                {(myImages.length + newImages.length) === 0 && (
+                  <button
+                    type="button"
+                    aria-label="Fotoğraf ekle"
+                    title="Fotoğraf ekle"
+                    onClick={() => setShowEditUploader(v => !v)}
+                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                  >
+                    <PhotoIcon className="h-5 w-5 opacity-80" />
+                  </button>
+                )}
               </div>
               {hasBanned && (
                 <p className="mt-1 text-xs text-red-600 dark:text-red-500">
