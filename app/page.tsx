@@ -99,6 +99,14 @@ type ItemVM = {
       verified?: boolean;
       kind?: "REGULAR" | "BRAND" | string | null;
     };
+    images?: {
+      id?: string;
+      url: string;
+      width?: number;
+      height?: number;
+      blurDataUrl?: string;
+      order?: number;
+    }[];
   }[];
   tags: string[];
   reportCount?: number;
