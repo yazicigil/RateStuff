@@ -72,6 +72,10 @@ export default function CommentBox({
 
   // If my comment has no images but server has them, self-fetch and merge by id
   useEffect(() => {
+    // Do not auto-hydrate while editing or when there are local deletions Pending
+    if (editMode) return;
+    if (removedImageIds.length > 0) return;
+
     const needsHydrate = !!myComment?.id && (!Array.isArray(myImages) || myImages.length === 0);
     if (!needsHydrate) return;
 
@@ -97,7 +101,11 @@ export default function CommentBox({
         }
         if (!Array.isArray(list)) return;
         const found = list.find((c: any) => c?.id === myComment!.id);
-        const fresh = Array.isArray(found?.images) ? found.images : [];
+        let fresh: any[] = Array.isArray(found?.images) ? found.images : [];
+        // Never re-add locally removed images while editing
+        if (removedImageIds.length > 0) {
+          fresh = fresh.filter((im: any) => !im?.id || !removedImageIds.includes(im.id));
+        }
         if (!cancelled && fresh.length > 0) setMyImages(fresh);
       } catch {
         // ignore
@@ -105,7 +113,7 @@ export default function CommentBox({
     })();
 
     return () => { cancelled = true; };
-  }, [itemId, myComment?.id, myImages?.length]);
+  }, [itemId, myComment?.id, editMode]);
 
   // Silme onayı 3 sn sonra sıfırlansın
   if (typeof window !== 'undefined') {
@@ -159,6 +167,10 @@ export default function CommentBox({
         });
       }
       if (!res.ok) throw new Error(`Güncellenemedi (${res.status})`);
+      // Optimistically apply deletions locally so UI reflects immediately
+      if (removedImageIds.length > 0) {
+        setMyImages(prev => prev.filter(img => !img.id || !removedImageIds.includes(img.id)));
+      }
       setRemovedImageIds([]);
       setEditMode(false);
       onDone?.();
