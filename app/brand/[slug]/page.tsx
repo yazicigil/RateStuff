@@ -174,7 +174,7 @@ export default async function BrandPublicPage({ params, searchParams }: { params
               brandTheme
               myId={viewerId}
               amAdmin={viewerIsAdmin}
-              searchPlaceholder="Açıklamada @markam geçen ürün ara…"
+              searchPlaceholder="Bahsetemelerde ara…"
             />
           ) : (
             <ProductsList

@@ -70,7 +70,7 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
     brandTheme = false,
     initialSelectedTags = [],
     emptyState,
-    searchPlaceholder = 'Markadan bahseden ürün ara…',
+    searchPlaceholder = 'Bahsetmelerde ara...',
     itemCardProps,
     me,
     amAdmin,
@@ -123,20 +123,28 @@ export default function MentionsTab<T extends ProductsListItem = ProductsListIte
         if (!cancelled) {
           const raw = (data?.items ?? data ?? []) as any[];
           const norm = raw.map((it) => {
-            // Compose candidate values for average
-            const cand = [it.avgRating, it.avg, it.rating];
-            const avgFromAny = cand.find((v: any) => typeof v === 'number' && Number.isFinite(v));
-            const avgSafe = typeof avgFromAny === 'number' ? avgFromAny : 0;
-            const countRaw = typeof it.count === 'number' ? it.count : (typeof it.counts?.ratings === 'number' ? it.counts.ratings : 0);
+            // Coerce possible string numbers to real numbers first
+            const candNums = [it.avgRating, it.avg, it.rating]
+              .map((v: any) => (v === null || v === undefined ? NaN : Number(v)));
+            const avgFromAny = candNums.find((n) => Number.isFinite(n));
+            const avgSafe = Number.isFinite(avgFromAny as number) ? (avgFromAny as number) : 0;
+
+            const countRaw =
+              typeof it.count === 'number' ? it.count :
+              (it.count !== undefined ? Number(it.count) :
+              (typeof it.counts?.ratings !== 'undefined' ? Number(it.counts?.ratings) : 0));
             const countSafe = Number.isFinite(Number(countRaw)) ? Number(countRaw) : 0;
+
+            const ratingCoerced = (it.rating === null || it.rating === undefined) ? NaN : Number(it.rating);
+
             return {
               ...it,
               desc: it.desc ?? it.description ?? null,
-              rating: typeof it.rating === 'number' && Number.isFinite(it.rating) ? it.rating : avgSafe,
+              rating: Number.isFinite(ratingCoerced) ? ratingCoerced : avgSafe,
               avgRating: avgSafe,
-              avg: typeof it.avg === 'number' && Number.isFinite(it.avg) ? it.avg : avgSafe,
+              avg: Number.isFinite(Number(it.avg)) ? Number(it.avg) : avgSafe,
               count: countSafe,
-            };
+            } as any;
           });
           setItems(norm as T[]);
         }
