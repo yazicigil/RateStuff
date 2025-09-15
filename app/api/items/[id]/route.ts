@@ -58,6 +58,16 @@ function shapeItem(i: any, currentUserId?: string | null) {
           avatarUrl: c.user?.avatarUrl ?? null,
           verified: (c.user as any)?.email === ADMIN_EMAIL,
         },
+        images: Array.isArray((c as any)?.images)
+          ? (c as any).images.map((im: any) => ({
+              id: im.id,
+              url: im.url,
+              width: im.width ?? undefined,
+              height: im.height ?? undefined,
+              blurDataUrl: im.blurDataUrl ?? undefined,
+              order: typeof im.order === 'number' ? im.order : undefined,
+            }))
+          : [],
       };
     }),
     tags: (i.tags || []).map((t: any) => t.tag?.name ?? t.name).filter(Boolean),
@@ -73,7 +83,16 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     const i = await prisma.item.findUnique({
       where: { id: params.id },
       include: {
-        comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } } } },
+        comments: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
+            images: {
+              orderBy: { order: 'asc' },
+              select: { id: true, url: true, width: true, height: true, blurDataUrl: true, order: true },
+            },
+          },
+        },
         tags: { include: { tag: true } },
         createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
       },
@@ -189,7 +208,16 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const updated = await prisma.item.findUnique({
       where: { id: params.id },
       include: {
-        comments: { orderBy: { createdAt: 'desc' }, include: { user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } } } },
+        comments: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            user: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
+            images: {
+              orderBy: { order: 'asc' },
+              select: { id: true, url: true, width: true, height: true, blurDataUrl: true, order: true },
+            },
+          },
+        },
         tags: { include: { tag: true } },
         createdBy: { select: { id: true, name: true, maskedName: true, avatarUrl: true, email: true, kind: true } },
       },
