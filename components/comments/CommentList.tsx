@@ -215,6 +215,7 @@ export default function CommentList({
             const isExpanded = effectiveExpanded?.has(c.id) ?? false;
             const isTruncated = effectiveTruncated?.has(c.id) ?? false;
           const hasImages = Array.isArray(c.images) && c.images.length > 0;
+          console.log("Comment debug", { id: c.id, images: c.images, hasImages });
 
             return (
               <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
