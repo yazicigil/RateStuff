@@ -39,9 +39,16 @@ export async function GET(req: Request) {
   // mention tablosundan sadece commentId = null ve hiddenAt = null olan itemId'leri topla
   const mentionRows = await prisma.mention.findMany({
     where: { brandId: brandIdResolved, commentId: null, hiddenAt: null },
-    select: { itemId: true },
+    select: { id: true, itemId: true, createdAt: true },
+    orderBy: { createdAt: 'desc' },
   });
   const itemIds = Array.from(new Set(mentionRows.map(m => m.itemId)));
+  const latestMentionIdByItem = new Map<string, string>();
+  for (const row of mentionRows) {
+    if (!latestMentionIdByItem.has(row.itemId)) {
+      latestMentionIdByItem.set(row.itemId, row.id);
+    }
+  }
   if (itemIds.length === 0) return NextResponse.json({ items: [], nextCursor: null });
 
   // Item'ları çek – suspended olmayanlar
@@ -91,6 +98,7 @@ export async function GET(req: Request) {
     const ratingsCount = stats.count;
     return {
       id: it.id,
+      mentionId: latestMentionIdByItem.get(it.id) || null,
       name: it.name,
       desc: it.description,            // alias for ProductsList search
       description: it.description,

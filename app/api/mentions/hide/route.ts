@@ -16,9 +16,39 @@ export async function POST(req: Request) {
 
   if (!me || !dbUser) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  const { brandId, brandSlug, itemId } = await req.json();
+  const { mentionId, brandId, brandSlug, itemId } = await req.json();
+
+  // If mentionId is provided, resolve brand via mention and update that single row
+  if (mentionId) {
+    const mention = await prisma.mention.findUnique({
+      where: { id: mentionId },
+      select: { id: true, brandId: true },
+    });
+    if (!mention) return NextResponse.json({ error: 'mention not found' }, { status: 404 });
+
+    // auth: ensure user is admin or owns the brand
+    const brand = await prisma.brandAccount.findUnique({
+      where: { id: mention.brandId },
+      select: { id: true, createdById: true, email: true },
+    });
+    if (!brand) return NextResponse.json({ error: 'brand not found' }, { status: 404 });
+
+    const amAdmin = Boolean(dbUser?.isAdmin || (session as any)?.user?.isAdmin);
+    const isOwnerByCreator = brand.createdById ? brand.createdById === dbUser.id : false;
+    const isOwnerByEmail = brand.email ? brand.email === dbUser.email : false;
+    if (!amAdmin && !isOwnerByCreator && !isOwnerByEmail) {
+      return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+    }
+
+    const res = await prisma.mention.update({
+      where: { id: mentionId },
+      data: { hiddenAt: new Date(), hiddenById: dbUser.id },
+    });
+    return NextResponse.json({ ok: true, updated: 1, id: res.id });
+  }
+
   if (!itemId || (!brandId && !brandSlug)) {
-    return NextResponse.json({ error: 'itemId and brandId/brandSlug required' }, { status: 400 });
+    return NextResponse.json({ error: 'itemId and brandId/brandSlug required (or provide mentionId)' }, { status: 400 });
   }
 
   // brandId resolve + yetki
