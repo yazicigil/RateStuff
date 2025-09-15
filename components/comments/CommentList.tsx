@@ -258,15 +258,19 @@ export default function CommentList({
                           <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       )}
-                      {typeof c.rating === 'number' && c.rating > 0 && (
-                        <span className="ml-1 inline-block bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full">
+                      {(typeof c.rating === 'number' && c.rating > 0) ? (
+                        <span className="ml-1 inline-flex items-center gap-1 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-2 py-0.5 rounded-full">
                           {c.rating}★
+                          {hasImages && (
+                            <PhotoIcon className="h-3.5 w-3.5 opacity-80" aria-hidden="true" />
+                          )}
                         </span>
-                      )}
-                      {hasImages && (
-                        <span className="inline-flex items-center gap-1 text-[11px] opacity-80" title="Bu yorumda fotoğraf var" aria-label="Bu yorumda fotoğraf var">
-                          <PhotoIcon className="h-4 w-4" />
-                        </span>
+                      ) : (
+                        hasImages ? (
+                          <span className="ml-1 inline-flex items-center bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 text-[11px] px-1.5 py-0.5 rounded-full" title="Bu yorumda fotoğraf var" aria-label="Bu yorumda fotoğraf var">
+                            <PhotoIcon className="h-3.5 w-3.5 opacity-80" />
+                          </span>
+                        ) : null
                       )}
                     </div>
 

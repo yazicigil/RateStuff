@@ -352,7 +352,7 @@ export default function CommentBox({
           <div className="relative">
             <MentionTextArea
               className={
-                "pl-1.5 [&_textarea]:pt-2.5 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "pl-1.5 [&_textarea]:pt-2.5 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
                 (hasBanned
                   ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
                   : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
@@ -367,7 +367,7 @@ export default function CommentBox({
               aria-label="Fotoğraf ekle"
               title="Fotoğraf ekle"
               onClick={() => setShowUploader(v => !v)}
-              className="absolute right-2 bottom-2 inline-flex h-8 w-8 items-center justify-center rounded-lg hover:opacity-80 focus:outline-none"
+              className="absolute right-2 bottom-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-black/10 bg-white/70 backdrop-blur-sm shadow-sm hover:bg-white/90 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             >
               <PhotoIcon className="h-6 w-6 opacity-80" />
             </button>
@@ -405,7 +405,7 @@ export default function CommentBox({
 
           {/* uploader paneli */}
           {showUploader && (
-            <div className="mt-2 rounded-xl border border-dashed border-neutral-300 p-3 dark:border-white/15">
+            <div className="mt-2 rounded-xl border border-dashed border-neutral-300/70 bg-neutral-50/60 p-2 dark:border-white/15 dark:bg-white/5">
               <ImageUploader
                 multiple
                 maxFiles={Math.max(0, 4 - images.length)}
@@ -414,8 +414,12 @@ export default function CommentBox({
                   const next = files.map(f => ({ url: f.url, width: f.width, height: f.height, blurDataUrl: f.blurDataUrl }));
                   setImages(prev => [...prev, ...next].slice(0, 4));
                 }}
+                className="text-[13px]"
               />
-              <p className="mt-2 text-xs opacity-70">En fazla 4 görsel ekleyebilirsin.</p>
+              <div className="mt-2 flex items-center justify-between text-[11px] opacity-70">
+                <span>En fazla 4 görsel ekleyebilirsin</span>
+                {images.length > 0 && <span>{images.length}/4</span>}
+              </div>
             </div>
           )}
         </div>
