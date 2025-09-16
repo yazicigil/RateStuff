@@ -1,27 +1,31 @@
+import React from "react";
 // app/about/page.tsx
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
-import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
+import { UserGroupIcon, SparklesIcon, CheckCircleIcon } from "@heroicons/react/20/solid";
 import SpotlightCard from "components/reactbits/SpotlightCard";
 import Orb from "@/components/reactbits/Orb";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import LearnMoreOpener from "@/components/brand/LearnMoreOpener";
+import Aurora from "@/components/reactbits/Aurora";
+import AnimatedCtaFooter from "@/components/cta/AnimatedCtaFooter";
 
 export const metadata: Metadata = {
-  title: "RateStuff | Hakkımızda",
+  title: "Hakkımızda",
   description:
     "RateStuff insanların hayatındaki her şey hakkında yıldız verip yorum yapabildiği topluluk odaklı bir platformdur. Gerçek deneyimler, şeffaf geri bildirim ve markalar için yeni bir pencere.",
   openGraph: {
-    title: "RateStuff | Hakkımızda",
+    title: "Hakkımızda",
     description:
       "Gerçek deneyimler, şeffaf geri bildirim. RateStuff topluluğuna katıl veya markan için yeni nesil dinleme kanalı aç.",
     images: [{ url: "/og-image.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "RateStuff | Hakkımızda",
+    title: "Hakkımızda",
     description:
       "Gerçek deneyimler, şeffaf geri bildirim. RateStuff topluluğuna katıl.",
     images: ["/og-image.jpg"],
@@ -32,39 +36,40 @@ export default function AboutPage() {
   return (
     <main className="relative">
       {/* HERO */}
-      <section className="relative overflow-hidden">
+      <section className="relative">
         <div className="absolute inset-0 -z-10 pointer-events-auto">
           <Orb hoverIntensity={0.35} />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6 pointer-events-none">
-            <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
+            <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight text-balance">
               <SplitText
                 key="hero-line-1"
                 tag="h1"
-                text="Her şey değerlendirilebilir."
+                text="Her şeyi puanla."
                 className="block"
                 display="block"
                 threshold={0.05}
                 rootMargin="0px"
               />
             </div>
-            <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70">
-              RateStuff, insanların gündelik hayatlarında karşılaştıkları her
-              şeye yıldız verip yorum yapabildiği topluluk odaklı bir
-              platformdur. Parlatılmış reklamlar değil, sahici deneyimler.
+            <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70 text-balance">
+              RateStuff'ta deneyimlerini payalaşabilir , topluluğun fikrini alabilirsin. Gerçek deneyimlerden faydalan.
             </p>
+            
 
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2 pointer-events-auto">
               <Link
                 href="/signin"
-                className="rounded-full px-5 py-2.5 text-sm font-medium bg-black text-white dark:bg-white dark:text-black shadow-sm hover:opacity-90 transition"
+                aria-label="Topluluğa katıl"
+                className="rounded-full px-5 py-2.5 text-sm font-medium bg-violet-600 text-white shadow-sm hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 transition"
               >
                 Topluluğa katıl
               </Link>
               <Link
                 href="/brand"
-                className="rounded-full px-5 py-2.5 text-sm font-medium border border-black/15 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition"
+                aria-label="RateStuff for Brands"
+                className="rounded-full px-5 py-2.5 text-sm font-medium border border-violet-500 text-violet-700 hover:bg-violet-500/10 dark:border-violet-400 dark:text-violet-300 dark:hover:bg-violet-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 transition"
               >
                 RateStuff for Brands
               </Link>
@@ -82,7 +87,7 @@ export default function AboutPage() {
               <h3 className="text-lg font-semibold">Topluluk Odaklı</h3>
             </div>
             <p className="text-sm text-black/70 dark:text-white/70">
-              Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde.
+              Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve iletişim tek yerde.
             </p>
             <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
               <li>• Yıldız + yorum + görsel</li>
@@ -124,8 +129,8 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-32 sm:-mt-44 relative z-0">
-        <div className="flex flex-col overflow-hidden">
+      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-72 sm:-mt-40 relative z-0 pointer-events-none">
+        <div className="flex flex-col overflow-visible">
           <ContainerScroll
             titleComponent={
               <>
@@ -145,6 +150,9 @@ export default function AboutPage() {
                 alt="RateStuff ekran görüntüsü"
                 height={720}
                 width={1400}
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1024px) 1024px, 100vw"
                 className="mx-auto rounded-2xl object-cover h-full object-[center_top] dark:hidden"
                 draggable={false}
               />
@@ -154,6 +162,9 @@ export default function AboutPage() {
                 alt="RateStuff ekran görüntüsü (dark)"
                 height={720}
                 width={1400}
+                loading="lazy"
+                decoding="async"
+                sizes="(min-width: 1024px) 1024px, 100vw"
                 className="hidden dark:block mx-auto rounded-2xl object-cover h-full object-[center_top]"
                 draggable={false}
               />
@@ -163,7 +174,7 @@ export default function AboutPage() {
       </section>
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
-      <section className="mx-auto max-w-6xl px-5 pt-0 pb-6 sm:pt-0 sm:pb-8 -mt-28 sm:-mt-40 relative z-10">
+      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-72 sm:-mt-40 relative z-10 pointer-events-none">
         
           <ScrollReveal
   baseOpacity={0}
@@ -181,108 +192,79 @@ export default function AboutPage() {
 
       {/* FOR BRANDS BLOĞU */}
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16">
-        <div className="grid gap-8 sm:grid-cols-2 items-center">
-          <div className="order-2 sm:order-1">
-            <h2 className="text-2xl sm:text-3xl font-semibold mb-3">
-              Markalar için yeni bir pencere
-            </h2>
-            <p className="text-black/70 dark:text-white/70 mb-4">
-              İnsanlar markalar hakkında zaten konuşuyor.{" "}
-              <strong>RateStuff for Brands</strong>, bu konuşmaları tek yerde
-              toplar, ölçülebilir hale getirir ve şeffaf bir ilişki kurmanı
-              sağlar. OTP ile kolay doğrulama, doğrulanmış rozet, profil rengi,
-              kapak görseli ve bio ile resmî varlığını inşa et.
-            </p>
-            <ul className="space-y-2 text-sm text-black/70 dark:text-white/70">
-              <li>• Gerçek zamanlı geri bildirim akışı</li>
-              <li>• Trend konular ve etiketler üzerinden içgörü</li>
-              <li>• Toplulukla doğrudan, samimi etkileşim</li>
-            </ul>
-            <div className="mt-5 flex gap-3">
-              <Link
-                href="/brand"
-                className="rounded-lg px-4 py-2 text-sm font-medium bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition"
-              >
-                RateStuff for Brands’i keşfet
-              </Link>
-              <Link
-                href="/reach-us"
-                className="rounded-lg px-4 py-2 text-sm font-medium border border-black/15 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition"
-              >
-                Bizimle iletişime geç
-              </Link>
+        <div className="relative overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur p-6 sm:p-10">
+          {/* subtle glow */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-24 -left-16 h-64 w-64 rounded-full blur-3xl opacity-30"
+            style={{ background: "radial-gradient(60% 60% at 50% 50%, rgba(139,92,246,0.45), transparent 70%)" }}
+          />
+          <div className="grid gap-8 sm:grid-cols-2 items-center relative">
+            {/* copy */}
+            <div className="order-2 sm:order-1">
+              <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium bg-violet-500/10 text-violet-500 ring-1 ring-violet-500/30">
+                <SparklesIcon className="h-4 w-4" aria-hidden="true" />
+                RateStuff for Brands
+              </span>
+              <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight">
+                Markalar için yeni bir pencere
+              </h2>
+              <p className="mt-3 text-black/70 dark:text-white/70">
+                İnsanlar markalar hakkında zaten konuşuyor. <strong>RateStuff for Brands</strong>, bu konuşmaları tek yerde toplar, ölçülebilir hale getirir ve şeffaf bir ilişki kurmanı sağlar. OTP ile kolay doğrulama, doğrulanmış rozet, profil rengi, kapak görseli ve bio ile resmî varlığını inşa et.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-black/70 dark:text-white/70">
+                <li className="inline-flex items-start gap-2">
+                  <CheckCircleIcon className="h-5 w-5 text-violet-500 mt-0.5" aria-hidden="true" />
+                  Gerçek zamanlı geri bildirim akışı
+                </li>
+                <li className="inline-flex items-start gap-2">
+                  <CheckCircleIcon className="h-5 w-5 text-violet-500 mt-0.5" aria-hidden="true" />
+                  Trend konular ve etiketler üzerinden içgörü
+                </li>
+                <li className="inline-flex items-start gap-2">
+                  <CheckCircleIcon className="h-5 w-5 text-violet-500 mt-0.5" aria-hidden="true" />
+                  Toplulukla doğrudan, samimi etkileşim
+                </li>
+              </ul>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  href="/brand"
+                  className="rounded-full px-5 py-2.5 text-sm font-medium bg-violet-600 text-white shadow-sm hover:bg-violet-500 dark:bg-violet-500 dark:hover:bg-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 transition"
+                >
+                  Keşfet
+                </Link>
+                <LearnMoreOpener  />
+              </div>
+            </div>
+            {/* visual */}
+            <div className="order-1 sm:order-2">
+              <div className="relative mx-auto w-full max-w-md rounded-2xl ring-1 ring-black/10 dark:ring-white/10 shadow-lg overflow-hidden">
+                <Image
+                  src="/forbrands.webp"
+                  alt="RateStuff for Brands"
+                  width={560}
+                  height={420}
+                  sizes="(min-width: 640px) 420px, 80vw"
+                  loading="lazy"
+                  className="w-full h-auto"
+                />
+              </div>
             </div>
           </div>
-          <div className="order-1 sm:order-2 flex justify-center">
-            <Image
-              src="/forbrandslogo.svg"
-              alt="RateStuff for Brands"
-              width={420}
-              height={320}
-              className="opacity-90 w-full max-w-md"
-            />
-          </div>
         </div>
       </section>
 
-      {/* DEĞERLER */}
-      <section className="mx-auto max-w-6xl px-5 pb-16 sm:pb-24">
-        <h3 className="text-xl sm:text-2xl font-semibold mb-6">Değerlerimiz</h3>
-        <div className="grid gap-6 sm:grid-cols-3">
-          <Value
-            title="Sadelik"
-            text="Karmaşık şeyi basit anlat. İnsanlar hızlı karar verir."
-          />
-          <Value
-            title="Şeffaflık"
-            text="Geri bildirim görünür oldukça güven artar."
-          />
-          <Value
-            title="Topluluk"
-            text="İyi ürünler toplulukla beraber şekillenir."
-          />
-        </div>
-      </section>
-
-      {/* CTA FOOTER */}
-      <section className="mx-auto max-w-6xl px-5 pb-24">
-        <div className="rounded-2xl border border-black/10 dark:border-white/10 p-8 sm:p-10 text-center bg-white/70 dark:bg-white/5 backdrop-blur">
-          <h4 className="text-2xl sm:text-3xl font-semibold mb-3">
-            Deneyimini paylaş. Dünyayı aydınlat.
-          </h4>
-          <p className="text-black/70 dark:text-white/70 mb-6">
-            Bir ürün, bir hizmet ya da hayattan küçük bir detay — yıldız ver,
-            yorum yaz, görsel ekle. Birinin kararını kolaylaştır.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link
-              href="/"
-              className="rounded-full px-5 py-2.5 text-sm font-medium bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition"
-            >
-              Keşfetmeye başla
-            </Link>
-            <Link
-              href="/brand"
-              className="rounded-full px-5 py-2.5 text-sm font-medium border border-black/15 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/5 transition"
-            >
-              Markam var
-            </Link>
-          </div>
-        </div>
-      </section>
+      <AnimatedCtaFooter
+  title="Deneyimini paylaş, herkes faydalansın."
+  description={
+    <>
+      Bir ürün, bir hizmet ya da hayattan küçük bir detay — yıldız ver,
+      yorum yaz, görsel ekle. Birinin kararını kolaylaştır.
+    </>
+  }
+  primary={{ href: "/", label: "Paylaşmaya başla" }}
+  secondary={{ href: "/brand", label: "Markam var" }}
+/>
     </main>
-  );
-}
-
-/** ---------- küçük yardımcı bileşenler (server component) ---------- */
-
-function Value({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 p-6 bg-white/70 dark:bg-white/5 backdrop-blur">
-      <div className="mb-3 inline-flex items-center gap-2">
-        <h4 className="text-base font-semibold">{title}</h4>
-      </div>
-      <p className="text-sm text-black/70 dark:text-white/70">{text}</p>
-    </div>
   );
 }

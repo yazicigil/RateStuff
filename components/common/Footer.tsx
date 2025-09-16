@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { SocialIcon } from "react-social-icons";
 import React from "react";
 import ReachUsModal from "./ReachUs";
+import { applyTheme, readTheme, type ThemePref } from '@/lib/theme';
 
 /**
  * RateStuff Footer
@@ -16,6 +17,12 @@ export default function Footer() {
   const [reachOpen, setReachOpen] = React.useState(false);
   const pathname = usePathname();
 
+  const [themeMode, setThemeMode] = React.useState<ThemePref>("system");
+
+  React.useEffect(() => {
+    setThemeMode(readTheme());
+  }, []);
+
   return (
     <footer className="mt-10 border-t dark:border-gray-800">
       <div className="rs-mobile-edge mx-auto max-w-screen-xl px-4 py-8">
@@ -24,6 +31,26 @@ export default function Footer() {
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-300"
           aria-label="Footer menü"
         >
+          <button
+            type="button"
+            className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+            onClick={() => {
+              if (themeMode === "system") {
+                applyTheme("dark");
+                setThemeMode("dark");
+              } else if (themeMode === "dark") {
+                applyTheme("light");
+                setThemeMode("light");
+              } else {
+                applyTheme("system");
+                setThemeMode("system");
+              }
+            }}
+          >
+            {themeMode === "system" && "Tema: Otomatik"}
+            {themeMode === "dark" && "Tema: Koyu"}
+            {themeMode === "light" && "Tema: Açık"}
+          </button>
           <Link
             href="/about"
             className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
@@ -62,6 +89,7 @@ export default function Footer() {
               for Brands
             </Link>
           )}
+          
         </nav>
 
         {/* Social icons */}
