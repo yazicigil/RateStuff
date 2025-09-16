@@ -50,15 +50,6 @@ export default function AboutPage() {
                 threshold={0.05}
                 rootMargin="0px"
               />
-              <SplitText
-                key="hero-line-2"
-                tag="h1"
-                text="Gerçek deneyimler burada."
-                className="block"
-                display="block"
-                threshold={0.05}
-                rootMargin="0px"
-              />
             </div>
             <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70">
               RateStuff, insanların gündelik hayatlarında karşılaştıkları her
