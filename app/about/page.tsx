@@ -6,7 +6,7 @@ import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import SpotlightCard from "components/reactbits/SpotlightCard";
-import Iridescence from "@/components/reactbits/Iridescence";
+import Orb from "@/components/reactbits/Orb";
 import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 export const metadata: Metadata = {
@@ -30,11 +30,11 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="relative dark">
+    <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Iridescence />
+        <div className="absolute inset-0 -z-10 pointer-events-auto">
+          <Orb hoverIntensity={0.35} />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6 pointer-events-none">
@@ -139,7 +139,7 @@ export default function AboutPage() {
             }
           >
             <img
-              src="/screen.jpg"
+              src="/screen.webp"
               alt="RateStuff ekran görüntüsü"
               height={720}
               width={1400}
