@@ -109,10 +109,10 @@ export default function AboutPage() {
           <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur">
             <div className="mb-3 inline-flex items-center gap-2">
               <SparklesIcon className="h-6 w-6" aria-hidden="true" />
-              <h3 className="text-lg font-semibold">Karar Destek</h3>
+              <h3 className="text-lg font-semibold">Tek başına karar verme</h3>
             </div>
             <p className="text-sm text-black/70 dark:text-white/70">
-              Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör.
+              Bir ürünü veya hizmeti almadan önce topluluğun deneyimini gör.
             </p>
             <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
               <li>• Kıyaslamayı kolaylaştırır</li>
@@ -124,7 +124,7 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+      <section className="mx-auto max-w-6xl px-5 py-4 sm:py-6">
         <div className="flex flex-col overflow-hidden">
           <ContainerScroll
             titleComponent={
@@ -132,20 +132,23 @@ export default function AboutPage() {
                 <h1 className="text-4xl font-semibold text-black dark:text-white text-center">
                   Markalar için <br />
                   <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
-                    Yeni bir pencere
+                    yeni bir pencere
                   </span>
                 </h1>
               </>
             }
           >
-            <img
-              src="/screen.webp"
-              alt="RateStuff ekran görüntüsü"
-              height={720}
-              width={1400}
-              className="mx-auto rounded-2xl object-cover h-full object-left-top"
-              draggable={false}
-            />
+            <picture>
+              <source srcSet="/screen-dark.webp" media="(prefers-color-scheme: dark)" />
+              <img
+                src="/screen.webp"
+                alt="RateStuff ekran görüntüsü"
+                height={720}
+                width={1400}
+                className="mx-auto rounded-2xl object-cover h-full object-center"
+                draggable={false}
+              />
+            </picture>
           </ContainerScroll>
         </div>
       </section>
