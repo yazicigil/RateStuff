@@ -261,7 +261,8 @@ model NotificationTemplate {
 
 // Whitelist of brand accounts you manage via Admin
 model BrandAccount {
-  id          String   @id @default(cuid())
+  id          String   @id
+  user        User     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   email       String   @unique
   displayName String?
   slug        String   @unique

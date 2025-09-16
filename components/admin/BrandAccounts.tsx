@@ -118,30 +118,26 @@ async function updateBrand(formData: FormData) {
   if (displayName) {
     newSlug = await ensureUniqueSlug(displayName);
   }
-  await prisma.brandAccount.update({
-    where: { id },
-    data: {
-      ...(email ? { email } : {}),
-      displayName,
-      ...(newSlug ? { slug: newSlug } : {}),
-    },
-  });
-  // User tablosunda avatar ve isim (name) senkronize edilir
-  const effectiveEmail = (email && email.length ? email : current?.email) || null;
-  if (effectiveEmail) {
-    await prisma.user.upsert({
-      where: { email: effectiveEmail },
-      update: {
-        avatarUrl,
-        name: displayName, // displayName ile user.name'i de güncelle
-      },
-      create: {
-        email: effectiveEmail,
-        avatarUrl,
-        name: displayName,
+  await prisma.$transaction(async (tx) => {
+    await tx.brandAccount.update({
+      where: { id },
+      data: {
+        ...(email ? { email } : {}),
+        displayName,
+        ...(newSlug ? { slug: newSlug } : {}),
       },
     });
-  }
+    // Sync user by PK (id), not by email
+    await tx.user.update({
+      where: { id },
+      data: {
+        ...(email ? { email } : {}),
+        name: displayName,
+        avatarUrl,
+        kind: "BRAND",
+      },
+    });
+  });
   revalidatePath("/admin");
 }
 
@@ -157,41 +153,48 @@ async function createBrand(formData: FormData) {
   const baseForSlug = displayName ?? (email.includes("@") ? email.split("@")[0] : email);
   const slug = await ensureUniqueSlug(baseForSlug);
 
-  await prisma.brandAccount.create({
-    data: {
-      email,
-      displayName,
-      slug,       // NEW
-      active: true,
-    },
-  });
-  // User tablosuna da kaydet / güncelle:
-  // - İlk oluşturma: name=displayName, kind=BRAND, avatarUrl (varsa)
-  // - Zaten varsa: kind=BRAND'e çek; name boşsa displayName ile doldur; avatarUrl geldiyse güncelle
-  const existingUser = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, name: true },
-  });
-  if (!existingUser) {
-    await prisma.user.create({
-      data: {
-        email,
-        name: displayName,
-        avatarUrl,
-        kind: "BRAND",
-      },
-    });
-  } else {
-    const nameShouldSet = (!existingUser.name || !existingUser.name.trim().length) && !!displayName;
-    await prisma.user.update({
+  await prisma.$transaction(async (tx) => {
+    // 1) Upsert user by email
+    const existingUser = await tx.user.findUnique({
       where: { email },
+      select: { id: true, name: true },
+    });
+    let userId: string;
+    if (!existingUser) {
+      const created = await tx.user.create({
+        data: {
+          email,
+          name: displayName,
+          avatarUrl,
+          kind: "BRAND",
+        },
+        select: { id: true },
+      });
+      userId = created.id;
+    } else {
+      const nameShouldSet = (!existingUser.name || !existingUser.name.trim().length) && !!displayName;
+      const updated = await tx.user.update({
+        where: { email },
+        data: {
+          kind: "BRAND",
+          ...(nameShouldSet ? { name: displayName! } : {}),
+          ...(avatarUrl ? { avatarUrl } : {}),
+        },
+        select: { id: true },
+      });
+      userId = updated.id;
+    }
+    // 2) Create BrandAccount with PK=FK to User.id
+    await tx.brandAccount.create({
       data: {
-        kind: "BRAND",
-        ...(nameShouldSet ? { name: displayName! } : {}),
-        ...(avatarUrl ? { avatarUrl } : {}),
+        id: userId,         // PK=FK (BrandAccount.id === User.id)
+        email,
+        displayName,
+        slug,
+        active: true,
       },
     });
-  }
+  });
   redirect(`admin?tab=brands`);
 }
 
