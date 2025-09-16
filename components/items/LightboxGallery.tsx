@@ -12,6 +12,17 @@ const maskDisplayName = (masked?: string | null, name?: string | null) => {
   return `${first}${'•'.repeat(Math.max(2, Math.min(6, n.length - 1)))}`;
 };
 
+const displayNameWithBrand = (
+  user?: { maskedName?: string | null; name?: string | null; userkind?: string | null }
+) => {
+  if (!user) return '***';
+  // if brand, never mask; prefer real name then masked fallback
+  if ((user.userkind || '').toLowerCase() === 'brand') {
+    return (user.name && user.name.trim()) || (user.maskedName && user.maskedName.trim()) || '***';
+  }
+  return maskDisplayName(user.maskedName, user.name);
+};
+
 // Types for images coming from item and comments
 export type LightboxImage = {
   id?: string | number;
@@ -25,7 +36,7 @@ export type LightboxImage = {
   order?: number | null;
   // optional comment metadata for footer
   commentId?: string;
-  commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+  commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null; userkind?: string | null; verified?: boolean | null } | null;
   commentRating?: number | null;
   commentText?: string | null;
 };
@@ -217,8 +228,14 @@ export default function LightboxGallery({
               alt="avatar"
               className="h-6 w-6 rounded-full object-cover ring-1 ring-white/20"
             />
-            <span className="text-sm opacity-90">
-              {maskDisplayName(currentMeta.user?.maskedName ?? undefined, currentMeta.user?.name ?? undefined)}
+            <span className="text-sm opacity-90 inline-flex items-center gap-1">
+              {displayNameWithBrand(currentMeta.user as any)}
+              {((currentMeta.user?.userkind || '').toLowerCase() === 'brand') && (
+                <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" className="inline-block align-middle">
+                  <circle cx="12" cy="12" r="9" fill="#3B82F6"></circle>
+                  <path d="M8.5 12.5l2 2 4-4" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              )}
             </span>
             {typeof currentMeta.rating === 'number' && (
               <span className="ml-1 inline-flex items-center gap-1 bg-white/15 text-white text-[11px] px-2 py-0.5 rounded-full">

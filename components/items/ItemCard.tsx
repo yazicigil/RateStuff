@@ -11,6 +11,7 @@ import CommentBox from '@/components/comments/CommentBox';
 import ItemEditor, { ItemEditorValue } from '@/components/items/ItemEditor';
 import Link from 'next/link';
 import { linkifyMentions } from '@/lib/text/linkifyMentions';
+import { PhotoIcon } from '@heroicons/react/24/solid';
 
 export interface ItemCardProps {
   item: any;                       // backend’den gelen item (id, name, description, imageUrl, avg/avgRating, count, tags, createdBy, edited, suspended, reportCount)
@@ -182,6 +183,15 @@ export default function ItemCard({
   const myComment = myId ? (allComments.find((c: any) => c?.user?.id === myId) || null) : null;
   const otherComments = myId ? allComments.filter((c: any) => c?.user?.id !== myId) : allComments;
   const showMore = otherComments.length > 3;
+
+  // Total number of images attached to comments for this item
+  const commentImagesTotal = React.useMemo(() => {
+    try {
+      return (Array.isArray(allComments) ? allComments : []).reduce((acc: number, c: any) => acc + (Array.isArray(c?.images) ? c.images.length : 0), 0);
+    } catch { return 0; }
+  }, [allComments]);
+  // Displayed pill count includes item image if present (same behavior as Spotlight)
+  const totalWithItem = commentImagesTotal + (i?.imageUrl ? 1 : 0);
 
   // --- Popover portal anchors & positions ---
   const shareAnchorRef = React.useRef<HTMLDivElement | null>(null);
@@ -363,26 +373,42 @@ export default function ItemCard({
           <>
             <div className="flex items-start gap-3">
               <div className="flex flex-col items-center shrink-0 w-28">
-                <button
-                  type="button"
-                  onClick={() => onOpenSpotlight(i.id)}
-                  className="rounded-lg focus:outline-none focus:ring-2"
-                  aria-label={`${i.name} spotlight'ı aç`}
-                  title={`${i.name} spotlight'ı aç`}
-                  style={{ ['--tw-ring-color' as any]: 'var(--brand-focus)' }}
-                >
-                  <img
-                    src={i.imageUrl || '/default-item.svg'}
-                    alt={i.name || 'item'}
-                    className="w-28 h-28 object-cover rounded-lg"
-                    onError={(e) => {
-                      const t = e.currentTarget as HTMLImageElement;
-                      if (t.src.endsWith('/default-item.svg')) return;
-                      t.onerror = null;
-                      t.src = '/default-item.svg';
-                    }}
-                  />
-                </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => onOpenSpotlight(i.id)}
+                    className="rounded-lg focus:outline-none focus:ring-2"
+                    aria-label={`${i.name} spotlight'ı aç`}
+                    title={`${i.name} spotlight'ı aç`}
+                    style={{ ['--tw-ring-color' as any]: 'var(--brand-focus)' }}
+                  >
+                    <img
+                      src={i.imageUrl || '/default-item.svg'}
+                      alt={i.name || 'item'}
+                      className="w-28 h-28 object-cover rounded-lg"
+                      onError={(e) => {
+                        const t = e.currentTarget as HTMLImageElement;
+                        if (t.src.endsWith('/default-item.svg')) return;
+                        t.onerror = null;
+                        t.src = '/default-item.svg';
+                      }}
+                    />
+                  </button>
+
+                  {commentImagesTotal > 0 && (
+                    <button
+                      type="button"
+                      onClick={(ev) => { ev.stopPropagation(); onOpenSpotlight(i.id); }}
+                      className="absolute bottom-1 right-1 inline-flex items-center gap-1 rounded-full bg-white/90 text-gray-800 dark:bg-gray-900/90 dark:text-gray-100 text-[11px] px-1.5 py-0.5 shadow ring-1 ring-black/10 dark:ring-white/10 backdrop-blur-sm hover:bg-white/95 dark:hover:bg-gray-900"
+                      aria-label={`Bu ürüne ait toplam ${totalWithItem} fotoğraf var`}
+                      title="Fotoğrafları aç"
+                    >
+                      <span className="tabular-nums leading-none">{totalWithItem}</span>
+                      <PhotoIcon className="h-4 w-4 opacity-80" />
+                    </button>
+                  )}
+                </div>
+
                 {i.edited && !isBrand && (
                   <span
                     className="text-[11px] px-2 py-0.5 mt-1 rounded-full border"
