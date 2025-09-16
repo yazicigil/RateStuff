@@ -124,7 +124,7 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 py-4 sm:py-6">
+      <section className="mx-auto max-w-6xl px-5 pt-4 pb-2 sm:pt-6 sm:pb-4">
         <div className="flex flex-col overflow-hidden">
           <ContainerScroll
             titleComponent={
