@@ -253,8 +253,7 @@ export default function CommentList({
           const hasImages = Array.isArray(c.images) && c.images.length > 0;
 
             return (
-              <li key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">
-                <div className="flex items-start gap-2 px-1">
+<li data-comment-id={c.id} key={c.id} className="py-2 first:border-t-0 border-t border-gray-200 dark:border-gray-800">                <div className="flex items-start gap-2 px-1">
                   {/* avatar */}
                   {hrefBrand ? (
                     c.user?.avatarUrl ? (

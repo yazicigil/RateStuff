@@ -156,6 +156,8 @@ export default function HomePage() {
   const [openShare, setOpenShare] = useState<{ scope: 'list' | 'spot'; id: string } | null>(null);
   // state’lerin arasına ekle (openShare’in hemen altı mantıklı)
   const [copiedShareId, setCopiedShareId] = useState<string | null>(null);
+// spotlight comment highlight from URL (?comment=<id>)
+const [sharedCommentId, setSharedCommentId] = useState<string | null>(null);
   // REPORT UI state
   const [reportOpen, setReportOpen] = useState(false);
   const [reportTargetId, setReportTargetId] = useState<string | null>(null);
@@ -271,18 +273,13 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
   function closeSpotlight() {
     setSharedItem(null);
     setSharedId(null);
-    try {
-      const url = new URL(window.location.href);
-      // Eğer /share/:id yolundaysak ana sayfaya dön
-      if (url.pathname.startsWith('/share/')) {
-        url.pathname = '/';
-      }
-      // Eski davranışla uyum: ?item=... varsa temizle
-      if (url.searchParams.has('item')) {
-        url.searchParams.delete('item');
-      }
-      window.history.replaceState({}, '', url.toString());
-    } catch {}
+   try {
+  const url = new URL(window.location.href);
+  url.pathname = '/';
+  url.searchParams.delete('item');
+  url.searchParams.delete('comment');
+  window.history.replaceState({}, '', url.toString());
+} catch {}
   }
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [highlightId, setHighlightId] = useState<string | null>(null);
@@ -457,20 +454,25 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
     return () => document.removeEventListener('click', onDocClick);
   }, []);
   // URL'den ?item=... yakala ve spotlight için hazırla
-  useEffect(() => {
-    try {
-      const u = new URL(window.location.href);
-      // 1) /share/:id yolu
-      const m = u.pathname.match(/^\/share\/([^/?#]+)/);
-      if (m && m[1]) {
-        setSharedId(m[1]);
-        return;
-      }
-      // 2) ?item=... sorgu paramı (geriye dönük uyumluluk)
+  // Parse spotlight params on mount (normalize /share/:id -> /?item=)
+useEffect(() => {
+  try {
+    const u = new URL(window.location.href);
+    const m = u.pathname.match(/^\/share\/([^/?#]+)/);
+    if (m && m[1]) {
+      const legacyId = m[1];
+      setSharedId(legacyId);
+      u.pathname = '/';
+      u.searchParams.set('item', legacyId);
+      window.history.replaceState({}, '', u.toString());
+    } else {
       const id = u.searchParams.get('item');
       setSharedId(id);
-    } catch {}
-  }, []);
+    }
+    const c = u.searchParams.get('comment');
+    setSharedCommentId(c);
+  } catch {}
+}, []);
   // Hash'ten #quick-add yakala → Hızlı Ekle'yi aç
   useEffect(() => {
     function syncFromHash() {
@@ -495,8 +497,8 @@ const firstAnimDoneRef = useRef<{[k in -1 | 1]: boolean}>({ [-1]: false, [1]: fa
         const r = await fetch(`/api/items?id=${encodeURIComponent(sharedId)}`, { cache: 'no-store' });
         const j = await r.json().catch(() => null);
         const arr = Array.isArray(j) ? j : (Array.isArray(j?.items) ? j.items : (j?.item ? [j.item] : []));
-        if (!aborted) setSharedItem(arr[0] || null);
-      } catch {
+if (!aborted) setSharedItem(arr[0] || null);
+try { const u = new URL(window.location.href); setSharedCommentId(u.searchParams.get('comment')); } catch {}      } catch {
         if (!aborted) setSharedItem(null);
       }
     }
@@ -967,19 +969,60 @@ function smoothScrollIntoView(el: Element) {
     if (!fromDelta) setNavDir(0);
     setSharedId(id);
     try {
-      const url = new URL(window.location.href);
-      // Adres çubuğunu /share/:id olarak güncelle (SPA içinde sayfayı yenilemeden)
-      url.pathname = `/share/${id}`;
-      // Eski query paramını sil (varsa)
-      if (url.searchParams.has('item')) url.searchParams.delete('item');
-      window.history.replaceState({}, '', url.toString());
-    } catch {}
+  const url = new URL(window.location.href);
+  url.pathname = '/';
+  url.searchParams.set('item', id);
+  // stale highlight'ı önlemek için comment paramını temizle
+  if (url.searchParams.has('comment')) url.searchParams.delete('comment');
+  window.history.replaceState({}, '', url.toString());
+} catch {}
     if (!fromDelta) {
       pendingSpotlightScrollRef.current = true;
     }
   }
-  // Spotlight içerik yüklendiğinde (sharedItem mount olduğunda) bekleyen scroll'u uygula
-  useEffect(() => {
+  // Try to find & flash-highlight a comment by id
+function highlightCommentInline(commentId: string) {
+  const sel = `[data-comment-id="${CSS.escape(commentId)}"]`;
+  const el = document.querySelector<HTMLElement>(sel);
+  if (!el) return false;
+
+  const prevOutline = el.style.outline;
+  const prevBoxShadow = el.style.boxShadow;
+  const prevBorderRadius = el.style.borderRadius;
+
+  el.style.outline = '3px solid var(--brand-ink, #2563eb)';
+  el.style.borderRadius = '12px';
+  el.style.boxShadow = '0 0 0 8px rgba(37, 99, 235, 0.15)';
+  try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView({ block: 'center' }); }
+
+  setTimeout(() => {
+    el.style.outline = prevOutline;
+    el.style.boxShadow = prevBoxShadow;
+    el.style.borderRadius = prevBorderRadius;
+  }, 2500);
+  return true;
+}
+
+// When we have an item open and a comment id in URL, attempt highlight
+useEffect(() => {
+  if (!sharedItem || !sharedCommentId) return;
+  let cancelled = false;
+  if (highlightCommentInline(sharedCommentId)) return;
+
+  const started = Date.now();
+  const timer = window.setInterval(() => {
+    if (cancelled) return;
+    if (highlightCommentInline(sharedCommentId)) {
+      window.clearInterval(timer);
+      return;
+    }
+    if (Date.now() - started > 5000) window.clearInterval(timer);
+  }, 150);
+  return () => { cancelled = true; window.clearInterval(timer); };
+}, [sharedItem, sharedCommentId]);
+
+// Spotlight içerik yüklendiğinde (sharedItem mount olduğunda) bekleyen scroll'u uygula
+useEffect(() => {
     if (pendingSpotlightScrollRef.current && sharedItem) {
       pendingSpotlightScrollRef.current = false;
       requestAnimationFrame(() => {
