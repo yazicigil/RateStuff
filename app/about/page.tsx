@@ -32,10 +32,8 @@ export default function AboutPage() {
     <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <div className="mt-[-6rem] opacity-60 scale-[2.2] blur-2xl">
-            <Orb />
-          </div>
+        <div className="absolute inset-0 -z-10">
+          <Orb />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
