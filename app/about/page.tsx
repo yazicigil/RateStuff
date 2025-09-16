@@ -2,12 +2,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-
-import Prism from "components/reactbits/Prism";
-import SpotlightCard from "components/reactbits/SpotlightCard";
 import SplitText from "components/reactbits/SplitText";
-import ScrollReveal from "components/reactbits/ScrollReveal";
-import { UserGroupIcon, SparklesIcon } from "@heroicons/react/24/solid";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -33,9 +28,14 @@ export default function AboutPage() {
     <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Prism />
-        </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full blur-3xl opacity-25"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 50% 50%, var(--brand-ink, #3b82f6), transparent 70%)",
+          }}
+        />
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
             <Image
@@ -46,13 +46,14 @@ export default function AboutPage() {
               className="opacity-90"
               priority
             />
-            <h1 className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
-              <SplitText text="Her şey değerlendirilebilir." />
+            <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
+              <SplitText tag="h1" text="Her şey değerlendirilebilir." className="block" />
               <SplitText
-                className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70"
+                tag="h1"
                 text="Gerçek deneyimler burada."
+                className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70"
               />
-            </h1>
+            </div>
             <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70">
               RateStuff, insanların gündelik hayatlarında karşılaştıkları her
               şeye yıldız verip yorum yapabildiği topluluk odaklı bir
@@ -79,42 +80,35 @@ export default function AboutPage() {
 
       {/* 3 PİLAR */}
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
-        <div className="grid gap-6 sm:grid-cols-3 [--spc:rgba(17,24,39,0.08)] dark:[--spc:rgba(255,255,255,0.22)]">
-          <SpotlightCard spotlightColor="var(--spc)"><Card
+        <div className="grid gap-6 sm:grid-cols-3">
+          <Card
             title="Topluluk Odaklı"
             desc="Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde."
             bullet={["Yıldız + yorum + görsel", "Trend etiketler", "Doğal keşif"]}
-            icon={<UserGroupIcon />}
-          /></SpotlightCard>
-          <SpotlightCard spotlightColor="var(--spc)"><Card
+          />
+          <Card
             title="Şeffaf & Bağımsız"
             desc="Görmek istediğin doğrultusunda filtrele; parlatılmış vitrin değil, gerçek deneyim akışı."
             bullet={["Filtrelenebilir akış", "Şeffaf kurallar", "Topluluk normları"]}
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
-              </svg>
-            }
-          /></SpotlightCard>
-          <SpotlightCard spotlightColor="var(--spc)"><Card
+          />
+          <Card
             title="Karar Destek"
             desc="Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör."
             bullet={["Kıyaslamayı kolaylaştırır", "Artı/eksi netliği", "Zaman kazandırır"]}
-            icon={<SparklesIcon />}
-          /></SpotlightCard>
+          />
         </div>
       </section>
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
       <section className="mx-auto max-w-6xl px-5 py-6 sm:py-10">
-        <ScrollReveal>
-          <p className="text-center text-lg sm:text-2xl leading-relaxed text-black/80 dark:text-white/80">
+        <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6 sm:p-8 bg-white/60 dark:bg-white/5 backdrop-blur">
+          <p className="text-lg sm:text-xl leading-relaxed text-black/80 dark:text-white/80">
             İnsanlar zaten konuşuyor.{" "}
             <strong className="font-semibold">RateStuff</strong>, bu konuşmaları
             görünür ve anlamlı kılar. Aradığın şey yalnızca puan değil;{" "}
             <em>bağlam</em>, <em>duygu</em> ve <em>hikâye</em>.
           </p>
-        </ScrollReveal>
+        </div>
       </section>
 
       {/* FOR BRANDS BLOĞU */}
@@ -218,19 +212,14 @@ function Card({
   title,
   desc,
   bullet = [],
-  icon,
 }: {
   title: string;
   desc: string;
   bullet?: string[];
-  icon?: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-black/10 dark:border-white/10 p-6 bg-white/70 dark:bg-white/5 backdrop-blur">
-      <div className="flex items-center gap-2 mb-2">
-        {icon && <span className="h-5 w-5 text-black/70 dark:text-white/70">{icon}</span>}
-        <h3 className="text-lg font-semibold">{title}</h3>
-      </div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-sm text-black/70 dark:text-white/70">{desc}</p>
       {bullet.length > 0 && (
         <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
