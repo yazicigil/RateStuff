@@ -252,7 +252,7 @@ function StarFilter({ value, onChange }: { value: number[]; onChange: (v:number[
   );
 }
 
-export default function Header({ controls }: { controls?: Controls }) {
+export default function Header({ controls, transparentOnTop }: { controls?: Controls; transparentOnTop?: boolean }) {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<ThemePref>('system');
@@ -279,6 +279,15 @@ export default function Header({ controls }: { controls?: Controls }) {
     starBuckets: [],
     onStarBuckets: () => {},
   };
+
+  // Scroll state for transparent-on-top headers
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll(); // initialize on mount
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
 
   async function refetchMe() {
@@ -316,7 +325,6 @@ export default function Header({ controls }: { controls?: Controls }) {
     applyTheme(next);
   }
 
-
   const logoClassDefault = USE_CURRENTCOLOR
     ? 'h-auto max-h-16 w-auto object-contain text-gray-900 dark:text-gray-100'
     : 'h-auto max-h-16 w-auto object-contain dark:invert';
@@ -324,9 +332,14 @@ export default function Header({ controls }: { controls?: Controls }) {
     ? 'h-auto max-h-14 md:max-h-12 lg:max-h-10 w-auto object-contain text-gray-900 dark:text-gray-100'
     : 'h-auto max-h-14 md:max-h-12 lg:max-h-10 w-auto object-contain dark:invert dark:brightness-0';
 
+  const useTransparent = !!transparentOnTop && !scrolled;
+
   return (
     <header
-      className="sticky top-0 z-40 backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800"
+      className={`sticky top-0 z-40 transition-colors ${useTransparent
+        ? 'bg-transparent border-transparent'
+        : 'backdrop-blur-lg bg-white/70 dark:bg-gray-900/65 border-b border-gray-200 dark:border-gray-800'
+      }`}
     >
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 md:py-2.5 flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
         {/* Sol: Logo + (mobil) tema & auth */}
