@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import LearnMoreModal from "@/components/brand/LearnMore";
 import { UserKind } from "@prisma/client";
+import Head from "next/head";
 
 export default function BrandLoginPage() {
   const router = useRouter();
@@ -109,6 +110,9 @@ export default function BrandLoginPage() {
 
   return (
     <div className="flex min-h-screen">
+      <Head>
+        <title>RateStuff | for Brands</title>
+      </Head>
       {/* Left visual */}
       <div className="hidden md:flex w-1/2 relative">
         <Image

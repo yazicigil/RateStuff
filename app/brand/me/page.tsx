@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import ProductsList from '@/components/brand/ProductsList';
 import CardColorPicker from '@/components/brand/CardColorPicker';
 import { getBrandCSSVars } from "@/lib/brandTheme";
+import Head from "next/head";
 
 // local helpers for page tint (same logic as /brand/[slug])
 function hexToRgbLocal(hex: string) {
@@ -193,6 +194,9 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
         backgroundImage: 'linear-gradient(0deg, var(--brand-surface-weak, transparent), var(--brand-surface-weak, transparent)), linear-gradient(to bottom, var(--tw-gradient-stops))'
       }}
     >
+      <Head>
+        <title>RateStuff | for Brands</title>
+      </Head>
       {/* Cover */}
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative">
         <div className="relative z-20 mb-0 h-40 sm:h-64 md:h-72 lg:h-80 rounded-3xl overflow-hidden shadow-md bg-neutral-200/40 dark:bg-neutral-800/40">

@@ -305,8 +305,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const data = await getBrandPublicView(params.slug);
   if (!data) return {};
   const { brand } = data;
-  const title = `${brand.displayName} – RateStuff`;
-  const description = brand.bio?.slice(0, 160) || `${brand.displayName} marka profili.`;
+  const title = `RateStuff | ${brand.displayName}`;
+  const description = brand.bio?.trim() || `${brand.displayName} marka profili.`;
   const images = brand.coverImageUrl ? [brand.coverImageUrl] : ["/og-image.jpg"];
   return {
     title,
