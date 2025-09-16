@@ -4,8 +4,8 @@ import Header from "@/components/header/Header";
 
 export default function HeaderGate() {
   const pathname = usePathname();
-  const isAbout = pathname === "/about";
+  
   const hideHeader = pathname === "/brand";
   if (hideHeader) return null;
-  return <Header transparentOnTop={isAbout} />;
+
 }
