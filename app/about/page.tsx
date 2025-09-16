@@ -29,11 +29,13 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="relative">
+    <main className="relative dark">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Orb hoverIntensity={0.35} />
+        <div className="absolute inset-0 -z-10 flex items-center justify-center" aria-hidden="true">
+          <div className="scale-[3] sm:scale-[3.6] mt-[-6rem]">
+            <Orb hoverIntensity={0.35} />
+          </div>
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6">
