@@ -33,9 +33,9 @@ export default function AboutPage() {
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 -z-10">
-          <Orb />
+          <Orb hoverIntensity={0.35} />
         </div>
-        <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
+        <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6">
             <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
               <SplitText

@@ -23,6 +23,8 @@ export interface SplitTextProps {
   textAlign?: React.CSSProperties['textAlign'];
   onLetterAnimationComplete?: () => void;
   display?: 'block' | 'inline-block' | 'inline';
+  /** Extra bottom padding to avoid clipping while animating from Y. Accepts any CSS length. */
+  bleedPaddingBottom?: string;
 }
 
 const SplitText: React.FC<SplitTextProps> = ({
@@ -39,7 +41,8 @@ const SplitText: React.FC<SplitTextProps> = ({
   tag = 'p',
   textAlign = 'center',
   onLetterAnimationComplete,
-  display = 'inline-block'
+  display = 'inline-block',
+  bleedPaddingBottom = '0.2em',
 }) => {
   const ref = useRef<HTMLParagraphElement>(null);
   const animationCompletedRef = useRef(false);
@@ -156,7 +159,8 @@ const SplitText: React.FC<SplitTextProps> = ({
     const style: React.CSSProperties = {
       textAlign,
       wordWrap: 'break-word',
-      willChange: 'transform, opacity'
+      willChange: 'transform, opacity',
+      paddingBottom: bleedPaddingBottom,
     };
     const classes = `split-parent overflow-hidden ${display} whitespace-normal ${className}`;
     switch (tag) {
