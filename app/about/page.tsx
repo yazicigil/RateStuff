@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import SplitText from "components/reactbits/SplitText";
+import ScrollReveal from "@/components/reactbits/ScrollReveal";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -47,11 +48,21 @@ export default function AboutPage() {
               priority
             />
             <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
-              <SplitText tag="h1" text="Her şey değerlendirilebilir." className="block" />
+              <SplitText
+                tag="h1"
+                text="Her şey değerlendirilebilir."
+                className="block"
+                display="block"
+                threshold={0.05}
+                rootMargin="0px"
+              />
               <SplitText
                 tag="h1"
                 text="Gerçek deneyimler burada."
                 className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70"
+                display="block"
+                threshold={0.05}
+                rootMargin="0px"
               />
             </div>
             <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70">
@@ -101,14 +112,19 @@ export default function AboutPage() {
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
       <section className="mx-auto max-w-6xl px-5 py-6 sm:py-10">
-        <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6 sm:p-8 bg-white/60 dark:bg-white/5 backdrop-blur">
-          <p className="text-lg sm:text-xl leading-relaxed text-black/80 dark:text-white/80">
-            İnsanlar zaten konuşuyor.{" "}
+        
+          <ScrollReveal
+  baseOpacity={0}
+  enableBlur={true}
+  baseRotation={5}
+  blurStrength={10}
+>
+  İnsanlar zaten konuşuyor.{" "}
             <strong className="font-semibold">RateStuff</strong>, bu konuşmaları
             görünür ve anlamlı kılar. Aradığın şey yalnızca puan değil;{" "}
             <em>bağlam</em>, <em>duygu</em> ve <em>hikâye</em>.
-          </p>
-        </div>
+</ScrollReveal>
+         
       </section>
 
       {/* FOR BRANDS BLOĞU */}
