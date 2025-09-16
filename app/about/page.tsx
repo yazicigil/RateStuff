@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import Aurora from "components/reactbits/Aurora";
+import SpotlightCard from "components/reactbits/SpotlightCard";
+import SplitText from "components/reactbits/SplitText";
+
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
   description:
@@ -27,14 +31,7 @@ export default function AboutPage() {
     <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full blur-3xl opacity-25"
-          style={{
-            background:
-              "radial-gradient(60% 60% at 50% 50%, var(--brand-ink, #3b82f6), transparent 70%)",
-          }}
-        />
+        <Aurora />
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
             <Image
@@ -46,7 +43,7 @@ export default function AboutPage() {
               priority
             />
             <h1 className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
-              Her şey değerlendirilebilir.
+              <SplitText text="Her şey değerlendirilebilir." />
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70">
                 Gerçek deneyimler burada.
               </span>
@@ -78,21 +75,21 @@ export default function AboutPage() {
       {/* 3 PİLAR */}
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
         <div className="grid gap-6 sm:grid-cols-3">
-          <Card
+          <SpotlightCard><Card
             title="Topluluk Odaklı"
             desc="Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde."
             bullet={["Yıldız + yorum + görsel", "Trend etiketler", "Doğal keşif"]}
-          />
-          <Card
+          /></SpotlightCard>
+          <SpotlightCard><Card
             title="Şeffaf & Bağımsız"
             desc="Görmek istediğin doğrultusunda filtrele; parlatılmış vitrin değil, gerçek deneyim akışı."
             bullet={["Filtrelenebilir akış", "Şeffaf kurallar", "Topluluk normları"]}
-          />
-          <Card
+          /></SpotlightCard>
+          <SpotlightCard><Card
             title="Karar Destek"
             desc="Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör."
             bullet={["Kıyaslamayı kolaylaştırır", "Artı/eksi netliği", "Zaman kazandırır"]}
-          />
+          /></SpotlightCard>
         </div>
       </section>
 
@@ -240,3 +237,4 @@ function Value({ title, text }: { title: string; text: string }) {
     </div>
   );
 }
+
