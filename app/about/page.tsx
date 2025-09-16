@@ -6,9 +6,7 @@ import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import SpotlightCard from "components/reactbits/SpotlightCard";
-import Orb from "@/components/reactbits/Orb";
-import { ContainerScroll } from "@/components/ui/container-scroll-animation";
-import React from "react";
+import Iridescence from "@/components/reactbits/Iridescence";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -31,11 +29,11 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="relative">
+    <main className="relative dark">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 pointer-events-auto">
-          <Orb hoverIntensity={0.35} />
+        <div className="absolute inset-0 -z-10">
+          <Iridescence />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6 pointer-events-none">
@@ -140,7 +138,7 @@ export default function AboutPage() {
             }
           >
             <img
-              src="/screen.webp"
+              src="/screen.jpg"
               alt="RateStuff ekran görüntüsü"
               height={720}
               width={1400}
@@ -169,9 +167,7 @@ export default function AboutPage() {
       </section>
 
       {/* FOR BRANDS BLOĞU */}
-      
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16">
-
         <div className="grid gap-8 sm:grid-cols-2 items-center">
           <div className="order-2 sm:order-1">
             <h2 className="text-2xl sm:text-3xl font-semibold mb-3">
