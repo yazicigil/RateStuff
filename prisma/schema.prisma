@@ -44,6 +44,8 @@ model User {
   mentionsAsActor       Mention[]      @relation("MentionActor")
   hiddenMentions        Mention[]      @relation(name: "MentionHiddenBy")
   uploadedCommentImages CommentImage[] @relation("CommentImage_uploadedBy")
+
+  brandAccount BrandAccount? @relation("UserBrandAccount")
 }
 
 model Item {
@@ -262,7 +264,7 @@ model NotificationTemplate {
 // Whitelist of brand accounts you manage via Admin
 model BrandAccount {
   id          String   @id
-  user        User     @relation(fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user        User     @relation("UserBrandAccount", fields: [id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   email       String   @unique
   displayName String?
   slug        String   @unique
