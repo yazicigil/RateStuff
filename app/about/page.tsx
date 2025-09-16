@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import Aurora from "components/reactbits/Aurora";
+import Prism from "components/reactbits/Prism";
 import SpotlightCard from "components/reactbits/SpotlightCard";
 import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "components/reactbits/ScrollReveal";
@@ -31,12 +31,11 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="relative">
-      {/* Global Aurora background behind header */}
-      <div className="pointer-events-none absolute inset-0 -z-10">
-        <Aurora />
-      </div>
       {/* HERO */}
       <section className="relative overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <Prism />
+        </div>
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
             <Image
@@ -49,9 +48,10 @@ export default function AboutPage() {
             />
             <h1 className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
               <SplitText text="Her şey değerlendirilebilir." />
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70">
-                <SplitText text="Gerçek deneyimler burada." />
-              </span>
+              <SplitText
+                className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70"
+                text="Gerçek deneyimler burada."
+              />
             </h1>
             <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70">
               RateStuff, insanların gündelik hayatlarında karşılaştıkları her
@@ -107,16 +107,14 @@ export default function AboutPage() {
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
       <section className="mx-auto max-w-6xl px-5 py-6 sm:py-10">
-        <div className="rounded-2xl border border-black/10 dark:border-white/10 p-6 sm:p-8 bg-white/60 dark:bg-white/5 backdrop-blur">
-          <ScrollReveal baseOpacity={0.2} blurStrength={6} baseRotation={2}>
-            <p className="text-lg sm:text-xl leading-relaxed text-black/80 dark:text-white/80">
-              İnsanlar zaten konuşuyor.{" "}
-              <strong className="font-semibold">RateStuff</strong>, bu konuşmaları
-              görünür ve anlamlı kılar. Aradığın şey yalnızca puan değil;{" "}
-              <em>bağlam</em>, <em>duygu</em> ve <em>hikâye</em>.
-            </p>
-          </ScrollReveal>
-        </div>
+        <ScrollReveal>
+          <p className="text-center text-lg sm:text-2xl leading-relaxed text-black/80 dark:text-white/80">
+            İnsanlar zaten konuşuyor.{" "}
+            <strong className="font-semibold">RateStuff</strong>, bu konuşmaları
+            görünür ve anlamlı kılar. Aradığın şey yalnızca puan değil;{" "}
+            <em>bağlam</em>, <em>duygu</em> ve <em>hikâye</em>.
+          </p>
+        </ScrollReveal>
       </section>
 
       {/* FOR BRANDS BLOĞU */}
