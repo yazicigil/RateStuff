@@ -74,7 +74,7 @@ export default function AboutPage() {
       </section>
 
       {/* 3 PİLAR */}
-      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+      <section className="mx-auto max-w-6xl px-5 pt-10 pb-3 sm:pt-12 sm:pb-4">
         <div className="grid gap-6 sm:grid-cols-3">
           <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur">
             <div className="mb-3 inline-flex items-center gap-2">
@@ -124,7 +124,7 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 pt-4 pb-2 sm:pt-6 sm:pb-4">
+      <section className="mx-auto max-w-6xl px-5 pt-2 pb-0 sm:pt-3 sm:pb-1">
         <div className="flex flex-col overflow-hidden">
           <ContainerScroll
             titleComponent={
@@ -163,7 +163,7 @@ export default function AboutPage() {
       </section>
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
-      <section className="mx-auto max-w-6xl px-5 py-6 sm:py-10">
+      <section className="mx-auto max-w-6xl px-5 pt-2 pb-6 sm:pt-3 sm:pb-8">
         
           <ScrollReveal
   baseOpacity={0}
