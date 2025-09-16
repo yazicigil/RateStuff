@@ -6,7 +6,9 @@ import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import SpotlightCard from "components/reactbits/SpotlightCard";
-import Iridescence from "@/components/reactbits/Iridescence";
+import Orb from "@/components/reactbits/Orb";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
+import React from "react";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -29,11 +31,11 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="relative dark">
+    <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <Iridescence />
+        <div className="absolute inset-0 -z-10 pointer-events-auto">
+          <Orb hoverIntensity={0.35} />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
           <div className="flex flex-col items-center text-center gap-6 pointer-events-none">
@@ -122,6 +124,33 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* CONTAINER SCROLL (Aceternity) */}
+      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
+        <div className="flex flex-col overflow-hidden">
+          <ContainerScroll
+            titleComponent={
+              <>
+                <h1 className="text-4xl font-semibold text-black dark:text-white text-center">
+                  Markalar için <br />
+                  <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
+                    Yeni bir pencere
+                  </span>
+                </h1>
+              </>
+            }
+          >
+            <img
+              src="/screen.jpg"
+              alt="RateStuff ekran görüntüsü"
+              height={720}
+              width={1400}
+              className="mx-auto rounded-2xl object-cover h-full object-left-top"
+              draggable={false}
+            />
+          </ContainerScroll>
+        </div>
+      </section>
+
       {/* BÜYÜK STAT + VIBE SATIRI */}
       <section className="mx-auto max-w-6xl px-5 py-6 sm:py-10">
         
@@ -140,7 +169,9 @@ export default function AboutPage() {
       </section>
 
       {/* FOR BRANDS BLOĞU */}
+      
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16">
+
         <div className="grid gap-8 sm:grid-cols-2 items-center">
           <div className="order-2 sm:order-1">
             <h2 className="text-2xl sm:text-3xl font-semibold mb-3">
