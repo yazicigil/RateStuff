@@ -132,23 +132,32 @@ export default function AboutPage() {
                 <h1 className="text-4xl font-semibold text-black dark:text-white text-center">
                   Markalar için <br />
                   <span className="text-4xl md:text-[6rem] font-bold mt-1 leading-none">
-                    yeni bir pencere
+                    RateStuff
                   </span>
                 </h1>
               </>
             }
           >
-            <picture>
-              <source srcSet="/screen-dark.webp" media="(prefers-color-scheme: dark)" />
+            <div className="relative">
+              {/* Light mode image */}
               <img
                 src="/screen.webp"
                 alt="RateStuff ekran görüntüsü"
                 height={720}
                 width={1400}
-                className="mx-auto rounded-2xl object-cover h-full object-center"
+                className="mx-auto rounded-2xl object-cover h-full object-[center_top] dark:hidden"
                 draggable={false}
               />
-            </picture>
+              {/* Dark mode image */}
+              <img
+                src="/screen-dark.webp"
+                alt="RateStuff ekran görüntüsü (dark)"
+                height={720}
+                width={1400}
+                className="hidden dark:block mx-auto rounded-2xl object-cover h-full object-[center_top]"
+                draggable={false}
+              />
+            </div>
           </ContainerScroll>
         </div>
       </section>
