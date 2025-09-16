@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
+import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -34,21 +35,14 @@ export default function AboutPage() {
           className="pointer-events-none absolute -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full blur-3xl opacity-25"
           style={{
             background:
-              "radial-gradient(60% 60% at 50% 50%, var(--brand-ink, #3b82f6), transparent 70%)",
+              "radial-gradient(60% 60% at 50% 50%, var( #8ab7ffff, #b700ffff), transparent 70%)",
           }}
         />
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
-            <Image
-              src="/logo.svg"
-              alt="RateStuff"
-              width={56}
-              height={56}
-              className="opacity-90"
-              priority
-            />
             <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
               <SplitText
+                key="hero-line-1"
                 tag="h1"
                 text="Her şey değerlendirilebilir."
                 className="block"
@@ -57,9 +51,10 @@ export default function AboutPage() {
                 rootMargin="0px"
               />
               <SplitText
+                key="hero-line-2"
                 tag="h1"
                 text="Gerçek deneyimler burada."
-                className="block text-transparent bg-clip-text bg-gradient-to-r from-black/80 via-black to-black/70 dark:from-white dark:to-white/70"
+                className="block"
                 display="block"
                 threshold={0.05}
                 rootMargin="0px"
@@ -96,16 +91,23 @@ export default function AboutPage() {
             title="Topluluk Odaklı"
             desc="Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde."
             bullet={["Yıldız + yorum + görsel", "Trend etiketler", "Doğal keşif"]}
+            icon={<UserGroupIcon className="h-5 w-5" aria-hidden="true" />}
           />
           <Card
             title="Şeffaf & Bağımsız"
             desc="Görmek istediğin doğrultusunda filtrele; parlatılmış vitrin değil, gerçek deneyim akışı."
             bullet={["Filtrelenebilir akış", "Şeffaf kurallar", "Topluluk normları"]}
+            icon={
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+            }
           />
           <Card
             title="Karar Destek"
             desc="Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör."
             bullet={["Kıyaslamayı kolaylaştırır", "Artı/eksi netliği", "Zaman kazandırır"]}
+            icon={<SparklesIcon className="h-5 w-5" aria-hidden="true" />}
           />
         </div>
       </section>
@@ -228,10 +230,12 @@ function Card({
   title,
   desc,
   bullet = [],
+  icon,
 }: {
   title: string;
   desc: string;
   bullet?: string[];
+  icon?: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-black/10 dark:border-white/10 p-6 bg-white/70 dark:bg-white/5 backdrop-blur">
@@ -252,7 +256,6 @@ function Value({ title, text }: { title: string; text: string }) {
   return (
     <div className="rounded-xl border border-black/10 dark:border-white/10 p-6 bg-white/70 dark:bg-white/5 backdrop-blur">
       <div className="mb-3 inline-flex items-center gap-2">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-current opacity-80" />
         <h4 className="text-base font-semibold">{title}</h4>
       </div>
       <p className="text-sm text-black/70 dark:text-white/70">{text}</p>

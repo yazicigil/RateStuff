@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useMemo, ReactNode, RefObject } from 'react';
+import React, { useEffect, useRef, ReactNode, RefObject } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -33,21 +33,38 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
 }) => {
   const containerRef = useRef<HTMLHeadingElement>(null);
 
-  const splitText = useMemo(() => {
-    const text = typeof children === 'string' ? children : '';
-    return text.split(/(\s+)/).map((word, index) => {
-      if (word.match(/^\s+$/)) return word;
-      return (
-        <span className="inline-block word" key={index}>
-          {word}
-        </span>
-      );
-    });
-  }, [children]);
-
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    const p = el.querySelector('p');
+    if (p) {
+      const walker = document.createTreeWalker(p, NodeFilter.SHOW_TEXT);
+      const textNodes: Text[] = [];
+      let tn: Node | null;
+      while ((tn = walker.nextNode())) {
+        if (tn.nodeValue && tn.nodeValue.trim().length > 0) {
+          textNodes.push(tn as Text);
+        }
+      }
+      textNodes.forEach((textNode) => {
+        const parent = textNode.parentElement;
+        if (!parent) return;
+        const frag = document.createDocumentFragment();
+        const parts = textNode.nodeValue!.split(/(\s+)/);
+        parts.forEach((part) => {
+          if (part.match(/^\s+$/)) {
+            frag.appendChild(document.createTextNode(part));
+          } else if (part.length) {
+            const span = document.createElement('span');
+            span.className = 'inline-block word';
+            span.textContent = part;
+            frag.appendChild(span);
+          }
+        });
+        parent.replaceChild(frag, textNode);
+      });
+    }
 
     const scroller = scrollContainerRef && scrollContainerRef.current ? scrollContainerRef.current : window;
 
@@ -106,13 +123,15 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
     }
 
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ScrollTrigger.getAll().forEach(trigger => {
+        if ((trigger as any).vars?.trigger === el) trigger.kill();
+      });
     };
   }, [scrollContainerRef, enableBlur, baseRotation, baseOpacity, rotationEnd, wordAnimationEnd, blurStrength]);
 
   return (
     <h2 ref={containerRef} className={`my-5 ${containerClassName}`}>
-      <p className={`text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}>{splitText}</p>
+      <p className={`text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}>{children}</p>
     </h2>
   );
 };
