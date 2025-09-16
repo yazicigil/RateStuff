@@ -980,26 +980,18 @@ function smoothScrollIntoView(el: Element) {
       pendingSpotlightScrollRef.current = true;
     }
   }
-  // Try to find & flash-highlight a comment by id
+// Try to find & flash-highlight a comment by id (green, subtle, fades out)
 function highlightCommentInline(commentId: string) {
   const sel = `[data-comment-id="${CSS.escape(commentId)}"]`;
   const el = document.querySelector<HTMLElement>(sel);
   if (!el) return false;
 
-  const prevOutline = el.style.outline;
-  const prevBoxShadow = el.style.boxShadow;
-  const prevBorderRadius = el.style.borderRadius;
-
-  el.style.outline = '3px solid var(--brand-ink, #2563eb)';
-  el.style.borderRadius = '12px';
-  el.style.boxShadow = '0 0 0 8px rgba(37, 99, 235, 0.15)';
+  // apply class, scroll to center
+  el.classList.add('rs-comment-highlight');
   try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch { el.scrollIntoView({ block: 'center' }); }
 
-  setTimeout(() => {
-    el.style.outline = prevOutline;
-    el.style.boxShadow = prevBoxShadow;
-    el.style.borderRadius = prevBorderRadius;
-  }, 2500);
+  // remove after animation completes
+  window.setTimeout(() => el.classList.remove('rs-comment-highlight'), 2400);
   return true;
 }
 
@@ -1292,6 +1284,28 @@ if (!already) {
 }
       /* Listede göster → geçici vurgu */
       .rs-flash { outline: 2px solid rgb(16 185 129 / 0.9); outline-offset: 2px; }
+
+      /* Comment highlight (green, gentle, auto-fade) */
+      .rs-comment-highlight {
+        outline: 2px solid rgb(16 185 129 / 0.95); /* emerald-500 */
+        outline-offset: 0; /* tighter than list flash */
+        border-radius: 12px;
+        box-shadow: 0 0 0 10px rgb(16 185 129 / 0.16);
+        animation:
+          rsCmtPulse 140ms cubic-bezier(0.22,1,0.36,1) 0s 1,
+          rsCmtGlow 2200ms ease-out 0s 1 forwards;
+        will-change: transform, outline-color, box-shadow, opacity;
+      }
+      @keyframes rsCmtPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.01); }
+        100% { transform: scale(1); }
+      }
+      @keyframes rsCmtGlow {
+        0%   { outline-color: rgb(16 185 129 / 0.95); box-shadow: 0 0 0 10px rgb(16 185 129 / 0.16); }
+        70%  { outline-color: rgb(16 185 129 / 0.50); box-shadow: 0 0 0 6px  rgb(16 185 129 / 0.08); }
+        100% { outline-color: rgb(16 185 129 / 0.00); box-shadow: 0 0 0 0    rgb(16 185 129 / 0.00); }
+      }
 
       /* Masonry (2 sütun, bağımsız düşen kartlar) */
       .rs-masonry { column-gap: 1rem; } /* ~ gap-4 */
