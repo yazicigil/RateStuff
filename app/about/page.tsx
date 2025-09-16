@@ -74,9 +74,9 @@ export default function AboutPage() {
       </section>
 
       {/* 3 PİLAR */}
-      <section className="mx-auto max-w-6xl px-5 pt-10 pb-3 sm:pt-12 sm:pb-4">
+      <section className="mx-auto max-w-6xl px-5 pt-10 pb-0 sm:pt-12 sm:pb-0">
         <div className="grid gap-6 sm:grid-cols-3">
-          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10" spotlightColor="rgba(168, 85, 247, 0.4)">
+          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/20 dark:border-white/20">
             <div className="mb-3 inline-flex items-center gap-2">
               <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
               <h3 className="text-lg font-semibold">Topluluk Odaklı</h3>
@@ -90,7 +90,7 @@ export default function AboutPage() {
               <li>• Doğal keşif</li>
             </ul>
           </SpotlightCard>
-          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10" spotlightColor="rgba(168, 85, 247, 0.4)">
+          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/20 dark:border-white/20">
             <div className="mb-3 inline-flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
@@ -106,7 +106,7 @@ export default function AboutPage() {
               <li>• Topluluk normları</li>
             </ul>
           </SpotlightCard>
-          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/5 dark:border-white/10" spotlightColor="rgba(168, 85, 247, 0.4)">
+          <SpotlightCard className="p-6 sm:p-8 bg-white/80 dark:bg-white/5 backdrop-blur border border-black/20 dark:border-white/20">
             <div className="mb-3 inline-flex items-center gap-2">
               <SparklesIcon className="h-6 w-6" aria-hidden="true" />
               <h3 className="text-lg font-semibold">Tek başına karar verme</h3>
@@ -124,7 +124,7 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 pt-2 pb-0 sm:pt-3 sm:pb-1">
+      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-32 sm:-mt-44 relative z-0">
         <div className="flex flex-col overflow-hidden">
           <ContainerScroll
             titleComponent={
@@ -163,7 +163,7 @@ export default function AboutPage() {
       </section>
 
       {/* BÜYÜK STAT + VIBE SATIRI */}
-      <section className="mx-auto max-w-6xl px-5 pt-2 pb-6 sm:pt-3 sm:pb-8">
+      <section className="mx-auto max-w-6xl px-5 pt-0 pb-6 sm:pt-0 sm:pb-8 -mt-28 sm:-mt-40 relative z-10">
         
           <ScrollReveal
   baseOpacity={0}

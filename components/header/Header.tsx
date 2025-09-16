@@ -320,8 +320,8 @@ export default function Header({ controls }: { controls?: Controls }) {
     ? 'h-auto max-h-16 w-auto object-contain text-gray-900 dark:text-gray-100'
     : 'h-auto max-h-16 w-auto object-contain dark:invert';
   const logoClassBrand = USE_CURRENTCOLOR
-    ? 'h-auto max-h-14 md:max-h-12 lg:max-h-10 w-auto object-contain text-gray-900 dark:text-gray-100'
-    : 'h-auto max-h-14 md:max-h-12 lg:max-h-10 w-auto object-contain dark:invert dark:brightness-0';
+    ? 'h-auto w-auto object-contain text-gray-900 dark:text-gray-100 max-h-10 max-w-[45vw] sm:max-h-12 sm:max-w-[280px] md:max-h-12 md:max-w-none'
+    : 'h-auto w-auto object-contain dark:invert dark:brightness-0 max-h-10 max-w-[45vw] sm:max-h-12 sm:max-w-[280px] md:max-h-12 md:max-w-none';
 
   
 
