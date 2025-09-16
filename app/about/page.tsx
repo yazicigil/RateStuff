@@ -140,7 +140,7 @@ export default function AboutPage() {
             }
           >
             <img
-              src="/screen.jpg"
+              src="/screen.webp"
               alt="RateStuff ekran görüntüsü"
               height={720}
               width={1400}
