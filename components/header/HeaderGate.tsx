@@ -7,5 +7,5 @@ export default function HeaderGate() {
   
   const hideHeader = pathname === "/brand";
   if (hideHeader) return null;
-
+return <Header />;
 }

@@ -138,14 +138,14 @@ export default function AboutPage() {
               </>
             }
           >
-            <div className="relative">
+            <div className="relative mx-auto w-full max-w-5xl aspect-[1400/720]">
               {/* Light mode image */}
               <img
                 src="/screen.webp"
                 alt="RateStuff ekran görüntüsü"
                 height={720}
                 width={1400}
-                className="mx-auto rounded-2xl object-cover h-full object-[center_top] dark:hidden"
+                className="absolute inset-0 w-full h-full rounded-2xl object-cover object-[center_top] dark:hidden"
                 draggable={false}
               />
               {/* Dark mode image */}
@@ -154,7 +154,7 @@ export default function AboutPage() {
                 alt="RateStuff ekran görüntüsü (dark)"
                 height={720}
                 width={1400}
-                className="hidden dark:block mx-auto rounded-2xl object-cover h-full object-[center_top]"
+                className="absolute inset-0 w-full h-full hidden dark:block rounded-2xl object-cover object-[center_top]"
                 draggable={false}
               />
             </div>
