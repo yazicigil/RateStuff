@@ -7,6 +7,7 @@ import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
 import SpotlightCard from "components/reactbits/SpotlightCard";
 import Iridescence from "@/components/reactbits/Iridescence";
+import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",

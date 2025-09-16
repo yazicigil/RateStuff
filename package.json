@@ -29,6 +29,7 @@
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.541.0",
     "mention": "^0.0.9",
+    "motion": "^12.23.13",
     "next": "14.2.5",
     "next-auth": "^4.24.7",
     "next-intl": "^4.3.4",
@@ -47,6 +48,7 @@
     "styletron": "^3.0.4",
     "styletron-engine-monolithic": "^1.0.0",
     "styletron-react": "^6.1.1",
+    "tailwind-merge": "^3.3.1",
     "zeptomail": "^6.2.1",
     "zod": "3.23.8"
   },
