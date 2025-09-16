@@ -319,6 +319,7 @@ export default function CommentList({
                                 maskedName: c.user?.maskedName ?? maskName(c.user?.name, false),
                                 name: c.user?.name ?? null,
                                 avatarUrl: c.user?.avatarUrl ?? null,
+                                userkind: (c.user?.kind ? String(c.user.kind).toLowerCase() : null),
                               },
                               commentRating: typeof c.rating === 'number' ? c.rating : null,
                               commentText: typeof c.text === 'string' ? c.text : null,

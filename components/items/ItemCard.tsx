@@ -145,6 +145,8 @@ export default function ItemCard({
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // Hydrated authoritative image count for comments
+  const [hydratedCommentImagesTotal, setHydratedCommentImagesTotal] = useState<number | null>(null);
 
   const onSaveEditor = useCallback(async (v: ItemEditorValue) => {
     try {
@@ -190,8 +192,31 @@ export default function ItemCard({
       return (Array.isArray(allComments) ? allComments : []).reduce((acc: number, c: any) => acc + (Array.isArray(c?.images) ? c.images.length : 0), 0);
     } catch { return 0; }
   }, [allComments]);
+  // Prefer hydrated total from API when available
+  const effectiveCommentImagesTotal = hydratedCommentImagesTotal ?? commentImagesTotal;
   // Displayed pill count includes item image if present (same behavior as Spotlight)
-  const totalWithItem = commentImagesTotal + (i?.imageUrl ? 1 : 0);
+  const totalWithItem = effectiveCommentImagesTotal + (i?.imageUrl ? 1 : 0);
+
+  // Hydrate authoritative comment images count from API if necessary
+  React.useEffect(() => {
+    let cancelled = false;
+    // If list payload didn't include comments with images, hydrate the count from API
+    (async () => {
+      try {
+        const res = await fetch(`/api/items/${encodeURIComponent(i.id)}/comments`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => null);
+        const comments: any[] = Array.isArray(data?.comments) ? data!.comments : [];
+        let cnt = 0;
+        for (const c of comments) {
+          const imgs = Array.isArray(c?.images) ? c.images : [];
+          cnt += imgs.length;
+        }
+        if (!cancelled) setHydratedCommentImagesTotal(cnt);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [i?.id]);
 
   // --- Popover portal anchors & positions ---
   const shareAnchorRef = React.useRef<HTMLDivElement | null>(null);
@@ -395,7 +420,7 @@ export default function ItemCard({
                     />
                   </button>
 
-                  {commentImagesTotal > 0 && (
+                  {effectiveCommentImagesTotal > 0 && (
                     <button
                       type="button"
                       onClick={(ev) => { ev.stopPropagation(); onOpenSpotlight(i.id); }}

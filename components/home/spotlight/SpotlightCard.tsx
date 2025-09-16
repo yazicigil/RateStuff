@@ -226,7 +226,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
       blurDataUrl?: string | null;
       order?: number | null;
       commentId?: string;
-      commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+      commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null; userkind?: string | null } | null;
       commentRating?: number | null;
       commentText?: string | null;
     }> = [];
@@ -247,6 +247,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
             maskedName: maskName(c?.user?.name, false),
             name: c?.user?.name ?? null,
             avatarUrl: c?.user?.avatarUrl ?? null,
+            userkind: (c?.user as any)?.kind ? String((c?.user as any).kind).toLowerCase() : null,
           },
           commentRating: typeof c?.rating === 'number' ? c.rating : null,
           commentText: typeof c?.text === 'string' ? c.text : null,
@@ -272,7 +273,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
           blurDataUrl?: string | null;
           order?: number | null;
           commentId?: string;
-          commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null } | null;
+          commentUser?: { maskedName?: string | null; name?: string | null; avatarUrl?: string | null; userkind?: string | null } | null;
           commentRating?: number | null;
           commentText?: string | null;
         }> = [];
@@ -293,6 +294,7 @@ export default function SpotlightCard(props: SpotlightCardProps) {
                 maskedName: maskName(c?.user?.name, false),
                 name: c?.user?.name ?? null,
                 avatarUrl: c?.user?.avatarUrl ?? null,
+                userkind: (c?.user as any)?.kind ? String((c?.user as any).kind).toLowerCase() : null,
               },
               commentRating: typeof c?.rating === 'number' ? c.rating : null,
               commentText: typeof c?.text === 'string' ? c.text : null,
