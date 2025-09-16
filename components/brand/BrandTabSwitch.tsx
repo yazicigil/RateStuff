@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { getTabColorsForLightMode } from '../../lib/color'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ShoppingBagIcon, AtSymbolIcon } from '@heroicons/react/24/outline'
 
@@ -48,6 +49,7 @@ export default function BrandTabSwitch({
   }
 
   const activeColor = color || '#000'
+  const adjusted = React.useMemo(() => getTabColorsForLightMode(activeColor), [activeColor])
 
   return (
     <div className="w-full">
@@ -58,7 +60,10 @@ export default function BrandTabSwitch({
             type="button"
             onClick={() => go('items')}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors"
-            style={{ color: active === 'items' ? activeColor : 'inherit', fontWeight: active === 'items' ? 600 as any : 500 as any }}
+            style={{
+              color: active === 'items' ? adjusted.text : 'inherit',
+              fontWeight: (active === 'items' ? 600 : 500) as any,
+            }}
           >
             <ShoppingBagIcon className="w-4 h-4" />
             {variant === 'me' ? 'Ürünlerim' : 'Ürünler'}
@@ -68,7 +73,10 @@ export default function BrandTabSwitch({
             type="button"
             onClick={() => go('mentions')}
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors"
-            style={{ color: active === 'mentions' ? activeColor : 'inherit', fontWeight: active === 'mentions' ? 600 as any : 500 as any }}
+            style={{
+              color: active === 'mentions' ? adjusted.text : 'inherit',
+              fontWeight: (active === 'mentions' ? 600 : 500) as any,
+            }}
           >
             <AtSymbolIcon className="w-4 h-4" />
             Bahsetmeler
@@ -83,7 +91,7 @@ export default function BrandTabSwitch({
           style={{
             left: metrics.left,
             width: metrics.width,
-            backgroundColor: activeColor,
+            backgroundColor: adjusted.bar,
             transition: 'left 220ms cubic-bezier(0.22,1,0.36,1), width 220ms cubic-bezier(0.22,1,0.36,1)'
           }}
         />
