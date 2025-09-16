@@ -31,9 +31,12 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="relative">
+      {/* Global Aurora background behind header */}
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <Aurora />
+      </div>
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <Aurora />
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
             <Image
