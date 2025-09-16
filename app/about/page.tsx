@@ -5,6 +5,8 @@ import Link from "next/link";
 import SplitText from "components/reactbits/SplitText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import { UserGroupIcon, SparklesIcon } from "@heroicons/react/20/solid";
+import SpotlightCard from "components/reactbits/SpotlightCard";
+import Orb from "@/components/reactbits/Orb";
 
 export const metadata: Metadata = {
   title: "RateStuff | Hakkımızda",
@@ -30,14 +32,11 @@ export default function AboutPage() {
     <main className="relative">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-24 left-1/2 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full blur-3xl opacity-25"
-          style={{
-            background:
-              "radial-gradient(60% 60% at 50% 50%, var( #8ab7ffff, #b700ffff), transparent 70%)",
-          }}
-        />
+        <div className="absolute inset-0 -z-10 flex items-start justify-center">
+          <div className="mt-[-8rem] opacity-70 scale-[1.6]">
+            <Orb />
+          </div>
+        </div>
         <div className="mx-auto max-w-6xl px-5 pt-20 pb-12 sm:pt-28 sm:pb-16">
           <div className="flex flex-col items-center text-center gap-6">
             <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
@@ -78,28 +77,50 @@ export default function AboutPage() {
       {/* 3 PİLAR */}
       <section className="mx-auto max-w-6xl px-5 py-10 sm:py-14">
         <div className="grid gap-6 sm:grid-cols-3">
-          <Card
-            title="Topluluk Odaklı"
-            desc="Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde."
-            bullet={["Yıldız + yorum + görsel", "Trend etiketler", "Doğal keşif"]}
-            icon={<UserGroupIcon className="h-5 w-5" aria-hidden="true" />}
-          />
-          <Card
-            title="Şeffaf & Bağımsız"
-            desc="Görmek istediğin doğrultusunda filtrele; parlatılmış vitrin değil, gerçek deneyim akışı."
-            bullet={["Filtrelenebilir akış", "Şeffaf kurallar", "Topluluk normları"]}
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <SpotlightCard className="p-6 sm:p-8">
+            <div className="mb-3 inline-flex items-center gap-2">
+              <UserGroupIcon className="h-6 w-6" aria-hidden="true" />
+              <h3 className="text-lg font-semibold">Topluluk Odaklı</h3>
+            </div>
+            <p className="text-sm text-black/70 dark:text-white/70">
+              Gerçek kullanıcı yorumları, fotoğraflar ve mizah. Keşif, trend ve sohbet tek yerde.
+            </p>
+            <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
+              <li>• Yıldız + yorum + görsel</li>
+              <li>• Trend etiketler</li>
+              <li>• Doğal keşif</li>
+            </ul>
+          </SpotlightCard>
+          <SpotlightCard className="p-6 sm:p-8">
+            <div className="mb-3 inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                 <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
               </svg>
-            }
-          />
-          <Card
-            title="Karar Destek"
-            desc="Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör."
-            bullet={["Kıyaslamayı kolaylaştırır", "Artı/eksi netliği", "Zaman kazandırır"]}
-            icon={<SparklesIcon className="h-5 w-5" aria-hidden="true" />}
-          />
+              <h3 className="text-lg font-semibold">Şeffaf &amp; Bağımsız</h3>
+            </div>
+            <p className="text-sm text-black/70 dark:text-white/70">
+              Görmek istediğin doğrultusunda filtrele; parlatılmış vitrin değil, gerçek deneyim akışı.
+            </p>
+            <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
+              <li>• Filtrelenebilir akış</li>
+              <li>• Şeffaf kurallar</li>
+              <li>• Topluluk normları</li>
+            </ul>
+          </SpotlightCard>
+          <SpotlightCard className="p-6 sm:p-8">
+            <div className="mb-3 inline-flex items-center gap-2">
+              <SparklesIcon className="h-6 w-6" aria-hidden="true" />
+              <h3 className="text-lg font-semibold">Karar Destek</h3>
+            </div>
+            <p className="text-sm text-black/70 dark:text-white/70">
+              Bir ürünü almadan önce, bir hizmeti kullanmadan önce topluluğun deneyimini gör.
+            </p>
+            <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
+              <li>• Kıyaslamayı kolaylaştırır</li>
+              <li>• Artı/eksi netliği</li>
+              <li>• Zaman kazandırır</li>
+            </ul>
+          </SpotlightCard>
         </div>
       </section>
 
@@ -216,32 +237,6 @@ export default function AboutPage() {
 }
 
 /** ---------- küçük yardımcı bileşenler (server component) ---------- */
-
-function Card({
-  title,
-  desc,
-  bullet = [],
-  icon,
-}: {
-  title: string;
-  desc: string;
-  bullet?: string[];
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-black/10 dark:border-white/10 p-6 bg-white/70 dark:bg-white/5 backdrop-blur">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-black/70 dark:text-white/70">{desc}</p>
-      {bullet.length > 0 && (
-        <ul className="mt-4 space-y-1 text-sm text-black/70 dark:text-white/70">
-          {bullet.map((b, i) => (
-            <li key={i}>• {b}</li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
 
 function Value({ title, text }: { title: string; text: string }) {
   return (
