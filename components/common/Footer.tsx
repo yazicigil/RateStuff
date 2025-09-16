@@ -24,14 +24,13 @@ export default function Footer() {
           className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-gray-600 dark:text-gray-300"
           aria-label="Footer menü"
         >
-          <button
-            type="button"
-            className="hover:text-gray-900 dark:hover:text-gray-100 cursor-default font-medium"
-            aria-disabled="true"
-            title="Yakında"
+          <Link
+            href="/about"
+            className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
+            title="Hakkımızda"
           >
             Hakkımızda
-          </button>
+          </Link>
           <Link
             href="/privacy"
             className="hover:text-gray-900 dark:hover:text-gray-100 font-medium"
