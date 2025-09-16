@@ -32,13 +32,11 @@ export default function AboutPage() {
     <main className="relative dark">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 -z-10 flex items-center justify-center" aria-hidden="true">
-          <div className="scale-[3] sm:scale-[3.6] mt-[-6rem]">
-            <Orb hoverIntensity={0.35} />
-          </div>
+        <div className="absolute inset-0 -z-10 pointer-events-auto">
+          <Orb hoverIntensity={0.35} />
         </div>
         <div className="mx-auto max-w-6xl px-5 pt-28 pb-20 sm:pt-40 sm:pb-28">
-          <div className="flex flex-col items-center text-center gap-6">
+          <div className="flex flex-col items-center text-center gap-6 pointer-events-none">
             <div className="text-3xl sm:text-5xl font-semibold leading-tight tracking-tight">
               <SplitText
                 key="hero-line-1"
@@ -56,7 +54,7 @@ export default function AboutPage() {
               platformdur. Parlatılmış reklamlar değil, sahici deneyimler.
             </p>
 
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2 pointer-events-auto">
               <Link
                 href="/signin"
                 className="rounded-full px-5 py-2.5 text-sm font-medium bg-black text-white dark:bg-white dark:text-black shadow-sm hover:opacity-90 transition"
