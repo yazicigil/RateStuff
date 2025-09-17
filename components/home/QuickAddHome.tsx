@@ -308,7 +308,7 @@ export default function QuickAddHome({
 
       <div className="mb-2">
         <h3 className="text-base md:text-lg font-semibold">Hızlı ekle</h3>
-        <p className="text-xs opacity-70">Ad*, en az <b>1 etiket*</b> ve <b>puan*</b>. Görsel opsiyonel.</p>
+        <p className="text-xs opacity-70"><b>Ad*</b>, en az <b>1 etiket*</b> ve <b>puan*</b>. Görsel eklersen daha iyi sonuç alırsın.</p>
       </div>
 
       <form ref={formRef} onSubmit={submit} className={wrapClass}>
@@ -331,7 +331,7 @@ export default function QuickAddHome({
             <MentionTextArea
               value={desc}
               onChange={setDesc}
-              placeholder=" kısa açıklama"
+              placeholder="Kısa bilgi, konum veya @marka"
               className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-transparent dark:bg-transparent dark:border-gray-700 dark:text-gray-100"
             />
           </div>
