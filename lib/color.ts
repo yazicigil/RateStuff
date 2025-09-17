@@ -75,10 +75,11 @@ export function getContrastAdjustedColor(brandHex: string, bgHex = DEFAULT_LIGHT
   return ok ? darkened : '#111111';
 }
 
-export function getContrastAdjustedColorDark(brandHex: string, bgHex = DEFAULT_DARK_BG, target = 4.5, maxLighten = 0.6) {
-  const lightened = lightenUntilContrast(brandHex, bgHex, target, maxLighten);
-  const ok = contrastRatio(lightened, bgHex) >= target;
-  return ok ? lightened : '#ffffff';
+export function getContrastAdjustedColorDark(brandHex: string, bgHex = DEFAULT_DARK_BG, target = 4.5, maxLighten = 0.6): string {
+  if (contrastRatio(brandHex, bgHex) >= target) {
+    return brandHex;
+  }
+  return '#ffffff';
 }
 
 export function getTabTextColorForLightMode(brandHex: string) {
@@ -91,7 +92,6 @@ export function getTabColorsForLightMode(brandHex: string) {
 }
 
 export function getTabTextColorForDarkMode(brandHex: string, bgHex = DEFAULT_DARK_BG) {
-  // In dark mode, ensure text has ≥4.5 contrast against dark surface
   return getContrastAdjustedColorDark(brandHex, bgHex);
 }
 

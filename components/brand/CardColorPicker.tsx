@@ -45,12 +45,6 @@ export default function CardColorPicker({ initialColor, targetId = 'brand-hero-c
     const el = document.getElementById(targetId);
     const root = document.documentElement; // <-- write vars here so scope is global
 
-    const hexUpperEarly = hex.toUpperCase();
-    if (hexUpperEarly === '#FFFFFF' || hexUpperEarly === '#000000') {
-      // behave as if no brand color selected
-      reset(shouldPersist);
-      return;
-    }
 
     // If we cannot find the target element, we still proceed with global vars
     const bg = hexToRgba(hex, 0.65);       // kept for optional glass uses
@@ -113,6 +107,9 @@ el.style.setProperty('--brand-elev-bd', elevBd);
     }
 
     if (shouldPersist) persist(hex);
+    try {
+      window.dispatchEvent(new CustomEvent('brand:colorchange', { detail: { hex } }));
+    } catch {}
   }
 
   function reset(persistAlso: boolean = true) {
@@ -150,6 +147,10 @@ el.style.removeProperty('--brand-elev-bd');
     root.style.removeProperty('--brand-elev-bg');
 root.style.removeProperty('--brand-elev-strong');
 root.style.removeProperty('--brand-elev-bd');
+
+    try {
+      window.dispatchEvent(new CustomEvent('brand:colorchange', { detail: { hex: null } }));
+    } catch {}
 
     setColor('#FFFFFF');
     if (persistAlso) persist(null);
