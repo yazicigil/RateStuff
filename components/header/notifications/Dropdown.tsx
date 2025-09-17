@@ -18,6 +18,7 @@ import { readTheme } from "@/lib/theme";
 export default function NotificationsDropdown() {
   const [open, setOpen] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const { items, unreadCount, total, hasMore, loading, load, refresh, markRead, markAll, status, setStatus } =
     useNotifications("all", 5);
   const visibleItems: Notif[] = items.filter(n => !hiddenIds.has(n.id));
@@ -31,6 +32,15 @@ export default function NotificationsDropdown() {
     } catch (e) {
       console.error("Failed to delete notification", e);
     }
+  }
+
+  function toggleExpand(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   }
 
   function relativeTime(iso: string) {
@@ -391,7 +401,24 @@ export default function NotificationsDropdown() {
                         n.title
                       )}
                     </div>
-                    <div className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">{n.body}</div>
+                    <div className="mt-0.5">
+                      <div className={`text-xs text-neutral-600 dark:text-neutral-400 ${expandedIds.has(n.id) ? '' : 'line-clamp-2'}`}>
+                        {n.body}
+                      </div>
+                      {((n.body?.length ?? 0) > 90) && (
+                        <button
+                          type="button"
+                          className="mt-1 text-[11px] font-medium text-purple-600 hover:underline dark:text-purple-400"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(n.id);
+                          }}
+                          aria-label={expandedIds.has(n.id) ? 'Daha az göster' : 'Devamını gör'}
+                        >
+                          {expandedIds.has(n.id) ? 'daha az' : 'devamını gör'}
+                        </button>
+                      )}
+                    </div>
                     <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400">{relativeTime(n.createdAt)}</div>
                   </div>
                   {!n.readAt && <span className="mt-1 h-2 w-2 rounded-full bg-blue-600 self-start" />}
