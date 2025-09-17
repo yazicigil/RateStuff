@@ -144,3 +144,22 @@ body { @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100; }
 .rs-mention-input::placeholder {
   @apply text-gray-500 dark:text-gray-400;
 }
+
+/* === Normalize selected state across app === */
+.rs-chip.rs-chip--selected,
+.rs-chip[aria-pressed="true"],
+[role="tab"][aria-selected="true"],
+[data-selected="true"] {
+  background: transparent !important;
+  color: inherit !important;           /* yazı rengi değişmesin */
+  border-color: currentColor !important;
+  border-width: 2px !important;
+}
+
+.rs-btn--outline[aria-pressed="true"],
+.rs-btn--ghost[aria-pressed="true"] {
+  background: transparent !important;
+  color: inherit !important;           /* /me ile uyum */
+  border-color: currentColor !important;
+  box-shadow: 0 0 0 1px currentColor inset !important;
+}
