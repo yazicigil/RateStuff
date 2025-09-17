@@ -253,7 +253,7 @@ export default async function BrandProfilePage({ searchParams }: { searchParams?
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
         {/* Tab contents */}
-        <div className="mt-3 sm:mt-4" style={{ color: 'var(--brand-ink)' }}>
+        <div className="mt-3 sm:mt-4">
           {activeTab === 'mentions' ? (
             <MentionsTab
               brandSlug={brand?.slug ?? undefined}
