@@ -6,6 +6,7 @@ import { getBrandPublicView } from "@/lib/brand";
 import { auth } from "@/lib/auth";
 import { getBrandCSSVars } from "@/lib/brandTheme";
 import ProductsList from "@/components/brand/ProductsList";
+import HeroBrandCard from "@/components/brand/HeroBrandCard";
 
 
 // local helpers for single-file contrast decision
@@ -101,64 +102,14 @@ export default async function BrandPublicPage({ params, searchParams }: { params
 
       {/* Hero */}
       <div className="relative mx-auto max-w-6xl px-4 sm:px-6 pt-0 pb-8 sm:pb-12 -mt-4 sm:-mt-6">
-        <div
-          id="brand-hero-card"
-          className="brand-hero-scope relative rounded-3xl border bg-white dark:bg-[#0b1220] shadow-md p-4 sm:p-6 md:p-7 pt-24 sm:pt-10 md:pt-9 pl-4 sm:pl-40 md:pl-44 -translate-y-2 sm:translate-y-0"
-          style={{
-            color: heroInk,
-            ["--hero-ink" as any]: heroInk,
-            ["--brand-ink" as any]: heroInk,
-            backgroundColor: "var(--brand-items-bg)",
-            borderColor: "var(--brand-elev-bd)",
-          }}
-        >
-          <div className="mt-0 flex flex-col gap-2 md:pr-2">
-            <div className="flex items-center flex-wrap gap-x-2 gap-y-1">
-              <h1 className="text-2xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">
-                {brand.displayName}
-              </h1>
-              <VerifiedBadge />
-              {viewerId === user.id ? (
-                <span
-                  className="owner-settings-scope inline-flex items-center"
-                  style={{ color: "var(--hero-ink)" }}
-                >
-                  <OwnerSettings brandEmail={brand.email} ownerUserId={user.id} />
-                </span>
-              ) : null}
-            </div>
-
-            <div style={{ color: "var(--hero-ink)" }}>
-              {/* SocialBar read-only */}
-              <SocialBar userId={user.id} canEdit={false} className="pt-1" />
-            </div>
-
-            {/* Bio read-only (public: sadece bio varsa göster) */}
-            { (brand.bio && brand.bio.trim().length > 0) ? (
-              <div
-                className="bio-scope pt-2 text-[13px] sm:text-sm leading-6 max-w-prose [&_*]:text-[var(--hero-ink)]"
-                style={{ color: "var(--hero-ink)" }}
-              >
-                <BrandBioInline brandId={brand.id} initialBio={brand.bio} isOwner={false} />
-              </div>
-            ) : null }
-          </div>
-
-          {/* Meta row */}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <div className="inline-flex items-center gap-2 rounded-full px-2.5 py-1 border" style={{ backgroundColor: "transparent", borderColor: pillBorder }}>
-              <span className="text-[10px] uppercase tracking-wide" style={{ color: heroSubtle }}>Ürün</span>
-              <span className="text-sm font-semibold leading-none">{itemsCount}</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border" style={{ backgroundColor: "transparent", borderColor: pillBorder }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-yellow-500">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="text-sm font-semibold leading-none">{avgRating ? avgRating.toFixed(2) : "—"}</span>
-              <span className="text-[11px] leading-none" style={{ color: heroSubtle }}>/ 5</span>
-            </div>
-          </div>
-        </div>
+        <HeroBrandCard
+          mode="public"
+          brand={brand}
+          user={user}
+          viewerId={viewerId}
+          viewerIsAdmin={viewerIsAdmin}
+          metrics={{ itemsCount, avgRating }}
+        />
         <div className="mt-4 sm:mt-6">
           <BrandTabSwitch
             active={activeTab === 'mentions' ? 'mentions' : 'items'}
