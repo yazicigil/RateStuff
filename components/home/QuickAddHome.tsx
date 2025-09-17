@@ -532,7 +532,7 @@ export default function QuickAddHome({
           {!signedIn && (
             <a
               href={signInHref}
-              className="mr-auto text-xs md:text-sm underline text-emerald-700 hover:opacity-90 dark:text-emerald-300"
+              className="mr-auto text-xs md:text-sm text-violet-700 hover:text-violet-600 underline underline-offset-2 dark:text-violet-300"
               title="Giriş yap"
             >
               Eklemek için giriş yap
@@ -563,10 +563,12 @@ export default function QuickAddHome({
             <p className="text-sm md:text-base mb-3 text-emerald-900/90 dark:text-emerald-200">Devam etmek için giriş yap</p>
             <a
               href={signInHref}
-              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              className="group inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/20 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 dark:focus:ring-offset-transparent transition-all active:scale-[0.98]"
             >
               Giriş yap
-              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+              </svg>
             </a>
           </div>
         </div>
