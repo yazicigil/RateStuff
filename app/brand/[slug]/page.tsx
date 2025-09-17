@@ -167,7 +167,7 @@ export default async function BrandPublicPage({ params, searchParams }: { params
         </div>
         <div className="mt-1 h-px w-full bg-gradient-to-r from-transparent via-neutral-200/80 to-transparent dark:via-white/10" />
 
-        <div className="mt-3 sm:mt-4 brand-slug-scope" style={{ color: 'var(--brand-ink)' }}>
+        <div className="mt-3 sm:mt-4 brand-slug-scope" style={{ color: 'var(--brand-ink, #0b1220)' }}>
           {activeTab === 'mentions' ? (
             <MentionsTab
               brandSlug={brand.slug}
@@ -229,8 +229,8 @@ export default async function BrandPublicPage({ params, searchParams }: { params
               .brand-slug-scope [aria-pressed="true"],
               .brand-slug-scope [data-selected="true"] {
                 background: transparent !important;
-                color: var(--brand-ink) !important;                /* force text/icon color to ink (dark on light brands) */
-                border-color: var(--brand-elev-bd) !important;
+                color: inherit !important;                  /* do not force; keep existing text color like /me */
+                border-color: currentColor !important;      /* follow text color; consistent with /me */
                 border-width: 2px !important;
               }
               /* Also enforce descendant icon/text color on selected */
@@ -238,22 +238,22 @@ export default async function BrandPublicPage({ params, searchParams }: { params
               .brand-slug-scope .is-selected *,
               .brand-slug-scope [aria-pressed="true"] *,
               .brand-slug-scope [data-selected="true"] * {
-                color: var(--brand-ink) !important;
+                color: inherit !important;
               }
               /* Outline/Ghost buttons pressed */
               .brand-slug-scope .rs-btn--outline[aria-pressed="true"],
               .brand-slug-scope .rs-btn--ghost[aria-pressed="true"] {
                 background: transparent !important;
-                color: var(--brand-ink) !important;
-                border-color: var(--brand-elev-bd) !important;
-                box-shadow: 0 0 0 1px var(--brand-elev-bd) inset !important;
+                color: inherit !important;                             /* preserve original ink */
+                border-color: currentColor !important;                 /* match /me behavior */
+                box-shadow: 0 0 0 1px var(--brand-elev-bd, currentColor) inset !important;
               }
               /* Ensure icons follow currentColor */
               .brand-slug-scope .rs-chip--selected svg,
               .brand-slug-scope .is-selected svg,
               .brand-slug-scope [aria-pressed="true"] svg,
               .brand-slug-scope [data-selected="true"] svg {
-                color: var(--brand-ink) !important;
+                color: inherit !important;
               }
               .brand-slug-scope .rs-chip--selected svg [fill]:not([fill="none"]),
               .brand-slug-scope .is-selected svg [fill]:not([fill="none"]),
@@ -270,7 +270,7 @@ export default async function BrandPublicPage({ params, searchParams }: { params
               /* Ensure non-selected chips keep neutral background, not forced white */
               .brand-slug-scope .rs-chip:not(.rs-chip--selected) {
                 background: var(--brand-elev-bg) !important;
-                border-color: var(--brand-elev-bd) !important;
+                border-color: var(--brand-elev-bd, currentColor) !important;
               }
               /* Hero scope: force owner settings & bio to follow hero ink (brand contrast) */
               .brand-hero-scope .owner-settings-scope,

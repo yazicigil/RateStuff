@@ -54,7 +54,7 @@ export default function AboutPage() {
               />
             </div>
             <p className="max-w-2xl text-base sm:text-lg text-black/70 dark:text-white/70 text-balance">
-              RateStuff'ta deneyimlerini payalaşabilir , topluluğun fikrini alabilirsin. Gerçek deneyimlerden faydalan.
+              RateStuff'ta deneyimlerini paylaşabilir, topluluğun fikrini alabilirsin. Gerçek deneyimlerden faydalan.
             </p>
             
 
@@ -71,7 +71,7 @@ export default function AboutPage() {
                 aria-label="RateStuff for Brands"
                 className="rounded-full px-5 py-2.5 text-sm font-medium border border-violet-500 text-violet-700 hover:bg-violet-500/10 dark:border-violet-400 dark:text-violet-300 dark:hover:bg-violet-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400/60 transition"
               >
-                RateStuff for Brands
+                RateStuff | for Brands
               </Link>
             </div>
           </div>
@@ -129,7 +129,7 @@ export default function AboutPage() {
       </section>
 
       {/* CONTAINER SCROLL (Aceternity) */}
-      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-72 sm:-mt-40 relative z-0 pointer-events-none">
+      <section className="mx-auto max-w-6xl px-5 pt-0 pb-0 sm:pt-0 sm:pb-0 -mt-56 sm:-mt-40 relative z-0 pointer-events-none">
         <div className="flex flex-col overflow-visible">
           <ContainerScroll
             titleComponent={
@@ -204,7 +204,7 @@ export default function AboutPage() {
             <div className="order-2 sm:order-1">
               <span className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium bg-violet-500/10 text-violet-500 ring-1 ring-violet-500/30">
                 <SparklesIcon className="h-4 w-4" aria-hidden="true" />
-                RateStuff for Brands
+                RateStuff | for Brands
               </span>
               <h2 className="mt-3 text-2xl sm:text-3xl font-semibold tracking-tight">
                 Markalar için yeni bir pencere
