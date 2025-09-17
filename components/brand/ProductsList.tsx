@@ -556,7 +556,7 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                 order === 'new'
                   ? {
                       background: 'transparent',
-                      borderColor: selInkByAccent,
+                      borderColor: 'currentColor',
                       borderWidth: '2px',
                       color: 'inherit',
                     }
@@ -577,7 +577,7 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
                 order === 'top'
                   ? {
                       background: 'transparent',
-                      borderColor: selInkByAccent,
+                      borderColor: 'currentColor',
                       borderWidth: '2px',
                       color: 'inherit',
                     }

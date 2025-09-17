@@ -134,7 +134,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           if (isSel) {
             // Selected: only thicker border, keep background and color unchanged
             styles.background = 'transparent';
-            styles.borderColor = selInkByAccent as any;
+            styles.borderColor = 'currentColor';
             styles.borderWidth = '2px';
             styles.color = 'inherit';
           } else {
@@ -251,7 +251,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
               selected.size === 0
                 ? {
                     background: 'transparent',
-                    borderColor: selInkByAccent,
+                    borderColor: 'currentColor',
                     borderWidth: '2px',
                     color: 'inherit',
                   }
@@ -286,7 +286,7 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                 isSel
                   ? {
                       background: 'transparent',
-                      borderColor: selInkByAccent,
+                      borderColor: 'currentColor',
                       borderWidth: '2px',
                       color: 'inherit',
                     }
