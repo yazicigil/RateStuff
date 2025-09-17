@@ -1609,9 +1609,13 @@ if (!already) {
                   key={`add-m-${ix}`}
                   type="button"
                   onClick={() => {
-                    setSharedItem(null);
-                    setSharedId(null);
-                    setShowQuickAdd(true);
+                    if (showQuickAdd) {
+                      setShowQuickAdd(false);
+                    } else {
+                      setSharedItem(null);
+                      setSharedId(null);
+                      setShowQuickAdd(true);
+                    }
                   }}
                   className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
                   aria-label="Yeni öğe ekle"
@@ -1672,9 +1676,13 @@ if (!already) {
                     key={`add-left-${ix}`}
                     type="button"
                     onClick={() => {
-                      setSharedItem(null);
-                      setSharedId(null);
-                      setShowQuickAdd(true);
+                      if (showQuickAdd) {
+                        setShowQuickAdd(false);
+                      } else {
+                        setSharedItem(null);
+                        setSharedId(null);
+                        setShowQuickAdd(true);
+                      }
                     }}
                     className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
                     aria-label="Yeni öğe ekle"
@@ -1732,9 +1740,13 @@ if (!already) {
                     key={`add-right-${ix}`}
                     type="button"
                     onClick={() => {
-                      setSharedItem(null);
-                      setSharedId(null);
-                      setShowQuickAdd(true);
+                      if (showQuickAdd) {
+                        setShowQuickAdd(false);
+                      } else {
+                        setSharedItem(null);
+                        setSharedId(null);
+                        setShowQuickAdd(true);
+                      }
                     }}
                     className="relative rounded-2xl border-2 border-emerald-300 p-4 shadow-sm bg-emerald-50/60 dark:bg-emerald-900/20 dark:border-emerald-900/40 flex flex-col items-center justify-center hover:-translate-y-0.5 hover:shadow-md transition-transform duration-150 focus:outline-none focus:ring-2 focus:ring-emerald-400 min-h-[152px]"
                     aria-label="Yeni öğe ekle"
