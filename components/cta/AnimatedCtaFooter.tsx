@@ -37,14 +37,16 @@ export default function AnimatedCtaFooter({
   const y = useTransform(scrollYProgress, [0, 1], [100, 20]);
   const bgOpacity = useTransform(scrollYProgress, [0, 1], [0.6, 1]);
   const rotateX = useTransform(scrollYProgress, [0, 1], [30, 0]);
-  const contentY = useTransform(scrollYProgress, [0, 1], [0, 100]);
 
   return (
     <section ref={ref} className={`mx-auto max-w-5xl px-5 pb-12 ${className ?? ""}`}>
-      <div className="relative text-center">
+      <motion.div
+        className="relative text-center will-change-transform"
+        style={{ scale, y, rotateX }}
+      >
         {/* Animated background (only this scales/tilts/opacity) */}
         <motion.div
-          style={{ scale, y, opacity: bgOpacity, rotateX }}
+          style={{ opacity: bgOpacity }}
           className="absolute inset-0 rounded-3xl border border-black/10 dark:border-white/10 backdrop-blur shadow-2xl will-change-transform overflow-hidden"
           aria-hidden="true"
         >
@@ -53,7 +55,7 @@ export default function AnimatedCtaFooter({
         </motion.div>
 
         {/* Content (kept crisp) */}
-        <motion.div style={{ y: contentY }} className="relative rounded-3xl p-10 sm:p-14 flex flex-col items-center justify-center min-h-[16rem]">
+        <motion.div className="relative rounded-3xl p-10 sm:p-14 flex flex-col items-center justify-center min-h-[16rem]">
           <h4 className="text-3xl sm:text-4xl font-bold mb-4 text-white">
             {title}
           </h4>
@@ -79,7 +81,7 @@ export default function AnimatedCtaFooter({
             )}
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }

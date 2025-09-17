@@ -12,6 +12,7 @@ import { ContainerScroll } from "@/components/ui/container-scroll-animation";
 import LearnMoreOpener from "@/components/brand/LearnMoreOpener";
 import Aurora from "@/components/reactbits/Aurora";
 import AnimatedCtaFooter from "@/components/cta/AnimatedCtaFooter";
+import ModernFAQAccordion from "@/components/ModernFAQAccordion";
 
 export const metadata: Metadata = {
   title: "Hakkımızda",
@@ -191,7 +192,7 @@ export default function AboutPage() {
       </section>
 
       {/* FOR BRANDS BLOĞU */}
-      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16">
+      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16 -mb-15">
         <div className="relative overflow-hidden rounded-3xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 backdrop-blur p-6 sm:p-10">
           {/* subtle glow */}
           <div
@@ -252,6 +253,11 @@ export default function AboutPage() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* FAQ – birleşik (Users + for Brands) */}
+      <section className="mx-auto max-w-6xl px-5 py-10 sm:py-16 -mb-48 sm:-mb-48 md:-mb-48 lg:-mb-48 xl:-mb-48 relative z-10">
+        <ModernFAQAccordion title="Sıkça Sorulan Sorular" allowMultiple />
       </section>
 
       <AnimatedCtaFooter
