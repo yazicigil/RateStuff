@@ -132,13 +132,12 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
           className = base;
           styles = {};
           if (isSel) {
-            // Seçiliyken: koyu yüzeyde açık, açık yüzeyde koyu kontur
-            styles.background = 'var(--brand-accent-strong, var(--brand-accent))';
+            // Selected: only thicker border, keep background and color unchanged
+            styles.background = 'transparent';
             styles.borderColor = selInkByAccent as any;
-            styles.boxShadow = `0 0 0 1px ${selInkByAccent} inset` as any;
-            styles.color = selInkByAccent as any;
+            styles.borderWidth = '2px';
+            styles.color = 'inherit';
           } else {
-            // Seçili değilken: brand rengine uyumlu açık ton + daha yüksek kontrastlı outline/ink
             styles.background = 'var(--brand-elev-weak, transparent)';
             styles.borderColor = bdByTone;
             styles.color = inkByTone;
@@ -248,9 +247,19 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
             className={`h-8 px-3 py-0 rounded-full border text-xs shrink-0 ${brandTheme ? '' : (selected.size === 0
               ? 'bg-black text-white border-black'
               : 'bg-white dark:bg-gray-900 dark:border-gray-800')}`}
-            style={brandTheme ? (selected.size === 0
-              ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
-              : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
+            style={brandTheme ? (
+              selected.size === 0
+                ? {
+                    background: 'transparent',
+                    borderColor: selInkByAccent,
+                    borderWidth: '2px',
+                    color: 'inherit',
+                  }
+                : {
+                    background: 'var(--brand-elev-weak, transparent)',
+                    borderColor: bdByTone,
+                    color: inkByTone,
+                  }
             ) : undefined}
             onClick={onClear}
             onDoubleClick={onClear}
@@ -275,8 +284,17 @@ export default function TagFilterBar({ tags, trending = [], selected, onToggle, 
                         : `${base} bg-white dark:bg-gray-900 dark:border-gray-800`));
               const styleChip = brandTheme ? (
                 isSel
-                  ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
-                  : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
+                  ? {
+                      background: 'transparent',
+                      borderColor: selInkByAccent,
+                      borderWidth: '2px',
+                      color: 'inherit',
+                    }
+                  : {
+                      background: 'var(--brand-elev-weak, transparent)',
+                      borderColor: bdByTone,
+                      color: inkByTone,
+                    }
               ) : undefined;
               return (
                 <button

@@ -551,10 +551,20 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
             <button
               type="button"
               onClick={() => setOrder('new')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='new' ? '' : ''}`}
-              style={brandTheme ? (order==='new'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
-                : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
+              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors`}
+              style={brandTheme ? (
+                order === 'new'
+                  ? {
+                      background: 'transparent',
+                      borderColor: selInkByAccent,
+                      borderWidth: '2px',
+                      color: 'inherit',
+                    }
+                  : {
+                      background: 'var(--brand-elev-weak, transparent)',
+                      borderColor: bdByTone,
+                      color: inkByTone,
+                    }
               ) : undefined}
             >
               En yeni
@@ -562,10 +572,20 @@ const handleNativeShare = React.useCallback(async (id: string, name?: string) =>
             <button
               type="button"
               onClick={() => setOrder('top')}
-              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${order==='top' ? '' : ''}`}
-              style={brandTheme ? (order==='top'
-                ? { background: 'var(--brand-accent-strong, var(--brand-accent))', borderColor: selInkByAccent, boxShadow: `0 0 0 1px ${selInkByAccent} inset`, color: selInkByAccent }
-                : { background: 'var(--brand-elev-weak, transparent)', borderColor: bdByTone, color: inkByTone }
+              className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors`}
+              style={brandTheme ? (
+                order === 'top'
+                  ? {
+                      background: 'transparent',
+                      borderColor: selInkByAccent,
+                      borderWidth: '2px',
+                      color: 'inherit',
+                    }
+                  : {
+                      background: 'var(--brand-elev-weak, transparent)',
+                      borderColor: bdByTone,
+                      color: inkByTone,
+                    }
               ) : undefined}
             >
               En yüksek puan
