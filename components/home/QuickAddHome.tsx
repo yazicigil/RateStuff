@@ -60,6 +60,7 @@ export default function QuickAddHome({
   autoCloseOnSuccess = true,
   isBrandUser = false,
 }: QuickAddHomeProps) {
+  const locked = !signedIn;
   // ---- state
   const formRef = useRef<HTMLFormElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -284,6 +285,7 @@ export default function QuickAddHome({
 
   return (
     <div className="relative rounded-2xl border p-4 shadow-sm bg-emerald-50/70 border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-900/40 rs-quickadd">
+      <div className={locked ? "pointer-events-none select-none filter blur-[2px] opacity-60" : ""}>
       {/* Close */}
       {onClose && (
         <button
@@ -553,6 +555,22 @@ export default function QuickAddHome({
           </button>
         </div>
       </form>
+      </div>
+
+      {locked && (
+        <div className="absolute inset-0 z-40 grid place-items-center">
+          <div className="rounded-2xl border border-emerald-300/60 bg-white/85 dark:bg-emerald-900/70 backdrop-blur px-5 py-6 text-center shadow-xl">
+            <p className="text-sm md:text-base mb-3 text-emerald-900/90 dark:text-emerald-200">Devam etmek için giriş yap</p>
+            <a
+              href={signInHref}
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              Giriş yap
+              <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+            </a>
+          </div>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes sugInLeft { from { transform: translateX(-14px); opacity: .0; } to { transform: translateX(0); opacity: 1; } }

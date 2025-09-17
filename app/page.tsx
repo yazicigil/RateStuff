@@ -1379,6 +1379,8 @@ if (!already) {
   <QuickAddHome
     open
     variant="rich"
+    signedIn={!!session}
+    signInHref="/signin"
     isBrandUser={isBrandUser}
     autoCloseOnSuccess={true}
     prefill={{
