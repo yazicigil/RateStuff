@@ -1,4 +1,6 @@
 // 1) temel renk yardımcıları
+const DEFAULT_LIGHT_BG = '#ffffff';
+const DEFAULT_DARK_BG  = '#0b1220'; // project dark surface
 const clamp = (v: number, min=0, max=1) => Math.min(max, Math.max(min, v));
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -37,7 +39,7 @@ function contrastRatio(fgHex: string, bgHex: string) {
 }
 
 // 3) “ton karartma” ana fonksiyonu
-function darkenUntilContrast(brandHex: string, bgHex = '#ffffff', target = 4.5, maxDarken = 0.4) {
+function darkenUntilContrast(brandHex: string, bgHex = DEFAULT_LIGHT_BG, target = 4.5, maxDarken = 0.4) {
   // brand rengini siyaha doğru karıştırarak 4.5:1’e ulaşmayı dener
   if (contrastRatio(brandHex, bgHex) >= target) return brandHex;
 
@@ -53,17 +55,37 @@ function darkenUntilContrast(brandHex: string, bgHex = '#ffffff', target = 4.5, 
   return best;
 }
 
-export function getContrastAdjustedColor(brandHex: string, bgHex = '#ffffff', target = 4.5, maxDarken = 0.4) {
+export function getContrastAdjustedColor(brandHex: string, bgHex = DEFAULT_LIGHT_BG, target = 4.5, maxDarken = 0.4) {
   const darkened = darkenUntilContrast(brandHex, bgHex, target, maxDarken);
   const ok = contrastRatio(darkened, bgHex) >= target;
   return ok ? darkened : '#111111';
 }
 
 export function getTabTextColorForLightMode(brandHex: string) {
-  return getContrastAdjustedColor(brandHex);
+  return getContrastAdjustedColor(brandHex, DEFAULT_LIGHT_BG);
 }
 
 export function getTabColorsForLightMode(brandHex: string) {
-  const adjusted = getContrastAdjustedColor(brandHex);
+  const adjusted = getContrastAdjustedColor(brandHex, DEFAULT_LIGHT_BG);
+  return { text: adjusted, bar: adjusted };
+}
+
+export function getTabTextColorForDarkMode(brandHex: string, bgHex = DEFAULT_DARK_BG) {
+  // In dark mode, ensure text has ≥4.5 contrast against dark surface
+  return getContrastAdjustedColor(brandHex, bgHex);
+}
+
+export function getTabColorsForDarkMode(brandHex: string, bgHex = DEFAULT_DARK_BG) {
+  const adjusted = getContrastAdjustedColor(brandHex, bgHex);
+  return { text: adjusted, bar: adjusted };
+}
+
+/** Unified helper: decide by isDark; optionally override bg */
+export function getTabColors(brandHex: string, opts?: { isDark?: boolean; bgHex?: string; target?: number; maxDarken?: number }) {
+  const isDark = !!opts?.isDark;
+  const bg = opts?.bgHex ?? (isDark ? DEFAULT_DARK_BG : DEFAULT_LIGHT_BG);
+  const target = opts?.target ?? 4.5;
+  const maxDarken = opts?.maxDarken ?? 0.4;
+  const adjusted = getContrastAdjustedColor(brandHex, bg, target, maxDarken);
   return { text: adjusted, bar: adjusted };
 }

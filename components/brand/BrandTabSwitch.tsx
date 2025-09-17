@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { getTabColorsForLightMode } from '../../lib/color'
+import { getTabColors } from '../../lib/color'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ShoppingBagIcon, AtSymbolIcon } from '@heroicons/react/24/outline'
 
@@ -20,6 +20,36 @@ export default function BrandTabSwitch({
   const mentionsRef = React.useRef<HTMLButtonElement | null>(null)
   const barRef = React.useRef<HTMLDivElement | null>(null)
   const [metrics, setMetrics] = React.useState<{ left: number; width: number }>({ left: 0, width: 0 })
+
+  const [isDark, setIsDark] = React.useState<boolean>(() => {
+    if (typeof document === 'undefined') return false
+    return document.documentElement.classList.contains('dark')
+  })
+
+  React.useEffect(() => {
+    if (typeof document === 'undefined') return
+    const root = document.documentElement
+    const update = () => setIsDark(root.classList.contains('dark'))
+    update()
+    const mo = new MutationObserver(() => update())
+    mo.observe(root, { attributes: true, attributeFilter: ['class'] })
+    // also listen to OS scheme changes as a fallback
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)')
+    const onMQ = () => update()
+    try {
+      mq?.addEventListener?.('change', onMQ)
+    } catch {
+      mq?.addListener?.(onMQ as any)
+    }
+    return () => {
+      mo.disconnect()
+      try {
+        mq?.removeEventListener?.('change', onMQ)
+      } catch {
+        mq?.removeListener?.(onMQ as any)
+      }
+    }
+  }, [])
 
   const updateBar = React.useCallback(() => {
     const el = active === 'items' ? itemsRef.current : mentionsRef.current
@@ -49,7 +79,10 @@ export default function BrandTabSwitch({
   }
 
   const activeColor = color || '#000'
-  const adjusted = React.useMemo(() => getTabColorsForLightMode(activeColor), [activeColor])
+  const adjusted = React.useMemo(
+    () => getTabColors(activeColor, { isDark }),
+    [activeColor, isDark]
+  )
 
   return (
     <div className="w-full">
