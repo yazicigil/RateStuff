@@ -5,6 +5,7 @@ import { SocialIcon } from "react-social-icons";
 const normalizeUrl = (u: string) => {
   const t = (u || '').trim();
   if (!t) return '';
+  if (/^mailto:/i.test(t)) return t;
   if (/^https?:\/\//i.test(t)) return t;
   return 'https://' + t;
 };
