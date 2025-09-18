@@ -103,7 +103,6 @@ useEffect(() => {
         panelStyle={{ maxHeight: 320, overflowY: 'auto', pointerEvents: 'auto' }}
         rows={rows}
         autoResize
-        style={{ minHeight: "35px" }}
         itemTemplate={itemTemplate}
       />
     </div>
