@@ -341,9 +341,10 @@ export default function CommentBox({
                 <MentionTextArea
                   className={
                   "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
+                  "pl-3 " +
                   "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                  "[&_.rs-mention__ta]:!m-0 [&_.rs-mention__ta]:!p-0 [&_.rs-mention__ta]:!border-none [&_.rs-mention__ta]:!bg-transparent " +
-                  "[&_.rs-mention__ta]:!pl-12 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-0 [&_.rs-mention__ta]:!pb-0 " +
+                  "[&_.rs-mention__ta]:!m-0 [&_.rs-mention__ta]:!pt-0 [&_.rs-mention__ta]:!pb-0 [&_.rs-mention__ta]:!pr-0 [&_.rs-mention__ta]:!pl-0 " +
+                  "[&_.rs-mention__ta]:!border-none [&_.rs-mention__ta]:!bg-transparent " +
                   "[&_.rs-mention__ta]:!h-[44px] [&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[44px] " +
                   "focus-within:ring-2 " +
                   (hasBanned
@@ -555,9 +556,10 @@ export default function CommentBox({
             <MentionTextArea
               className={
                 "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
+                "pl-3 " +
                 "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                "[&_.rs-mention__ta]:!m-0 [&_.rs-mention__ta]:!p-0 [&_.rs-mention__ta]:!border-none [&_.rs-mention__ta]:!bg-transparent " +
-                "[&_.rs-mention__ta]:!pl-12 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-0 [&_.rs-mention__ta]:!pb-0 [&_.rs-mention__ta]:!resize-none " +
+                "[&_.rs-mention__ta]:!m-0 [&_.rs-mention__ta]:!pt-0 [&_.rs-mention__ta]:!pb-0 [&_.rs-mention__ta]:!pr-0 [&_.rs-mention__ta]:!pl-0 [&_.rs-mention__ta]:!resize-none " +
+                "[&_.rs-mention__ta]:!border-none [&_.rs-mention__ta]:!bg-transparent " +
                 "[&_.rs-mention__ta]:!h-[44px] [&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[44px] " +
                 "focus-within:ring-2 " +
                 (hasBanned
@@ -571,7 +573,7 @@ export default function CommentBox({
               style={{
                 // these CSS vars are consumed by MentionTextArea’s global style for perfect vertical centering
                 ['--rs-mention-height' as any]: '22px',
-                ['--rs-mention-line-height' as any]: '11px',
+                ['--rs-mention-line-height' as any]: '35px',
               }}
             />
             {session && (
