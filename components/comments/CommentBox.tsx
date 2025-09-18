@@ -362,7 +362,7 @@ export default function CommentBox({
                     aria-label="Fotoğraf ekle"
                     title="Fotoğraf ekle"
                     onClick={() => setShowEditUploader(v => !v)}
-                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    className="absolute right-1.5 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
                   >
                     <PhotoIcon className="h-5 w-5 opacity-80" />
                   </button>
@@ -582,7 +582,7 @@ export default function CommentBox({
                 aria-label="Fotoğraf ekle"
                 title="Fotoğraf ekle"
                 onClick={() => setShowUploader(v => !v)}
-                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                className="absolute right-1.5 top-1 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
               >
                 <PhotoIcon className="h-5 w-5 opacity-80" />
               </button>
