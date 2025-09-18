@@ -83,6 +83,22 @@ useEffect(() => {
   }
 }, []);
 
+// Keep the marker class even if re-rendered
+useEffect(() => {
+  const root = rootRef.current;
+  if (!root) return;
+  const ensure = () => {
+    const ta = root.querySelector('textarea');
+    if (ta && !ta.classList.contains('rs-mention__ta')) {
+      ta.classList.add('rs-mention__ta');
+    }
+  };
+  ensure();
+  const mo = new MutationObserver(() => ensure());
+  mo.observe(root, { childList: true, subtree: true });
+  return () => mo.disconnect();
+}, []);
+
   return (
     <div
       ref={rootRef}
@@ -102,7 +118,7 @@ useEffect(() => {
         appendTo={typeof window !== 'undefined' ? document.body : undefined}
         panelStyle={{ maxHeight: 320, overflowY: 'auto', pointerEvents: 'auto' }}
         rows={rows}
-        autoResize
+        autoResize={false}
         itemTemplate={itemTemplate}
       />
     </div>
