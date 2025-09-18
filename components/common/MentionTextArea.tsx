@@ -77,7 +77,10 @@ export function MentionTextArea({
   }, [onChange, setSuggestions, value]);
 
   return (
-    <div ref={rootRef} className={`relative rs-mention [&_textarea]:px-3 [&_textarea]:py-2 [&_textarea]:pr-12 [&_textarea]:leading-[1.4] ${className ?? ''}`}>
+    <div
+      ref={rootRef}
+      className={`relative rs-mention ${className ?? ''}`}
+    >
       <Mention
         value={value}
         onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
