@@ -340,17 +340,21 @@ export default function CommentBox({
               <div className="relative">
                 <MentionTextArea
                   className={
-                    "pl-1.5 [&_textarea]:pt-2.5 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                    "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
+                    "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                    "[&_textarea]:px-3 [&_textarea]:py-2.5 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] " +
+                    "[&_textarea]:text-[14px] [&_textarea]:leading-[1.45] " +
+                    "focus-within:ring-2 " +
                     (hasBanned
-                      ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-                      : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+                      ? "border-red-500 focus-within:ring-red-500 dark:border-red-600"
+                      : "border-gray-200 dark:border-white/10 focus-within:ring-emerald-400 focus-within:border-transparent")
                   }
                   value={text}
                   onChange={(v) => setText(v)}
                   rows={2}
                   placeholder={"Yorum yaz..."}
                 />
-                {(myImages.length + newImages.length) === 0 && (
+                {session && (myImages.length + newImages.length) === 0 && (
                   <button
                     type="button"
                     aria-label="Fotoğraf ekle"
@@ -549,25 +553,31 @@ export default function CommentBox({
           <div className="relative">
             <MentionTextArea
               className={
-                "pl-1.5 [&_textarea]:pt-3 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] placeholder:opacity-70 focus:ring-2 w-full border rounded-xl text-sm bg-transparent dark:bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
+                "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                "[&_textarea]:px-3 [&_textarea]:py-2.5 [&_textarea]:pr-10 [&_textarea]:min-h-[44px] " +
+                "[&_textarea]:text-[14px] [&_textarea]:leading-[1.45] " +
+                "focus-within:ring-2 " +
                 (hasBanned
-                  ? "border-red-500 ring-red-500 focus:ring-red-500 dark:border-red-600 dark:ring-red-600"
-                  : "border-gray-300 dark:border-gray-700 focus:ring-emerald-400")
+                  ? "border-red-500 focus-within:ring-red-500 dark:border-red-600"
+                  : "border-gray-200 dark:border-white/10 focus-within:ring-emerald-400 focus-within:border-transparent")
               }
               value={text}
               onChange={(v) => setText(v)}
               rows={1}
               placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
             />
-            <button
-              type="button"
-              aria-label="Fotoğraf ekle"
-              title="Fotoğraf ekle"
-              onClick={() => setShowUploader(v => !v)}
-              className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
-            >
-              <PhotoIcon className="h-5 w-5 opacity-80" />
-            </button>
+            {session && (
+              <button
+                type="button"
+                aria-label="Fotoğraf ekle"
+                title="Fotoğraf ekle"
+                onClick={() => setShowUploader(v => !v)}
+                className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/80 backdrop-blur-sm shadow-sm hover:bg-white/95 dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              >
+                <PhotoIcon className="h-5 w-5 opacity-80" />
+              </button>
+            )}
           </div>
           {hasBanned && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-500">
