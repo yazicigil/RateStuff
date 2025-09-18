@@ -11,6 +11,7 @@ export function MentionTextArea({
   className,
   minLengthToTrigger = 0,
   rows = 1,
+  style,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -18,6 +19,7 @@ export function MentionTextArea({
   className?: string;
   minLengthToTrigger?: number;
   rows?: number;
+  style?: React.CSSProperties;
 }) {
   const [suggestions, setSuggestions] = useState<BrandOpt[]>([]);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -103,6 +105,7 @@ useEffect(() => {
     <div
       ref={rootRef}
       className={`relative rs-mention rs-mention__root ${className ?? ''}`}
+      style={style}
     >
       <Mention
         value={value}
@@ -121,6 +124,16 @@ useEffect(() => {
         autoResize={false}
         itemTemplate={itemTemplate}
       />
+      <style jsx global>{`
+        /* Ensure PrimeReact Mention textarea text is vertically centered when desired */
+        .rs-mention__root .rs-mention__ta {
+          padding-top: 0 !important;
+          padding-bottom: 0 !important;
+          /* Use CSS variables so parents can control sizes without fighting Prime styles */
+          height: var(--rs-mention-height, 44px) !important;
+          line-height: var(--rs-mention-line-height, 44px) !important;
+        }
+      `}</style>
     </div>
   );
 }
