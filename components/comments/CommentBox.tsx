@@ -570,8 +570,8 @@ export default function CommentBox({
               placeholder={session ? 'Yorum yaz…' : 'Yorum için giriş yap'}
               style={{
                 // these CSS vars are consumed by MentionTextArea’s global style for perfect vertical centering
-                ['--rs-mention-height' as any]: '44px',
-                ['--rs-mention-line-height' as any]: '44px',
+                ['--rs-mention-height' as any]: '22px',
+                ['--rs-mention-line-height' as any]: '22px',
               }}
             />
             {session && (
