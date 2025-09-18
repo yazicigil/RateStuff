@@ -121,7 +121,7 @@ useEffect(() => {
         appendTo={typeof window !== 'undefined' ? document.body : undefined}
         panelStyle={{ maxHeight: 320, overflowY: 'auto', pointerEvents: 'auto' }}
         rows={rows}
-        autoResize={false}
+        autoResize={true}
         itemTemplate={itemTemplate}
       />
       <style jsx global>{`
