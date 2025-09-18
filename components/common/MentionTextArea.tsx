@@ -130,8 +130,8 @@ useEffect(() => {
           padding-top: 0 !important;
           padding-bottom: 0 !important;
           /* Use CSS variables so parents can control sizes without fighting Prime styles */
-          height: var(--rs-mention-height, 44px) !important;
-          line-height: var(--rs-mention-line-height, 44px) !important;
+          height: var(--rs-mention-height, 22px) !important;
+          line-height: var(--rs-mention-line-height, 22px) !important;
         }
       `}</style>
     </div>
