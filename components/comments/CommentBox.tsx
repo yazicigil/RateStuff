@@ -340,10 +340,10 @@ export default function CommentBox({
               <div className="relative">
                 <MentionTextArea
                   className={
-                    "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
-                    "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                   "[&_.rs-mention__ta]:!pl-8 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-3 [&_.rs-mention__ta]:!pb-3 [&_.rs-mention__ta]:!min-h-[48px] " +
-"[&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[1.5] " +
+                  "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
+                  "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
+                 "[&_.rs-mention__ta]:!pl-8 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-3 [&_.rs-mention__ta]:!pb-3 [&_.rs-mention__ta]:!min-h-[44px] " +
+"[&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[20px] " +
                     "focus-within:ring-2 " +
                     (hasBanned
                       ? "border-red-500 focus-within:ring-red-500 dark:border-red-600"
@@ -555,8 +555,8 @@ export default function CommentBox({
               className={
                 "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
                 "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-               "[&_.rs-mention__ta]:!pl-8 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-3 [&_.rs-mention__ta]:!pb-3 [&_.rs-mention__ta]:!min-h-[48px] " +
-"[&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[1.5] " +
+               "[&_.rs-mention__ta]:!pl-8 [&_.rs-mention__ta]:!pr-10 [&_.rs-mention__ta]:!pt-3 [&_.rs-mention__ta]:!pb-3 [&_.rs-mention__ta]:!min-h-[44px] " +
+"[&_.rs-mention__ta]:!text-[14px] [&_.rs-mention__ta]:!leading-[20px] " +
                 "focus-within:ring-2 " +
                 (hasBanned
                   ? "border-red-500 focus-within:ring-red-500 dark:border-red-600"
