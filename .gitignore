@@ -16,5 +16,3 @@ coverage/
 .DS_Store
 .vscode/
 
-# Ignore local test page
-app/test/
