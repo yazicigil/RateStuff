@@ -571,7 +571,7 @@ export default function CommentBox({
               style={{
                 // these CSS vars are consumed by MentionTextArea’s global style for perfect vertical centering
                 ['--rs-mention-height' as any]: '22px',
-                ['--rs-mention-line-height' as any]: '22px',
+                ['--rs-mention-line-height' as any]: '11px',
               }}
             />
             {session && (
