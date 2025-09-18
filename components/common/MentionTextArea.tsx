@@ -99,6 +99,41 @@ useEffect(() => {
   return () => mo.disconnect();
 }, []);
 
+// JS-driven single-line vertical centering (opt-in via .rs-center-single on wrapper)
+useEffect(() => {
+  const root = rootRef.current;
+  if (!root || !root.classList.contains('rs-center-single')) return;
+  const ta = root.querySelector('textarea') as HTMLTextAreaElement | null;
+  if (!ta) return;
+  const nudge = () => {
+    const cs = getComputedStyle(ta);
+    const h = ta.clientHeight; // excludes border
+    const lh = parseFloat(cs.lineHeight || "0");
+    if (!h || !lh) return;
+    // remove existing vertical paddings then reapply balanced paddings
+    ta.style.paddingTop = '0px';
+    ta.style.paddingBottom = '0px';
+    // macOS SF optical tweak +0.5px
+    const isMac = typeof navigator !== 'undefined' && /(Mac|iPhone|iPad|Macintosh)/.test(navigator.userAgent || '');
+    const extra = isMac ? 0.5 : 0;
+    const pad = Math.max(0, (h - lh) / 2 + extra);
+    ta.style.paddingTop = pad + 'px';
+    ta.style.paddingBottom = pad + 'px';
+  };
+  nudge();
+  const ro = new ResizeObserver(() => nudge());
+  ro.observe(ta);
+  // Recenter when fonts load or value changes size
+  const mo = new MutationObserver(() => nudge());
+  mo.observe(ta, { attributes: true, attributeFilter: ['style', 'class'], characterData: false, childList: false });
+  window.addEventListener('resize', nudge);
+  return () => {
+    try { ro.disconnect(); } catch {}
+    try { mo.disconnect(); } catch {}
+    window.removeEventListener('resize', nudge);
+  };
+}, []);
+
   return (
     <div
       ref={rootRef}
