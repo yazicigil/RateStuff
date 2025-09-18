@@ -342,7 +342,7 @@ export default function CommentBox({
                   className={
                     "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
                     "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                    "[&_textarea]:pl-4 [&_textarea]:pr-10 [&_textarea]:pt-3 [&_textarea]:pb-3 [&_textarea]:min-h-[48px] " +
+                    "[&_textarea]:pl-6 [&_textarea]:pr-10 [&_textarea]:pt-3 [&_textarea]:pb-3 [&_textarea]:min-h-[48px] " +
                     "[&_textarea]:text-[14px] [&_textarea]:leading-[1.5] " +
                     "focus-within:ring-2 " +
                     (hasBanned
@@ -555,7 +555,7 @@ export default function CommentBox({
               className={
                 "w-full rounded-xl border transition-colors bg-white/70 dark:bg-white/5 backdrop-blur-sm " +
                 "text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 " +
-                "[&_textarea]:pl-4 [&_textarea]:pr-10 [&_textarea]:pt-3 [&_textarea]:pb-3 [&_textarea]:min-h-[48px] " +
+                "[&_textarea]:pl-6 [&_textarea]:pr-10 [&_textarea]:pt-3 [&_textarea]:pb-3 [&_textarea]:min-h-[48px] " +
                 "[&_textarea]:text-[14px] [&_textarea]:leading-[1.5] " +
                 "focus-within:ring-2 " +
                 (hasBanned
