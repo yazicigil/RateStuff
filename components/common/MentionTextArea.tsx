@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { Mention } from "primereact/mention";
 
 type BrandOpt = { slug: string; name: string; avatarUrl?: string | null };
@@ -76,10 +76,17 @@ export function MentionTextArea({
     setSuggestions([]);
   }, [onChange, setSuggestions, value]);
 
+useEffect(() => {
+  const ta = rootRef.current?.querySelector('textarea');
+  if (ta && !ta.classList.contains('rs-mention__ta')) {
+    ta.classList.add('rs-mention__ta');
+  }
+}, []);
+
   return (
     <div
       ref={rootRef}
-      className={`relative rs-mention ${className ?? ''}`}
+      className={`relative rs-mention rs-mention__root ${className ?? ''}`}
     >
       <Mention
         value={value}
